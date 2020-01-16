@@ -4,6 +4,7 @@ using FNPlugin.Wasteheat;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin 
 {
@@ -125,7 +126,7 @@ namespace FNPlugin
         protected void OnGUI() 
         {
             if (render_window) 
-                windowPosition = GUILayout.Window(windowID, windowPosition, Window, "Interstellar Thermal Mechanics Helper");
+                windowPosition = GUILayout.Window(windowID, windowPosition, Window, Localizer.Format("#LOC_KSPIE_VABThermalUI_title"));//"Interstellar Thermal Mechanics Helper"
         }
 
         private void Window(int windowID) 
@@ -161,54 +162,54 @@ namespace FNPlugin
             //GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Total Heat Production:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalHeatProduction"), bold_label, GUILayout.ExpandWidth(true));//"Total Heat Production:"
             GUILayout.Label(getPowerFormatString(total_source_power), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Thermal Source Temperature at 100%:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_ThermalSourceTemperature100"), bold_label, GUILayout.ExpandWidth(true));//"Thermal Source Temperature at 100%:"
             string source_temp_string = (source_temp_at_100pc < 0) ? "N/A" : source_temp_at_100pc.ToString("0.0") + " K";
             GUILayout.Label(source_temp_string, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Thermal Source Temperature at 30%:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_ThermalSourceTemperature30"), bold_label, GUILayout.ExpandWidth(true));//"Thermal Source Temperature at 30%:"
             string source_temp_string2 = (source_temp_at_30pc < 0) ? "N/A" : source_temp_at_30pc.ToString("0.0") + " K";
             GUILayout.Label(source_temp_string2, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Total Number of Radiators:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalNumberofRadiators"), bold_label, GUILayout.ExpandWidth(true));//"Total Number of Radiators:"
             GUILayout.Label(n_rads.ToString(), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Total Area Radiators:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalAreaRadiators"), bold_label, GUILayout.ExpandWidth(true));//"Total Area Radiators:"
             GUILayout.Label(total_area + " m\xB2", GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
 
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Radiator Maximum Dissipation:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumDissipation"), bold_label, GUILayout.ExpandWidth(true));//"Radiator Maximum Dissipation:"
             GUILayout.Label(getPowerFormatString(rad_max_dissip), radiator_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             string resting_radiator_temp_at_100pcntStr = (!double.IsInfinity(resting_radiator_temp_at_100pcnt) && !double.IsNaN(resting_radiator_temp_at_100pcnt)) ? resting_radiator_temp_at_100pcnt.ToString("0.0") + " K" : "N/A";
-            GUILayout.Label("Radiator Resting Temperature at 100% Power:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorRestingTemperatureat100"), bold_label, GUILayout.ExpandWidth(true));//"Radiator Resting Temperature at 100% Power:"
             GUILayout.Label(resting_radiator_temp_at_100pcntStr, radiator_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             string resting_radiator_temp_at_30pcntStr = (!double.IsInfinity(resting_radiator_temp_at_30pcnt) && !double.IsNaN(resting_radiator_temp_at_30pcnt)) ? resting_radiator_temp_at_30pcnt.ToString("0.0") + " K" : "N/A";
-            GUILayout.Label("Radiator Resting Temperature at 30% Power:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorRestingTemperatureat30"), bold_label, GUILayout.ExpandWidth(true));//"Radiator Resting Temperature at 30% Power:"
             GUILayout.Label(resting_radiator_temp_at_30pcntStr, radiator_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
 
             if (has_generators) 
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Resting Generator Efficiency at 100% Power:", bold_label, GUILayout.ExpandWidth(true));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RestingGeneratorEfficiencyat100"), bold_label, GUILayout.ExpandWidth(true));//"Resting Generator Efficiency at 100% Power:"
                 GUILayout.Label((generator_efficiency_at_100pcnt*100).ToString("0.00") + "%", radiator_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Resting Generator Efficiency at 30% Power:", bold_label, GUILayout.ExpandWidth(true));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RestingGeneratorEfficiencyat30"), bold_label, GUILayout.ExpandWidth(true));//"Resting Generator Efficiency at 30% Power:"
                 GUILayout.Label((generator_efficiency_at_30pcnt * 100).ToString("0.00") + "%", radiator_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
                 GUILayout.EndHorizontal();
             }

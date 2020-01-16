@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -11,22 +12,22 @@ namespace FNPlugin
         protected long active_count = 0;
         protected string science_vess_ref;
 
-        [KSPEvent(guiActive = true, guiName = "Record Seismic Data", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_SeismicProbe_RecordData", active = true)]//Record Seismic Data
         public void ActivateProbe()
         {
             if (vessel.Landed)
             {
                 //PopupDialog.SpawnPopupDialog("Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.Skin);
-                PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "Seismic Probe", "Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.UISkin);
+                PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "Seismic Probe", Localizer.Format("#LOC_KSPIE_SeismicProbe_Dialog_title"), Localizer.Format("#LOC_KSPIE_SeismicProbe_Dialog_message"), Localizer.Format("#LOC_KSPIE_SeismicProbe_Dialog_Button"), false, HighLogic.UISkin);//"Seismic Probe""Surface will be monitored for impact events.""OK"
                 probeIsEnabled = true;
             }
             else
-                ScreenMessages.PostScreenMessage("Must be landed to activate seismic probe.", 5f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SeismicProbe_Postmsg1"), 5f, ScreenMessageStyle.UPPER_CENTER);//"Must be landed to activate seismic probe."
 
             saveState();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Stop Recording", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_SeismicProbe_StopRecording", active = false)]//Stop Recording
         public void DeactivateProbe()
         {
             probeIsEnabled = false;
@@ -61,8 +62,8 @@ namespace FNPlugin
             //subject.scienceCap = float.MaxValue;
             //subject.science = 1;
             //subject.subjectValue = 1;
-            result_title = "Impactor Experiment";
-            result_string = "No useful seismic data has been recorded.";
+            result_title = Localizer.Format("#LOC_KSPIE_SeismicProbe_Resulttitle");//"Impactor Experiment"
+            result_string = Localizer.Format("#LOC_KSPIE_SeismicProbe_Resultmsg");//"No useful seismic data has been recorded."
             transmit_value = 0;
             recovery_value = 0;
             data_size = 0;
@@ -103,7 +104,7 @@ namespace FNPlugin
                             data_size = base_science * subject.dataScale;
                             science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Impactor Data");
 
-                            result_string = vessel_name + " impacted into " + vessel.mainBody.name + " producing seismic activity.  From this data, information on the structure of " + vessel.mainBody.name + "'s crust can be determined.";
+                            result_string = Localizer.Format("#LOC_KSPIE_SeismicProbe_Resultmsg2", vessel_name,vessel.mainBody.name,vessel.mainBody.name);// + " impacted into " +  + " producing seismic activity.  From this data, information on the structure of " +  + "'s crust can be determined."
 
                             float science_amount = base_science * subject.subjectValue;
                             recovery_value = science_amount * subject.scientificValue;

@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using CommNet;
+using KSP.Localization;
 
 
 namespace FNPlugin
@@ -10,13 +11,13 @@ namespace FNPlugin
     class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule
     {
         // Persistant
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Name")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Name")]//Name
         public string nameStr = "";
-        [KSPField(guiActive = true, guiName = "Data Collection Rate")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_DataCollectionRate")]//Data Collection Rate
         public string scienceRate;
-        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On", scene = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_ComputerCore_AIOnline", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "#LOC_KSPIE_ComputerCore_AIOnline_Off", enabledText = "#LOC_KSPIE_ComputerCore_AIOnline_On", scene = UI_Scene.All)]//AI Online--Off--On
         public bool IsEnabled = false;
-        [KSPField(isPersistant = true, guiName = "Powered", guiActive = true, guiActiveEditor = false)]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_ComputerCore_IsPowered", guiActive = true, guiActiveEditor = false)]//Powered
         public bool IsPowered = false;
         [KSPField(isPersistant = true, guiActiveEditor = true)]
         public bool isupgraded = false;
@@ -24,7 +25,7 @@ namespace FNPlugin
         public double electrical_power_ratio;
         [KSPField(isPersistant = true)]
         public double last_active_time;
-        [KSPField(isPersistant = true, guiName = "Data stored", guiActive = true, guiActiveEditor = false)]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_ComputerCore_Datastored", guiActive = true, guiActiveEditor = false)]//Data stored
         public double science_to_add;
         [KSPField(isPersistant = true)]
         public bool coreInit = false;
@@ -52,9 +53,9 @@ namespace FNPlugin
         //Gui
         [KSPField]
         const double baseScienceRate = 0.3;
-        [KSPField(guiActive = true, guiName = "Type")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Type")]//Type
         public string computercoreType;
-        [KSPField(guiActive = true, guiName = "Upgrade")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Upgrade")]//Upgrade
         public string upgradeCostStr;        
 
         // Privates
@@ -76,7 +77,7 @@ namespace FNPlugin
         public bool CanProvideTelescopeControl {  get { return isupgraded && IsEnabled && IsPowered; }  }
 
         // Events
-        [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Retrofit", active = true)]//Retrofit
         public void RetrofitCore()
         {
             if (ResearchAndDevelopment.Instance == null) { return; }
@@ -160,7 +161,7 @@ namespace FNPlugin
             scienceRate = scienceratetmp.ToString("0.000") + "/ Day";
 
             if (ResearchAndDevelopment.Instance != null)
-                upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
+                upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";//
         }
 
         public override void OnFixedUpdate()
@@ -269,8 +270,8 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            string desc = "Power Requirements: " + megajouleRate.ToString("0.0") + " MW\n";
-            return desc + "Upgraded Power Requirements: " + upgradedMegajouleRate.ToString("0.0") + " MW\n";
+            string desc = Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo1") + " " + megajouleRate.ToString("0.0") + " MW\n";//"Power Requirements: "
+            return desc + Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo2") + upgradedMegajouleRate.ToString("0.0") + " MW\n";//"Upgraded Power Requirements: "
 
         }
 

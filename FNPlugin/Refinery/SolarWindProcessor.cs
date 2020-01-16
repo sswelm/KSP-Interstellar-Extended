@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -304,22 +305,22 @@ namespace FNPlugin.Refinery
             base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Solar Wind Available", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_storedSolarWindMass * 1e6).ToString("0.000") + " gram", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_SolarWindAvailable"), _bold_label, GUILayout.Width(labelWidth));//"Solar Wind Available"
+            GUILayout.Label((_storedSolarWindMass * 1e6).ToString("0.000") + " "+Localizer.Format("#LOC_KSPIE_SolarWindProcessor_gram"), _value_label, GUILayout.Width(valueWidth));//gram
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Solar Wind Max Capacity", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_maxCapacitySolarWindMass * 1e6).ToString("0.000") + " gram", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_SolarWindMaxCapacity"), _bold_label, GUILayout.Width(labelWidth));//"Solar Wind Max Capacity"
+            GUILayout.Label((_maxCapacitySolarWindMass * 1e6).ToString("0.000") + " gram", _value_label, GUILayout.Width(valueWidth));//
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Solar Wind Consumption", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_SolarWindConsumption"), _bold_label, GUILayout.Width(labelWidth));//"Solar Wind Consumption"
             GUILayout.Label((((float)_solar_wind_consumption_rate * GameConstants.SECONDS_IN_HOUR * 1e6).ToString("0.0000")) + " g/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
@@ -327,12 +328,12 @@ namespace FNPlugin.Refinery
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Output", _bold_label, GUILayout.Width(150));
-            GUILayout.Label("Percentage", _bold_label, GUILayout.Width(100));
-            GUILayout.Label("Capacity", _bold_label, GUILayout.Width(100));
-            GUILayout.Label("Stored", _bold_label, GUILayout.Width(100));
-            GUILayout.Label("Spare Room", _bold_label, GUILayout.Width(100));
-            GUILayout.Label("Production", _bold_label, GUILayout.Width(100));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Output"), _bold_label, GUILayout.Width(150));//"Output"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Percentage"), _bold_label, GUILayout.Width(100));//"Percentage"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Capacity"), _bold_label, GUILayout.Width(100));//"Capacity"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Stored"), _bold_label, GUILayout.Width(100));//"Stored"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_SpareRoom"), _bold_label, GUILayout.Width(100));//"Spare Room"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Production"), _bold_label, GUILayout.Width(100));//"Production"
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -402,13 +403,13 @@ namespace FNPlugin.Refinery
         private void updateStatusMessage()
         {
             if (_solar_wind_consumption_rate > 0)
-                _status = "Processing of Solar Wind Particles Ongoing";
+                _status = Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Statumsg1");//"Processing of Solar Wind Particles Ongoing"
             else if (CurrentPower <= 0.01*PowerRequirements)
-                _status = "Insufficient Power";
+                _status = Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Statumsg2");//"Insufficient Power"
             else if (_storedSolarWindMass <= float.Epsilon)
-                _status = "No Solar Wind Particles Available";
+                _status = Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Statumsg3");//"No Solar Wind Particles Available"
             else
-                _status = "Insufficient Storage, try allowing overflow";
+                _status = Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Statumsg4");//"Insufficient Storage, try allowing overflow"
         }
 
         private string MetricTon(double value, string format = "")
@@ -423,7 +424,7 @@ namespace FNPlugin.Refinery
 
         public void PrintMissingResources() 
         {
-            ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.SolarWind, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.SolarWind, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

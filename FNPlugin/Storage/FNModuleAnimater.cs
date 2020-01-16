@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using KSP.Localization;
 
 /* AdvancedAnimator was made by Christophe Savard (stupid_chris) and is licensed under CC-BY-SA. You are free to share and modify this code freely
  * under the attribution clause to me. You can contact me on the forums for more information. */
@@ -41,7 +42,7 @@ namespace FNPlugin
         public bool enabled = false;
         [KSPField(isPersistant = true)]
         public bool played = true;
-        [KSPField(guiActive = true, guiName = "Status")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ModuleAnimater_Status")]//Status
         public string status = "Enable";
         #endregion
 
@@ -50,7 +51,7 @@ namespace FNPlugin
         #endregion
 
         #region Part GUI
-        [KSPEvent(active = true, guiActive = true, guiActiveEditor = true, guiActiveUnfocused = true, externalToEVAOnly = true, guiName = "Toggle", unfocusedRange = 5)]
+        [KSPEvent(active = true, guiActive = true, guiActiveEditor = true, guiActiveUnfocused = true, externalToEVAOnly = true, guiName = "#LOC_KSPIE_ModuleAnimater_Toggle", unfocusedRange = 5)]//Toggle
         public void GUIToggle()
         {
             if (this.enabled) { Disable(); }
@@ -169,16 +170,16 @@ namespace FNPlugin
             if (!HighLogic.LoadedSceneIsFlight) { return; }
             if (CheckAnimationPlaying())
             {
-                if (this.enabled) { this.status = "Deploying..."; }
-                else { this.status = "Retracting..."; }
+                if (this.enabled) { this.status = Localizer.Format("#LOC_KSPIE_ModuleAnimater_Deploying"); }//"Deploying..."
+                else { this.status = Localizer.Format("#LOC_KSPIE_ModuleAnimater_Retracting"); }//"Retracting..."
             }
             else
             {
-                if (this.oneShot && this.played) { this.status = "Locked."; }
+                if (this.oneShot && this.played) { this.status = Localizer.Format("#LOC_KSPIE_ModuleAnimater_Locked"); }//"Locked."
                 else
                 {
-                    if (this.enabled) { this.status = "Deployed"; }
-                    else { this.status = "Retracted"; }
+                    if (this.enabled) { this.status = Localizer.Format("#LOC_KSPIE_ModuleAnimater_Deployed"); }//"Deployed"
+                    else { this.status = Localizer.Format("#LOC_KSPIE_ModuleAnimater_Retracted"); }//"Retracted"
                 }
             }
         }

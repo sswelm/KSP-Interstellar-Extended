@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -145,57 +146,57 @@ namespace FNPlugin.Refinery
             base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Current Consumption", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_CurrentConsumption"), _bold_label, GUILayout.Width(labelWidth));//"Current Consumption"
             GUILayout.Label(((_consumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Consumption Storage Ratio", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_ConsumptionStorageRatio"), _bold_label, GUILayout.Width(labelWidth));//"Consumption Storage Ratio"
             GUILayout.Label(((_consumptionStorageRatio * 100).ToString("0.0000") + "%"), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("CarbonDioxide Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_CarbonDioxideAvailable"), _bold_label, GUILayout.Width(labelWidth));//"CarbonDioxide Available"
             GUILayout.Label(_availableDioxideMass.ToString("0.0000") + " mT / " + _maxCapacityDioxideMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("CarbonDioxide Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_CarbonDioxideConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"CarbonDioxide Consumption Rate"
             GUILayout.Label((_dioxide_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_HydrogenAvailable"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Available"
             GUILayout.Label(_availableHydrogenMass.ToString("0.00000") + " mT / " + _maxCapacityHydrogenMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_HydrogenConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Consumption Rate"
             GUILayout.Label((_hydrogen_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Water Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_WaterStorage"), _bold_label, GUILayout.Width(labelWidth));//"Water Storage"
             GUILayout.Label(_spareRoomWaterMass.ToString("0.0000") + " mT / " + _maxCapacityWaterMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Water Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_WaterProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Water Production Rate"
             GUILayout.Label((_water_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("MonoxideMonoxide Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_MonoxideMonoxideStorage"), _bold_label, GUILayout.Width(labelWidth));//"MonoxideMonoxide Storage"
             GUILayout.Label(_spareRoomMonoxideMass.ToString("0.0000") + " mT / " + _maxCapacityMonoxideMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("MonoxideMonoxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_MonoxideMonoxideProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"MonoxideMonoxide Production Rate"
             GUILayout.Label((_monoxide_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
@@ -203,30 +204,30 @@ namespace FNPlugin.Refinery
         private void updateStatusMessage()
         {
             if (_monoxide_production_rate > 0 && _water_production_rate > 0)
-                _status = "Water Gas Shifting";
+                _status = Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg1");//"Water Gas Shifting"
             else if (_fixedConsumptionRate <= 0.0000000001)
             {
                 if (_availableDioxideMass <= 0.0000000001)
-                    _status = "Out of CarbonDioxide";
+                    _status = Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg2");//"Out of CarbonDioxide"
                 else
-                    _status = "Out of Hydrogen";
+                    _status = Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg3");//"Out of Hydrogen"
             }
             else if (_monoxide_production_rate > 0)
-                _status = _allowOverflow ? "Overflowing " : "Insufficient " + _waterResourceName + " Storage";
+                _status = _allowOverflow ? Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg4") : Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg5", _waterResourceName);//"Overflowing ""Insufficient " +  + " Storage"
             else if (_water_production_rate > 0)
-                _status = _allowOverflow ? "Overflowing " : "Insufficient " + _monoxideResourceName + " Storage";
+                _status = _allowOverflow ? Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg4") : Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg5", _monoxideResourceName);//"Overflowing ""Insufficient " +  + " Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
-                _status = "Insufficient Power";
+                _status = Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg6");//"Insufficient Power"
             else
-                _status = "Insufficient Storage";
+                _status = Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg7");//"Insufficient Storage"
         }
 
         public void PrintMissingResources()
         {
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.CarbonDioxide).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.CarbonDioxide, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.CarbonDioxide, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Hydrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.Hydrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -148,57 +149,57 @@ namespace FNPlugin.Refinery
             base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Current Consumption", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Consumption"), _bold_label, GUILayout.Width(labelWidth));//"Current Consumption"
             GUILayout.Label(((_consumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Consumption Storage Ratio", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_ConsumptionStorageRatio"), _bold_label, GUILayout.Width(labelWidth));//"Consumption Storage Ratio"
             GUILayout.Label(((_consumptionStorageRatio * 100).ToString("0.00000") + "%"), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Ammonia Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_AmmoniaAvailable"), _bold_label, GUILayout.Width(labelWidth));//"Ammonia Available"
             GUILayout.Label(_availableAmmoniaMass.ToString("0.00000") + " mT / " + _maxCapacityAmmoniaMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Ammona Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_AmmonaConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Ammona Consumption Rate"
             GUILayout.Label((_ammonia_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Peroxide Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_HydrogenPeroxideAvailable"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Peroxide Available"
             GUILayout.Label(_availableHydrogenPeroxideMass.ToString("0.00000") + " mT / " + _maxCapacityHydrogenPeroxideMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Peroxide Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_HydrogenPeroxideConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Peroxide Consumption Rate"
             GUILayout.Label((_hydrogen_peroxide_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Water Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_WaterStorage"), _bold_label, GUILayout.Width(labelWidth));//"Water Storage"
             GUILayout.Label(_spareRoomWaterMass.ToString("0.00000") + " mT / " + _maxCapacityWaterMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Water Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_WaterProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Water Production Rate"
             GUILayout.Label((_water_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrazine Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_HydrazineStorage"), _bold_label, GUILayout.Width(labelWidth));//"Hydrazine Storage"
             GUILayout.Label(_spareRoomHydrazineMass.ToString("0.00000") + " mT / " + _maxCapacityHydrazineMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrazine Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_HydrazineProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrazine Production Rate"
             GUILayout.Label((_hydrazine_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
@@ -206,32 +207,32 @@ namespace FNPlugin.Refinery
         private void updateStatusMessage()
         {
             if (_water_production_rate > 0 && _hydrazine_production_rate > 0)
-                _status = "Peroxide Process Ongoing";
+                _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg1");//"Peroxide Process Ongoing"
             else if (_hydrazine_production_rate > 0)
-                _status = "Ongoing: Insufficient Monopropellant Storage";
+                _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg2");//"Ongoing: Insufficient Monopropellant Storage"
             else if (_water_production_rate > 0)
-                _status = "Ongoing: Insufficient Water Storage";
+                _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg3");//"Ongoing: Insufficient Water Storage"
             else if (CurrentPower <= 0.01*PowerRequirements)
-                _status = "Insufficient Power";
+                _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg4");//"Insufficient Power"
             else
             {
                 if (_ammonia_consumption_rate > 0 && _hydrogen_peroxide_consumption_rate > 0)
-                    _status = "Insufficient Storage";
+                    _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg5");//"Insufficient Storage"
                 else if (_ammonia_consumption_rate > 0)
-                    _status = "Hydrogen Peroxide Deprived";
+                    _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg6");//"Hydrogen Peroxide Deprived"
                 else if (_hydrogen_peroxide_consumption_rate > 0)
-                    _status = "Ammonia Deprived";
+                    _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg7");//"Ammonia Deprived"
                 else
-                    _status = "Hydrogen Peroxide and Ammonia Deprived";
+                    _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg8");//"Hydrogen Peroxide and Ammonia Deprived"
             }
         }
 
         public void PrintMissingResources()
         {
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.HydrogenPeroxide + " (Hydrogen Peroxide)", 3.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg1", InterstellarResourcesConfiguration.Instance.HydrogenPeroxide), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " +  + " (Hydrogen Peroxide)"
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Ammonia, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg2", InterstellarResourcesConfiguration.Instance.Ammonia), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " + 
         }
     }
 }

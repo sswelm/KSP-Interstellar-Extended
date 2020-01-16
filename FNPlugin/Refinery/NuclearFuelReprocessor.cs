@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -48,7 +49,7 @@ namespace FNPlugin.Refinery
             _fixed_current_rate = enum_actinides_change;
             _current_rate = _fixed_current_rate / fixedDeltaTime;
             _remaining_seconds = _remaining_to_reprocess / _fixed_current_rate/ fixedDeltaTime;
-            _status = _fixed_current_rate > 0 ? "Online" : _remaining_to_reprocess > 0 ? "Power Deprived" : "No Fuel To Reprocess";
+            _status = _fixed_current_rate > 0 ? Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu1") : _remaining_to_reprocess > 0 ? Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu2") : Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu3");//"Online""Power Deprived""No Fuel To Reprocess"
         }
 
         public override void UpdateGUI()
@@ -56,15 +57,15 @@ namespace FNPlugin.Refinery
             base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             if (_remaining_seconds > 0 && !double.IsNaN(_remaining_seconds) && !double.IsInfinity(_remaining_seconds))
             {
                 int hrs = (int) (_remaining_seconds / 3600);
                 int mins = (int) ((_remaining_seconds - hrs*3600)/60);
                 int secs = (hrs * 60 + mins) % ((int)(_remaining_seconds / 60));
-                GUILayout.Label("Time Remaining", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(hrs + " hours " + mins + " minutes " + secs + " seconds", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_TimeRemaining"), _bold_label, GUILayout.Width(labelWidth));//"Time Remaining"
+                GUILayout.Label(hrs + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_hoursLabel") + " " + mins + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_minutesLabel") + " " + secs + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_secondsLabel"), _value_label, GUILayout.Width(valueWidth));//hours""minutes""seconds
             }
             GUILayout.EndHorizontal();
         }
@@ -81,7 +82,7 @@ namespace FNPlugin.Refinery
 
         public void PrintMissingResources()
         {
-                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Actinides, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.Actinides, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }
