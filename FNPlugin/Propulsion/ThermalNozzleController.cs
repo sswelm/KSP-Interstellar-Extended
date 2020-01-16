@@ -225,6 +225,10 @@ namespace FNPlugin
         public double plasmaAfterburnerRange = 20;
         [KSPField]
         public bool showThrustPercentage = true;
+        [KSPField]
+        public string throttleAnimName = "";
+        [KSPField]
+        public float throttleAnimExp = 1;
 
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
         public double scaledRadius;
@@ -472,7 +476,6 @@ namespace FNPlugin
         protected BaseField fuelflowThrottleField;
         protected BaseField sootAccumulationPercentageField;
         protected BaseField upgradeCostStrField;
-
         protected BaseEvent retrofitEngineEvent;
 
         protected UI_FloatRange fuelflowThrottleFloatRangeEditor;
@@ -486,6 +489,7 @@ namespace FNPlugin
         protected FloatCurve originalAtmosphereCurve;
         protected FloatCurve originalVelocityCurve;
         protected Animation deployAnim;
+        protected Animation throtleAnimation;
         protected AnimationState[] pulseAnimationState;
         protected AnimationState[] emiAnimationState;
         protected ResourceBuffers resourceBuffers;
@@ -502,7 +506,7 @@ namespace FNPlugin
         protected List<ThermalEngineFuel> _allThermalEngineFuels;
         protected List<ThermalEngineFuel> _compatibleThermalEngineFuels;
 
-        protected Rect windowPosition;
+        protected Rect windowPosition;        
 
         private IFNPowerSource _myAttachedReactor;
         public IFNPowerSource AttachedReactor
@@ -756,6 +760,8 @@ namespace FNPlugin
                 myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
                 timewarpEngine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
 
+                throtleAnimation = part.FindModelAnimators(throttleAnimName).FirstOrDefault();
+
                 if (myAttachedEngine != null)
                 {
                     myAttachedEngine.Fields["thrustPercentage"].guiActive = showThrustPercentage;
@@ -880,6 +886,8 @@ namespace FNPlugin
             try { SetupPropellants(fuel_mode); }
             catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in SetupPropellant" + e.Message); }
         }
+
+
 
         private void UpdateConfigEffects()
         {
@@ -1859,6 +1867,8 @@ namespace FNPlugin
                         if (!String.IsNullOrEmpty(_runningEffectNameParticleFX))
                             part.Effect(_runningEffectNameParticleFX, runningEffectRatio, -1);
                     }
+
+                    UpdateThrottleAnimation(0);
                 }
 
                 if (!String.IsNullOrEmpty(EffectNameSpool))
@@ -2194,12 +2204,21 @@ namespace FNPlugin
                         runningEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.requestedThrottle, currentMassFlow / maxEngineFuelFlow)) : 0;
                         part.Effect(_runningEffectNameParticleFX, powerEffectRatio, -1);
                     }
+
+                    UpdateThrottleAnimation(Math.Max(powerEffectRatio, runningEffectRatio));
                 }
             }
             catch (Exception e)
             {
                 Debug.LogError("[KSPI]: Error GenerateThrustFromReactorHeat " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
+        }
+
+        private void UpdateThrottleAnimation(float ratio)
+        {
+            throtleAnimation[throttleAnimName].speed = 0;
+            throtleAnimation[throttleAnimName].normalizedTime = Mathf.Pow(ratio, throttleAnimExp);
+            throtleAnimation.Blend(throttleAnimName);
         }
 
         private void CalculateMissingPreCoolerRatio()
