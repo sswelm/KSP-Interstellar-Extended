@@ -30,9 +30,9 @@ namespace FNPlugin.Wasteheat
         public bool radiatorInit;
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_Automated"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Automated-Off-On
         public bool isAutomated = true;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = ""), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]//PivotOff
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PivotOff"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Pivot--Off--On
         public bool pivotEnabled = true;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = ""), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]//Prevent Shielded Deploy-Off
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PreventShieldedDeploy"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Prevent Shielded Deploy-Off-On
         public bool preventShieldedDeploy = true;
         [KSPField(isPersistant = true)]
         public bool showRetractButton = false;
