@@ -730,7 +730,7 @@ namespace FNPlugin
         public override string getResourceManagerDisplayName() 
         {
             if (IsEnabled) 
-                return Localizer.Format("",modes[active_mode]);//"Science Lab (" +  + ")"
+                return Localizer.Format("#LOC_KSPIE_ScienceModule_ResourceManagerDisplayName", modes[active_mode]);//"Science Lab (" +  + ")"
             
             return Localizer.Format("#LOC_KSPIE_ScienceModule_ResourceManagerDisplayName2");//"Science Lab"
         }
