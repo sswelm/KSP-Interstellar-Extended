@@ -380,8 +380,10 @@ namespace FNPlugin
         public double received_megajoules_percentage;
 
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Jet Spool Ratio", guiFormat = "F2")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Jet Spool Ratio", guiFormat = "F2")]
         public float jetSpoolRatio = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Spool Effect Ratio", guiFormat = "F2")]
+        public float spoolEffectRatio = 0;
 
         [KSPField]
         public double minimumThrust = 0.000001;
@@ -1873,7 +1875,8 @@ namespace FNPlugin
 
                 if (!String.IsNullOrEmpty(EffectNameSpool))
                 {
-                    part.Effect(EffectNameSpool, (float)jetSpoolRatio * vcurveAtCurrentVelocity * atmosphereModifier, -1);
+                    spoolEffectRatio = jetSpoolRatio * vcurveAtCurrentVelocity * atmosphereModifier;
+                    part.Effect(EffectNameSpool, spoolEffectRatio);
                 }
 
                 if (myAttachedEngine.getIgnitionState && myAttachedEngine.status == _flameoutText)
@@ -1889,7 +1892,7 @@ namespace FNPlugin
 
         private void UpdateJetSpoolSpeed()
         {
-            if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
+            if (myAttachedEngine.getIgnitionState && myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
                 jetSpoolRatio += Math.Min(TimeWarp.fixedDeltaTime * 0.1f, 1 - jetSpoolRatio);
             else
                 jetSpoolRatio -= Math.Min(TimeWarp.fixedDeltaTime * 0.1f, jetSpoolRatio );
@@ -2216,6 +2219,9 @@ namespace FNPlugin
 
         private void UpdateThrottleAnimation(float ratio)
         {
+            if (string.IsNullOrWhiteSpace(throttleAnimName))
+                return;
+
             throtleAnimation[throttleAnimName].speed = 0;
             throtleAnimation[throttleAnimName].normalizedTime = Mathf.Pow(ratio, throttleAnimExp);
             throtleAnimation.Blend(throttleAnimName);
