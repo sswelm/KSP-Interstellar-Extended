@@ -1889,7 +1889,7 @@ namespace FNPlugin
 
         private void UpdateJetSpoolSpeed()
         {
-            if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
+            if (myAttachedEngine.getIgnitionState && myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
                 jetSpoolRatio += Math.Min(TimeWarp.fixedDeltaTime * 0.1f, 1 - jetSpoolRatio);
             else
                 jetSpoolRatio -= Math.Min(TimeWarp.fixedDeltaTime * 0.1f, jetSpoolRatio );
