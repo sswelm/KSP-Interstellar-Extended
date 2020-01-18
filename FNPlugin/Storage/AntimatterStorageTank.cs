@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using TweakScale;
 using FNPlugin.Constants;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -14,29 +15,29 @@ namespace FNPlugin
         // persitants
         [KSPField(isPersistant = true)]
         public double chargestatus = 1000;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "K", guiName = "Maximum Temperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "K", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxTemperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]//Maximum Temperature
         public float maxTemperature = 340;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "Maximum Acceleration"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 10f, minValue = 0.05f)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxAcceleration"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 10f, minValue = 0.05f)]//Maximum Acceleration
         public float maxGeeforce = 1;
-        [KSPField(isPersistant = true, guiName = "Module Cost")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ModuleCost")]//Module Cost
         public double moduleCost = 1;
-        [KSPField(isPersistant = true, guiName = "Stored Mass")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredMass")]//Stored Mass
         public double storedMassMultiplier = 1;
-        [KSPField(isPersistant = true, guiName = "Stored Target Mass")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredTargetMass")]//Stored Target Mass
         public double storedTargetMassMultiplier = 1;
-        [KSPField(isPersistant = true, guiName = "Scaling Factor")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ScalingFactor")]//Scaling Factor
         public double storedScalingfactor = 1;
-        [KSPField(isPersistant = true, guiName = "Antomatter Density")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_AntomatterDensity")]//Antomatter Density
         public double antimatterDensity;
-        [KSPField(isPersistant = true, guiName = "Initial Mass", guiUnits = " t", guiFormat = "F3")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_InitialMass", guiUnits = " t", guiFormat = "F3")]//Initial Mass
         public double initialMass;
-        [KSPField(isPersistant = true, guiName = "Target Mass", guiUnits = " t", guiFormat = "F3")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TargetMass", guiUnits = " t", guiFormat = "F3")]//Target Mass
         public double targetMass;
-        [KSPField(isPersistant = true, guiName = "Delta Mass", guiUnits = " t", guiFormat = "F3")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_DeltaMass", guiUnits = " t", guiFormat = "F3")]//Delta Mass
         public float moduleMassDelta;
-        [KSPField(isPersistant = true, guiName = "Attached Tanks Count")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_AttachedTanksCount")]//Attached Tanks Count
         public double attachedAntimatterTanksCount;
-        [KSPField(isPersistant = true, guiName = "Resource Ratio", guiFormat = "F3")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ResourceRatio", guiFormat = "F3")]//Resource Ratio
         public double resourceRatio;
         [KSPField(isPersistant = true)]
         public float emptyCost = 0;
@@ -44,9 +45,9 @@ namespace FNPlugin
         public float dryCost = 0;
         [KSPField(isPersistant = true)]
         public double partCost;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Tech Level")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TechLevel")]//Tech Level
         public int techLevel = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Stored amount")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Storedamount")]//Stored amount
         public double storedAmount;
 
         [KSPField]
@@ -97,25 +98,25 @@ namespace FNPlugin
         public double massTemperatureDivider = 12000;
         [KSPField]
         public double massGeeforceDivider = 40;
-        [KSPField(guiName = "Required Power")]
+        [KSPField(guiName = "#LOC_KSPIE_AntimatterStorageTank_RequiredPower")]//Required Power
         public double effectivePowerNeeded;
-        [KSPField(guiName = "Exploding")]
+        [KSPField(guiName = "#LOC_KSPIE_AntimatterStorageTank_Exploding")]//Exploding
         public bool exploding = false;
-        [KSPField(guiName = "Charge")]
+        [KSPField(guiName = "#LOC_KSPIE_AntimatterStorageTank_Charge")]//Charge
         public string chargeStatusStr;
-        [KSPField(guiName = "Status")]
+        [KSPField(guiName = "#LOC_KSPIE_AntimatterStorageTank_Status")]//Status
         public string statusStr;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Current")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Current")]//Current
         public string capacityStr;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Maximum")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Maximum")]//Maximum
         public string maxAmountStr;
-        [KSPField(guiActiveEditor = false, guiActive = true, guiName = "Cur/Max Temp", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Cur_MaxTemp", guiFormat = "F3")]//Cur/Max Temp
         public string TemperatureStr;
-        [KSPField(guiActive = true, guiName = "Cur/Max Geeforce")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_CurMaxGeeforce")]//Cur/Max Geeforce
         public string GeeforceStr;
         [KSPField]
         public bool canExplodeFromHeat = false;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Part Mass", guiUnits = " t", guiFormat = "F3" )]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_PartMass", guiUnits = " t", guiFormat = "F3" )]//Part Mass
         public double partMass;
         [KSPField]
         public bool calculatedMass = false;
@@ -158,13 +159,13 @@ namespace FNPlugin
 
         Queue<double> geeforceQueue = new Queue<double>(20);
 
-        [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StartCharging", active = true)]//Start Charging
         public void StartCharge()
         {
             should_charge = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Stop Charging", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StopCharging", active = true)]//Stop Charging
         public void StopCharge()
         {
             should_charge = false;
@@ -289,7 +290,7 @@ namespace FNPlugin
 
             if (antimatterResource.resourceName != resourceName)
             {
-                ScreenMessages.PostScreenMessage("List all" + antimatterResource.info.displayName, 10, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg1", antimatterResource.info.displayName), 10, ScreenMessageStyle.UPPER_CENTER);//"List all" + 
                 antimatterResource.amount = 0;
                 return;
             }
@@ -440,13 +441,13 @@ namespace FNPlugin
             }
 
             if (part.temperature >= part.maxTemp)
-                DoExplode("Antimatter container exploded because antimatter melted and breached containment");
+                DoExplode(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg2"));//"Antimatter container exploded because antimatter melted and breached containment"
             else if (part.vessel.geeForce >= part.gTolerance)
-                DoExplode("Antimatter container exploded because exceeding gee force Tolerance");
+                DoExplode(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg3"));//"Antimatter container exploded because exceeding gee force Tolerance"
             else if (chargestatus <= 0)
-                DoExplode("Antimatter container exploded because containment was unpowered");
+                DoExplode(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg4"));//"Antimatter container exploded because containment was unpowered"
             else
-                DoExplode("Antimatter container exploded for unknown reason");
+                DoExplode(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg5"));//"Antimatter container exploded for unknown reason"
 
             part.OnJustAboutToBeDestroyed -= OnJustAboutToBeDestroyed;
 
@@ -560,12 +561,12 @@ namespace FNPlugin
             Events["StopCharge"].active = antimatterResource.amount <= minimimAnimatterAmount && should_charge;
 
             if (maxCharge <= 60 && !charging && antimatterResource.amount > minimimAnimatterAmount)
-                ScreenMessages.PostScreenMessage("Warning!: Antimatter storage unpowered, tank explosion in: " + chargestatus.ToString("0") + "s", 0.5f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg6", chargestatus.ToString("0")), 0.5f, ScreenMessageStyle.UPPER_CENTER);//"Warning!: Antimatter storage unpowered, tank explosion in: " +  + "s"
 
             if (antimatterResource.amount > minimimAnimatterAmount)
-                statusStr = charging ? "Charging." : "Discharging!";
+                statusStr = charging ? Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Statu1") : Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Statu2");//"Charging.""Discharging!"
             else
-                statusStr = should_charge ? "Charging." : "No Power Required.";
+                statusStr = should_charge ? Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Statu1") : Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Statu3");//"Charging.""No Power Required."
         }
 
         private void UpdateTolerances()
@@ -606,7 +607,7 @@ namespace FNPlugin
             ExplodeContainer();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Self Destruct", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_SelfDestruct", active = true)]//Self Destruct
         public void SelfDestruct()
         {
             var antimatterResource = part.Resources[resourceName];
@@ -615,7 +616,7 @@ namespace FNPlugin
 
             if (HighLogic.LoadedSceneIsEditor || antimatterResource.amount <= minimimAnimatterAmount) return;
 
-            DoExplode("Antimatter container exploded because self destruct was activated");
+            DoExplode();//"Antimatter container exploded because self destruct was activated"
         }
 
         private void MaintainContainment()
@@ -674,7 +675,7 @@ namespace FNPlugin
                     if (TimeWarp.CurrentRateIndex > 3 && (antimatterResource.amount > minimimAnimatterAmount))
                     {
                         TimeWarp.SetRate(3, true);
-                        ScreenMessages.PostScreenMessage("Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while " + antimatterResource.resourceName + " Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg7", TimeWarp.CurrentRate,antimatterResource.resourceName), 1, ScreenMessageStyle.UPPER_CENTER);//"Cannot Time Warp faster than " +  + "x while " +  + " Tank is Unpowered"
                     }
                 }
             }
@@ -689,7 +690,7 @@ namespace FNPlugin
                 {
                     temperature_explode_counter++;
                     if (temperature_explode_counter > 20)
-                        DoExplode("Antimatter container exploded due to reaching critical temperature");
+                        DoExplode(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg8"));//"Antimatter container exploded due to reaching critical temperature"
                 }
                 else
                     temperature_explode_counter = 0;
@@ -702,23 +703,23 @@ namespace FNPlugin
                     {
                         if (currentGeeForce > effectiveMaxGeeforce)
                         {
-                            ScreenMessages.PostScreenMessage("ALERT: geeforce at critical!", 1, ScreenMessageStyle.UPPER_CENTER);
+                            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg9"), 1, ScreenMessageStyle.UPPER_CENTER);//"ALERT: geeforce at critical!"
                             geeforce_explode_counter++;
                             if (geeforce_explode_counter > 30)
-                                DoExplode("Antimatter container exploded due to reaching critical geeforce");
+                                DoExplode(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg10"));//"Antimatter container exploded due to reaching critical geeforce"
                         }
                         else if (TimeWarp.CurrentRateIndex > maximumTimewarpWithGeeforceWarning && currentGeeForce > effectiveMaxGeeforce - 0.02)
                         {
                             TimeWarp.SetRate(maximumTimewarpWithGeeforceWarning, true);
-                            ScreenMessages.PostScreenMessage("ALERT: Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
+                            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg11", TimeWarp.CurrentRate), 1, ScreenMessageStyle.UPPER_CENTER);//"ALERT: Cannot Time Warp faster than " +  + "x while geeforce near maximum tolerance!"
                         }
                         else if (currentGeeForce > effectiveMaxGeeforce - 0.04)
-                            ScreenMessages.PostScreenMessage("ALERT: geeforce at " + (currentGeeForce / effectiveMaxGeeforce * 100).ToString("F2") + "%  tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
+                            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg12", (currentGeeForce / effectiveMaxGeeforce * 100).ToString("F2")), 1, ScreenMessageStyle.UPPER_CENTER);//"ALERT: geeforce at " +  + "%  tolerance!"
                         else
                             geeforce_explode_counter = 0;
                     }
                     else if (currentGeeForce > effectiveMaxGeeforce)
-                        ScreenMessages.PostScreenMessage("Warning: geeforce tolerance exceeded but sustanable while the mission timer has not started", 1, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg13"), 1, ScreenMessageStyle.UPPER_CENTER);//"Warning: geeforce tolerance exceeded but sustanable while the mission timer has not started"
                 }
                 else
                     geeforce_explode_counter = 0;
@@ -731,7 +732,7 @@ namespace FNPlugin
                     {
                         power_explode_counter++;
                         if (power_explode_counter > 20)
-                            DoExplode("Antimatter container exploded due to running out of power");
+                            DoExplode(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg14"));//"Antimatter container exploded due to running out of power"
                     }
                 }
                 else
@@ -793,11 +794,11 @@ namespace FNPlugin
         public override string GetInfo()
         {
             var info = new StringBuilder();
-            info.AppendLine("Maximum Power Requirements: " + (chargeNeeded * 2).ToString("0") + " KW");
+            info.AppendLine(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Getinfo1") + (chargeNeeded * 2).ToString("0") + " KW");//"Maximum Power Requirements: "
             if (canExplodeFromGeeForce)
-                info.AppendLine("Maximum Geeforce: 10 G");
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Getinfo2"));//"Maximum Geeforce: 10 G"
             if (canExplodeFromHeat)
-                info.AppendLine("Maximum Geeforce: 1000 K");
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Getinfo3"));//"Maximum Geeforce: 1000 K"
 
             return info.ToString();
         }

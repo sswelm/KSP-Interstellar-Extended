@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Linq;
+using KSP.Localization;
 
 namespace FNPlugin
 {
     public class InterstellarResourceScienceModule : ModuleScienceExperiment
     {
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Active")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ResourceScience_Active")]//Active
         public bool generatorActive;
         [KSPField(isPersistant = true)]
         public double last_active_time;
@@ -16,7 +17,7 @@ namespace FNPlugin
         public double resourceAmount;
         [KSPField(isPersistant = false, guiActive = false)]
         public string resourceName;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Generated Data", guiFormat = "F3")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ResourceScience_GeneratedData", guiFormat = "F3")]//Generated Data
         public double totalGeneratedData;
 
         //consume this resource per game-second
@@ -36,7 +37,7 @@ namespace FNPlugin
         public string generatorDeactivateName;
 
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Biodome" )]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ResourceScience_Biodome")]//Biodome
         public string currentBiome = "";
         //[KSPField(isPersistant = false, guiActive = false, guiName = "Research")]
         //public double research;
@@ -55,14 +56,14 @@ namespace FNPlugin
 
 
 
-        [KSPEvent(guiName = "Activate Generator", active = true, guiActive = true)]
+        [KSPEvent(guiName = "#LOC_KSPIE_ResourceScience_ActivateGenerator", active = true, guiActive = true)]//Activate Generator
         public void activateGenerator()
         {
             generatorActive = true;
             PlayAnimation("Deploy", false, false, false);
         }
 
-        [KSPEvent(guiName = "Activate Generator", active = true, guiActive = true)]
+        [KSPEvent(guiName = "#LOC_KSPIE_ResourceScience_deActivateGenerator", active = true, guiActive = true)]//Activate Generator
         public void deActivateGenerator()
         {
             generatorActive = false;
@@ -91,7 +92,7 @@ namespace FNPlugin
                 
                 var minutes = time_diff / 60;
                 Debug.Log("[KSPI]: InterstellarResourceScienceModule - time difference " + minutes + " minutes");
-                ScreenMessages.PostScreenMessage("Generated Science Data for " + minutes.ToString("0.00") + " minutes", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ResourceScience_Postmsg", minutes.ToString("0.00")), 5.0f, ScreenMessageStyle.LOWER_CENTER);//"Generated Science Data for " +  + " minutes"
 
                 GenerateScience(time_diff, true);
             }
@@ -252,7 +253,7 @@ namespace FNPlugin
             base.DumpData(data);
         }
 
-        [KSPEvent(guiName = "Deploy", active = true, guiActive = true)]
+        [KSPEvent(guiName = "#LOC_KSPIE_ResourceScience_Deploy", active = true, guiActive = true)]//Deploy
         new public void DeployExperiment()
         {
             //print("Clicked event! check data: " + resourceName + " " + resourceAmount.ToString() + " " + experimentID + " ");
@@ -266,7 +267,7 @@ namespace FNPlugin
             }
             else
             {
-                ScreenMessage smg = new ScreenMessage("Not Enough Data Stored", 4.0f, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage smg = new ScreenMessage(Localizer.Format("#LOC_KSPIE_ResourceScience_Postmsg2"), 4.0f, ScreenMessageStyle.UPPER_LEFT);//"Not Enough Data Stored"
                 ScreenMessages.PostScreenMessage(smg);
                 print("not enough data stored");
             }
@@ -290,7 +291,7 @@ namespace FNPlugin
             }
             else
             {
-                ScreenMessage smg = new ScreenMessage("Not Enough Data Stored", 4.0f, ScreenMessageStyle.UPPER_LEFT);
+                ScreenMessage smg = new ScreenMessage(Localizer.Format("#LOC_KSPIE_ResourceScience_Postmsg2"), 4.0f, ScreenMessageStyle.UPPER_LEFT);//"Not Enough Data Stored"
                 ScreenMessages.PostScreenMessage(smg);
                 print("not enough data stored");
             }

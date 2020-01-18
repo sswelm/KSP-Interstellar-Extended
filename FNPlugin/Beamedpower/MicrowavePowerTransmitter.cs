@@ -6,6 +6,7 @@ using UnityEngine;
 using FNPlugin.Microwave;
 using FNPlugin.Redist;
 using FNPlugin.Extensions;
+using KSP.Localization;
 
 namespace FNPlugin.Beamedpower
 {
@@ -24,35 +25,35 @@ namespace FNPlugin.Beamedpower
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
         public bool relay;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Can Relay")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanRelay")]//Can Relay
         public bool canRelay;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Merging Beams")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MergingBeams")]//Merging Beams
         public bool mergingBeams;
         [KSPField(isPersistant = true)]
         public double nuclear_power = 0;
         [KSPField(isPersistant = true)]
         public double solar_power = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power Capacity", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_PowerCapacity", guiUnits = " MW", guiFormat = "F2")]//Power Capacity
         public double power_capacity = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit WaveLength m", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthm", guiFormat = "F8", guiUnits = " m")]//Transmit WaveLength m
         public double wavelength = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit WaveLength SI")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthSI")]//Transmit WaveLength SI
         public string wavelengthText;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Min Relay WaveLength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MinRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Min Relay WaveLength
         public double minimumRelayWavelenght;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Max Relay WaveLength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MaxRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Max Relay WaveLength
         public double maximumRelayWavelenght;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit WaveLength WL Name")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthWLName")]//Transmit WaveLength WL Name
         public string wavelengthName;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
         [KSPField(isPersistant = true)]
         public double diameter = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName= "Is Mirror")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName= "#LOC_KSPIE_MicrowavePowerTransmitter_IsMirror")]//Is Mirror
         public bool isMirror = false;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Can merge beams")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Canmergebeams")]//Can merge beams
         public bool isBeamMerger = false;
         [KSPField(isPersistant = true)]
         public bool forceActivateAtStartup = false;
@@ -60,17 +61,17 @@ namespace FNPlugin.Beamedpower
         public bool hasLinkedReceivers = false;
 
         //Non Persistent 
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Air Absorbtion Percentage")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AtmosphericAbsorptionPercentage")]//Air Absorbtion Percentage
         public double atmosphericAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Water Absorbtion Percentage")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_WaterAbsorptionPercentage")]//Water Absorbtion Percentage
         public double waterAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Absorbtion Percentage", guiFormat = "F4", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TotalAbsorptionPercentage", guiFormat = "F4", guiUnits = "%")]//Absorbtion Percentage
         public double totalAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Body")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Bodyname")]//Body
         public string body_name;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Biome Name")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BiomeName")]//Biome Name
         public string biome_desc;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Moisture Modifier", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MoistureModifier", guiFormat = "F4")]//Moisture Modifier
         public double moistureModifier;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public bool canFunctionOnSurface = true;
@@ -81,9 +82,9 @@ namespace FNPlugin.Beamedpower
         public float atmosphereToleranceModifier = 1;
         [KSPField(isPersistant = false)]
         public string animName = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Can Transmit")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanTransmit")]//Can Transmit
         public bool canTransmit = false;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Build in Relay")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BuildinRelay")]//Build in Relay
         public bool buildInRelay = false;
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public int compatibleBeamTypes = 1;
@@ -95,21 +96,21 @@ namespace FNPlugin.Beamedpower
         public double nativeAtmosphericAbsorptionPercentage = 10;
 
         //GUI 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Aperture Diameter", guiFormat = "F2", guiUnits = " m")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ApertureDiameter", guiFormat = "F2", guiUnits = " m")]//Aperture Diameter
         public double apertureDiameter = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Status")]//Status
         public string statusStr;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmissionEfficiency", guiUnits = "%")]//Transmission Efficiency
         public double transmissionEfficiencyPercentage;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission Strength"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitPower"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]//Transmission Strength
         public float transmitPower = 100;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BeamedPower")]//Wall to Beam Power
         public string beamedpower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Available Power", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AvailablePower", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]//Available Power
         public double availablePower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Requested Power", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_RequestedPower", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]//Requested Power
         public double requestedPower;
 
         [KSPField]
@@ -179,7 +180,7 @@ namespace FNPlugin.Beamedpower
             // ignore
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ActivateTransmitter", active = false)]//Activate Transmitter
         public void ActivateTransmitter()
         {
             if (relay) return;
@@ -224,12 +225,12 @@ namespace FNPlugin.Beamedpower
                 return (wavelength * 1.0e+12).ToString() + " pm";
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Transmitter", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_DeactivateTransmitter", active = false)]//Deactivate Transmitter
         public void DeactivateTransmitter()
         {
             if (relay) return;
 
-            ScreenMessages.PostScreenMessage("Transmitter deactivated", 4.0f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_DeactivateTransmitter_Msg"), 4.0f, ScreenMessageStyle.UPPER_CENTER);//"Transmitter deactivated"
 
             if (genericAnimation != null && genericAnimation.GetScalar > 0)
             {
@@ -245,7 +246,7 @@ namespace FNPlugin.Beamedpower
             IsEnabled = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Relay", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ActivateRelay", active = false)]//Activate Relay
         public void ActivateRelay()
         {
             if (IsEnabled || relay) return;
@@ -269,12 +270,12 @@ namespace FNPlugin.Beamedpower
             relay = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Relay", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_DeactivateRelay", active = false)]//Deactivate Relay
         public void DeactivateRelay()
         {
             if (!relay) return;
 
-            ScreenMessages.PostScreenMessage("Relay deactivated", 4, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_DeactivateRelay_Msg"), 4, ScreenMessageStyle.UPPER_CENTER);//"Relay deactivated"
 
             if (genericAnimation != null && genericAnimation.GetScalar > 0)
             {
@@ -496,14 +497,14 @@ namespace FNPlugin.Beamedpower
             {
                 if (relay)
                 {
-                    var message = "Disabled relay because of static pressure atmosphere";
+                    var message = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Disabledrelay_Msg");//"Disabled relay because of static pressure atmosphere"
                     ScreenMessages.PostScreenMessage(message, 5f, ScreenMessageStyle.UPPER_CENTER);
                     Debug.Log("KSPI - " + message);
                     DeactivateRelay();
                 }
                 else
                 {
-                    var message = "Disabled transmitter because of static pressure atmosphere";
+                    var message = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Disabledtransmitter_Msg");//"Disabled transmitter because of static pressure atmosphere"
                     ScreenMessages.PostScreenMessage(message, 5f, ScreenMessageStyle.UPPER_CENTER);
                     Debug.Log("KSPI - " + message);
                     DeactivateTransmitter();
@@ -540,24 +541,24 @@ namespace FNPlugin.Beamedpower
 
             if (IsEnabled)
             {
-                statusStr = "Transmitter Active";
+                statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu1");//"Transmitter Active"
             }
             else if (relay)
             {
-                statusStr = "Relay Active";
+                statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu2");//"Relay Active"
             }
             else
             {
                 if (isLinkedForRelay)
-                    statusStr = "Is Linked For Relay";
+                    statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu3");//"Is Linked For Relay"
                 else if (receiver_on)
-                    statusStr = "Receiver active";
+                    statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu4");//"Receiver active"
                 else if (canRelay)
-                    statusStr = "Is ready for relay";
+                    statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu5");//"Is ready for relay"
                 else if (beamGenerators.Count == 0)
-                    statusStr = "No beam generator found";
+                    statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu6");//"No beam generator found"
                 else
-                    statusStr = "Inactive.";
+                    statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu7");//"Inactive."
             }
 
             if (activeBeamGenerator == null)
@@ -1028,10 +1029,10 @@ namespace FNPlugin.Beamedpower
         {
             var info = new StringBuilder();
 
-            info.AppendLine("Aperture Diameter: " + apertureDiameter + " m");
-            info.AppendLine("Can Mirror power: " + isMirror.ToString());
-            info.AppendLine("Can Transmit power: " + canTransmit.ToString());
-            info.AppendLine("Can Relay independantly " + buildInRelay.ToString());
+            info.AppendLine(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info1") +": " + apertureDiameter + " m");//Aperture Diameter
+            info.AppendLine(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info2") +": " + isMirror.ToString());//Can Mirror power
+            info.AppendLine(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info3") +": " + canTransmit.ToString());//Can Transmit power
+            info.AppendLine(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info4") +" " + buildInRelay.ToString());//Can Relay independantly
 
             return info.ToString();
         }

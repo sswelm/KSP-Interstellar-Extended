@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
@@ -22,20 +23,20 @@ namespace InterstellarFuelSwitch
         //    CONFIG FIELD
         //    the GUI name for the deploy action (and action group name for deploy action)
         [KSPField]
-        public string actionDeployName = "Deploy";
+        public string actionDeployName = Localizer.Format("#LOC_IFS_Animate_Deploy");//"Deploy"
 
         //    CONFIG FIELD
         //    the GUI name for the retract action (and action group name for retract action)
         [KSPField]
-        public string actionRetractName = "Retract";
+        public string actionRetractName = Localizer.Format("#LOC_IFS_Animate_Retract");//"Retract"
 
         //    CONFIG FIELD
         //    the action group name for the 'toggle state' action
         [KSPField]
-        public string actionToggleName = "Toggle Status";
+        public string actionToggleName = Localizer.Format("#LOC_IFS_Animate_ToggleStatus");//"Toggle Status"
         
         [KSPField]
-        public string animStatusName = "AnimState";
+        public string animStatusName = Localizer.Format("#LOC_IFS_Animate_AnimState");//"AnimState"
         
         public bool showAnimState = true;    
 
@@ -66,8 +67,8 @@ namespace InterstellarFuelSwitch
 
         //  CONFIG FIELD
         //    used to track module deployment status for on reload.
-        [KSPField(isPersistant=true, guiName = "AnimState", guiActive = true)]
-        public string deployedStatus = "RETRACTED";
+        [KSPField(isPersistant=true, guiName = "#LOC_IFS_Animate_AnimState", guiActive = true)]//AnimState
+        public string deployedStatus = Localizer.Format("#LOC_IFS_Animate_Retract").ToUpper();//"RETRACTED"
 
         private SSTUAnimState animationState = SSTUAnimState.RETRACTED;
 
@@ -112,13 +113,13 @@ namespace InterstellarFuelSwitch
             toggle ();
         }
 
-        [KSPEvent (name= "deployEvent", guiName = "Deploy", guiActiveUnfocused = true, externalToEVAOnly = true, guiActive = true, unfocusedRange = 4f, guiActiveEditor = true)]
+        [KSPEvent (name= "deployEvent", guiName = "#LOC_IFS_Animate_Deploy", guiActiveUnfocused = true, externalToEVAOnly = true, guiActive = true, unfocusedRange = 4f, guiActiveEditor = true)]//Deploy
         public void deployEvent()
         {
             toggle ();
         }
 
-        [KSPEvent (name= "retractEvent", guiName = "Retract", guiActiveUnfocused = true, externalToEVAOnly = true, guiActive = true, unfocusedRange = 4f, guiActiveEditor = true)]
+        [KSPEvent (name= "retractEvent", guiName = "#LOC_IFS_Animate_Retract", guiActiveUnfocused = true, externalToEVAOnly = true, guiActive = true, unfocusedRange = 4f, guiActiveEditor = true)]//Retract
         public void retractEvent()
         {
             toggle ();

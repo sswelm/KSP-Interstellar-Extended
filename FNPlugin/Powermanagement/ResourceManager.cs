@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -1135,7 +1136,7 @@ namespace FNPlugin
         {
             if (my_vessel == FlightGlobals.ActiveVessel && render_window)
             {
-                string title = resource_name + " Management Display";
+                string title = resource_name + " "+Localizer.Format("#LOC_KSPIE_ResourceManager_title");//Management Display
                 windowPosition = GUILayout.Window(windowID, windowPosition, doWindow, title);
             }
         }
@@ -1261,12 +1262,12 @@ namespace FNPlugin
             //GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Theoretical Supply", left_bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_TheoreticalSupply"), left_bold_label, GUILayout.ExpandWidth(true));//"Theoretical Supply"
             GUILayout.Label(getPowerFormatString((double)stored_stable_supply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Current Supply", left_bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentSupply"), left_bold_label, GUILayout.ExpandWidth(true));//"Current Supply"
             GUILayout.Label(getPowerFormatString((double)stored_supply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
@@ -1275,13 +1276,13 @@ namespace FNPlugin
                 var stored_supply_percentage = stored_supply != 0 ? stored_total_power_supplied / stored_supply : 0;
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Current Distribution", left_bold_label, GUILayout.ExpandWidth(true));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentDistribution"), left_bold_label, GUILayout.ExpandWidth(true));//"Current Distribution"
                 GUILayout.Label(stored_supply_percentage.ToString("P2"), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
                 GUILayout.EndHorizontal();
             }
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power Demand", left_bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_PowerDemand"), left_bold_label, GUILayout.ExpandWidth(true));//"Power Demand"
             GUILayout.Label(getPowerFormatString((double)stored_resource_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
@@ -1292,7 +1293,7 @@ namespace FNPlugin
             GUIStyle utilisation_style = net_utilisation_supply > 1.001 ? red_label : green_label;
 
             GUILayout.BeginHorizontal();
-            var new_power_label = (resource_name == ResourceManager.FNRESOURCE_WASTEHEAT) ? "Net Change" : "Net Power";
+            var new_power_label = (resource_name == ResourceManager.FNRESOURCE_WASTEHEAT) ? Localizer.Format("#LOC_KSPIE_ResourceManager_NetChange") : Localizer.Format("#LOC_KSPIE_ResourceManager_NetPower");//"Net Change""Net Power"
             GUILayout.Label(new_power_label, left_bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(new_power_supply), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
@@ -1300,7 +1301,7 @@ namespace FNPlugin
             if (!double.IsNaN(net_utilisation_supply) && !double.IsInfinity(net_utilisation_supply))
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Utilisation", left_bold_label, GUILayout.ExpandWidth(true));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Utilisation"), left_bold_label, GUILayout.ExpandWidth(true));//"Utilisation"
                 GUILayout.Label((net_utilisation_supply).ToString("P2"), utilisation_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
                 GUILayout.EndHorizontal();
             }
@@ -1309,9 +1310,9 @@ namespace FNPlugin
             {
                 GUILayout.Space(5);
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Producer Component", left_bold_label, GUILayout.ExpandWidth(true));
-                GUILayout.Label("Supply", right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
-                GUILayout.Label("Max", right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_ProducerComponent"), left_bold_label, GUILayout.ExpandWidth(true));//"Producer Component"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Supply"), right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));//"Supply"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Max"), right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));//"Max"
                 GUILayout.EndHorizontal();
 
                 var groupedPowerSupply = power_supply_list_archive.GroupBy(m => m.Key.getResourceManagerDisplayName());
@@ -1349,9 +1350,9 @@ namespace FNPlugin
             {
                 GUILayout.Space(5);
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Consumer Component", left_bold_label, GUILayout.ExpandWidth(true));
-                GUILayout.Label("Demand", right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
-                GUILayout.Label("Rank", right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_ConsumerComponent"), left_bold_label, GUILayout.ExpandWidth(true));//"Consumer Component"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Demand"), right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));//"Demand"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Rank"), right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));//"Rank"
                 GUILayout.EndHorizontal();
 
                 var sumarizedList = new List<PowerConsumption>();
@@ -1387,7 +1388,7 @@ namespace FNPlugin
             if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("DC Electrical System", left_aligned_label, GUILayout.ExpandWidth(true));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_DCElectricalSystem"), left_aligned_label, GUILayout.ExpandWidth(true));//"DC Electrical System"
                 GUILayout.Label(getPowerFormatString((double)stored_current_charge_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
                 GUILayout.Label("0", right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));
                 GUILayout.EndHorizontal();

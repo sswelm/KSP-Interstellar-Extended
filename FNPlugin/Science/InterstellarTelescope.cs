@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FNPlugin.Extensions;
 using FNPlugin.Constants;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -25,11 +26,11 @@ namespace FNPlugin
         public double science_awaiting_addition;
 
         //GUI
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Performance")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_Performance")]//Performance
         public string performPcnt = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Science")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_Science")]//Science
         public string sciencePerDay = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "G-Lens")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_GLens")]//G-Lens
         public string gLensStr = "";
 
         //Internal
@@ -38,27 +39,27 @@ namespace FNPlugin
         protected double science_rate = 0;
         protected double helium_time_scale = 0;
 
-        [KSPEvent(guiActive = true, guiName = "Deep Field Survey", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Telescope_DeepFieldSurvey", active = false)]//Deep Field Survey
         public void beginOberservations()
         {
             telescopeIsEnabled = true;
             dpo = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Direct Planetary Observation", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Telescope_DirectPlanetaryObservation", active = false)]//Direct Planetary Observation
         public void beginOberservations2()
         {
             telescopeIsEnabled = true;
             dpo = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Stop Survey", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Telescope_StopSurvey", active = false)]//Stop Survey
         public void stopOberservations()
         {
             telescopeIsEnabled = false;
         }
 
-        [KSPEvent(guiName = "Perform Maintenance", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
+        [KSPEvent(guiName = "#LOC_KSPIE_Telescope_PerformMaintenance", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]//Perform Maintenance
         public void maintainTelescope()
         {
             lastMaintained = Planetarium.GetUniversalTime();
@@ -117,8 +118,8 @@ namespace FNPlugin
                 data_size = Math.Max(float.Epsilon, science_awaiting_addition * subject.dataScale);
                 science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Infrared Telescope Data");
 
-                result_title = "Infrared Telescope Experiment";
-                result_string = "Infrared telescope observations were recovered from the vicinity of " + vessel.mainBody.name + ".";
+                result_title = Localizer.Format("#LOC_KSPIE_Telescope_Resulttitle");//"Infrared Telescope Experiment"
+                result_string = Localizer.Format("#LOC_KSPIE_Telescope_Resultmsg", vessel.mainBody.name);//"Infrared telescope observations were recovered from the vicinity of " +  + "."
 
                 recovery_value = science_awaiting_addition;
                 transmit_value = recovery_value;
@@ -171,7 +172,7 @@ namespace FNPlugin
             Events["stopOberservations"].active = telescopeIsEnabled;
             Fields["sciencePerDay"].guiActive = telescopeIsEnabled;
             performPcnt = (perform_factor_d * 100).ToString("0.0") + "%";
-            sciencePerDay = (science_rate * 28800 * PluginHelper.getScienceMultiplier(vessel)).ToString("0.00") + " Science/Day";
+            sciencePerDay = (science_rate * 28800 * PluginHelper.getScienceMultiplier(vessel)).ToString("0.00") + " "+Localizer.Format("#LOC_KSPIE_Telescope_ScienceperDa");//Science/Day
 
             double current_au = Vector3d.Distance(vessel.transform.position, LocalStar.position) / Vector3d.Distance(Homeworld.position, LocalStar.position);
             
@@ -184,27 +185,27 @@ namespace FNPlugin
                     if (vessel.orbit.eccentricity < 0.8)
                     {
                         Events["beginOberservations2"].active = true;
-                        gLensStr = (telescopeIsEnabled && dpo) ? "Ongoing." : "Available";
+                        gLensStr = (telescopeIsEnabled && dpo) ? Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu1") : Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu2");//"Ongoing.""Available"
                     }
                     else
                     {
                         Events["beginOberservations2"].active = false;
-                        gLensStr = "Eccentricity: " + vessel.orbit.eccentricity.ToString("0.0") + "; < 0.8 Required";
+                        gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu3", vessel.orbit.eccentricity.ToString("0.0"));//"Eccentricity: " +  + "; < 0.8 Required"
                     }
                 }
                 else
                 {
                     Events["beginOberservations2"].active = false;
-                    gLensStr = current_au.ToString("0.0") + " AU; Required 548 AU";
+                    gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu4", current_au.ToString("0.0"));// + " AU; Required 548 AU"
                 }
             }
             else
             {
                 Events["beginOberservations2"].active = false;
-                gLensStr = "Science Lab/Computer Core required";
+                gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu5");//"Science Lab/Computer Core required"
             }
 
-            if (helium_time_scale <= 0) performPcnt = "Helium Coolant Deprived.";
+            if (helium_time_scale <= 0) performPcnt = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu6");//"Helium Coolant Deprived."
 
         }
 

@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -109,42 +110,42 @@ namespace FNPlugin.Refinery
             base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Heavy Water Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Available"), _bold_label, GUILayout.Width(labelWidth));//"Heavy Water Available"
             GUILayout.Label(_availableHeavyWaterMass.ToString("0.0000") + " mT / " + _maxCapacityHeavyWaterMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Consumption Storage Ratio", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_ConsumptionStorageRatio"), _bold_label, GUILayout.Width(labelWidth));//"Consumption Storage Ratio"
             GUILayout.Label(((_consumptionStorageRatio * 100).ToString("0.0000") + "%"), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Heavy Water Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_HeavyWaterConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Heavy Water Consumption Rate"
             GUILayout.Label((_heavy_water_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Deuterium Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_DeuteriumStorage"), _bold_label, GUILayout.Width(labelWidth));//"Deuterium Storage"
             GUILayout.Label(_spareRoomDeuteriumMass.ToString("0.00000") + " mT / " + _maxCapacityDeuteriumMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Deuterium Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_DeuteriumProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Deuterium Production Rate"
             GUILayout.Label((_deuterium_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Oxygen Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_OxygenStorage"), _bold_label, GUILayout.Width(labelWidth));//"Oxygen Storage"
             GUILayout.Label(_spareRoomOxygenMass.ToString("0.0000") + " mT / " + _maxCapacityOxygenMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_OxygenProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Oxygen Production Rate"
             GUILayout.Label((_oxygen_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
@@ -152,22 +153,22 @@ namespace FNPlugin.Refinery
         private void updateStatusMessage()
         {
             if (_deuterium_production_rate > 0 && _oxygen_production_rate > 0)
-                _status = "Electrolysing Water";
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg1");//"Electrolysing Water"
             else if (_fixedMaxConsumptionWaterRate <= 0.0000000001)
-                _status = "Out of water";
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg2");//"Out of water"
             else if (_deuterium_production_rate > 0)
-                _status = "Insufficient " + InterstellarResourcesConfiguration.Instance.LqdOxygen + " Storage";
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", InterstellarResourcesConfiguration.Instance.LqdOxygen);//"Insufficient " +  + " Storage"
             else if (_oxygen_production_rate > 0)
-                _status = "Insufficient " + InterstellarResourcesConfiguration.Instance.Hydrogen + " Storage";
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", InterstellarResourcesConfiguration.Instance.Hydrogen);//"Insufficient " +  + " Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
-                _status = "Insufficient Power";
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg4");//"Insufficient Power"
             else
-                _status = "Insufficient Storage";
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg5");//"Insufficient Storage"
         }
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.HeavyWater, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.HeavyWater, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

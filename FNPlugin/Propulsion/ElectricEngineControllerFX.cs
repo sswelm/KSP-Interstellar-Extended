@@ -118,7 +118,7 @@ namespace FNPlugin
         // GUI
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
-        [KSPField(guiActive = false, guiName = "Calculated Thrust", guiFormat = "F6", guiUnits = "kN")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CalculatedThrust", guiFormat = "F6", guiUnits = "kN")]//Calculated Thrust
         public double calculated_thrust;
         [KSPField(guiActive = false)]
         public double simulated_max_thrust;
@@ -134,9 +134,9 @@ namespace FNPlugin
         public string propNameStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerShare")]
         public string electricalPowerShareStr = "";
-        [KSPField(guiActive = true, guiName = "Maximum Power Request", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_MaximumPowerRequest", guiFormat = "F3", guiUnits = " MW")]//Maximum Power Request
         public double maximum_power_request;
-        [KSPField(guiActive = true, guiName = "Current Power Request", guiFormat = "F3", guiUnits = " MW")] // #LOC_KSPIE_ElectricEngine_powerRequested
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerRequested", guiFormat = "F3", guiUnits = " MW")] // Current Power Request
         public double current_power_request;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_propellantEfficiency")]
         public string efficiencyStr = "";
@@ -186,34 +186,34 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         public double simulatedPowerReceived;
 
-        [KSPField(guiActive = false, guiName = "Capacity Modifier")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CapacityModifier")]//Capacity Modifier
         protected double powerCapacityModifier = 1;
-        [KSPField(guiActive = false, guiName = "Atm Trust Efficiency")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_AtmTrustEfficiency")]//Atm Trust Efficiency
         protected double _atmosphereThrustEfficiency;
-        [KSPField(guiActive = true, guiName = "Atm Trust Efficiency", guiFormat = "F3", guiUnits = "%")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_AtmTrustEfficiency", guiFormat = "F3", guiUnits = "%")]//Atm Trust Efficiency
         protected double _atmosphereThrustEfficiencyPercentage;
-        [KSPField(guiActive = false, guiName = "Max Fuel Flow Rate")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_MaxFuelFlowRate")]//Max Fuel Flow Rate
         protected float _maxFuelFlowRate;
-        [KSPField(guiActive = false, guiName = "Current Space Fuel Flow Rate")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentSpaceFuelFlowRate")]//Current Space Fuel Flow Rate
         protected double _currentSpaceFuelFlowRate;
-        [KSPField(guiActive = false, guiName = "Potential Space Fuel Flow Rate")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_PotentialSpaceFuelFlowRate")]//Potential Space Fuel Flow Rate
         protected double _simulatedSpaceFuelFlowRate;
-        [KSPField(guiActive = false, guiName = "Fuel Flow Modifier")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_FuelFlowModifier")]//Fuel Flow Modifier
         protected double _fuelFlowModifier;
-        [KSPField(guiActive = true, guiName = "Current Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentThrustinSpace", guiFormat = "F6", guiUnits = " kN")]//Current Thrust in Space
         protected double currentThrustInSpace;
-        [KSPField(guiActive = true, guiName = "Max Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_MaxThrustinSpace", guiFormat = "F6", guiUnits = " kN")]//Max Thrust in Space
         protected double simulatedThrustInSpace;
 
         [KSPField] 
         protected double maximumAvailablePowerForEngine;
         [KSPField]
         protected double currentAvailablePowerForEngine;
-        [KSPField(guiActive = false, guiName = "Total Power Supplied")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_TotalPowerSupplied")]//Total Power Supplied
         protected double totalPowerSupplied;
-        [KSPField(guiActive = false, guiName = "Maximum Available Power")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_MaximumAvailablePower")]//Maximum Available Power
         protected double availableMaximumPower;
-        [KSPField(guiActive = false, guiName = "Current Available Power")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentAvailablePower")]//Current Available Power
         protected double availableCurrentPower;
 
 
@@ -1003,8 +1003,8 @@ namespace FNPlugin
             var persistentThrustDot = Vector3d.Dot(thrustDirection, vessel.obt_velocity);
             if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))
             {
-                const string message = "Thrust warp stopped - orbital speed too low";
-                ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                const string message = "#LOC_KSPIE_ElectricEngineController_PostMsg1";//"Thrust warp stopped - orbital speed too low"
+                ScreenMessages.PostScreenMessage(Localizer.Format(message), 5, ScreenMessageStyle.UPPER_CENTER);
                 Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
                 return;
@@ -1029,7 +1029,7 @@ namespace FNPlugin
 
             if (thrust > 0.0000005 && fuelRatio < 0.999999 && _isFullyStarted)
             {
-                var message = "Thrust warp stopped - " + fuelRatio + " propellant depleted thust: " + thrust;
+                var message =Localizer.Format("#LOC_KSPIE_ElectricEngineController_PostMsg2", fuelRatio,thrust);// "Thrust warp stopped - " + + " propellant depleted thust: " + 
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);

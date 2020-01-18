@@ -45,7 +45,7 @@ namespace FNPlugin
         protected ExperimentResultDialogPage merdp;
 
 
-        [KSPEvent(guiName = "Deploy", active = true, guiActive = true)]
+        [KSPEvent(guiName = "#LOC_KSPIE_ScienceGenerator_Deploy", active = true, guiActive = true)]//Deploy
         public void DeployExperiment()
         {
             data_gend = generateScienceData();
@@ -60,7 +60,7 @@ namespace FNPlugin
             DeployExperiment();
         }
 
-        [KSPEvent(guiName = "Reset", active = true, guiActive = true)]
+        [KSPEvent(guiName = "#LOC_KSPIE_ScienceGenerator_Reset", active = true, guiActive = true)]//Reset
         public void ResetExperiment()
         {
             if (science_data != null)
@@ -75,7 +75,7 @@ namespace FNPlugin
             ResetExperiment();
         }
 
-        [KSPEvent(guiName = "Review Data", active = true, guiActive = true)]
+        [KSPEvent(guiName = "#LOC_KSPIE_ScienceGenerator_ReviewData", active = true, guiActive = true)]//Review Data
         public void ReviewData()
         {
             if (science_data != null)

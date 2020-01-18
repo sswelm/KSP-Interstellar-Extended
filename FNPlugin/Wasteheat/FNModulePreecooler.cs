@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin 
 {
@@ -9,11 +10,11 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool functional;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Area")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Preecooler_Area")]//Area
         public double area = 0.01;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Precooler status")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Preecooler_Status")]//Precooler status
         public string statusStr;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Intake")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Preecooler_Intake")]//Intake
         public string attachedIntakeName;
 
         AtmosphericIntake attachedIntake;
@@ -132,7 +133,7 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            statusStr = functional ? "Active." : "Offline.";
+            statusStr = functional ? Localizer.Format("#LOC_KSPIE_Preecooler_Active") : Localizer.Format("#LOC_KSPIE_Preecooler_Offline");//"Active.""Offline."
         }
 
         public void FixedUpdate() // FixedUpdate is also called while not staged

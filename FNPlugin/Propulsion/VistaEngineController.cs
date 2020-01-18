@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -13,15 +14,15 @@ namespace FNPlugin
         // Persistant
         [KSPField(isPersistant = true)]
         bool IsEnabled;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Upgraded")]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_VistaEngineController_Upgraded")]//Upgraded
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         bool rad_safety_features = true;
 
         // None Persistant
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Hazard To")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_RadiationHazard")]//Radiation Hazard To
         public string radhazardstr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Temperature")]//Temperature
         public string temperatureStr = "";
 
         [KSPField(isPersistant = false)]
@@ -59,18 +60,18 @@ namespace FNPlugin
         public string upgradedName = "DT Vista Engine";
 
         // Gui
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Type")]//Type
         public string engineType = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName= "upgrade tech")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName= "#LOC_KSPIE_VistaEngineController_upgradetech")]//upgrade tech
         public string upgradeTechReq = null;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Radiator Temp")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_RadiatorTemp")]//Radiator Temp
         public float coldBathTemp;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Radiator Temp")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_MaxRadiatorTemp")]//Max Radiator Temp
         public float maxTempatureRadiators;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Performance Radiators")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_PerformanceRadiators")]//Performance Radiators
         public float radiatorPerformance;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Emisiveness")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_Emisiveness")]//Emisiveness
         public float partEmissiveConstant;
 
         protected bool hasrequiredupgrade = false;
@@ -82,19 +83,19 @@ namespace FNPlugin
         protected ModuleEngines curEngineT;
         protected ResourceBuffers resourceBuffers;
 
-        [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_DeactivateRadSafety", active = true)]//Disable Radiation Safety
         public void DeactivateRadSafety() 
         {
             rad_safety_features = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Radiation Safety", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_ActivateRadSafety", active = false)]//Activate Radiation Safety
         public void ActivateRadSafety() 
         {
             rad_safety_features = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Retrofit", active = true)]//Retrofit
         public void RetrofitEngine()
         {
             if (ResearchAndDevelopment.Instance == null || isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
@@ -182,10 +183,10 @@ namespace FNPlugin
             if (kerbal_hazard_count > 0) 
             {
                 radhazard = true;
-                if (kerbal_hazard_count > 1) 
-                    radhazardstr = kerbal_hazard_count.ToString () + " Kerbals.";
-                else 
-                    radhazardstr = kerbal_hazard_count.ToString () + " Kerbal.";
+                if (kerbal_hazard_count > 1)
+                    radhazardstr = Localizer.Format("#LOC_KSPIE_VistaEngineController_kerbalhazardcount2", kerbal_hazard_count.ToString());//<<1>> Kerbals.
+                else
+                    radhazardstr = Localizer.Format("#LOC_KSPIE_VistaEngineController_kerbalhazardcount1", kerbal_hazard_count.ToString());//<<1>> Kerbal.
                 
                 Fields["radhazardstr"].guiActive = true;
             } 
@@ -226,10 +227,10 @@ namespace FNPlugin
             if (throttle > 0)
             {
                 if (vessel.atmDensity > maxAtmosphereDensity)
-                    ShutDown("Inertial Fusion cannot operate in atmosphere!");
+                    ShutDown(Localizer.Format("#LOC_KSPIE_VistaEngineController_PostMsg1"));//"Inertial Fusion cannot operate in atmosphere!"
 
                 if (radhazard && rad_safety_features)
-                    ShutDown("Engines throttled down as they presently pose a radiation hazard");
+                    ShutDown(Localizer.Format("#LOC_KSPIE_VistaEngineController_PostMsg2"));//"Engines throttled down as they presently pose a radiation hazard"
             }
 
             KillKerbalsWithRadiation(throttle);
@@ -273,7 +274,7 @@ namespace FNPlugin
                 if (!curEngineT.getFlameoutState)
                 {
                     if (plasma_ratio < 0.75 && recievedPower > 0)
-                        curEngineT.status = "Insufficient Electricity";
+                        curEngineT.status = Localizer.Format("#LOC_KSPIE_VistaEngineController_Statu");//"Insufficient Electricity"
                 }
             }
             else
@@ -318,12 +319,12 @@ namespace FNPlugin
 
                     if (!vess.isEVA)
                     {
-                        ScreenMessages.PostScreenMessage(crew_member.name + " was killed by Neutron Radiation!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_VistaEngineController_PostMsg3", crew_member.name), 5.0f, ScreenMessageStyle.UPPER_CENTER);// <<1>> was killed by Neutron Radiation!"
                         crew_to_remove.Add(crew_member);
                     }
                     else
                     {
-                        ScreenMessages.PostScreenMessage(crew_member.name + " was killed by Neutron Radiation!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_VistaEngineController_PostMsg3", crew_member.name), 5.0f, ScreenMessageStyle.UPPER_CENTER);// + " was killed by Neutron Radiation!"
                         vessels_to_remove.Add(vess);
                     }
                 }

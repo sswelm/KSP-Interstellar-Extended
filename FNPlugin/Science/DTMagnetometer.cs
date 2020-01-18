@@ -16,13 +16,13 @@ namespace FNPlugin
         public string Brad;
         [KSPField(isPersistant = false, guiActive = true, guiName = "B_T")]
         public string Bthe;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Flux")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_DTMagnetometer_AntimatterFlux")]//Antimatter Flux
         public string ParticleFlux;
 
         protected Animation anim;
         protected CelestialBody homeworld;
 
-        [KSPEvent(guiActive = true, guiName = "Activate Magnetometer", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_DTMagnetometer_ActivateMagnetometer", active = true)]//Activate Magnetometer
         public void ActivateMagnetometer() 
         {
             anim [animName].speed = 1;
@@ -31,7 +31,7 @@ namespace FNPlugin
             IsEnabled = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Magnetometer", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_DTMagnetometer_DeactivateMagnetometer", active = false)]//Deactivate Magnetometer
         public void DeactivateMagnetometer() 
         {
             anim [animName].speed = -1;

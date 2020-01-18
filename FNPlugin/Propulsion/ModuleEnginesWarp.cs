@@ -2,6 +2,7 @@
 using FNPlugin.Constants;
 using System;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -9,7 +10,7 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         bool IsForceActivated;
-        [KSPField(guiActive = false, guiName = "Mass Flow")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ModuleEnginesWarp_MassFlow")]//Mass Flow
         public double requestedFlow;
 
         [KSPField]
@@ -328,7 +329,7 @@ namespace FNPlugin
                     double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
                     if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaV * 2))
                     {
-                        var message = "Thrust warp stopped - orbital speed too low";
+                        var message = Localizer.Format("#LOC_KSPIE_ModuleEnginesWarp_PostMsg1");//"Thrust warp stopped - orbital speed too low"
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         Debug.Log("[KSPI]: " + message);
                         TimeWarp.SetRate(0, true);
@@ -346,7 +347,7 @@ namespace FNPlugin
 
                         if (fuelRatio < 0.999)
                         {
-                            var message = "Thrust warp stopped - running out of propellant";
+                            var message = Localizer.Format("#LOC_KSPIE_ModuleEnginesWarp_PostMsg2");//"Thrust warp stopped - running out of propellant"
                             Debug.Log("[KSPI]: " + message);
                             ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                             // Return to realtime
@@ -355,7 +356,7 @@ namespace FNPlugin
                     }
                     else if (demandMass > 0)
                     {
-                        var message = "Thrust warp stopped - propellant depleted";
+                        var message = Localizer.Format("#LOC_KSPIE_ModuleEnginesWarp_PostMsg3");//"Thrust warp stopped - propellant depleted"
                         Debug.Log("[KSPI]: " + message);
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime

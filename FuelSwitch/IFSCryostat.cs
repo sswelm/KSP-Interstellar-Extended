@@ -1,9 +1,9 @@
 ﻿using System;
-
+using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
-    [KSPModule("Cryostat")]
+    [KSPModule("Cryostat")]//#LOC_IFS_Cryostat_ModuleName
     class IFSCryostat : PartModule
     {
         public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
@@ -14,7 +14,7 @@ namespace InterstellarFuelSwitch
         public const int KEBRIN_DAY_SECONDS = SECONDS_IN_HOUR * KEBRIN_HOURS_DAY;
 
         // Persistant
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Cooling"), UI_Toggle(disabledText = "On", enabledText = "Off")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_IFS_Cryostat_Cooling"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_On", enabledText = "#LOC_IFS_Cryostat_Off")]//Cooling--On--Off
         public bool isDisabled = false;
         [KSPField(isPersistant = true)]
         public double storedTemp = 0;
@@ -52,13 +52,13 @@ namespace InterstellarFuelSwitch
         public int initializationCountdown = 10;
 
         //GUI
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Power")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Power")]//Power
         public string powerStatusStr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Boiloff")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Boiloff")]//Boiloff
         public string boiloffStr;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature", guiFormat = "F3", guiUnits = " K")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Temperature", guiFormat = "F3", guiUnits = " K")]//Temperature
         public double externalTemperature;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "internal boiloff")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_internalboiloff")]//internal boiloff
         public double boiloff;
 
         private BaseField isDisabledField;
@@ -242,7 +242,7 @@ namespace InterstellarFuelSwitch
                 if (hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
                 {
                     warningShown = true;
-                    ScreenMessages.PostScreenMessage("Warning: " + boiloffStr + " Boiloff", 5, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_IFS_Cryostat_boiloffMsg", boiloffStr), 5, ScreenMessageStyle.UPPER_CENTER);//"Warning: <<1>> Boiloff"
                 }
             }
             else

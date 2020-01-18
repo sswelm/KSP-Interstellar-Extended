@@ -2,6 +2,7 @@
 using System.Linq;
 using FNPlugin.Redist;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Reactors
 {
@@ -33,20 +34,20 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double maintenancePowerWasteheatRatio = 0.1;
 
-        [KSPField(guiActive = false, guiName = "Maintance")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FissionPB_Maintance")]//Maintance
         public string electricPowerMaintenance;
-        [KSPField(guiActive = false, guiName = "Plasma Ratio")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaRatio")]//Plasma Ratio
         public double plasma_ratio = 1;
-        [KSPField(guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaModifier", guiFormat = "F6")]//Plasma Modifier
         public double plasma_modifier = 1;
-        [KSPField(guiActive = false, guiName = "Is Swapping Fuel Mode")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FissionPB_IsSwappingFuelMode")]//Is Swapping Fuel Mode
         public bool isSwappingFuelMode;
 
         [KSPField]
         public double reactorRatioThreshold = 0.000005;
         [KSPField]
         public double minReactorRatio = 0;
-        [KSPField(guiActive = false, guiName = "Required Ratio", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FissionPB_RequiredRatio", guiFormat = "F4")]//Required Ratio
         public double required_reactor_ratio;
 
         public double MaximumChargedIspMult { get { return maximumChargedIspMult; } }
@@ -121,13 +122,13 @@ namespace FNPlugin.Reactors
             Fields["lithium_modifier"].guiActive = powerIsAffectedByLithium;
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Next Fusion Mode", active = true)]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_NextFusionMode", active = true)]//Next Fusion Mode
         public void NextFusionModeEvent()
         {
             SwitchToNextFuelMode(fuel_mode);
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Previous Fusion Mode", active = true)]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_PreviousFusionMode", active = true)]//Previous Fusion Mode
         public void PreviousFusionModeEvent()
         {
             SwitchToPreviousFuelMode(fuel_mode);
@@ -210,20 +211,20 @@ namespace FNPlugin.Reactors
         protected override void WindowReactorSpecificOverride()
         {
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Next Fusion Mode", GUILayout.ExpandWidth(true)))
+            if (GUILayout.Button(Localizer.Format("#LOC_KSPIE_FissionPB_NextModebutton"), GUILayout.ExpandWidth(true)))//"Next Fusion Mode"
             {
                 NextFusionModeEvent();
             }
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Previous Fusion Mode", GUILayout.ExpandWidth(true)))
+            if (GUILayout.Button(Localizer.Format("#LOC_KSPIE_FissionPB_PreviousModebutton"), GUILayout.ExpandWidth(true)))//"Previous Fusion Mode"
             {
                 PreviousFusionModeEvent();
             }
             GUILayout.EndHorizontal();
 
-            PrintToGUILayout("Current/Max Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
+            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_FissionPB_CurrentMaxMaintenance"), electricPowerMaintenance, bold_style, text_style);//"Current/Max Fusion Maintenance"
         }
 
         public override void OnFixedUpdate()

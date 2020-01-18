@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -16,27 +17,27 @@ namespace FNPlugin
         bool rad_safety_features = true;
 
         // None Persistant
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Hazard To")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_Radhazardstr")]//Radiation Hazard To
         public string radhazardstr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_Temperature")]//Temperature
         public string temperatureStr = "";
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuels")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Fuels")]//Fuels
         public string fuels;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Ratios")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Ratios")]//Ratios
         public string ratios;
 
         [KSPField]
         public string fuelSwitchName = "Fusion Type";
-        [KSPField(guiName = "Power Requirement Mk1", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk1", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk1
         public double powerRequirement = 0;
-        [KSPField(guiName = "Power Requirement Mk2", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk2", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk2
         public double powerRequirementUpgraded1 = 0;
-        [KSPField(guiName = "Power Requirement Mk3", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk3", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk3
         public double powerRequirementUpgraded2 = 0;
-        [KSPField(guiName = "Power Requirement Mk4", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk4", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk4
         public double powerRequirementUpgraded3 = 0;
-        [KSPField(guiName = "Power Requirement Mk5", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk5", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk5
         public double powerRequirementUpgraded4 = 0;
 
         [KSPField]
@@ -70,30 +71,30 @@ namespace FNPlugin
         public double powerMultiplier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public bool hasIspThrottling = true;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Isp", guiFormat = "F3", guiUnits = " s")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Isp", guiFormat = "F3", guiUnits = " s")]//Isp
         public float currentIsp;
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double neutronbsorbionBonus;
 
         //[KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         //public bool useMegajouleBattery = false;
-        [KSPField(guiActive = true, guiName = "Available Power", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_AvailablePower", guiFormat = "F3", guiUnits = " MW")]//Available Power
         public double availablePower;
-        [KSPField(guiActive = false, guiName = "Maximum FuelFlow", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_MaximumFuelFlow", guiFormat = "F3")]//Maximum FuelFlow
         public double maxFuelFlow;
-        [KSPField(guiActive = true, guiName = "Power Requirement", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_PowerRequirement", guiFormat = "F3", guiUnits = " MW")]//Power Requirement
         public double enginePowerRequirement;
-        [KSPField(guiActive = false, guiName = "Laser Wasteheat", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_LaserWasteheat", guiFormat = "F3", guiUnits = " MW")]//Laser Wasteheat
         public double laserWasteheat;
-        [KSPField(guiActive = false, guiName = "Absorbed Wasteheat", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_AbsorbedWasteheat", guiFormat = "F3", guiUnits = " MW")]//Absorbed Wasteheat
         public double absorbedWasteheat;
-        [KSPField(guiName = "Radiator Temp")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_RadiatorTemp")]//Radiator Temp
         public double coldBathTemp;
-        [KSPField(guiName = "Max Radiator Temp")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_MaxRadiatorTemp")]//Max Radiator Temp
         public float maxTempatureRadiators;
-        [KSPField(guiName = "Performance Radiators")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PerformanceRadiators")]//Performance Radiators
         public double radiatorPerformance;
-        [KSPField(guiName = "Emisiveness")]
+        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_Emisiveness")]//Emisiveness
         public double partEmissiveConstant;
         [KSPField]
         protected float curveMaxISP; // ToDo: make sure it is properly initialized after  comming from assembly 
@@ -123,13 +124,13 @@ namespace FNPlugin
         protected ResourceBuffers resourceBuffers;
         protected FNEmitterController emitterController;        
 
-        [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_DisableRadiationSafety", active = true)]//Disable Radiation Safety
         public void DeactivateRadSafety()
         {
             rad_safety_features = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Radiation Safety", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_ActivateRadiationSafety", active = false)]//Activate Radiation Safety
         public void ActivateRadSafety()
         {
             rad_safety_features = true;
@@ -575,13 +576,13 @@ namespace FNPlugin
             if (throttle > 0)
             {
                 if (maxAtmosphereDensity >= 0 && vessel.atmDensity > maxAtmosphereDensity)
-                    ShutDown("Inertial Fusion cannot operate in atmosphere!");
+                    ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg1"));//"Inertial Fusion cannot operate in atmosphere!"
 
                 if (radhazard && rad_safety_features)
-                    ShutDown("Engines throttled down as they presently pose a radiation hazard");
+                    ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg2"));//"Engines throttled down as they presently pose a radiation hazard"
 
                 if (SelectedIsp <= 10)
-                    ShutDown("Engine Stall");
+                    ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg3"));//"Engine Stall"
             }
 
             KillKerbalsWithRadiation(fusionRatio);
@@ -633,7 +634,7 @@ namespace FNPlugin
                 curEngineT.maxThrust = (float)maximumThrust;
 
                 if (!curEngineT.getFlameoutState && fusionRatio < 0.9 && recievedPowerPerSecond > 0)
-                    curEngineT.status = "Insufficient Electricity";
+                    curEngineT.status = Localizer.Format("#LOC_KSPIE_FusionECU2_statu1");//"Insufficient Electricity"
             }
             else
             {
@@ -706,12 +707,12 @@ namespace FNPlugin
 
                     if (!vess.isEVA)
                     {
-                        ScreenMessages.PostScreenMessage(crewMember.name + " was killed by Neutron Radiation!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg4", crewMember.name), 5.0f, ScreenMessageStyle.UPPER_CENTER);// + " was killed by Neutron Radiation!"
                         crewToRemove.Add(crewMember);
                     }
                     else
                     {
-                        ScreenMessages.PostScreenMessage(crewMember.name + " was killed by Neutron Radiation!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg5", crewMember.name), 5.0f, ScreenMessageStyle.UPPER_CENTER);// + " was killed by Neutron Radiation!"
                         vesselsToRemove.Add(vess);
                     }
                 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -295,29 +296,29 @@ namespace FNPlugin.Refinery
             base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Regolith Consumption", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Consumption"), _bold_label, GUILayout.Width(labelWidth));//"Regolith Consumption"
             GUILayout.Label(((regolithConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.000000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Regolith Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Available"), _bold_label, GUILayout.Width(labelWidth));//"Regolith Available"
             GUILayout.Label(dAvailableRegolithMass.ToString("0.000000") + " mT / " + dMaxCapacityRegolithMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Output", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Output"), _bold_label, GUILayout.Width(labelWidth));//"Output"
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Resource Name", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label("Spare Room", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label("Maximum Storage", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label("Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_RegolithProcessor_ResourceName"), _bold_label, GUILayout.Width(labelWidth));//"Resource Name"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_RegolithProcessor_SpareRoom"), _bold_label, GUILayout.Width(labelWidth));//"Spare Room"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_RegolithProcessor_MaximumStorage"), _bold_label, GUILayout.Width(labelWidth));//"Maximum Storage"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_RegolithProcessor_ProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Production Rate"
             GUILayout.EndHorizontal();
 
             DisplayResourceOutput(strHydrogenResourceName, dSpareRoomHydrogenMass, dMaxCapacityHydrogenMass, dHydrogenProductionRate);
@@ -344,16 +345,16 @@ namespace FNPlugin.Refinery
         private void updateStatusMessage()
         {
             if (fixed_regolithConsumptionRate > 0)
-                _status = "Processing of Regolith Ongoing";
+                _status = Localizer.Format("#LOC_KSPIE_RegolithProcessor_Statumsg1");//"Processing of Regolith Ongoing"
             else if (CurrentPower <= 0.01 * PowerRequirements)
-                _status = "Insufficient Power";
+                _status = Localizer.Format("#LOC_KSPIE_RegolithProcessor_Statumsg2");//"Insufficient Power"
             else
-                _status = "Insufficient Storage, try allowing overflow";
+                _status = Localizer.Format("#LOC_KSPIE_RegolithProcessor_Statumsg3");//"Insufficient Storage, try allowing overflow"
         }
 
         public void PrintMissingResources()
         {
-                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Regolith, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.Regolith, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

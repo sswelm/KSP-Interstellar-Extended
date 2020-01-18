@@ -3,6 +3,7 @@ using FNPlugin.Refinery;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin 
 {
@@ -20,9 +21,9 @@ namespace FNPlugin
         //[KSPField(isPersistant = true)]
         //public double science_to_add;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Activity")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_Activity")]//Activity
         public string statusTitle;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_Power")]//Power
         public string powerStr;
         //[KSPField(isPersistant = false, guiActive = false, guiName = "Data Scan Rate")]
         //public string scienceRate;
@@ -36,11 +37,11 @@ namespace FNPlugin
         public string electrolysisRate;
         [KSPField(isPersistant = false, guiActive = true, guiName = "C")]
         public string centrifugeRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Efficiency")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_AntimatterEfficiency")]//Antimatter Efficiency
         public string antimatterProductionEfficiency;
         //[KSPField(isPersistant = false)]
         //public string beginResearchName = "Begin Scanning";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Data Processing Multiplier")] 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_DataProcessingMultiplier")] //Data Processing Multiplier
         public float dataProcessingMultiplier;
 
 
@@ -171,7 +172,7 @@ namespace FNPlugin
             return 0;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Reprocess Nuclear Fuel", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_ReprocessNuclearFuel", active = true)]//Reprocess Nuclear Fuel
         public void ReprocessFuel() 
         {
             if (crew_capacity_ratio == 0) return;
@@ -188,7 +189,7 @@ namespace FNPlugin
             play_down = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Antimatter Production", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_ActivateAntimatterProduction", active = true)]//Activate Antimatter Production
         public void ActivateFactory() 
         {
             if (crew_capacity_ratio == 0) return;
@@ -205,7 +206,7 @@ namespace FNPlugin
             play_down = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Electrolysis", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_ActivateElectrolysis", active = true)]//Activate Electrolysis
         public void ActivateElectrolysis() 
         {
             if (crew_capacity_ratio == 0) return;
@@ -222,7 +223,7 @@ namespace FNPlugin
             play_down = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Centrifuge", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_ActivateCentrifuge", active = true)]//Activate Centrifuge
         public void ActivateCentrifuge() 
         {
             if (crew_capacity_ratio == 0) return;
@@ -239,13 +240,13 @@ namespace FNPlugin
             play_down = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Stop Current Activity", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_StopCurrentActivity", active = false)]//Stop Current Activity
         public void StopActivity() 
         {
             IsEnabled = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_Retrofit", active = true)]//Retrofit
         public void RetrofitEngine()
         {
             if (ResearchAndDevelopment.Instance == null || isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
@@ -459,7 +460,7 @@ namespace FNPlugin
                     try
                     {
                         Fields["reprocessingRate"].guiActive = true;
-                        reprocessingRate = reprocessing_rate_f.ToString("0.0") + " Hours Remaining";
+                        reprocessingRate = Localizer.Format("#LOC_KSPIE_ScienceModule_Reprocessing", reprocessing_rate_f.ToString("0.0"));// + " Hours Remaining"
                     }
                     catch (Exception e)
                     {
@@ -506,7 +507,7 @@ namespace FNPlugin
                     Fields["centrifugeRate"].guiActive = true;
                     powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseCentriPowerConsumption).ToString("0.00") + "MW";
                     double deut_per_hour = deut_rate_f * 3600;
-                    centrifugeRate = deut_per_hour.ToString("0.00") + " Kg Deuterium/Hour";
+                    centrifugeRate = Localizer.Format("#LOC_KSPIE_ScienceModule_Centrifuge", deut_per_hour.ToString("0.00"));// + " Kg Deuterium/Hour"
                 }
                 else
                 { 
@@ -556,9 +557,9 @@ namespace FNPlugin
                 }
 
                 if (crew_capacity_ratio > 0) 
-                    statusTitle = "Idle";
+                    statusTitle = Localizer.Format("#LOC_KSPIE_ScienceModule_Idle");//"Idle"
                 else 
-                    statusTitle = "Not enough crew";
+                    statusTitle = Localizer.Format("#LOC_KSPIE_ScienceModule_Notenoughcrew");//"Not enough crew"
             }
         }
 
@@ -667,7 +668,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    ScreenMessages.PostScreenMessage("You must be splashed down to perform this activity.", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ScienceModule_Postmsg"), 5.0f, ScreenMessageStyle.UPPER_CENTER);//"You must be splashed down to perform this activity."
                     IsEnabled = false;
                 }
             }
@@ -729,9 +730,9 @@ namespace FNPlugin
         public override string getResourceManagerDisplayName() 
         {
             if (IsEnabled) 
-                return "Science Lab (" + modes[active_mode] + ")";
+                return Localizer.Format("#LOC_KSPIE_ScienceModule_ResourceManagerDisplayName", modes[active_mode]);//"Science Lab (" +  + ")"
             
-            return "Science Lab";
+            return Localizer.Format("#LOC_KSPIE_ScienceModule_ResourceManagerDisplayName2");//"Science Lab"
         }
 
 

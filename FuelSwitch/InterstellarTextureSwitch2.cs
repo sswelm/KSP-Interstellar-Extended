@@ -22,9 +22,9 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string mapNames = string.Empty;
         [KSPField]
-        public string textureDisplayNames = "Default";
+        public string textureDisplayNames = Localizer.Format("#LOC_IFS_TextureSwitch_displayname2");//"Default"
         [KSPField]
-        public string statusText = "Current Texture";
+        public string statusText = Localizer.Format("#LOC_IFS_TextureSwitch_CurrentTexture");//"Current Texture"
 
         [KSPField(isPersistant = true, guiActiveEditor = true)]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.Editor, suppressEditorShipModified = true)]
@@ -79,10 +79,10 @@ namespace InterstellarFuelSwitch
 
         InterstellarDebugMessages debug;
 
-        [KSPField(guiActiveEditor = true, guiName = "Current Texture")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_CurrentTexture")]//Current Texture
         public string currentTextureName = string.Empty;
 
-        [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "Debug: Log Objects")]
+        [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_TextureSwitch_DebugLog")]//Debug: Log Objects
         public void listAllObjects()
         {
             List<Transform> childList = ListChildren(part.transform);
@@ -174,7 +174,7 @@ namespace InterstellarFuelSwitch
                 Debug.LogWarning("[IFS] - SwitchToFuelTankSetup is missing " + fuelTankSetup);
         }
 
-        [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 5f, guiActive = false, guiActiveEditor = false, guiName = "Repaint")]
+        [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 5f, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_TextureSwitch_Repaint")]//Repaint
         public void nextTextureEVAEvent()
         {
             nextTextureEvent();
@@ -312,11 +312,11 @@ namespace InterstellarFuelSwitch
 
                 textureDisplayList = ParseTools.ParseNames(textureDisplayNames);
                 var info = new StringBuilder();
-                info.AppendLine("Alternate textures available:");
+                info.AppendLine(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfo"));//"Alternate textures available:"
                 if (variantList.Count == 0)
                 {
                     if (variantList.Count == 0)
-                        info.AppendLine("None");
+                        info.AppendLine(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNone"));//"None"
                 }
                 for (var i = 0; i < variantList.Count; i++)
                 {
@@ -324,7 +324,7 @@ namespace InterstellarFuelSwitch
                         ? getTextureDisplayName(variantList[i])
                         : textureDisplayList[i]);
                 }
-                info.AppendLine("\nUse the Next Texture button on the right click menu.");
+                info.AppendLine("\n"+Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNext"));//Use the Next Texture button on the right click menu.
                 return info.ToString();
             }
             else

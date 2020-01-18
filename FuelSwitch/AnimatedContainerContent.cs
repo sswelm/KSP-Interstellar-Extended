@@ -22,7 +22,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double maximumRatio = 1;
 
-        [KSPField(isPersistant = false, guiName = "Animation Ratio", guiActiveEditor = false, guiActive = false, guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiName = "#LOC_IFS_AnimatedContainerContent_AnimationRatio", guiActiveEditor = false, guiActive = false, guiFormat = "F3")]//Animation Ratio
         public float animationRatio;
 
         private AnimationState[] containerStates;

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -173,7 +174,7 @@ namespace FNPlugin.Refinery
                 if (offlineCollecting) // if collecting offline, multiply by the elapsed time
                 {
                     _intakeLqdConsumptionRate = _fixedConsumptionRate * timeDifference;
-                    ScreenMessages.PostScreenMessage("The ocean extractor processed " + _intakeLiquidDefinition.name + " for " + timeDifference.ToString("F0") + " seconds, processing " + _intakeLqdConsumptionRate.ToString("F2") + " units in total.", 60.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SeawaterExtract_Postmsg1", _intakeLiquidDefinition.name, timeDifference.ToString("F0"), _intakeLqdConsumptionRate.ToString("F2")), 60.0f, ScreenMessageStyle.UPPER_CENTER);//"The ocean extractor processed " +  + " for " +  + " seconds, processing " +  + " units in total."
                 }
 
                 // calculate the rate of production
@@ -196,17 +197,17 @@ namespace FNPlugin.Refinery
             base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SeawaterExtract_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Intake Lqd Consumption", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SeawaterExtract_LqdConsumption"), _bold_label, GUILayout.Width(labelWidth));//"Intake Lqd Consumption"
             GUILayout.Label(((_intakeLqdConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_SeawaterExtract_ProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Production Rate"
             GUILayout.Label(((currentResourceProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
@@ -236,13 +237,13 @@ namespace FNPlugin.Refinery
                 {
                     // calculations done, print it out - first the Storage
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(resource.ResourceName + " Storage", _bold_label, GUILayout.Width(labelWidth));
+                    GUILayout.Label(Localizer.Format("#LOC_KSPIE_SeawaterExtract_ResourcesStorage", resource.ResourceName), _bold_label, GUILayout.Width(labelWidth));// + " Storage"
                     GUILayout.Label(spareRoomLabel + " mT / " + maxCapacityLabel + " mT", _value_label, GUILayout.Width(valueWidth));
                     GUILayout.EndHorizontal();
 
                     // next print out the production rates
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(resource.ResourceName + "Production Rate", _bold_label, GUILayout.Width(labelWidth));
+                    GUILayout.Label(resource.ResourceName + Localizer.Format("#LOC_KSPIE_SeawaterExtract_ProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Production Rate"
                     GUILayout.Label((resourcePercentageUI * 100) + "% " + productionRateLabel + " mT/hour", _value_label, GUILayout.Width(valueWidth));
                     GUILayout.EndHorizontal();
                 }
@@ -252,16 +253,16 @@ namespace FNPlugin.Refinery
         private void updateStatusMessage()
         {
             if (_intakeLqdConsumptionRate > 0)
-                _status = "Extracting intake liquid";
+                _status = Localizer.Format("#LOC_KSPIE_SeawaterExtract_Statumsg1");//"Extracting intake liquid"
             else if (CurrentPower <= 0.01 * PowerRequirements)
-                _status = "Insufficient Power";
+                _status = Localizer.Format("#LOC_KSPIE_SeawaterExtract_Statumsg2");//"Insufficient Power"
             else
-                _status = "Insufficient Storage, try allowing overflow";
+                _status = Localizer.Format("#LOC_KSPIE_SeawaterExtract_Statumsg3");//"Insufficient Storage, try allowing overflow"
         }
 
         public void PrintMissingResources()
         {
-                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.IntakeLiquid, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SeawaterExtract_Postmsg2") + " " + InterstellarResourcesConfiguration.Instance.IntakeLiquid, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

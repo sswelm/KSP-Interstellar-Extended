@@ -1,5 +1,6 @@
 ﻿using System;
 using FNPlugin.Extensions;
+using KSP.Localization;
 
 namespace FNPlugin.Reactors
 {
@@ -56,19 +57,19 @@ namespace FNPlugin.Reactors
         // Persistant
         [KSPField(isPersistant = true)]
         public double accumulatedElectricChargeInMW;
-        [KSPField(guiActiveEditor = true, guiName = "Power Affects Maintenance")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_InertialConfinementReactor_PowerAffectsMaintenance")]//Power Affects Maintenance
         public bool powerControlAffectsMaintenance = true;
-        [KSPField(isPersistant = true, guiName = "Startup"), UI_Toggle(disabledText = "Off", enabledText = "Charging")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_InertialConfinementReactor_Startup"), UI_Toggle(disabledText = "#LOC_KSPIE_InertialConfinementReactor_Startup_Off", enabledText = "#LOC_KSPIE_InertialConfinementReactor_Startup_Charging")]//Startup--Off--Charging
         public bool isChargingForJumpstart;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Max Secondary Power Usage"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_InertialConfinementReactor_MaxSecondaryPowerUsage"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 1)]//Max Secondary Power Usage
         public float maxSecondaryPowerUsage = 90;
 
         // UI Display
-        [KSPField(guiActive = false, guiUnits = "%", guiName = "Minimum Throtle", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiUnits = "%", guiName = "#LOC_KSPIE_InertialConfinementReactor_MinimumThrotle", guiFormat = "F2")]//Minimum Throtle
         public double minimumThrottlePercentage;
-        [KSPField(guiActive = true, guiName = "Charge")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_InertialConfinementReactor_Charge")]//Charge
         public string accumulatedChargeStr = String.Empty;
-        [KSPField(guiActive = false, guiName = "Fusion Power Requirement", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_InertialConfinementReactor_FusionPowerRequirement", guiFormat = "F2")]//Fusion Power Requirement
         public double currentLaserPowerRequirements = 0;
 
         [KSPField(guiActive = false)]
@@ -433,9 +434,9 @@ namespace FNPlugin.Reactors
             if (availableStablePower < minimumChargingPower)
             {
                 if (startupCostGravityMultiplier > 0)
-                    ScreenMessages.PostScreenMessage("Curent you need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor. Move closer to gravity well to reduce amount needed", 1f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_InertialConfinementReactor_PostMsg1", minimumChargingPower.ToString("F0")), 1f, ScreenMessageStyle.UPPER_CENTER);//"Curent you need at least " +  + " MW to charge the reactor. Move closer to gravity well to reduce amount needed"
                 else
-                    ScreenMessages.PostScreenMessage("You need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor", 5f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_InertialConfinementReactor_PostMsg2", minimumChargingPower.ToString("F0")), 5f, ScreenMessageStyle.UPPER_CENTER);//"You need at least " +  + " MW to charge the reactor"
             }
             else
             {
@@ -462,9 +463,9 @@ namespace FNPlugin.Reactors
                 else
                 {
                     if (startupCostGravityMultiplier > 0)
-                        ScreenMessages.PostScreenMessage("Curent you need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor. Move closer to gravity well to reduce amount needed", 5f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_InertialConfinementReactor_PostMsg1", minimumChargingPower.ToString("F0")), 5f, ScreenMessageStyle.UPPER_CENTER);//"Curent you need at least " +  + " MW to charge the reactor. Move closer to gravity well to reduce amount needed"
                     else
-                        ScreenMessages.PostScreenMessage("You need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor", 5f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_InertialConfinementReactor_PostMsg2", minimumChargingPower.ToString("F0")), 5f, ScreenMessageStyle.UPPER_CENTER);//"You need at least " +  + " MW to charge the reactor"
                 }
             }
 

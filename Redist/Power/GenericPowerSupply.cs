@@ -3,7 +3,7 @@
     [KSPModule("Power Supply")]
     class GenericPowerSupply : PartModule, IPowerSupply
     {
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Proces")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_GenericPowerSupply_Proces")]//Proces
         public string displayName = "";
 
         protected ResourceBuffers resourceBuffers;

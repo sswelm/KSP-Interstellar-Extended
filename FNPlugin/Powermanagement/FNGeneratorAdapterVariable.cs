@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 using System.Collections;
 using System.Collections.Generic;
@@ -11,9 +12,9 @@ namespace FNPlugin
     [KSPModule("Generator Adapter")]
     class FNGeneratorAdapterVariable : ResourceSuppliableModule
     {
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Power input", guiUnits = " MW", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Powerinput", guiUnits = " MW", guiFormat = "F6")]//Power input
         public double powerGeneratorPowerInput;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Power output", guiUnits = " MW", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Poweroutput", guiUnits = " MW", guiFormat = "F6")]//Power output
         public double powerGeneratorPowerOutput;
 
         [KSPField(isPersistant = true)]
@@ -135,7 +136,7 @@ namespace FNPlugin
 
                     part.RequestResource(moduleInputResource.name, consumption);
 
-                    var message =  timePassedSinceLastProcessing + " seconds passed durring which " +  consumption + " " + moduleInputResource.name + " was consumed ";
+                    var message =  Localizer.Format("#LOC_KSPIE_FNGeneratorAdapter_msg", timePassedSinceLastProcessing,consumption,moduleInputResource.name);// <<1>> seconds passed durring which <<2>> <<3>> was consumed "
 
                     Debug.Log("[KSPI]: " + message);
                 }

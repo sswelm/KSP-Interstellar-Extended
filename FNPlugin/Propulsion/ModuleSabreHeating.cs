@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin 
 {
@@ -17,7 +18,7 @@ namespace FNPlugin
         public double missingPrecoolerProportionExponent = 0.5;
 
         // Gui
-        [KSPField(guiActive = true, guiName = "Missing Precooler Ratio")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ModuleSabreHeating_MissingPrecoolerRatio")]//Missing Precooler Ratio
         double missingPrecoolerRatio;
 
         // Modules
@@ -74,7 +75,7 @@ namespace FNPlugin
                         temp1 = Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 10.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * missingPrecoolerRatio, 1);
                         if (temp1 >= (part.maxTemp - 10))
                         {
-                            ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ModuleSabreHeating_PostMsg"), 5.0f, ScreenMessageStyle.UPPER_CENTER);//"Engine Shutdown: Catastrophic overheating was imminent!"
                             rapier_engine.Shutdown();
                             part.temperature = 1;
                             return;
@@ -93,7 +94,7 @@ namespace FNPlugin
                         temp2 = Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * missingPrecoolerRatio, 1);
                         if (temp2 >= (part.maxTemp - 10))
                         {
-                            ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ModuleSabreHeating_PostMsg"), 5.0f, ScreenMessageStyle.UPPER_CENTER);//"Engine Shutdown: Catastrophic overheating was imminent!"
                             rapier_engine2.Shutdown();
                             part.temperature = 1;
                             return;

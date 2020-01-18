@@ -20,7 +20,7 @@ namespace FNPlugin
         const float stepNumb = 0;
 
         // Persistant setting
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Selected Isp"), UI_FloatRange(stepIncrement = defaultSteps, maxValue = defaultMaxIsp, minValue = defaultMinIsp)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_VistaECU2_SelectedIsp"), UI_FloatRange(stepIncrement = defaultSteps, maxValue = defaultMaxIsp, minValue = defaultMinIsp)]//Selected Isp
         public float localIsp = defaultMinIsp + (stepNumb * defaultSteps);
        
         // settings
