@@ -2219,7 +2219,7 @@ namespace FNPlugin
 
         private void UpdateThrottleAnimation(float ratio)
         {
-            if (string.IsNullOrWhiteSpace(throttleAnimName))
+            if (String.IsNullOrEmpty(throttleAnimName))
                 return;
 
             throtleAnimation[throttleAnimName].speed = 0;
