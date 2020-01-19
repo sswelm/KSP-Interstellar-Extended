@@ -116,7 +116,7 @@ namespace FNPlugin.Beamedpower
             }
         }
 
-        public string BandwidthName { get => bandwidthName; set => bandwidthName = value; }
+        public string BandwidthName { get { return bandwidthName; } set { bandwidthName = value; } }
 
         public override string GetInfo()
         {

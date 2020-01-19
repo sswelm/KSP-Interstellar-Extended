@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using KSP.Localization;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin 
 {
@@ -18,12 +18,10 @@ namespace FNPlugin
         public string attachedIntakeName;
 
         AtmosphericIntake attachedIntake;
-        List<AtmosphericIntake> radialAttachedIntakes;
+        List<AtmosphericIntake> radialAttachedIntakes = new List<AtmosphericIntake>();
 
         public override void OnStart(PartModule.StartState state) 
         {
-            if (state == StartState.Editor) return;
-
             Debug.Log("[KSPI]: FNModulePreecooler - Onstart start search for Air Intake module to cool");
 
             // first check if part itself has an air intake
@@ -31,6 +29,8 @@ namespace FNPlugin
 
             if (attachedIntake != null)
                 Debug.Log("[KSPI]: FNModulePreecooler - Found Airintake on self");
+
+            if (state == StartState.Editor) return;
 
             if (attachedIntake == null)
             {
@@ -140,7 +140,5 @@ namespace FNPlugin
         {
             functional = ((attachedIntake != null && attachedIntake.intakeOpen) || radialAttachedIntakes.Any(i => i.intakeOpen));
         }
-
-
     }
 }

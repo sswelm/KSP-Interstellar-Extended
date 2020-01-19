@@ -181,6 +181,8 @@ namespace FNPlugin
         [KSPField]
         public double maxThermalPower;
         [KSPField]
+        public double powerRatio;
+        [KSPField]
         public double effectiveMaximumThermalPower;
         [KSPField]
         public double maxChargedPowerForThermalGenerator;
@@ -248,8 +250,6 @@ namespace FNPlugin
         public double maxStableMegaWattPower;
         [KSPField]
         public bool applies_balance;
-        [KSPField]
-        public double thermalPowerCurrentlyNeededForElectricity;
         [KSPField]
         public double effectiveThermalPowerNeededForElectricity;
         [KSPField]
@@ -870,7 +870,10 @@ namespace FNPlugin
 
         public double PowerRatio
         {
-            get { return (double)(decimal)powerPercentage / 100; }
+            get {
+                powerRatio = (double)(decimal)powerPercentage / 100;
+                return powerRatio; 
+            }
         }
 
         /// <summary>
@@ -926,8 +929,8 @@ namespace FNPlugin
 
                 maximumElectricPower = (_totalEff >= 0)
                     ? !chargedParticleMode
-                        ? maxThermalPower * _totalEff * PowerRatio * CapacityRatio
-                        : maxChargedPowerForThermalGenerator * _totalEff * PowerRatio * CapacityRatio
+                        ? PowerRatio * _totalEff * maxThermalPower
+                        : PowerRatio * _totalEff * maxChargedPowerForThermalGenerator 
                     : 0;
 
                 MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower, "0.0", "0.000");
@@ -1098,9 +1101,9 @@ namespace FNPlugin
                             return;
                         }
 
-                        thermalPowerCurrentlyNeededForElectricity = CalculateElectricalPowerCurrentlyNeeded();
+                        electrical_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                        effectiveThermalPowerNeededForElectricity = thermalPowerCurrentlyNeededForElectricity / _totalEff;
+                        effectiveThermalPowerNeededForElectricity = electrical_power_currently_needed / _totalEff;
 
                         //var availableChargedPowerRatio = Math.Max(Math.Min(2 * getResourceBarRatio(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) - 0.25, 1), 0);
 
@@ -1177,9 +1180,9 @@ namespace FNPlugin
 
                         if (_totalEff <= 0) return;
 
-                        var chargedPowerCurrentlyNeededForElectricity = CalculateElectricalPowerCurrentlyNeeded();
+                        electrical_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                        requestedChargedPower = overheatingModifier * Math.Max(0, Math.Min(maxAllowedChargedPower, chargedPowerCurrentlyNeededForElectricity / _totalEff));
+                        requestedChargedPower = overheatingModifier * Math.Max(0, Math.Min(maxAllowedChargedPower, electrical_power_currently_needed / _totalEff));
                         requestedPostChargedPower = overheatingModifier * Math.Max(0, (attachedPowerSource.MinimumPower * chargedPowerRatio) - requestedChargedPower); 
 
                         requested_power_per_second = requestedChargedPower;
@@ -1297,7 +1300,7 @@ namespace FNPlugin
 
             post_received_power_per_second = postThermalPowerReceived + postChargedPowerReceived;
 
-            postEffectiveInputPowerPerSecond = post_received_power_per_second * _totalEff;
+            postEffectiveInputPowerPerSecond = Math.Max(0, Math.Min(post_received_power_per_second * _totalEff, maximumElectricPower - electricdtps));
 
             if (!CheatOptions.IgnoreMaxTemperature)
                 consumeFNResourcePerSecond(postEffectiveInputPowerPerSecond, ResourceManager.FNRESOURCE_WASTEHEAT);
@@ -1344,9 +1347,7 @@ namespace FNPlugin
 
             possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity, maxStableMegaWattPower);
 
-            electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
-
-            return electrical_power_currently_needed;
+            return Math.Min(maximumElectricPower, currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling);
         }
 
         private void PowerDown()
