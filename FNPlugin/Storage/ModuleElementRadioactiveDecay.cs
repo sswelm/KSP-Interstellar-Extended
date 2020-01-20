@@ -1,4 +1,5 @@
 ﻿using System;
+using KSP.Localization;
 
 namespace FNPlugin 
 {
@@ -72,7 +73,7 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            return "Radioactive Decay";
+            return Localizer.Format("#LOC_KSPIE_RadioactiveDecay_info");//"Radioactive Decay"
         }
 
     }

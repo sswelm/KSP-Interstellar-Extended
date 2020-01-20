@@ -20,9 +20,9 @@ namespace FNPlugin
     [KSPModule("Solar Panel Adapter")]
     class FNSolarPanelWasteHeatModule : ResourceSuppliableModule, ISolarPower
     {
-        [KSPField( guiActive = true,  guiName = "Current Solar Power", guiUnits = " MW", guiFormat= "F5")]
+        [KSPField( guiActive = true,  guiName = "#LOC_KSPIE_SolarPanelWH_CurrentSolarPower", guiUnits = " MW", guiFormat= "F5")]//Current Solar Power
         public double megaJouleSolarPowerSupply;
-        [KSPField(guiActive = true, guiName = "Maximum Solar Power", guiUnits = " MW", guiFormat = "F5")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarPanelWH_MaximumSolarPower", guiUnits = " MW", guiFormat = "F5")]//Maximum Solar Power
         public double solarMaxSupply = 0;
         [KSPField(guiActive = false, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
         public double astronomicalUnit;

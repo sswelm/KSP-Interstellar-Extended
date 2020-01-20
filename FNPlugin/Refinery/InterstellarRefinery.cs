@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -16,32 +17,32 @@ namespace FNPlugin.Refinery
         protected double lastActiveTime;
         [KSPField(isPersistant = true, guiActive = false)]
         protected double lastPowerRatio;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Current")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Refinery_Current")]//Current
         protected string lastActivityName = "";
         [KSPField(isPersistant = true, guiActive = false)]
         protected string lastClassName = "";
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Refinery Type")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_RefineryType")]//Refinery Type
         public int refineryType = 255;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Refinery_PowerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]//Power Control
         public float powerPercentage = 100;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_Refinery_Status")]//Status
         public string status_str = string.Empty;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Base Production", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_BaseProduction", guiFormat = "F3")]//Base Production
         public double baseProduction = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Production Multiplier", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_ProductionMultiplier", guiFormat = "F3")]//Production Multiplier
         public double productionMult = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Req Multiplier", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_PowerReqMultiplier", guiFormat = "F3")]//Power Req Multiplier
         public double powerReqMult = 1;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Requirement", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_PowerRequirement", guiFormat = "F3", guiUnits = " MW")]//Power Requirement
         public double currentPowerReq;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Available", guiUnits = "%", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_PowerAvailable", guiUnits = "%", guiFormat = "F3")]//Power Available
         public double utilisationPercentage;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Consumed Power", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_ConsumedPower", guiFormat = "F3", guiUnits = " MW")]//Consumed Power
         public double consumedPowerMW;
 
         protected IRefineryActivity _current_activity = null;
@@ -103,7 +104,7 @@ namespace FNPlugin.Refinery
          * 
          */
 
-        [KSPEvent(guiActive = true, guiName = "Toggle Refinery Window", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Refinery_ToggleRefineryWindow", active = true)]//Toggle Refinery Window
         public void ToggleWindow()
         {
             _render_window = !_render_window;
@@ -117,7 +118,7 @@ namespace FNPlugin.Refinery
             powerSupply = part.FindModuleImplementing<IPowerSupply>();
 
             if (powerSupply != null)
-                powerSupply.DisplayName = "started";
+                powerSupply.DisplayName = Localizer.Format("#LOC_KSPIE_Refinery_started");//"started"
 
             if (state == StartState.Editor) return;
 
@@ -181,7 +182,7 @@ namespace FNPlugin.Refinery
 
                 if (timeDifference > 0.01)
                 {
-                    string message = "IRSU performed " + lastActivityName + " for " + timeDifference.ToString("0") + " seconds";
+                    string message = Localizer.Format("#LOC_KSPIE_Refinery_Postmsg1", lastActivityName, timeDifference.ToString("0"));//"IRSU performed " +  + " for " +  + " seconds"
                     Debug.Log("[KSPI]: "  + message);
                     ScreenMessages.PostScreenMessage(message, 20, ScreenMessageStyle.LOWER_CENTER);
                 }
@@ -219,7 +220,7 @@ namespace FNPlugin.Refinery
 
         public override void OnUpdate()
         {
-            status_str = "Offline";
+            status_str = Localizer.Format("#LOC_KSPIE_Refinery_Offline");//"Offline"
 
             if (_current_activity == null) return;
 
@@ -270,14 +271,14 @@ namespace FNPlugin.Refinery
 
         public override string GetInfo()
         {
-            return "Refinery Module capable of advanced ISRU processing.";
+            return Localizer.Format("#LOC_KSPIE_Refinery_GetInfo");//"Refinery Module capable of advanced ISRU processing."
         }
 
         private void OnGUI()
         {
             if (this.vessel != FlightGlobals.ActiveVessel || !_render_window) return;
 
-            _window_position = GUILayout.Window(_window_ID, _window_position, Window, "ISRU Refinery Interface");
+            _window_position = GUILayout.Window(_window_ID, _window_position, Window, Localizer.Format("#LOC_KSPIE_Refinery_WindowTitle"));//"ISRU Refinery Interface"
         }
 
         private bool overflowAllowed;
@@ -343,21 +344,21 @@ namespace FNPlugin.Refinery
                 GUILayout.BeginHorizontal();
                 if (overflowAllowed)
                 {
-                    if (GUILayout.Button("Disable Overflow", GUILayout.ExpandWidth(true)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KSPIE_Refinery_DisableOverflow"), GUILayout.ExpandWidth(true)))//"Disable Overflow"
                         overflowAllowed = false;
                 }
                 else
                 {
-                    if (GUILayout.Button("Enable Overflow", GUILayout.ExpandWidth(true)))
+                    if (GUILayout.Button(Localizer.Format("#LOC_KSPIE_Refinery_EnableOverflow"), GUILayout.ExpandWidth(true)))//"Enable Overflow"
                         overflowAllowed = true;
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Current Activity", _bold_label, GUILayout.Width(RefineryActivityBase.labelWidth));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_Refinery_CurrentActivity"), _bold_label, GUILayout.Width(RefineryActivityBase.labelWidth));//"Current Activity"
                 GUILayout.Label(_current_activity.ActivityName, _value_label, GUILayout.Width(RefineryActivityBase.valueWidth * 2));
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Status", _bold_label, GUILayout.Width(RefineryActivityBase.labelWidth));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_Refinery_Status"), _bold_label, GUILayout.Width(RefineryActivityBase.labelWidth));//"Status"
                 GUILayout.Label(_current_activity.Status, _value_label, GUILayout.Width(RefineryActivityBase.valueWidth * 2));
                 GUILayout.EndHorizontal();
 
@@ -365,7 +366,7 @@ namespace FNPlugin.Refinery
                 _current_activity.UpdateGUI();
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Deactivate Process", GUILayout.ExpandWidth(true)))
+                if (GUILayout.Button(Localizer.Format("#LOC_KSPIE_Refinery_DeactivateProcess"), GUILayout.ExpandWidth(true)))//"Deactivate Process"
                 {
                     refinery_is_enabled = false;
                     _current_activity = null;

@@ -7,9 +7,9 @@ namespace FNPlugin
     [KSPModule("Near Future Fission Generator Adapter")]
     class FNFissionGeneratorAdapter : ResourceSuppliableModule
     {
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Generator current power", guiUnits = " MW", guiFormat = "F5")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_NFFAdapter_Currentpower", guiUnits = " MW", guiFormat = "F5")]//Generator current power
         public double megaJouleGeneratorPowerSupply;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_NFFAdapter_Efficiency")]//Efficiency
         public string OverallEfficiency;
 
         private PartModule moduleGenerator;

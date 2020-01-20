@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using KSP.Localization;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -9,20 +10,18 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool functional;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Area")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Preecooler_Area")]//Area
         public double area = 0.01;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Precooler status")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Preecooler_Status")]//Precooler status
         public string statusStr;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Intake")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Preecooler_Intake")]//Intake
         public string attachedIntakeName;
 
         AtmosphericIntake attachedIntake;
-        List<AtmosphericIntake> radialAttachedIntakes;
+        List<AtmosphericIntake> radialAttachedIntakes = new List<AtmosphericIntake>();
 
         public override void OnStart(PartModule.StartState state) 
         {
-            if (state == StartState.Editor) return;
-
             Debug.Log("[KSPI]: FNModulePreecooler - Onstart start search for Air Intake module to cool");
 
             // first check if part itself has an air intake
@@ -30,6 +29,8 @@ namespace FNPlugin
 
             if (attachedIntake != null)
                 Debug.Log("[KSPI]: FNModulePreecooler - Found Airintake on self");
+
+            if (state == StartState.Editor) return;
 
             if (attachedIntake == null)
             {
@@ -132,14 +133,12 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            statusStr = functional ? "Active." : "Offline.";
+            statusStr = functional ? Localizer.Format("#LOC_KSPIE_Preecooler_Active") : Localizer.Format("#LOC_KSPIE_Preecooler_Offline");//"Active.""Offline."
         }
 
         public void FixedUpdate() // FixedUpdate is also called while not staged
         {
             functional = ((attachedIntake != null && attachedIntake.intakeOpen) || radialAttachedIntakes.Any(i => i.intakeOpen));
         }
-
-
     }
 }

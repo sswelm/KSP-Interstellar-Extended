@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin 
 {
@@ -169,7 +170,7 @@ namespace FNPlugin
             distribution_factor = Math.Min(distribution_factor, 3.5); // no more than 3.5x boost to science by using multiple detectors
             if (distribution_factor > 0 && !double.IsInfinity(distribution_factor) && !double.IsNaN(distribution_factor)) 
             {
-                ScreenMessages.PostScreenMessage("Impact Recorded, science report can now be accessed from one of your accelerometers deployed on this body.", 5f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ImpactorModule_Postmsg"), 5f, ScreenMessageStyle.UPPER_CENTER);//"Impact Recorded, science report can now be accessed from one of your accelerometers deployed on this body."
                 this.lastImpactTime = Planetarium.GetUniversalTime();
                 Debug.Log("[KSPI]: Impactor: Impact registered!");
 

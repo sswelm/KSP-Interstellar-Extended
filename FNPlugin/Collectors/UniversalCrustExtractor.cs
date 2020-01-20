@@ -328,7 +328,7 @@ namespace FNPlugin.Collectors
         private void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
-                _window_position = GUILayout.Window(_window_ID, _window_position, DrawGui, Localizer.Format(""));//"Universal Mining Interface"
+                _window_position = GUILayout.Window(_window_ID, _window_position, DrawGui, Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_windowtitle"));//"Universal Mining Interface"
 
             //scrollPosition[1] = GUI.VerticalScrollbar(_window_position, scrollPosition[1], 1, 0, 150, "Scroll");
         }

@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Power;
 using System;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -49,13 +50,13 @@ namespace FNPlugin
         public int initializationCountdown = 10;
 
         //GUI
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Power")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Power")]//Power
         public string powerStatusStr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Boiloff")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Boiloff")]//Boiloff
         public string boiloffStr;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature", guiFormat = "F3", guiUnits = " K")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Temperature", guiFormat = "F3", guiUnits = " K")]//Temperature
         public double externalTemperature;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "internal boiloff")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Internalboiloff")]//internal boiloff
         public double boiloff;
 
         private BaseField isDisabledField;
@@ -237,7 +238,7 @@ namespace FNPlugin
                 if (hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
                 {
                     warningShown = true;
-                    var message = "Warning: " + boiloffStr + " Boiloff";
+                    var message = Localizer.Format("#LOC_KSPIE_ModuleCryostat_Postmsg", boiloffStr);//"Warning: " +  + " Boiloff"
                     Debug.LogWarning("[KSPI]: FNModuleCryostat: " + message);
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 }
@@ -254,7 +255,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName()
         {
-            return resourceGUIName + " Cryostat";
+            return resourceGUIName + " " + Localizer.Format("#LOC_KSPIE_ModuleCryostat_Cryostat");//Cryostat
         }
 
         public override int getPowerPriority()

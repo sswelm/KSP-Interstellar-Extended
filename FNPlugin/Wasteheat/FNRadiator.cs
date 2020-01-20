@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Wasteheat 
 {
@@ -21,17 +22,17 @@ namespace FNPlugin.Wasteheat
     class FNRadiator : ResourceSuppliableModule    
     {
         // persitant
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Radiator Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts= UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_Cooling"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts= UI_Scene.All)]//Radiator Cooling--Off--On
         public bool radiatorIsEnabled = false;
         [KSPField(isPersistant = false)]
         public bool canRadiateHeat = true;
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Automated"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_Automated"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Automated-Off-On
         public bool isAutomated = true;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Pivot"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PivotOff"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Pivot--Off--On
         public bool pivotEnabled = true;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Prevent Shielded Deploy"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PreventShieldedDeploy"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Prevent Shielded Deploy-Off-On
         public bool preventShieldedDeploy = true;
         [KSPField(isPersistant = true)]
         public bool showRetractButton = false;
@@ -41,39 +42,39 @@ namespace FNPlugin.Wasteheat
         public double currentRadTemp;
 
         // non persistant
-        [KSPField(guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_MaxVacuumTemp", guiFormat = "F0", guiUnits = "K")]//Max Vacuum Temp
         public double maxVacuumTemperature = maximumRadiatorTempInSpace;
-        [KSPField(guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_MaxAtmosphereTemp", guiFormat = "F0", guiUnits = "K")]//Max Atmosphere Temp
         public double maxAtmosphereTemperature = maximumRadiatorTempAtOneAtmosphere;
-        [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_MaxCurrentTemp", guiFormat = "F0", guiUnits = "K")]//Max Current Temp
         public double maxCurrentRadiatorTemperature = maximumRadiatorTempAtOneAtmosphere;
-        [KSPField(guiName = "Space Radiator Bonus", guiFormat = "F0", guiUnits = "K")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_SpaceRadiatorBonus", guiFormat = "F0", guiUnits = "K")]//Space Radiator Bonus
         public double spaceRadiatorBonus;
         [KSPField]
-        public string radiatorTypeMk1 = "NaK Loop Radiator";
+        public string radiatorTypeMk1 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk1");//NaK Loop Radiator
         [KSPField]
-        public string radiatorTypeMk2 = "Mo Li Heat Pipe Mk1";
+        public string radiatorTypeMk2 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk2");//Mo Li Heat Pipe Mk1
         [KSPField]
-        public string radiatorTypeMk3 = "Mo Li Heat Pipe Mk2";
+        public string radiatorTypeMk3 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk3");//"Mo Li Heat Pipe Mk2"
         [KSPField]
-        public string radiatorTypeMk4 = "Graphene Radiator Mk1";
+        public string radiatorTypeMk4 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk4");//"Graphene Radiator Mk1"
         [KSPField]
-        public string radiatorTypeMk5 = "Graphene Radiator Mk2";
+        public string radiatorTypeMk5 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk5");//"Graphene Radiator Mk2"
         [KSPField]
-        public string radiatorTypeMk6 = "Graphene Radiator Mk3";
+        public string radiatorTypeMk6 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk6");//"Graphene Radiator Mk3"
         [KSPField]
         public bool showColorHeat = true;
         [KSPField]
         public string surfaceAreaUpgradeTechReq = null;
         [KSPField]
         public double surfaceAreaUpgradeMult = 1.6;
-        [KSPField(guiName = "Mass", guiUnits = " t")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_Mass", guiUnits = " t")]//Mass
         public float partMass;
         [KSPField]
         public bool isDeployable = false;
         [KSPField]
         public bool isPassive = false;
-        [KSPField(guiName = "Converction Bonus")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_ConverctionBonus")]//Converction Bonus
         public double convectiveBonus = 1;
         [KSPField]
         public string animName = "";
@@ -99,37 +100,37 @@ namespace FNPlugin.Wasteheat
         public string emissiveTextureLocation = "";
         [KSPField]
         public string bumpMapTextureLocation = "";
-        [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Radiator_AtmosphereModifier")]//Atmosphere Modifier
         public double atmosphere_modifier;
-        [KSPField(guiName = "Type")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_Type")]//Type
         public string radiatorType;
-        [KSPField(guiActive = true, guiName = "Rad Temp")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Radiator_RadiatorTemp")]//Rad Temp
         public string radiatorTempStr;
-        [KSPField(guiActive = true, guiName = "Part Temp")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Radiator_PartTemp")]//Part Temp
         public string partTempStr;
-        [KSPField(guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
         public double radiatorArea = 1;
-        [KSPField(guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_EffSurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Eff Surface Area
         public double effectiveRadiativeArea = 1;
         [KSPField]
         public double areaMultiplier = 1;
-        [KSPField(guiName = "Effective Area", guiFormat = "F2", guiUnits = " m\xB2")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_EffectiveArea", guiFormat = "F2", guiUnits = " m\xB2")]//Effective Area
         public double effectiveRadiatorArea;
-        [KSPField(guiActive = true, guiName = "Power Radiated")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Radiator_PowerRadiated")]//Power Radiated
         public string thermalPowerDissipStr;
-        [KSPField(guiActive = true, guiName = "Power Convected")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Radiator_PowerConvected")]//Power Convected
         public string thermalPowerConvStr;
-        [KSPField(guiName = "Rad Upgrade Cost")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_RadUpgradeCost")]//Rad Upgrade Cost
         public string upgradeCostStr;
-        [KSPField(guiName = "Radiator Start Temp")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_RadiatorStartTemp")]//Radiator Start Temp
         public double radiator_temperature_temp_val;
         [KSPField]
         public double instantaneous_rad_temp;
-        [KSPField(guiName = "Dynamic Pressure Stress", guiActive = true, guiFormat = "P2")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_DynamicPressureStress", guiActive = true, guiFormat = "P2")]//Dynamic Pressure Stress
         public double dynamicPressureStress;
-        [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_MaxEnergyTransfer", guiFormat = "F2")]//Max Energy Transfer
         private double _maxEnergyTransfer;
-        [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_MaxRadiatorTemperature", guiFormat = "F0")]//Max Radiator Temperature
         public float maxRadiatorTemperature = maximumRadiatorTempInSpace;
 
         [KSPField] public int nrAvailableUpgradeTechs;
@@ -422,7 +423,7 @@ namespace FNPlugin.Wasteheat
             return average_temp;
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Deploy Radiator", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_DeployRadiator", active = true)]//Deploy Radiator
         public void DeployRadiator() 
         {
             isAutomated = false;
@@ -463,7 +464,7 @@ namespace FNPlugin.Wasteheat
             radiatorIsEnabled = true;
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract Radiator", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_RetractRadiator", active = true)]//Retract Radiator
         public void RetractRadiator() 
         {
             if (!isDeployable) return;
@@ -573,11 +574,11 @@ namespace FNPlugin.Wasteheat
             preventDeplyField.guiActive = isDeployable;
             preventDeplyField.guiActiveEditor = isDeployable;
 
-            Actions["DeployRadiatorAction"].guiName = Events["DeployRadiator"].guiName = "Deploy Radiator";
-            Actions["ToggleRadiatorAction"].guiName = String.Format("Toggle Radiator");
-            Actions["RetractRadiatorAction"].guiName = "Retract Radiator";
+            Actions["DeployRadiatorAction"].guiName = Events["DeployRadiator"].guiName = Localizer.Format("#LOC_KSPIE_Radiator_DeployRadiator");//"Deploy Radiator"
+            Actions["ToggleRadiatorAction"].guiName = Localizer.Format("#LOC_KSPIE_Radiator_ToggleRadiator");//String.Format("Toggle Radiator")
+            Actions["RetractRadiatorAction"].guiName = Localizer.Format("#LOC_KSPIE_Radiator_RetractRadiator");//"Retract Radiator"
 
-            Events["RetractRadiator"].guiName = "Retract Radiator";
+            Events["RetractRadiator"].guiName = Localizer.Format("#LOC_KSPIE_Radiator_RetractRadiator");//"Retract Radiator"
 
             var myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine == null)
@@ -781,8 +782,8 @@ namespace FNPlugin.Wasteheat
             }
             else
             {
-                thermalPowerDissipStr = "disabled";
-                thermalPowerConvStr = "disabled";
+                thermalPowerDissipStr = Localizer.Format("#LOC_KSPIE_Radiator_disabled");//"disabled"
+                thermalPowerConvStr = Localizer.Format("#LOC_KSPIE_Radiator_disabled");//"disabled"
             }
 
             radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + maxCurrentRadiatorTemperature.ToString("0.0") + "K";
@@ -1041,13 +1042,13 @@ namespace FNPlugin.Wasteheat
             var sb = new StringBuilder();
             sb.Append("<size=11>");
 
-            sb.Append(String.Format("Base surface area: {0:F2} m\xB2 \n", radiatorArea));
-            sb.Append(String.Format("Surface area / Mass : {0:F2}\n", radiatorArea / part.mass));
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_radiatorArea") + String.Format(" {0:F2} m\xB2 \n", radiatorArea));//Base surface area:
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Mass") + String.Format(" : {0:F2}\n", radiatorArea / part.mass));//Surface area / Mass
 
-            sb.Append(String.Format("Surface Area Bonus: {0:P0}\n", String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0 : surfaceAreaUpgradeMult - 1 ));
-            sb.Append(String.Format("Atm Convection Bonus: {0:P0}\n", convectiveBonus - 1));
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Bonus") + String.Format(" {0:P0}\n", String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0 : surfaceAreaUpgradeMult - 1 ));//Surface Area Bonus:
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_AtmConvectionBonus") + String.Format(" {0:P0}\n", convectiveBonus - 1));//Atm Convection Bonus:
 
-            sb.Append(String.Format("\nMaximum Waste Heat Radiated\nMk1: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk1, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk1, 4)));
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_MaximumWasteHeatRadiatedMk1") + String.Format(" {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk1, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk1, 4)));//\nMaximum Waste Heat Radiated\nMk1:
 
             sb.Append(String.Format("Mk2: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk2, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk2, 4)));
             sb.Append(String.Format("Mk3: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk3, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk3, 4)));
@@ -1061,7 +1062,7 @@ namespace FNPlugin.Wasteheat
             var convection = 0.9 * effectiveRadiatorArea * convectiveBonus;
             var disapation = stefanArea * Math.Pow(900, 4);
 
-            sb.Append(String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection));
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", String.Format("{0:F3}",disapation),String.Format("{0:F3}",convection)));//String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection)
 
             sb.Append("</size>");
 
