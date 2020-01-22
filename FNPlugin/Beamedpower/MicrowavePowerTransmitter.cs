@@ -59,69 +59,66 @@ namespace FNPlugin.Beamedpower
         public bool forceActivateAtStartup = false;
         [KSPField(isPersistant = true)]
         public bool hasLinkedReceivers = false;
-
-        //Non Persistent 
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AtmosphericAbsorptionPercentage")]//Air Absorbtion Percentage
-        public double atmosphericAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_WaterAbsorptionPercentage")]//Water Absorbtion Percentage
-        public double waterAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TotalAbsorptionPercentage", guiFormat = "F4", guiUnits = "%")]//Absorbtion Percentage
-        public double totalAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Bodyname")]//Body
-        public string body_name;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BiomeName")]//Biome Name
-        public string biome_desc;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MoistureModifier", guiFormat = "F4")]//Moisture Modifier
-        public double moistureModifier;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public bool canFunctionOnSurface = true;
-
-        [KSPField(isPersistant = false)]
-        public double maximumPower = 10000;
-        [KSPField(isPersistant = false)]
-        public float atmosphereToleranceModifier = 1;
-        [KSPField(isPersistant = false)]
-        public string animName = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanTransmit")]//Can Transmit
-        public bool canTransmit = false;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BuildinRelay")]//Build in Relay
-        public bool buildInRelay = false;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
-        public int compatibleBeamTypes = 1;
-
-
         [KSPField(isPersistant = true, guiActiveEditor = true)]
         public double nativeWaveLength = 0.003189281;
         [KSPField(isPersistant = true, guiActiveEditor = false)]
         public double nativeAtmosphericAbsorptionPercentage = 10;
-
-        //GUI 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ApertureDiameter", guiFormat = "F2", guiUnits = " m")]//Aperture Diameter
-        public double apertureDiameter = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Status")]//Status
-        public string statusStr;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmissionEfficiency", guiUnits = "%")]//Transmission Efficiency
-        public double transmissionEfficiencyPercentage;
-
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitPower"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]//Transmission Strength
         public float transmitPower = 100;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BeamedPower")]//Wall to Beam Power
-        public string beamedpower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AvailablePower", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]//Available Power
-        public double availablePower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_RequestedPower", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]//Requested Power
-        public double requestedPower;
+        //Non Persistent 
+        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AtmosphericAbsorptionPercentage")]//Air Absorbtion Percentage
+        public double atmosphericAbsorptionPercentage;
+        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_WaterAbsorptionPercentage")]//Water Absorbtion Percentage
+        public double waterAbsorptionPercentage;
+        [KSPField(guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TotalAbsorptionPercentage", guiFormat = "F4", guiUnits = "%")]//Absorbtion Percentage
+        public double totalAbsorptionPercentage;
+        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Bodyname")]//Body
+        public string body_name;
+        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BiomeName")]//Biome Name
+        public string biome_desc;
+        [KSPField(guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MoistureModifier", guiFormat = "F4")]//Moisture Modifier
+        public double moistureModifier;
+        [KSPField(guiActiveEditor = false, guiActive = false)]
+        public bool canFunctionOnSurface = true;
 
+        [KSPField]
+        public bool canPivot = true;        // determines if effective aperture is affected on surface
+        [KSPField]
+        public double maximumPower = 10000;
+        [KSPField]
+        public float atmosphereToleranceModifier = 1;
+        [KSPField]
+        public string animName = "";
         [KSPField]
         public bool canBeActive;
         [KSPField]
         protected int nearbyPartsCount;
 
+        //GUI 
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanTransmit")]//Can Transmit
+        public bool canTransmit = false;
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BuildinRelay")]//Build in Relay
+        public bool buildInRelay = false;
+        [KSPField(guiActiveEditor = true)]
+        public int compatibleBeamTypes = 1;
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ApertureDiameter", guiFormat = "F2", guiUnits = " m")]//Aperture Diameter
+        public double apertureDiameter = 0;
+        [KSPField( guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Status")]//Status
+        public string statusStr;
+        [KSPField( guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmissionEfficiency", guiUnits = "%")]//Transmission Efficiency
+        public double transmissionEfficiencyPercentage;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BeamedPower")]//Wall to Beam Power
+        public string beamedpower;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AvailablePower", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]//Available Power
+        public double availablePower;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_RequestedPower", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]//Requested Power
+        public double requestedPower;
+
         // Near Future Compatibility properties
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double powerMult = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double powerHeatMultiplier = 1;
 
         protected string scalarModuleID = Guid.NewGuid().ToString();
