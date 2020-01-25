@@ -81,7 +81,7 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_AvailablePower", guiFormat = "F3", guiUnits = " MW")]//Available Power
         public double availablePower;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_PowerRequirement", guiFormat = "F3", guiUnits = " MW")]//Power Requirement
-        public double enginePowerRequirement;
+        public double currentMaximumPowerRequirement;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_LaserWasteheat", guiFormat = "F3", guiUnits = " MW")]//Laser Wasteheat
         public double laserWasteheat;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_AbsorbedWasteheat", guiFormat = "F3", guiUnits = " MW")]//Absorbed Wasteheat
@@ -98,6 +98,13 @@ namespace FNPlugin
         protected float curveMaxISP; // ToDo: make sure it is properly initialized after  comming from assembly 
         [KSPField]
         public double radius = 1;
+
+        [KSPField]
+        public double requiredPowerPerSecond;
+        [KSPField]
+        public double requestedPowerPerSecond;
+        [KSPField]
+        public double recievedPowerPerSecond;
 
         // abstracts
         protected abstract float InitialGearRatio { get; }
@@ -226,8 +233,8 @@ namespace FNPlugin
         {
             get
             {
-                enginePowerRequirement = PowerRequirementMaximum*powerRequirementMultiplier;
-                return enginePowerRequirement;
+                currentMaximumPowerRequirement = PowerRequirementMaximum * powerRequirementMultiplier;
+                return currentMaximumPowerRequirement;
             }
         }
 
@@ -248,22 +255,6 @@ namespace FNPlugin
             }
         }
 
-        public float MinThrottleRatio
-        {
-            get
-            {
-                if (EngineGenerationType == GenerationType.Mk1)
-                    return minThrottleRatioMk1;
-                else if (EngineGenerationType == GenerationType.Mk2)
-                    return minThrottleRatioMk2;
-                else if (EngineGenerationType == GenerationType.Mk3)
-                    return minThrottleRatioMk3;
-                else if (EngineGenerationType == GenerationType.Mk4)
-                    return minThrottleRatioMk4;
-                else
-                    return minThrottleRatioMk5;
-            }
-        }
         private double PowerMult ()
         {
             return FuelConfigurations.Count > 0 ? CurrentActiveConfiguration.powerMult : 1;
@@ -371,7 +362,7 @@ namespace FNPlugin
 
                 Fields["selectedFuel"].guiName = fuelSwitchName;
 
-                Fields["enginePowerRequirement"].guiActive = powerRequirement > 0;
+                Fields["currentMaximumPowerRequirement"].guiActive = powerRequirement > 0;
                 Fields["laserWasteheat"].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
                 Fields["absorbedWasteheat"].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
                 Fields["fusionRatio"].guiActive = powerRequirement > 0;
@@ -569,9 +560,7 @@ namespace FNPlugin
 
             if (curEngineT == null || !curEngineT.isEnabled) return;
 
-            throttle = curEngineT.currentThrottle > MinThrottleRatio ? curEngineT.currentThrottle : 0;
-
-            if (throttle > 0)
+            if (curEngineT.currentThrottle > 0)
             {
                 if (maxAtmosphereDensity >= 0 && vessel.atmDensity > maxAtmosphereDensity)
                     ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg1"));//"Inertial Fusion cannot operate in atmosphere!"
@@ -591,21 +580,18 @@ namespace FNPlugin
 
             availablePower = Math.Max(getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES), getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
 
-            if (throttle > 0 )
+            if (curEngineT.currentThrottle > 0)
             {
-                var requestedPowerPerSecond = throttle * CurrentMaximumPowerRequirement;
+                requiredPowerPerSecond = curEngineT.currentThrottle * CurrentMaximumPowerRequirement;
 
-                //var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-                //var effectivePowerThrotling = useMegajouleBattery ? 1 : resourceBarRatio > 0.1 ? 1 : resourceBarRatio * 10;
+                requestedPowerPerSecond = Math.Min(requiredPowerPerSecond, availablePower);
 
-                var requestedPower = Math.Min(requestedPowerPerSecond, availablePower);
-
-                var recievedPowerPerSecond = requestedPower <= 0 ? 0 
+                recievedPowerPerSecond = requestedPowerPerSecond <= 0 ? 0 
                     : CheatOptions.InfiniteElectricity
-                        ? requestedPowerPerSecond
-                        : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        ? requiredPowerPerSecond
+                        : consumeFNResourcePerSecond(requestedPowerPerSecond, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                fusionRatio = requestedPowerPerSecond > 0 ? Math.Min(1, recievedPowerPerSecond / requestedPowerPerSecond) : 1;
+                fusionRatio = requiredPowerPerSecond > 0 ? Math.Min(1, recievedPowerPerSecond / requiredPowerPerSecond) : 1;
 
                 laserWasteheat = recievedPowerPerSecond * (1 - LaserEfficiency);
 
@@ -616,7 +602,7 @@ namespace FNPlugin
                 // The Aborbed wasteheat from Fusion
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
                 neutronbsorbionBonus = hasIspThrottling ? 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp))) : 0.5;
-                absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
+                absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * curEngineT.currentThrottle * neutronbsorbionBonus;
                 supplyFNResourcePerSecond(absorbedWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 SetRatios();
@@ -636,13 +622,14 @@ namespace FNPlugin
             }
             else
             {
-                enginePowerRequirement = 0;
                 absorbedWasteheat = 0;
                 laserWasteheat = 0;
+                requestedPowerPerSecond = 0;
+                recievedPowerPerSecond = 0;
 
-                var requestedPowerPerSecond = CurrentMaximumPowerRequirement;
+                requiredPowerPerSecond = CurrentMaximumPowerRequirement;
 
-                fusionRatio = requestedPowerPerSecond > 0 ? Math.Min(1, availablePower / requestedPowerPerSecond) : 1;
+                fusionRatio = requiredPowerPerSecond > 0 ? Math.Min(1, availablePower / requiredPowerPerSecond) : 1;
 
                 currentIsp = hasIspThrottling ? SelectedIsp : MinIsp;
                 maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;

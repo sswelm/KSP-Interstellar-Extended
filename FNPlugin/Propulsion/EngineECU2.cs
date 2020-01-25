@@ -46,22 +46,9 @@ namespace FNPlugin
         public double thrustPower;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_EngineECU2_FusionRatio", guiFormat = "F3")]//Fusion Ratio
         public double fusionRatio;
-        
-        // Settings
-        [KSPField]
-        public float minThrottleRatioMk1 = 0.2f;
-        [KSPField]
-        public float minThrottleRatioMk2 = 0.1f;
-        [KSPField]
-        public float minThrottleRatioMk3 = 0.05f;
-        [KSPField]
-        public float minThrottleRatioMk4 = 0.05f;
-        [KSPField]
-        public float minThrottleRatioMk5 = 0.05f;
 
         [KSPField]
         public string intakeResource = "IntakeAtm";
-
         [KSPField]
         public double thrustmultiplier = 1;
         [KSPField]
@@ -93,9 +80,6 @@ namespace FNPlugin
         public float upgradeCost = 100;
         [KSPField]
         public double rateMultplier = 1;
-
-        [KSPField]
-        public float throttle;
 
         public ModuleEngines curEngineT;
         public ModuleEnginesWarp curEngineWarp;
