@@ -12,6 +12,8 @@ namespace FNPlugin
     {
         [KSPField(guiActive = true, guiActiveEditor = true,  guiName = "#LOC_KSPIE_EngineECU2_MaxThrust", guiUnits = " kN", guiFormat = "F3")]//Max Thrust
         public double maximumThrust;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaximumFuelFlow", guiFormat = "F3")]//Maximum FuelFlow
+        public double maxFuelFlow;
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_FuelConfig")]//Fuel Config
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]

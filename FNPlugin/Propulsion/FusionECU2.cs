@@ -80,8 +80,6 @@ namespace FNPlugin
         //public bool useMegajouleBattery = false;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_AvailablePower", guiFormat = "F3", guiUnits = " MW")]//Available Power
         public double availablePower;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_MaximumFuelFlow", guiFormat = "F3")]//Maximum FuelFlow
-        public double maxFuelFlow;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_PowerRequirement", guiFormat = "F3", guiUnits = " MW")]//Power Requirement
         public double enginePowerRequirement;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_LaserWasteheat", guiFormat = "F3", guiUnits = " MW")]//Laser Wasteheat
@@ -374,8 +372,8 @@ namespace FNPlugin
                 Fields["selectedFuel"].guiName = fuelSwitchName;
 
                 Fields["enginePowerRequirement"].guiActive = powerRequirement > 0;
-                Fields["laserWasteheat"].guiActive = powerRequirement > 0;
-                Fields["absorbedWasteheat"].guiActive = powerRequirement > 0;
+                Fields["laserWasteheat"].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
+                Fields["absorbedWasteheat"].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
                 Fields["fusionRatio"].guiActive = powerRequirement > 0;
 
                 Fields["powerRequirement"].guiActiveEditor = powerRequirement > 0;
@@ -509,13 +507,13 @@ namespace FNPlugin
         {
             var i = 0;
             float max = 0;
-            while (i < akCurve.Curve.keys.Length)
-            {
-                if (max < akCurve.Curve.keys[i].value)
-                {
-                    max = akCurve.Curve.keys[i].value;
-                }
+            var keys = akCurve.Curve.keys;
 
+            while (i < keys.Length)
+            {
+                var currentKey = keys[i];
+                if (max < currentKey.value)
+                    max = currentKey.value;
                 i++;
             }
 
@@ -607,7 +605,7 @@ namespace FNPlugin
                         ? requestedPowerPerSecond
                         : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                fusionRatio = requestedPowerPerSecond > 0 ? recievedPowerPerSecond / requestedPowerPerSecond : 1;
+                fusionRatio = requestedPowerPerSecond > 0 ? Math.Min(1, recievedPowerPerSecond / requestedPowerPerSecond) : 1;
 
                 laserWasteheat = recievedPowerPerSecond * (1 - LaserEfficiency);
 
@@ -644,17 +642,19 @@ namespace FNPlugin
 
                 var requestedPowerPerSecond = CurrentMaximumPowerRequirement;
 
-                fusionRatio = requestedPowerPerSecond > 0 ? availablePower / requestedPowerPerSecond : 1;
+                fusionRatio = requestedPowerPerSecond > 0 ? Math.Min(1, availablePower / requestedPowerPerSecond) : 1;
 
                 currentIsp = hasIspThrottling ? SelectedIsp : MinIsp;
                 maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
                 UpdateAtmosphereCurve(currentIsp);
-                curEngineT.maxThrust = (float)maximumThrust;
+                
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
 
                 maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
+                curEngineT.maxThrust = (float)maximumThrust;
 
                 SetRatios();
             }
