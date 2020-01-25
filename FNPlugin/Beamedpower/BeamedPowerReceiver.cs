@@ -1505,10 +1505,12 @@ namespace FNPlugin
 
                 Vector3d solarDirectionVector = (localStar.transform.position - vesselPosition).normalized;
 
-                 if (receiverType == 3) 
-                     return Math.Max(0, 1 - Vector3d.Dot(part.transform.forward, solarDirectionVector)) / 2;
-                 else
-                     return Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector));
+                if (receiverType == 9)
+                    return 1;
+                else if (receiverType == 3)
+                    return Math.Max(0, 1 - Vector3d.Dot(part.transform.forward, solarDirectionVector)) / 2;
+                else
+                    return Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector));
             }
             catch (Exception e)
             {

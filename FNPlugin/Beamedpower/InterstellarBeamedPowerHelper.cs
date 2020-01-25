@@ -93,6 +93,9 @@ namespace FNPlugin.Beamedpower
                     // used by single pivoting solar arrays
                     facingFactor = Math.Min(1 - Math.Abs(Vector3d.Dot(receiverTransform.forward, directionVector)), 1);
                     break;
+                case 9:
+                    facingFactor = 1;
+                    break;
                 default:
                     //Scale energy reception based on angle of reciever to transmitter from top
                     facingFactor = Math.Max(0, Vector3d.Dot(receiverTransform.up, directionVector));
