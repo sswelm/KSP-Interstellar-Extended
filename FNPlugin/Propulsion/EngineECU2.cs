@@ -588,11 +588,19 @@ namespace FNPlugin
         {
             get
             {
-                _usefulConfigurations = GetUsableConfigurations(FuelConfigurations);
+                var allFuelConfigurations = FuelConfigurations;
+
+                _usefulConfigurations = GetUsableConfigurations(allFuelConfigurations);
                 if (_usefulConfigurations == null)
                 {
-                    Debug.Log("[KSPI]: UsefulConfigurations Broke!");
-                    return FuelConfigurations;
+                    Debug.LogError("[KSPI]: UsefulConfigurations Broke!");
+                    return allFuelConfigurations;
+                }
+
+                if (_usefulConfigurations.Count == 0)
+                {
+                    Debug.LogWarning("[KSPI]: No UsefulConfigurations Found, Returning all available instead");
+                    _usefulConfigurations = allFuelConfigurations;
                 }
 
                 return _usefulConfigurations;
