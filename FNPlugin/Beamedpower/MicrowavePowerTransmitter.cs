@@ -35,9 +35,9 @@ namespace FNPlugin.Beamedpower
         public double solar_power = 0;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_PowerCapacity", guiUnits = " MW", guiFormat = "F2")]//Power Capacity
         public double power_capacity = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthm", guiFormat = "F8", guiUnits = " m")]//Transmit WaveLength m
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthm", guiFormat = "F8", guiUnits = " m")]//Transmit WaveLength m
         public double wavelength = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthSI")]//Transmit WaveLength SI
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthSI")]//Transmit WaveLength SI
         public string wavelengthText;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
@@ -45,7 +45,7 @@ namespace FNPlugin.Beamedpower
         public double minimumRelayWavelenght;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MaxRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Max Relay WaveLength
         public double maximumRelayWavelenght;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthWLName")]//Transmit WaveLength WL Name
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthWLName")]//Transmit WaveLength WL Name
         public string wavelengthName;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
@@ -126,13 +126,26 @@ namespace FNPlugin.Beamedpower
         protected EventData<float> onStop;
 
         //Internal
-        protected Animation anim;
-        protected List<ISolarPower> solarCells;
-        protected BeamedPowerReceiver part_receiver;
-        protected List<BeamedPowerReceiver> vessel_recievers;
-        protected BeamGenerator activeBeamGenerator;
-        protected List<BeamGenerator> beamGenerators;
-        protected ModuleAnimateGeneric genericAnimation;  
+        public Animation anim;
+        public List<ISolarPower> solarCells;
+        public BeamedPowerReceiver part_receiver;
+        public List<BeamedPowerReceiver> vessel_recievers;
+        public BeamGenerator activeBeamGenerator;
+        public List<BeamGenerator> beamGenerators;
+        public ModuleAnimateGeneric genericAnimation;
+
+        private BaseEvent activateTransmittervEvent;
+        private BaseEvent deactivateTransmitterEvent;
+        private BaseEvent activateRelayEvent;
+        private BaseEvent deactivateRelayEvent;
+
+        private BaseField apertureDiameterField;
+        private BaseField beamedpowerField;
+        private BaseField transmitPowerField;
+        private BaseField moistureModifierField;
+        private BaseField totalAbsorptionPercentageField;
+        private BaseField wavelengthField;
+        private BaseField wavelengthNameField;
 
         public bool CanMove { get { return true; } }
 
@@ -360,8 +373,24 @@ namespace FNPlugin.Beamedpower
             // store  aperture and diameter
             aperture = apertureDiameter;
             diameter = apertureDiameter;
+            
+            part_receiver = part.FindModulesImplementing<BeamedPowerReceiver>().FirstOrDefault();
+            genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
 
             ConnectToBeamGenerator();
+
+            activateRelayEvent = Events["ActivateRelay"];
+            deactivateRelayEvent = Events["DeactivateRelay"];
+            activateTransmittervEvent = Events["ActivateTransmitter"];
+            deactivateTransmitterEvent = Events["DeactivateTransmitter"];
+
+            wavelengthField = Fields["wavelength"];
+            beamedpowerField = Fields["beamedpower"];
+            transmitPowerField = Fields["transmitPower"];
+            wavelengthNameField = Fields["wavelengthName"];
+            apertureDiameterField = Fields["apertureDiameter"];
+            moistureModifierField = Fields["moistureModifier"];
+            totalAbsorptionPercentageField = Fields["totalAbsorptionPercentage"];
 
             if (state == StartState.Editor)
             {
@@ -369,32 +398,10 @@ namespace FNPlugin.Beamedpower
                 return;
             }
 
-            genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
-
             solarCells = vessel.FindPartModulesImplementing<ISolarPower>();
-
             vessel_recievers = this.vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
-            part_receiver = part.FindModulesImplementing<BeamedPowerReceiver>().FirstOrDefault();
 
             UpdateRelayWavelength();
-
-            //anim = part.FindModelAnimators(animName).FirstOrDefault();
-            //if ( anim != null &&  part_receiver == null)
-            //{
-            //    anim[animName].layer = 1;
-            //    if (IsEnabled)
-            //    {
-            //        anim[animName].normalizedTime = 0;
-            //        anim[animName].speed = 1;
-            //    }
-            //    else
-            //    {
-            //        anim[animName].normalizedTime = 1;
-            //        anim[animName].speed = -1;
-            //    }
-            //    //anim.Play();
-            //    anim.Blend(animName, part.mass);
-            //}
 
             if (forceActivateAtStartup)
             {
@@ -444,8 +451,13 @@ namespace FNPlugin.Beamedpower
 
                 activeBeamGenerator = beamGenerators.FirstOrDefault();
 
-                if (activeBeamGenerator != null && activeBeamGenerator.part != this.part)
-                    activeBeamGenerator.UpdateMass(this.maximumPower);
+                if (activeBeamGenerator != null) 
+                {
+                    activeBeamGenerator.Connect(this);
+
+                    if (activeBeamGenerator.part != this.part)
+                        activeBeamGenerator.UpdateMass(this.maximumPower);
+                }
             }
             catch (Exception ex)
             {
@@ -511,39 +523,34 @@ namespace FNPlugin.Beamedpower
             var canOperateInCurrentEnvironment = this.canFunctionOnSurface || vesselInSpace;
             var vesselCanTransmit = canTransmit && canOperateInCurrentEnvironment;
 
-            Events["ActivateTransmitter"].active = activeBeamGenerator != null && vesselCanTransmit && !IsEnabled && !relay && !receiver_on && canBeActive;
-            Events["DeactivateTransmitter"].active = IsEnabled;
+            activateTransmittervEvent.active = activeBeamGenerator != null && vesselCanTransmit && !IsEnabled && !relay && !receiver_on && canBeActive;
+            deactivateTransmitterEvent.active = IsEnabled;
 
             canRelay = this.hasLinkedReceivers && canOperateInCurrentEnvironment;
 
-            Events["ActivateRelay"].active = canRelay && !IsEnabled && !relay && !receiver_on && canBeActive;
-            Events["DeactivateRelay"].active = relay;
+            activateRelayEvent.active = canRelay && !IsEnabled && !relay && !receiver_on && canBeActive;
+            deactivateRelayEvent.active = relay;
 
             mergingBeams = IsEnabled && canRelay && isBeamMerger;
 
             bool isTransmitting = IsEnabled && !relay;
 
-            Fields["apertureDiameter"].guiActive = isTransmitting; 
-            Fields["beamedpower"].guiActive = isTransmitting && canBeActive;
-            Fields["transmitPower"].guiActive = part_receiver == null || !part_receiver.isActive();
+            apertureDiameterField.guiActive = isTransmitting;
+            beamedpowerField.guiActive = isTransmitting && canBeActive;
+            transmitPowerField.guiActive = part_receiver == null || !part_receiver.isActive();
 
             bool isLinkedForRelay = part_receiver != null && part_receiver.linkedForRelay;
-
             bool receiverNotInUse = !isLinkedForRelay && !receiver_on && !IsRelay;
 
-            Fields["moistureModifier"].guiActive = receiverNotInUse;
-            Fields["totalAbsorptionPercentage"].guiActive = receiverNotInUse;
-            Fields["wavelength"].guiActive = receiverNotInUse;
-            Fields["wavelengthName"].guiActive = receiverNotInUse;
+            moistureModifierField.guiActive = receiverNotInUse;
+            totalAbsorptionPercentageField.guiActive = receiverNotInUse;
+            wavelengthField.guiActive = receiverNotInUse;
+            wavelengthNameField.guiActive = receiverNotInUse;
 
             if (IsEnabled)
-            {
                 statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu1");//"Transmitter Active"
-            }
             else if (relay)
-            {
                 statusStr = Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_Statu2");//"Relay Active"
-            }
             else
             {
                 if (isLinkedForRelay)
