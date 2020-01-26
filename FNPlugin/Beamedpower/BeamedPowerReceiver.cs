@@ -1050,6 +1050,7 @@ namespace FNPlugin
                 try
                 {
                     deployableAntenna.Events["Extend"].guiActive = false;
+                    deployableAntenna.Events["Retract"].guiActive = false;
                 }
                 catch (Exception e)
                 {
@@ -1537,6 +1538,19 @@ namespace FNPlugin
             networkDepthString = networkDepth.ToString();
 
             CalculateInputPower();
+
+            if (deployableAntenna != null)
+            {
+                try
+                {
+                    deployableAntenna.Events["Extend"].guiActive = false;
+                    deployableAntenna.Events["Retract"].guiActive = false;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI]: Error while disabling antenna deploy button " + e.Message + " at " + e.StackTrace);
+                }
+            }
         }
 
         private double GetSolarFacingFactor(CelestialBody localStar, Vector3 vesselPosition)
