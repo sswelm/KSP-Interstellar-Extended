@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin  
 {
@@ -11,12 +10,16 @@ namespace FNPlugin
         // persistents
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AtmosphericIntake_Airrate", guiActiveEditor = false, guiActive = true, guiFormat = "F5")]//Air / sec
         public double finalAir;
-
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake"), UI_Toggle(disabledText = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake_Closed", enabledText = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake_Open", affectSymCounterparts = UI_Scene.None)] //Atmospheric Intake   Closed  Open                                                          //Mass Ratio
         public bool intakeOpen = true;
 
-        [KSPField (guiActive = false, guiActiveEditor = true)]
+        [KSPField]
+        public double atmosphereDensityMultiplier = 0.001292 / 0.005;
+        [KSPField]
         public double intakeSpeed = 10;
+        [KSPField]
+        public string intakeTransformName = "";
+
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereFlow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]//Atmosphere Flow
         public double airFlow;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereSpeed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]//Atmosphere Speed
@@ -27,8 +30,6 @@ namespace FNPlugin
         public float intakeAngle = 0;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_Area", guiActiveEditor = true, guiActive = false, guiFormat = "F4")]//Area
         public double area = 0.01;
-        [KSPField( guiActive = false, guiActiveEditor = true)]
-        public string intakeTransformName = "";
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_unitScalar", guiActive = false, guiActiveEditor = true)]//unitScalar
         public double unitScalar = 0.2;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_storesResource", guiActive = false, guiActiveEditor = false)]//storesResource
@@ -44,9 +45,9 @@ namespace FNPlugin
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_UpperAtmoFraction", guiActive = false, guiFormat = "F3")]//Upper Atmo Fraction
         public double upperAtmoFraction;
 
-        double startupCount;
+        private double startupCount;
 
-        PartResourceDefinition _resourceAtmosphere;
+        PartResourceDefinition _resourceAtmosphereDefinition;
         ModuleResourceIntake _moduleResourceIntake;
         ResourceBuffers resourceBuffers;
 
@@ -92,7 +93,7 @@ namespace FNPlugin
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * intakeSpeed));
             resourceBuffers.Init(this.part);
 
-            _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
+            _resourceAtmosphereDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
         }
 
         private void IntakeOpenChanged(BaseField field, object oldFieldValueObj)
@@ -136,7 +137,6 @@ namespace FNPlugin
             }
         }
 
-
         public void IntakeThatAir()
         {
             //if (_moduleResourceIntake == null) return;
@@ -152,7 +152,7 @@ namespace FNPlugin
 
                     intakeOpen = false;
 
-                    UpdateAtnosphereAmount();
+                    UpdateAtmosphereAmount();
 
                     return;
                 }
@@ -165,7 +165,7 @@ namespace FNPlugin
             {
                 ResetVariables();
 
-                UpdateAtnosphereAmount();
+                UpdateAtmosphereAmount();
                 return;
             }
 
@@ -181,7 +181,8 @@ namespace FNPlugin
             airSpeed = intakeAngle * vesselSpeed + intakeSpeed;
             intakeExposure = (airSpeed * unitScalar) + intakeSpeed;
             intakeExposure *= area * unitScalar * jetTechBonusPercentage;
-            airFlow = vessel.atmDensity * intakeExposure / _resourceAtmosphere.density;
+
+            airFlow = atmosphereDensityMultiplier * vessel.atmDensity * intakeExposure / _resourceAtmosphereDefinition.density;
             airThisUpdate = airFlow * TimeWarp.fixedDeltaTime;
 
             if (part.vessel.atmDensity < PluginHelper.MinAtmosphericAirDensity && vessel.altitude < part.vessel.mainBody.scienceValues.spaceAltitudeThreshold) // only collect when it is possible and relevant
@@ -190,7 +191,7 @@ namespace FNPlugin
                 var spaceAirDensity = PluginHelper.MinAtmosphericAirDensity * (1 - upperAtmoFraction);             // calculate the space atmospheric density
                 airDensity = Math.Max(part.vessel.atmDensity, spaceAirDensity);                             // display amount of density
                 upperAtmoDensity = Math.Max(0, spaceAirDensity - part.vessel.atmDensity);                   // calculate effective addition upper atmosphere density
-                var space_airFlow = intakeAngle * upperAtmoDensity * intakeExposure / _resourceAtmosphere.density; // how much of that air is our intake catching
+                var space_airFlow = intakeAngle * upperAtmoDensity * intakeExposure / _resourceAtmosphereDefinition.density; // how much of that air is our intake catching
                 airThisUpdate = airThisUpdate + (space_airFlow * TimeWarp.fixedDeltaTime);                  // increase how much  air do we get per update 
             }
 
@@ -202,10 +203,10 @@ namespace FNPlugin
             else
                 startupCount++;
 
-            UpdateAtnosphereAmount();
+            UpdateAtmosphereAmount();
         }
 
-        private void UpdateAtnosphereAmount()
+        private void UpdateAtmosphereAmount()
         {
             if (!storesResource)
             {
@@ -218,7 +219,7 @@ namespace FNPlugin
                 _intake_atmosphere_resource.amount = airThisUpdate;
             }
             else
-                part.RequestResource(_resourceAtmosphere.id, -airThisUpdate, ResourceFlowMode.STAGE_PRIORITY_FLOW_BALANCE); // create the resource, finally
+                part.RequestResource(_resourceAtmosphereDefinition.id, -airThisUpdate, ResourceFlowMode.STAGE_PRIORITY_FLOW_BALANCE); // create the resource, finally
         }
 
         private void ResetVariables()
