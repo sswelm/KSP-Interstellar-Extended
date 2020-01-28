@@ -14,12 +14,14 @@ namespace FNPlugin
         public bool intakeOpen = true;
 
         [KSPField]
-        public double atmosphereDensityMultiplier = 0.001292 / 0.005;
+        public double atmosphereDensityMultiplier = 1; //0.001292 / 0.005;
         [KSPField]
         public double intakeSpeed = 10;
         [KSPField]
         public string intakeTransformName = "";
 
+        [KSPField(guiName = "Vessel Speed", guiUnits = "m/s")]
+        public double vesselSpeed;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereFlow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]//Atmosphere Flow
         public double airFlow;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereSpeed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]//Atmosphere Speed
@@ -173,14 +175,13 @@ namespace FNPlugin
                 ? vessel.GetSrfVelocity() 
                 : vessel.GetObtVelocity();
 
-            var vesselSpeed = vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.ESCAPING 
+            vesselSpeed = vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.SUB_ORBITAL
                 ? vessel.obt_speed 
                 : vessel.speed;
 
             intakeAngle = Mathf.Clamp(Vector3.Dot(vesselFlyingVector.normalized, part.transform.up.normalized), 0, 1);
-            airSpeed = intakeAngle * vesselSpeed + intakeSpeed;
-            intakeExposure = (airSpeed * unitScalar) + intakeSpeed;
-            intakeExposure *= area * unitScalar * jetTechBonusPercentage;
+            airSpeed = (intakeAngle * vesselSpeed) + (intakeSpeed * jetTechBonusPercentage);
+            intakeExposure = airSpeed * unitScalar * area;
 
             airFlow = atmosphereDensityMultiplier * vessel.atmDensity * intakeExposure / _resourceAtmosphereDefinition.density;
             airThisUpdate = airFlow * TimeWarp.fixedDeltaTime;
