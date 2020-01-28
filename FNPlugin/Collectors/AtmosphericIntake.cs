@@ -100,13 +100,13 @@ namespace FNPlugin
 
         private void IntakeOpenChanged(BaseField field, object oldFieldValueObj)
         {
-            if (_moduleResourceIntake != null)
-            {
-                if (intakeOpen)
-                    _moduleResourceIntake.Activate();
-                else
-                    _moduleResourceIntake.Deactivate();
-            }
+            if (_moduleResourceIntake == null)
+                return;
+
+            if (intakeOpen)
+                _moduleResourceIntake.Activate();
+            else
+                _moduleResourceIntake.Deactivate();
         }
 
         private void UpdateResourceIntakeConfiguration()
@@ -141,8 +141,6 @@ namespace FNPlugin
 
         public void IntakeThatAir()
         {
-            //if (_moduleResourceIntake == null) return;
-
             UpdateAtmosphereBuffer();
 
             // do not return anything when intakes are closed
