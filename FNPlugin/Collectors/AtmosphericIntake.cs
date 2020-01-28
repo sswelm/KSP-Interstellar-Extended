@@ -72,7 +72,7 @@ namespace FNPlugin
             _moduleResourceIntake = this.part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == InterstellarResourcesConfiguration._INTAKE_AIR);
 
             if (_moduleResourceIntake == null)
-                UnityEngine.Debug.LogWarning("[KSPI]: ModuleResourceIntake with IntakeAir is missing on " + part.partInfo.title);
+                Debug.LogWarning("[KSPI]: ModuleResourceIntake with IntakeAir is missing on " + part.partInfo.title);
 
             var field = Fields["intakeOpen"];
             var flightToggle = field.uiControlFlight as UI_Toggle;
@@ -180,8 +180,8 @@ namespace FNPlugin
                 : vessel.speed;
 
             intakeAngle = Mathf.Clamp(Vector3.Dot(vesselFlyingVector.normalized, part.transform.up.normalized), 0, 1);
-            airSpeed = (intakeAngle * vesselSpeed) + (intakeSpeed * jetTechBonusPercentage);
-            intakeExposure = airSpeed * unitScalar * area;
+            airSpeed = (intakeAngle * vesselSpeed * unitScalar) + (intakeSpeed * jetTechBonusPercentage);
+            intakeExposure = airSpeed * area;
 
             airFlow = atmosphereDensityMultiplier * vessel.atmDensity * intakeExposure / _resourceAtmosphereDefinition.density;
             airThisUpdate = airFlow * TimeWarp.fixedDeltaTime;
