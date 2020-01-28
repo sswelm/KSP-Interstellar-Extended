@@ -212,6 +212,9 @@ namespace FNPlugin
             if (!storesResource)
             {
                 var _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
+                if (_intake_atmosphere_resource == null)
+                    return;
+
                 airThisUpdate = airThisUpdate >= 0
                     ? (airThisUpdate <= _intake_atmosphere_resource.maxAmount
                         ? airThisUpdate
