@@ -324,7 +324,11 @@ namespace FNPlugin
         public double solarFacingFactor;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarFlux", guiFormat = "F4")]//Solar Flux
         public double solarFlux;
-        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F2")]
+
+        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW")]//Offscreen Power Generation
+        public double initialGeneratorPowerEC;
+
+        [KSPField(guiFormat = "F2")]
         public double thermal_power_ratio;
         [KSPField]
         public double powerCapacityEfficiency;
@@ -348,6 +352,8 @@ namespace FNPlugin
         public bool showBandWidthName = false;
         [KSPField]
         public bool showSelectedBandwidthConfiguration = true;
+
+
 
         protected BaseField _beamedpowerField;
         protected BaseField _powerInputMegajoulesField;
@@ -374,6 +380,13 @@ namespace FNPlugin
         protected BaseEvent _unlinkReceiverBaseEvent;
         protected BaseEvent _activateReceiverBaseEvent;
         protected BaseEvent _disableReceiverBaseEvent;
+
+        private ModuleGenerator stockModuleGenerator;
+        private ModuleResource mockInputResource;
+        private ModuleResource outputModuleResource;
+        private BaseEvent moduleGeneratorShutdownBaseEvent;
+        private BaseEvent moduleGeneratorActivateBaseEvent;
+        private BaseField moduleGeneratorEfficienctBaseField;
 
         protected ModuleDeployableSolarPanel deployableSolarPanel;
         protected ModuleDeployableRadiator deployableRadiator;
@@ -1006,6 +1019,7 @@ namespace FNPlugin
 
             DetermineTechLevel();
             DetermineCoreTemperature();
+            ConnectToModuleGenerator();
 
             // while in edit mode, listen to on attach/detach event
             if (state == StartState.Editor)
@@ -1878,7 +1892,7 @@ namespace FNPlugin
                         var calculatedMinimumRatio = Math.Min(1, minimumRequestedPower / total_beamed_electric_power_provided);
 
                         var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, calculatedMinimumRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
-                        var supply_ratio = (double)powerGeneratedResult.currentSupply / total_beamed_electric_power_provided;
+                        var supply_ratio = powerGeneratedResult.currentProvided / total_beamed_electric_power_provided;
 
                         // only generate wasteheat from beamed power when actualy using the energy
                         if (!CheatOptions.IgnoreMaxTemperature)
@@ -1912,7 +1926,8 @@ namespace FNPlugin
 
                     PowerDown();
 
-                    //Reset();
+                    if (stockModuleGenerator != null)
+                        stockModuleGenerator.generatorIsActive = false;
 
                     if (animT == null) return;
 
@@ -2164,6 +2179,9 @@ namespace FNPlugin
             if (alternatorRatio == 0)
                 return;
 
+            if (!receiverIsEnabled || radiatorMode)
+                return;
+
             var alternatorPower = alternatorRatio * powerInputMegajoules * 0.001;
 
             var alternatorSupplyRatio = alternatorPower / total_thermal_power_provided;
@@ -2171,6 +2189,15 @@ namespace FNPlugin
 
             supplyFNResourcePerSecond(alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
             supplyFNResourcePerSecond(alternatorWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            if (stockModuleGenerator != null)
+                stockModuleGenerator.generatorIsActive = alternatorPower > 0;
+
+            if (outputModuleResource != null)
+            {
+                outputModuleResource.rate = alternatorPower * 1000;
+                mockInputResource.rate = alternatorPower * -1000;
+            }
         }
 
         public double MaxStableMegaWattPower
@@ -2290,6 +2317,48 @@ namespace FNPlugin
                 return power.ToString("0.0") + " MW";
             else
                 return (power * 1000).ToString("0.0") + " kW";
+        }
+
+        private void ConnectToModuleGenerator()
+        {
+            stockModuleGenerator = part.FindModuleImplementing<ModuleGenerator>();
+
+            if (stockModuleGenerator == null)
+                return;
+
+            outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
+
+            if (outputModuleResource != null)
+            {
+                moduleGeneratorShutdownBaseEvent = stockModuleGenerator.Events["Shutdown"];
+                if (moduleGeneratorShutdownBaseEvent != null)
+                {
+                    moduleGeneratorShutdownBaseEvent.guiActive = false;
+                    moduleGeneratorShutdownBaseEvent.guiActiveEditor = false;
+                }
+
+                moduleGeneratorActivateBaseEvent = stockModuleGenerator.Events["Activate"];
+                if (moduleGeneratorActivateBaseEvent != null)
+                {
+                    moduleGeneratorActivateBaseEvent.guiActive = false;
+                    moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
+                }
+
+                moduleGeneratorEfficienctBaseField = stockModuleGenerator.Fields["efficiency"];
+                if (moduleGeneratorEfficienctBaseField != null)
+                {
+                    moduleGeneratorEfficienctBaseField.guiActive = false;
+                    moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
+                }
+
+                initialGeneratorPowerEC = outputModuleResource.rate;
+
+                mockInputResource = new ModuleResource();
+                mockInputResource.name = outputModuleResource.name;
+                mockInputResource.id = outputModuleResource.name.GetHashCode();
+
+                stockModuleGenerator.resHandler.inputResources.Add(mockInputResource);
+            }
         }
     }
 }

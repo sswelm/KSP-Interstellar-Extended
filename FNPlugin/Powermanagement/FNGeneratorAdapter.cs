@@ -35,6 +35,14 @@ namespace FNPlugin
             {
                 if (state == StartState.Editor) return;
 
+                var beamedPowerReceiver = part.FindModulesImplementing<BeamedPowerReceiver>();
+                if (beamedPowerReceiver != null)
+                    return;
+
+                var generator = part.FindModulesImplementing<FNGenerator>();
+                if (generator != null)
+                    return;
+
                 var modules = part.FindModulesImplementing<ModuleGenerator>();
 
                 moduleGenerator = modules.Count > index ? modules[index] : null;
