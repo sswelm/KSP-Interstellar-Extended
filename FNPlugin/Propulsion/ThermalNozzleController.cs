@@ -425,7 +425,7 @@ namespace FNPlugin
         public double pre_cooler_area;
         [KSPField]
         public double intakes_open_area;
-        [KSPField]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ModuleSabreHeating_MissingPrecoolerRatio")]
         public double missingPrecoolerRatio;
         [KSPField]
         public float effectiveJetengineAccelerationSpeed;
@@ -439,6 +439,18 @@ namespace FNPlugin
         public double minThrottle = 0;
         [KSPField]
         public double reactorHeatModifier;
+
+        [KSPField]
+        public bool hasJetUpgradeTech1;
+        [KSPField]
+        public bool hasJetUpgradeTech2;
+        [KSPField]
+        public bool hasJetUpgradeTech3;
+        [KSPField]
+        public bool hasJetUpgradeTech4;
+        [KSPField]
+        public bool hasJetUpgradeTech5;
+
 
         // Constants
         protected const double _hydroloxDecompositionEnergy = 16.2137;
@@ -860,11 +872,11 @@ namespace FNPlugin
                     fuelConfignodes = getPropellants(isJet);
                 }
 
-                bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
-                bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
-                bool hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
-                bool hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
-                bool hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
+                hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
+                hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
+                hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
+                hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
+                hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
 
                 _jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
                 _jetTechBonusCurveChange = _jetTechBonus / 9.92992f;

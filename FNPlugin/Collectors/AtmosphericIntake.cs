@@ -22,15 +22,15 @@ namespace FNPlugin
 
         [KSPField(guiName = "Vessel Speed", guiUnits = "m/s")]
         public double vesselSpeed;
-        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereFlow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]//Atmosphere Flow
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereFlow", guiActive = true, guiUnits = " U", guiFormat = "F3"  )]//Atmosphere Flow
         public double airFlow;
-        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereSpeed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]//Atmosphere Speed
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereSpeed", guiActive = false, guiUnits = " m/s", guiFormat = "F3")]//Atmosphere Speed
         public double airSpeed;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AirThisUpdate", guiActive = false, guiFormat ="F6")]//Air This Update
         public double airThisUpdate;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_IntakeAngle",  guiActive = true, guiFormat = "F3")]//Intake Angle
         public float intakeAngle = 0;
-        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_Area", guiActiveEditor = true, guiActive = false, guiFormat = "F4")]//Area
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_Area", guiActiveEditor = true, guiActive = true, guiFormat = "F4")]//Area
         public double area = 0.01;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_unitScalar", guiActive = false, guiActiveEditor = true)]//unitScalar
         public double unitScalar = 0.2;
@@ -42,10 +42,32 @@ namespace FNPlugin
         public double upperAtmoDensity;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AirDensity", guiActive = false,   guiFormat = "F3")]//Air Density
         public double airDensity;
-        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_TechBonus", guiActive = false, guiFormat = "F3")]//Tech Bonus
-        public double jetTechBonusPercentage;
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_TechBonus", guiActive = true, guiActiveEditor = true, guiFormat = "F3")]//Tech Bonus
+        public double jetTechBonus;
         [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_UpperAtmoFraction", guiActive = false, guiFormat = "F3")]//Upper Atmo Fraction
         public double upperAtmoFraction;
+
+        [KSPField]
+        public string JetUpgradeTech1;
+        [KSPField]
+        public string JetUpgradeTech2;
+        [KSPField]
+        public string JetUpgradeTech3;
+        [KSPField]
+        public string JetUpgradeTech4;
+        [KSPField]
+        public string JetUpgradeTech5;
+
+        [KSPField]
+        public bool hasJetUpgradeTech1;
+        [KSPField]
+        public bool hasJetUpgradeTech2;
+        [KSPField]
+        public bool hasJetUpgradeTech3;
+        [KSPField]
+        public bool hasJetUpgradeTech4;
+        [KSPField]
+        public bool hasJetUpgradeTech5;
 
         private double startupCount;
 
@@ -67,9 +89,25 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            if (state == StartState.Editor) return; // don't do any of this stuff in editor
+            Debug.Log("[KSPI]: AtmosphericIntake OnStart Reading PluginHelper Upgrades");
+
+            JetUpgradeTech1 = PluginHelper.JetUpgradeTech1;
+            JetUpgradeTech2 = PluginHelper.JetUpgradeTech2;
+            JetUpgradeTech3 = PluginHelper.JetUpgradeTech3;
+            JetUpgradeTech4 = PluginHelper.JetUpgradeTech4;
+            JetUpgradeTech5 = PluginHelper.JetUpgradeTech5;
+
+            hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
+            hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
+            hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
+            hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
+            hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
+
+            var jetTech = Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
+            jetTechBonus = 5 * (1 + (jetTech / 9.92992f));
 
             _moduleResourceIntake = this.part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == InterstellarResourcesConfiguration._INTAKE_AIR);
+            _resourceAtmosphereDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
 
             if (_moduleResourceIntake == null)
                 Debug.LogWarning("[KSPI]: ModuleResourceIntake with IntakeAir is missing on " + part.partInfo.title);
@@ -83,19 +121,11 @@ namespace FNPlugin
 
             UpdateResourceIntakeConfiguration();
 
-            bool hasJetUpgradeTech0 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
-            bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
-            bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
-            bool hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
-
-            var jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3);
-            jetTechBonusPercentage = 10 * (1 + (jetTechBonus / 10.736f));
+            if (state == StartState.Editor) return; // don't do any of this stuff in editor
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * intakeSpeed));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * 20));
             resourceBuffers.Init(this.part);
-
-            _resourceAtmosphereDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
         }
 
         private void IntakeOpenChanged(BaseField field, object oldFieldValueObj)
@@ -178,7 +208,7 @@ namespace FNPlugin
                 : vessel.speed;
 
             intakeAngle = Mathf.Clamp(Vector3.Dot(vesselFlyingVector.normalized, part.transform.up.normalized), 0, 1);
-            airSpeed = (intakeAngle * vesselSpeed * unitScalar) + (intakeSpeed * jetTechBonusPercentage);
+            airSpeed = (intakeAngle * vesselSpeed * unitScalar) + (intakeSpeed * jetTechBonus);
             intakeExposure = airSpeed * area;
 
             airFlow = atmosphereDensityMultiplier * vessel.atmDensity * intakeExposure / _resourceAtmosphereDefinition.density;
