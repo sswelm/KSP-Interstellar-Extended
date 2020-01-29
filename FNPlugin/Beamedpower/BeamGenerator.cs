@@ -1,8 +1,9 @@
-﻿using System;
+﻿using FNPlugin.Beamedpower;
+using KSP.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using KSP.Localization;
 using TweakScale;
 using UnityEngine;
 
@@ -20,18 +21,14 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_Wavelength")]//Wavelength
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedBeamConfiguration;
-
+        
         [KSPField(isPersistant = true)]
         public bool isInitialized = false;
-        [KSPField(isPersistant = false)]
-        public bool canSwitchWavelengthInFlight = true;
-        [KSPField(isPersistant = false)]
-        public bool isLoaded = false;
+        [KSPField(isPersistant = true)]
+        public double maximumPower;
 
         [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_GeneratorType")]//Generator Type
         public string beamTypeName = "";
-        [KSPField(guiActiveEditor = true, guiActive = false)]
-        public int beamType = 1;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WavelengthName")]//Wavelength Name
         public string beamWaveName = "";
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_Wavelengthinmeter", guiFormat = "F9", guiUnits = " m")]//Wavelength in meter
@@ -52,32 +49,37 @@ namespace FNPlugin.Microwave
         public double targetMass = 1;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_PartMass", guiUnits = " t")]//Part Mass
         public float partMass;
-        [KSPField(isPersistant = true)]
-        public double maximumPower;
 
-
-        [KSPField(isPersistant = false)]
+        [KSPField]
+        public bool canSwitchWavelengthInFlight = true;
+        [KSPField]
+        public bool isLoaded = false;
+        [KSPField]
+        public int beamType = 1;
+        [KSPField]
         public string techLevelMk1 = "start";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string techLevelMk2;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string techLevelMk3;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string techLevelMk4;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string techLevelMk5;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string techLevelMk6;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string techLevelMk7;
-
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double powerMassFraction = 0.5;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool fixedMass = false;
+        [KSPField]
+        public bool isInitialzed = false;
 
         ConfigNode[] beamConfigurationNodes;
         BeamConfiguration activeConfiguration;
+        BeamedPowerTransmitter transmitter;
         BaseField chooseField;
 
         int techLevel;
@@ -97,6 +99,11 @@ namespace FNPlugin.Microwave
                 techLevel++;
             if (PluginHelper.UpgradeAvailable(techLevelMk7))
                 techLevel++;
+        }
+
+        public void Connect(BeamedPowerTransmitter transmitter)
+        {
+            this.transmitter = transmitter;
         }
 
         private int GetTechLevelFromTechId(string techid)
@@ -147,7 +154,8 @@ namespace FNPlugin.Microwave
         {
             get
             {
-                if (_beamConfigurations != null) return _beamConfigurations;
+                if (_beamConfigurations != null) 
+                    return _beamConfigurations;
 
                 // ToDo: remove once inline beam configuration is fully implemented
                 var moduleConfigurations = part.FindModulesImplementing<BeamConfiguration>();
@@ -268,10 +276,20 @@ namespace FNPlugin.Microwave
             chooseField.guiActive = CheatOptions.NonStrictAttachmentOrientation || (canSwitchWavelengthInFlight && BeamConfigurations.Count > 1);
         }
 
+        /// <summary>
+        /// Called whenever chooseOption is changed by user
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="oldFieldValueObj"></param>
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
         {
+            Debug.Log("[KSPI]: BeamGenerator UpdateFromGUI called");
+
             if (!BeamConfigurations.Any())
+            {
+                Debug.LogWarning("[KSPI]: BeamGenerator UpdateFromGUI no BeamConfigurations found");
                 return;
+            }
 
             if (isLoaded == false)
                 LoadInitialConfiguration();
@@ -283,7 +301,7 @@ namespace FNPlugin.Microwave
                 }
                 else
                 {
-                    Debug.LogWarning("[KSPI]: selectedBeamConfiguration < BeamConfigurations.Count, selecting last");
+                    Debug.LogWarning("[KSPI]: selectedBeamConfiguration < " + BeamConfigurations.Count + ", selecting last");
                     selectedBeamConfiguration = BeamConfigurations.Count - 1;
                     activeConfiguration = BeamConfigurations.Last();
                 }
@@ -302,6 +320,17 @@ namespace FNPlugin.Microwave
             waterAbsorptionPercentage = activeConfiguration.waterAbsorptionPercentage;
 
             UpdateEfficiencyPercentage();
+
+            // synchronize with reciever;
+            if (transmitter != null && transmitter.part_receiver != null)
+            {
+                Debug.Log("[KSPI]: Called SetActiveBandwidthConfigurationByWaveLength with wavelength " + wavelength);
+                transmitter.part_receiver.SetActiveBandwidthConfigurationByWaveLength(wavelength);
+            }
+            //else
+            //{
+            //    Debug.Log("[KSPI]: No transmitter found ");
+            //}
         }
 
         private static string WavelenthToText(double wavelength)

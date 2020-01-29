@@ -98,8 +98,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ShowWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowHide", enabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowShow")]//Power Reciever Interface--Hidden--Shown
         public bool showWindow;
 
-
-
         [KSPField(isPersistant = true)]
         public float windowPositionX = 200;
         [KSPField(isPersistant = true)]
@@ -283,7 +281,6 @@ namespace FNPlugin
         public bool maintainResourceBuffers = true;
 
         //GUI
-
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ReceiptPower"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]//Reception
         public float receiptPower = 100;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_CoreTemperature")]//Core Temperature
@@ -330,14 +327,18 @@ namespace FNPlugin
         public double powerHeatMultiplier = 1;
 
         [KSPField(isPersistant = true)]
-        protected double storedGeneratorThermalEnergyRequestRatio;
+        public double storedGeneratorThermalEnergyRequestRatio;
         [KSPField(isPersistant = true)]
-        protected double storedIsThermalEnergyGeneratorEfficiency;
+        public double storedIsThermalEnergyGeneratorEfficiency;
+        [KSPField]
+        public double currentIsThermalEnergyGeneratorEfficiency;
+        [KSPField]
+        public double currentGeneratorThermalEnergyRequestRatio;
 
         [KSPField]
-        protected double currentIsThermalEnergyGeneratorEfficiency;
+        public bool showBandWidthName = false;
         [KSPField]
-        protected double currentGeneratorThermalEnergyRequestRatio;
+        public bool showSelectedBandwidthConfiguration = true;
 
         protected BaseField _beamedpowerField;
         protected BaseField _powerInputMegajoulesField;
@@ -354,6 +355,7 @@ namespace FNPlugin
         protected BaseField _coreTempereratureField;
         protected BaseField _field_kerbalism_output;
 
+        protected BaseField _bandWidthNameField;
         protected BaseField _connectedsatsField;
         protected BaseField _connectedrelaysField;
         protected BaseField _networkDepthStringField;
@@ -898,6 +900,35 @@ namespace FNPlugin
                 ActivateReceiver();
         }
 
+        public void SetActiveBandwidthConfigurationByWaveLength(double targetwavelength)
+        {
+            var foundBandwidthConfiguration = BandwidthConverters.FirstOrDefault(m => m.minimumWavelength < targetwavelength && m.maximumWavelength > targetwavelength);
+
+            if (foundBandwidthConfiguration != null)
+            {
+                isLoaded = true;
+                Debug.Log("[KSPI]: BeamedPowerReceiver - found " + foundBandwidthConfiguration.bandwidthName);
+                activeBandwidthConfiguration = foundBandwidthConfiguration;
+                UpdateProperties();
+                selectedBandwidthConfiguration = BandwidthConverters.IndexOf(activeBandwidthConfiguration);
+                UpdatePartActionWindow();
+            }
+        }
+
+        private void UpdatePartActionWindow()
+        {
+            var window = FindObjectsOfType<UIPartActionWindow>().FirstOrDefault(w => w.part == part);
+            if (window != null)
+            {
+                foreach (UIPartActionWindow actionwindow in FindObjectsOfType<UIPartActionWindow>())
+                {
+                    if (window.part != part) continue;
+                    actionwindow.ClearList();
+                    actionwindow.displayDirty = true;
+                }
+            }
+        }
+
         private BandwidthConverter activeBandwidthConfiguration;
 
         private List<BandwidthConverter> _bandwidthConverters;
@@ -1019,6 +1050,7 @@ namespace FNPlugin
                 try
                 {
                     deployableAntenna.Events["Extend"].guiActive = false;
+                    deployableAntenna.Events["Retract"].guiActive = false;
                 }
                 catch (Exception e)
                 {
@@ -1276,13 +1308,13 @@ namespace FNPlugin
                 _connectedrelaysField = Fields["connectedrelays"];
                 _networkDepthStringField = Fields["networkDepthString"];
 
-                var bandWidthNameField = Fields["bandWidthName"];
-                bandWidthNameField.guiActiveEditor = !canSwitchBandwidthInEditor;
-                bandWidthNameField.guiActive = !canSwitchBandwidthInFlight && canSwitchBandwidthInEditor;
+                _bandWidthNameField = Fields["bandWidthName"];
+                _bandWidthNameField.guiActiveEditor = showBandWidthName || !canSwitchBandwidthInEditor;
+                _bandWidthNameField.guiActive = showBandWidthName || !canSwitchBandwidthInFlight;
 
                 _selectedBandwidthConfigurationField = Fields["selectedBandwidthConfiguration"];
-                _selectedBandwidthConfigurationField.guiActiveEditor = canSwitchBandwidthInEditor;
-                _selectedBandwidthConfigurationField.guiActive = canSwitchBandwidthInFlight;
+                _selectedBandwidthConfigurationField.guiActiveEditor = showSelectedBandwidthConfiguration && canSwitchBandwidthInEditor;
+                _selectedBandwidthConfigurationField.guiActive = showSelectedBandwidthConfiguration && canSwitchBandwidthInFlight;
 
                 var names = BandwidthConverters.Select(m => m.bandwidthName).ToArray();
 
@@ -1344,12 +1376,12 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSPI]: UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
+                //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
 
                 if (!BandwidthConverters.Any())
                     return;
 
-                Debug.Log("[KSPI]: UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
+                //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
 
                 if (isLoaded == false)
                     LoadInitialConfiguration();
@@ -1357,12 +1389,12 @@ namespace FNPlugin
                 {
                     if (selectedBandwidthConfiguration < BandwidthConverters.Count)
                     {
-                        Debug.Log("[KSPI]: UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
+                        //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
                         activeBandwidthConfiguration = BandwidthConverters[selectedBandwidthConfiguration];
                     }
                     else
                     {
-                        Debug.Log("[KSPI]: UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
+                        //Debug.Log("[KSPI]: BeamedPowerReceiver BeamedPowerReceiver UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
                         selectedBandwidthConfiguration = BandwidthConverters.Count - 1;
                         activeBandwidthConfiguration = BandwidthConverters.Last();
                     }
@@ -1370,22 +1402,33 @@ namespace FNPlugin
 
                 if (activeBandwidthConfiguration == null)
                 {
-                    Debug.LogWarning("[KSPI]: UpdateFromGUI failed to find BandwidthConfiguration");
+                    Debug.LogWarning("[KSPI]: BeamedPowerReceiver UpdateFromGUI failed to find BandwidthConfiguration");
                     return;
                 }
 
-                targetWavelength = activeBandwidthConfiguration.TargetWavelength;
-                bandWidthName = activeBandwidthConfiguration.bandwidthName;
-
-                // update wavelength we can receive
-                if (!canSwitchBandwidthInEditor) return;
-
-                minimumWavelength = activeBandwidthConfiguration.minimumWavelength;
-                maximumWavelength = activeBandwidthConfiguration.maximumWavelength;
+                UpdateProperties();
             }
             catch (Exception e)
             {
                 Debug.LogError("[KSPI]: Error in MicrowaveReceiver UpdateFromGUI " + e.Message + " at " + e.StackTrace);
+            }
+        }
+
+        private void UpdateProperties()
+        {
+            targetWavelength = activeBandwidthConfiguration.TargetWavelength;
+            bandWidthName = activeBandwidthConfiguration.bandwidthName;
+
+            // update wavelength we can receive
+            if (canSwitchBandwidthInEditor)
+            {
+                minimumWavelength = activeBandwidthConfiguration.minimumWavelength;
+                maximumWavelength = activeBandwidthConfiguration.maximumWavelength;
+            }
+            else
+            {
+                minimumWavelength = BandwidthConverters.Min(m => m.minimumWavelength);
+                maximumWavelength = BandwidthConverters.Max(m => m.maximumWavelength);
             }
         }
 
@@ -1495,6 +1538,19 @@ namespace FNPlugin
             networkDepthString = networkDepth.ToString();
 
             CalculateInputPower();
+
+            if (deployableAntenna != null)
+            {
+                try
+                {
+                    deployableAntenna.Events["Extend"].guiActive = false;
+                    deployableAntenna.Events["Retract"].guiActive = false;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI]: Error while disabling antenna deploy button " + e.Message + " at " + e.StackTrace);
+                }
+            }
         }
 
         private double GetSolarFacingFactor(CelestialBody localStar, Vector3 vesselPosition)
@@ -1505,10 +1561,12 @@ namespace FNPlugin
 
                 Vector3d solarDirectionVector = (localStar.transform.position - vesselPosition).normalized;
 
-                 if (receiverType == 3) 
-                     return Math.Max(0, 1 - Vector3d.Dot(part.transform.forward, solarDirectionVector)) / 2;
-                 else
-                     return Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector));
+                if (receiverType == 9)
+                    return 1;
+                else if (receiverType == 3)
+                    return Math.Max(0, 1 - Vector3d.Dot(part.transform.forward, solarDirectionVector)) / 2;
+                else
+                    return Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector));
             }
             catch (Exception e)
             {
