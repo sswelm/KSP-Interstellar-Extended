@@ -131,6 +131,10 @@ namespace FNPlugin
         [KSPField]
         public float maxThermalNozzleIsp = 0;
         [KSPField]
+        public float maxJetModeBaseIsp = 0;
+        [KSPField]
+        public float maxLfoModeBaseIsp = 0;
+        [KSPField]
         public double skinInternalConductionMult = 1;
         [KSPField]
         public double skinThermalMassModifier = 1;
@@ -739,9 +743,13 @@ namespace FNPlugin
 
             _flameoutText = Localizer.Format("#autoLOC_219016");
 
-            // use default when maxThermalNozzleIsp is not configured
+            // use default when not configured
             if (maxThermalNozzleIsp == 0)
                 maxThermalNozzleIsp = PluginHelper.MaxThermalNozzleIsp;
+            if (maxJetModeBaseIsp == 0)
+                maxJetModeBaseIsp = maxThermalNozzleIsp;
+            if (maxLfoModeBaseIsp == 0)
+                maxLfoModeBaseIsp = maxThermalNozzleIsp;
 
             ScaleParameters();            
 
@@ -2334,7 +2342,11 @@ namespace FNPlugin
             if (IsPositiveValidNumber(AttachedReactor.FuelRato))
                 baseMaxIsp *= AttachedReactor.FuelRato;
 
-            if (baseMaxIsp > maxThermalNozzleIsp && !isPlasmaNozzle)
+            if (baseMaxIsp > maxJetModeBaseIsp && _currentpropellant_is_jet)
+                baseMaxIsp = maxJetModeBaseIsp;
+            else if (baseMaxIsp > maxLfoModeBaseIsp && _propellantIsLFO)
+                baseMaxIsp = maxLfoModeBaseIsp;
+            else if (baseMaxIsp > maxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = maxThermalNozzleIsp;
 
             fuelflowThrottleMaxValue = minimumBaseIsp > 0 ? 100 * Math.Max(1, baseMaxIsp / Math.Min(baseMaxIsp, minimumBaseIsp)) : 100;
