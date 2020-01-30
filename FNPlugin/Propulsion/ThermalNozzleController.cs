@@ -64,12 +64,18 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ThermalNozzleController_FuelflowThrotlemodifier", guiFormat = "F5")]//Fuelflow Throtle modifier
         public double fuelflow_throtle_modifier = 1;
 
+        [KSPField(guiActive = true)]
+        public double effectiveFuelflowThrottle;
+        [KSPField(guiActive = true)]
+        public double ispFlowMultiplier;
+        [KSPField(guiActive = true)]
+        public double exhaustModifier; 
+
         [KSPField]
         public double startupHeatReductionRatio = 0;
         [KSPField]
         public double missingPrecoolerProportionExponent = 0.5;
-        [KSPField]
-        public double exhaustModifier;        
+       
         [KSPField]
         public double minimumBaseIsp = 0;
         [KSPField]
@@ -2374,16 +2380,16 @@ namespace FNPlugin
                 _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * maxThermalNozzleIsp;
 
                 if (UsePlasmaAfterBurner)  // when  mixing charged particles from reactor with cold propellant
-                    _maxISP = _maxISP + Math.Pow((double)(decimal)ispThrottle / 100, 2) * plasmaAfterburnerRange * baseMaxIsp;
+                    _maxISP = _maxISP + Math.Pow(ispThrottle / 100d, 2) * plasmaAfterburnerRange * baseMaxIsp;
             }
 
-            var effectiveFuelflowThrottle = Math.Min(fuelflowThrottleMaxValue, (double)(decimal)fuelflowThrottle);
+            effectiveFuelflowThrottle = Math.Min(fuelflowThrottleMaxValue, (double)(decimal)fuelflowThrottle);
 
             fuelflowMultplier = Math.Min(Math.Max(100, fuelflowThrottleMaxValue * _ispPropellantMultiplier), effectiveFuelflowThrottle) / 100;
 
             var fueFlowDivider = fuelflowMultplier > 0 ? 1 / fuelflowMultplier : 0;
 
-            var ispFlowMultiplier = _ispPropellantMultiplier * fueFlowDivider;
+            ispFlowMultiplier = _ispPropellantMultiplier * fueFlowDivider;
 
             _maxISP *= ispFlowMultiplier;
 
