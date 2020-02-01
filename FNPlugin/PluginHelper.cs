@@ -892,7 +892,7 @@ namespace FNPlugin
 
         public void Update()
         {
-            Debug.Log("[KSPI]: PluginHelper Update Started");
+            //Debug.Log("[KSPI]: PluginHelper Update Started");
 
             if (ApplicationLauncher.Ready && !buttonAdded)
             {
