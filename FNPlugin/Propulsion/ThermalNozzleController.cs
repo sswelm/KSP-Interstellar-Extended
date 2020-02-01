@@ -187,7 +187,7 @@ namespace FNPlugin
         [KSPField]
         public string EffectNameLithium = String.Empty;
         [KSPField]
-        public string EffectNameSpool= String.Empty;
+        public string EffectNameSpool = String.Empty;
         [KSPField]
         public string runningEffectNameLFO = String.Empty;
         [KSPField]
