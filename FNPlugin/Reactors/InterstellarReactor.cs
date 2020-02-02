@@ -2801,7 +2801,7 @@ namespace FNPlugin.Reactors
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_Radius"), radius + "m", bold_style, text_style);//"Radius"
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CoreTemperature"), coretempStr, bold_style, text_style);//"Core Temperature"
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_StatusLabel"), statusStr, bold_style, text_style);//"Status"
-                PrintToGUILayout(Localizer.Format("Fuel Mode"), fuelModeStr, bold_style, text_style);//"Fuel Mode"
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelMode"), fuelModeStr, bold_style, text_style);//"Fuel Mode"
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelEfficiencyLabel"), (FuelEfficiency * 100).ToString(), bold_style, text_style);//"Fuel Efficiency"
 
                 WindowReactorSpecificOverride();
