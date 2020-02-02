@@ -317,7 +317,7 @@ namespace FNPlugin
                     ratioHeadingVersusRequest = this.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
                     if (ratioHeadingVersusRequest != 1)
                     {
-                        UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
+                        //UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
                         return;
                     }
 

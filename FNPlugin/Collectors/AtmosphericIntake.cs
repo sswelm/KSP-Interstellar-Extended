@@ -124,7 +124,7 @@ namespace FNPlugin
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * 200));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * 100));
             resourceBuffers.Init(this.part);
         }
 
