@@ -930,7 +930,7 @@ namespace FNPlugin
                 maximumElectricPower = (_totalEff >= 0)
                     ? !chargedParticleMode
                         ? PowerRatio * _totalEff * maxThermalPower
-                        : PowerRatio * _totalEff * maxChargedPowerForThermalGenerator 
+                        : PowerRatio * _totalEff * maxChargedPowerForChargedGenerator 
                     : 0;
 
                 MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower, "0.0", "0.000");
