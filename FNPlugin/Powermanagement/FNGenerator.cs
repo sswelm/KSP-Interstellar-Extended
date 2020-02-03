@@ -215,7 +215,7 @@ namespace FNPlugin
         public double electrical_power_currently_needed;
 
         // Debug
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public double maximumElectricPower;
         [KSPField]
         public double stableMaximumReactorPower;
