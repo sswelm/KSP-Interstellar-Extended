@@ -31,6 +31,8 @@ namespace FNPlugin
 
         // non persistant
         [KSPField]
+        public bool showTrail;
+        [KSPField]
         public double warpPowerReqMult = 0.5;
         [KSPField]
         public double responseMultiplier = 0.005;
@@ -125,7 +127,7 @@ namespace FNPlugin
         public double maximumWarpForAltitude;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_maxAllowedThrotle", guiUnits = "c", guiFormat = "F4")]
         public double maximumAllowedWarpThrotle;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentSelectedSpeed", guiUnits = "c", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentSelectedSpeed", guiUnits = "c", guiFormat = "F4")]
         public double warpEngineThrottle;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_minPowerReqForLightSpeed", guiUnits = " MW", guiFormat = "F4")]
         public double minPowerRequirementForLightSpeed;
@@ -435,6 +437,7 @@ namespace FNPlugin
                 vessel.GoOffRails();
             
             IsEnabled = true;
+            showTrail = true;
 
             existing_warp_speed = selectedWarpSpeed;
         }
@@ -805,7 +808,7 @@ namespace FNPlugin
                 Fields["holdAltitude"].guiActive = !IsSlave;
                 Fields["spaceSafetyDistance"].guiActive = !IsSlave;
 
-                Fields["warpEngineThrottle"].guiActive = !IsSlave;
+                //Fields["warpEngineThrottle"].guiActive = !IsSlave;
                 Fields["maximumAllowedWarpThrotle"].guiActive = !IsSlave;
                 Fields["warpToMassRatio"].guiActive = !IsSlave;
                 Fields["minPowerRequirementForLightSpeed"].guiActive = !IsSlave;
@@ -1054,12 +1057,15 @@ namespace FNPlugin
 
             foreach (var drive in alcubierreDrives)
             {
-                drive.UpdateAnimateState(IsEnabled, IsCharging);
+                drive.UpdateState(IsEnabled, IsCharging, IsEnabled, selected_factor);
             }
         }
 
-        private void UpdateAnimateState(bool isEnabled, bool isCharging)
+        private void UpdateState(bool isEnabled, bool isCharging, bool showTrail, int selected_factor)
         {
+            this.showTrail = showTrail;
+            this.selected_factor = selected_factor;
+
             if (animationState == null) return;
 
             foreach (var anim in animationState)
@@ -1269,7 +1275,11 @@ namespace FNPlugin
             }
 
             // update animation
-            if (!IsEnabled)
+            if (IsEnabled)
+            {
+                driveStatus = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_Active");//"Active."
+            }
+            else
             {
                 if (!IsSlave)
                 {
@@ -1283,14 +1293,10 @@ namespace FNPlugin
                     else
                         driveStatus = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_Ready");//"Ready."
                 }
-
-                warp_effect2_renderer.enabled = false;
-                warp_effect1_renderer.enabled = false;
             }
-            else
-            {
-                driveStatus = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_Active");//"Active."
 
+            if (showTrail)
+            {
                 var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
                 var endBeamPos = shipPos + part.transform.up * warp_size;
                 var midPos = (shipPos - endBeamPos) / 2.0f;
@@ -1310,6 +1316,11 @@ namespace FNPlugin
 
                 warp_effect2_renderer.enabled = true;
                 warp_effect1_renderer.enabled = true;
+            }
+            else
+            {
+                warp_effect2_renderer.enabled = false;
+                warp_effect1_renderer.enabled = false;
             }
         }
 
