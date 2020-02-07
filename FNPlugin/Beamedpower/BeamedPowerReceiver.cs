@@ -98,8 +98,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ShowWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowHide", enabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowShow")]//Power Reciever Interface--Hidden--Shown
         public bool showWindow;
 
-
-
         [KSPField(isPersistant = true)]
         public float windowPositionX = 200;
         [KSPField(isPersistant = true)]
@@ -110,6 +108,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool forceActivateAtStartup = false;
 
+
+        [KSPField(isPersistant = true)]
+        protected double total_sat_efficiency_fraction = 0;
         [KSPField(isPersistant = true)]
         protected double total_beamed_power = 0;
         [KSPField(isPersistant = true)]
@@ -282,10 +283,13 @@ namespace FNPlugin
         [KSPField]
         public bool maintainResourceBuffers = true;
 
-        //GUI
+        // Control
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Minimum Consumption %"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
+        public float minimumConsumptionPercentage = 0;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Maximum Consumption %"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
+        public float maximumConsumptionPercentage = 100;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ReceiptPower"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]//Reception
-        public float receiptPower = 100;
+        //GUI
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_CoreTemperature")]//Core Temperature
         public string coreTempererature;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ProducedPower")]//Produced Power
@@ -320,7 +324,11 @@ namespace FNPlugin
         public double solarFacingFactor;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarFlux", guiFormat = "F4")]//Solar Flux
         public double solarFlux;
-        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F2")]
+
+        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW")]//Offscreen Power Generation
+        public double initialGeneratorPowerEC;
+
+        [KSPField(guiFormat = "F2")]
         public double thermal_power_ratio;
         [KSPField]
         public double powerCapacityEfficiency;
@@ -328,16 +336,24 @@ namespace FNPlugin
         public double powerMult = 1;
         [KSPField]
         public double powerHeatMultiplier = 1;
+        [KSPField]
+        public double averageEfficiencyFraction;
 
         [KSPField(isPersistant = true)]
-        protected double storedGeneratorThermalEnergyRequestRatio;
+        public double storedGeneratorThermalEnergyRequestRatio;
         [KSPField(isPersistant = true)]
-        protected double storedIsThermalEnergyGeneratorEfficiency;
+        public double storedIsThermalEnergyGeneratorEfficiency;
+        [KSPField]
+        public double currentIsThermalEnergyGeneratorEfficiency;
+        [KSPField]
+        public double currentGeneratorThermalEnergyRequestRatio;
 
         [KSPField]
-        protected double currentIsThermalEnergyGeneratorEfficiency;
+        public bool showBandWidthName = false;
         [KSPField]
-        protected double currentGeneratorThermalEnergyRequestRatio;
+        public bool showSelectedBandwidthConfiguration = true;
+
+
 
         protected BaseField _beamedpowerField;
         protected BaseField _powerInputMegajoulesField;
@@ -345,7 +361,8 @@ namespace FNPlugin
         protected BaseField _diameterField;
         protected BaseField _slavesAmountField;
         protected BaseField _ThermalPowerField;
-        protected BaseField _receiptPowerField;
+        protected BaseField _minimumConsumptionPercentageField;
+        protected BaseField _maximumConsumptionPercentageField;
         protected BaseField _selectedBandwidthConfigurationField;
         protected BaseField _maximumWavelengthField;
         protected BaseField _minimumWavelengthField;
@@ -354,6 +371,7 @@ namespace FNPlugin
         protected BaseField _coreTempereratureField;
         protected BaseField _field_kerbalism_output;
 
+        protected BaseField _bandWidthNameField;
         protected BaseField _connectedsatsField;
         protected BaseField _connectedrelaysField;
         protected BaseField _networkDepthStringField;
@@ -362,6 +380,13 @@ namespace FNPlugin
         protected BaseEvent _unlinkReceiverBaseEvent;
         protected BaseEvent _activateReceiverBaseEvent;
         protected BaseEvent _disableReceiverBaseEvent;
+
+        private ModuleGenerator stockModuleGenerator;
+        private ModuleResource mockInputResource;
+        private ModuleResource outputModuleResource;
+        private BaseEvent moduleGeneratorShutdownBaseEvent;
+        private BaseEvent moduleGeneratorActivateBaseEvent;
+        private BaseField moduleGeneratorEfficienctBaseField;
 
         protected ModuleDeployableSolarPanel deployableSolarPanel;
         protected ModuleDeployableRadiator deployableRadiator;
@@ -506,7 +531,7 @@ namespace FNPlugin
 
         public double ProducedChargedPower { get { return 0; } }
 
-        public double PowerRatio { get { return receiptPower / 100.0; } }
+        public double PowerRatio { get { return maximumConsumptionPercentage / 100d; } }
 
         public double ProducedPower { get { return ProducedThermalHeat; } }
 
@@ -595,6 +620,15 @@ namespace FNPlugin
 
                 var scaledPower = maxPower * powerMult;
                 return CanBeActiveInAtmosphere ? scaledPower : scaledPower * highSpeedAtmosphereFactor;
+            }
+        }
+
+        public double AverageEfficiencyFraction
+        {
+            get
+            {
+                averageEfficiencyFraction = total_beamed_power > 0 ? total_sat_efficiency_fraction / total_beamed_power : 0;
+                return averageEfficiencyFraction;
             }
         }
 
@@ -898,6 +932,35 @@ namespace FNPlugin
                 ActivateReceiver();
         }
 
+        public void SetActiveBandwidthConfigurationByWaveLength(double targetwavelength)
+        {
+            var foundBandwidthConfiguration = BandwidthConverters.FirstOrDefault(m => m.minimumWavelength < targetwavelength && m.maximumWavelength > targetwavelength);
+
+            if (foundBandwidthConfiguration != null)
+            {
+                isLoaded = true;
+                Debug.Log("[KSPI]: BeamedPowerReceiver - found " + foundBandwidthConfiguration.bandwidthName);
+                activeBandwidthConfiguration = foundBandwidthConfiguration;
+                UpdateProperties();
+                selectedBandwidthConfiguration = BandwidthConverters.IndexOf(activeBandwidthConfiguration);
+                UpdatePartActionWindow();
+            }
+        }
+
+        private void UpdatePartActionWindow()
+        {
+            var window = FindObjectsOfType<UIPartActionWindow>().FirstOrDefault(w => w.part == part);
+            if (window != null)
+            {
+                foreach (UIPartActionWindow actionwindow in FindObjectsOfType<UIPartActionWindow>())
+                {
+                    if (window.part != part) continue;
+                    actionwindow.ClearList();
+                    actionwindow.displayDirty = true;
+                }
+            }
+        }
+
         private BandwidthConverter activeBandwidthConfiguration;
 
         private List<BandwidthConverter> _bandwidthConverters;
@@ -956,6 +1019,7 @@ namespace FNPlugin
 
             DetermineTechLevel();
             DetermineCoreTemperature();
+            ConnectToModuleGenerator();
 
             // while in edit mode, listen to on attach/detach event
             if (state == StartState.Editor)
@@ -1019,6 +1083,7 @@ namespace FNPlugin
                 try
                 {
                     deployableAntenna.Events["Extend"].guiActive = false;
+                    deployableAntenna.Events["Retract"].guiActive = false;
                 }
                 catch (Exception e)
                 {
@@ -1267,7 +1332,8 @@ namespace FNPlugin
                 _linkedForRelayField = Fields["linkedForRelay"];
                 _slavesAmountField = Fields["slavesAmount"];
                 _ThermalPowerField = Fields["ThermalPower"];
-                _receiptPowerField = Fields["receiptPower"];
+                _minimumConsumptionPercentageField = Fields["minimumConsumptionPercentage"];
+                _maximumConsumptionPercentageField = Fields["maximumConsumptionPercentage"];
                 _beamedpowerField = Fields["beamedpower"];
                 _solarFluxField = Fields["solarFlux"];
                 _diameterField = Fields["diameter"];
@@ -1276,13 +1342,13 @@ namespace FNPlugin
                 _connectedrelaysField = Fields["connectedrelays"];
                 _networkDepthStringField = Fields["networkDepthString"];
 
-                var bandWidthNameField = Fields["bandWidthName"];
-                bandWidthNameField.guiActiveEditor = !canSwitchBandwidthInEditor;
-                bandWidthNameField.guiActive = !canSwitchBandwidthInFlight && canSwitchBandwidthInEditor;
+                _bandWidthNameField = Fields["bandWidthName"];
+                _bandWidthNameField.guiActiveEditor = showBandWidthName || !canSwitchBandwidthInEditor;
+                _bandWidthNameField.guiActive = showBandWidthName || !canSwitchBandwidthInFlight;
 
                 _selectedBandwidthConfigurationField = Fields["selectedBandwidthConfiguration"];
-                _selectedBandwidthConfigurationField.guiActiveEditor = canSwitchBandwidthInEditor;
-                _selectedBandwidthConfigurationField.guiActive = canSwitchBandwidthInFlight;
+                _selectedBandwidthConfigurationField.guiActiveEditor = showSelectedBandwidthConfiguration && canSwitchBandwidthInEditor;
+                _selectedBandwidthConfigurationField.guiActive = showSelectedBandwidthConfiguration && canSwitchBandwidthInFlight;
 
                 var names = BandwidthConverters.Select(m => m.bandwidthName).ToArray();
 
@@ -1344,12 +1410,12 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSPI]: UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
+                //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
 
                 if (!BandwidthConverters.Any())
                     return;
 
-                Debug.Log("[KSPI]: UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
+                //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
 
                 if (isLoaded == false)
                     LoadInitialConfiguration();
@@ -1357,12 +1423,12 @@ namespace FNPlugin
                 {
                     if (selectedBandwidthConfiguration < BandwidthConverters.Count)
                     {
-                        Debug.Log("[KSPI]: UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
+                        //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
                         activeBandwidthConfiguration = BandwidthConverters[selectedBandwidthConfiguration];
                     }
                     else
                     {
-                        Debug.Log("[KSPI]: UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
+                        //Debug.Log("[KSPI]: BeamedPowerReceiver BeamedPowerReceiver UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
                         selectedBandwidthConfiguration = BandwidthConverters.Count - 1;
                         activeBandwidthConfiguration = BandwidthConverters.Last();
                     }
@@ -1370,22 +1436,33 @@ namespace FNPlugin
 
                 if (activeBandwidthConfiguration == null)
                 {
-                    Debug.LogWarning("[KSPI]: UpdateFromGUI failed to find BandwidthConfiguration");
+                    Debug.LogWarning("[KSPI]: BeamedPowerReceiver UpdateFromGUI failed to find BandwidthConfiguration");
                     return;
                 }
 
-                targetWavelength = activeBandwidthConfiguration.TargetWavelength;
-                bandWidthName = activeBandwidthConfiguration.bandwidthName;
-
-                // update wavelength we can receive
-                if (!canSwitchBandwidthInEditor) return;
-
-                minimumWavelength = activeBandwidthConfiguration.minimumWavelength;
-                maximumWavelength = activeBandwidthConfiguration.maximumWavelength;
+                UpdateProperties();
             }
             catch (Exception e)
             {
                 Debug.LogError("[KSPI]: Error in MicrowaveReceiver UpdateFromGUI " + e.Message + " at " + e.StackTrace);
+            }
+        }
+
+        private void UpdateProperties()
+        {
+            targetWavelength = activeBandwidthConfiguration.TargetWavelength;
+            bandWidthName = activeBandwidthConfiguration.bandwidthName;
+
+            // update wavelength we can receive
+            if (canSwitchBandwidthInEditor)
+            {
+                minimumWavelength = activeBandwidthConfiguration.minimumWavelength;
+                maximumWavelength = activeBandwidthConfiguration.maximumWavelength;
+            }
+            else
+            {
+                minimumWavelength = BandwidthConverters.Min(m => m.minimumWavelength);
+                maximumWavelength = BandwidthConverters.Max(m => m.maximumWavelength);
             }
         }
 
@@ -1461,7 +1538,8 @@ namespace FNPlugin
             _slavesAmountField.guiActive = thermalMode && slavesAmount > 0;
             _ThermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
 
-            _receiptPowerField.guiActive = receiverIsEnabled;
+            _maximumConsumptionPercentageField.guiActive = receiverIsEnabled;
+            _minimumConsumptionPercentageField.guiActive = receiverIsEnabled;
             _minimumWavelengthField.guiActive = receiverIsEnabled;
             _maximumWavelengthField.guiActive = receiverIsEnabled;
 
@@ -1495,6 +1573,19 @@ namespace FNPlugin
             networkDepthString = networkDepth.ToString();
 
             CalculateInputPower();
+
+            if (deployableAntenna != null)
+            {
+                try
+                {
+                    deployableAntenna.Events["Extend"].guiActive = false;
+                    deployableAntenna.Events["Retract"].guiActive = false;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI]: Error while disabling antenna deploy button " + e.Message + " at " + e.StackTrace);
+                }
+            }
         }
 
         private double GetSolarFacingFactor(CelestialBody localStar, Vector3 vesselPosition)
@@ -1505,10 +1596,12 @@ namespace FNPlugin
 
                 Vector3d solarDirectionVector = (localStar.transform.position - vesselPosition).normalized;
 
-                 if (receiverType == 3) 
-                     return Math.Max(0, 1 - Vector3d.Dot(part.transform.forward, solarDirectionVector)) / 2;
-                 else
-                     return Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector));
+                if (receiverType == 9)
+                    return 1;
+                else if (receiverType == 3)
+                    return Math.Max(0, 1 - Vector3d.Dot(part.transform.forward, solarDirectionVector)) / 2;
+                else
+                    return Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector));
             }
             catch (Exception e)
             {
@@ -1599,7 +1692,10 @@ namespace FNPlugin
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel24"), bold_black_style, GUILayout.Width(wideLabelWidth));//"Relay Name"
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel25"), bold_black_style, GUILayout.Width(labelWidth));//"Relay Location"
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel26"), bold_black_style, GUILayout.Width(valueWidthWide));//"Max Capacity"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel27"), bold_black_style, GUILayout.Width(labelWidth));//"Aperture"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel27"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Aperture"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Diameter"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Diameter"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_MinimumWavelength"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Min Wavelength"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_MaximumWavelength"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Max Wavelength"
                 GUILayout.EndHorizontal();
 
                 foreach (ReceivedPowerData receivedPowerData in received_power.Values)
@@ -1613,7 +1709,7 @@ namespace FNPlugin
                         GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistance.Vessel.name, text_black_style, GUILayout.Width(wideLabelWidth));
                         GUILayout.Label(vesselPersistance.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistance.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
-                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity * powerMult), text_black_style, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity * powerMult), text_black_style, GUILayout.Width(valueWidthWide));
                         GUILayout.Label(vesselPersistance.Aperture + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistance.Diameter + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(WavelengthToText(vesselPersistance.MinimumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));
@@ -1741,8 +1837,8 @@ namespace FNPlugin
 
                         if (!isThermalReceiverSlave && total_thermal_power_provided > 0)
                         {
-                            var thermalThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
-                            var minimumRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, thermalThrottleRatio);
+                            var thermalEngineThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
+                            var minimumRatio =  Math.Max(minimumConsumptionPercentage / 100d, Math.Max(storedGeneratorThermalEnergyRequestRatio, thermalEngineThrottleRatio));
 
                             var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided_max, minimumRatio, ResourceManager.FNRESOURCE_THERMALPOWER);
 
@@ -1792,8 +1888,11 @@ namespace FNPlugin
 
                         if (!(total_beamed_electric_power_provided > 0)) return;
 
-                        var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, 0, ResourceManager.FNRESOURCE_MEGAJOULES);
-                        var supply_ratio = (double)powerGeneratedResult.currentSupply / total_beamed_electric_power_provided;
+                        var minimumRequestedPower = MaximumRecievePower * (minimumConsumptionPercentage / 100d);
+                        var calculatedMinimumRatio = Math.Min(1, minimumRequestedPower / total_beamed_electric_power_provided);
+
+                        var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, calculatedMinimumRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        var supply_ratio = powerGeneratedResult.currentProvided / total_beamed_electric_power_provided;
 
                         // only generate wasteheat from beamed power when actualy using the energy
                         if (!CheatOptions.IgnoreMaxTemperature)
@@ -1811,6 +1910,7 @@ namespace FNPlugin
                 else
                 {
                     total_thermal_power_provided = 0;
+                    total_sat_efficiency_fraction = 0;
                     total_beamed_power = 0;
                     total_beamed_power_max = 0;
                     total_beamed_wasteheat = 0;
@@ -1826,7 +1926,8 @@ namespace FNPlugin
 
                     PowerDown();
 
-                    //Reset();
+                    if (stockModuleGenerator != null)
+                        stockModuleGenerator.generatorIsActive = false;
 
                     if (animT == null) return;
 
@@ -1858,6 +1959,7 @@ namespace FNPlugin
             // reset all output variables at start of loop
             total_beamed_power = 0;
             total_beamed_power_max = 0;
+            total_sat_efficiency_fraction = 0;
             total_beamed_wasteheat = 0;
             connectedsatsi = 0;
             connectedrelaysi = 0;
@@ -1954,7 +2056,8 @@ namespace FNPlugin
 
                         // determine allowed power
                         var maximumRecievePower = MaximumRecievePower;
-                        var currentRecievalPower = maximumRecievePower * Math.Min(powerCapacityEfficiency, PowerRatio);
+
+                        var currentRecievalPower = Math.Min(MaximumRecievePower * PowerRatio, maximumRecievePower * powerCapacityEfficiency);
                         var maximumRecievalPower = maximumRecievePower * powerCapacityEfficiency;
 
                         // get effective beamtoPower efficiency
@@ -1991,6 +2094,7 @@ namespace FNPlugin
                         total_beamed_power += satPower;
                         total_beamed_power_max += satPowerMax;
                         total_beamed_wasteheat += satWasteheat;
+                        total_sat_efficiency_fraction += satPower * efficiencyFraction;
 
                         if (!(satPower > 0)) continue;
 
@@ -2075,7 +2179,25 @@ namespace FNPlugin
             if (alternatorRatio == 0)
                 return;
 
-            supplyFNResourcePerSecond(alternatorRatio * powerInputMegajoules * 0.001, ResourceManager.FNRESOURCE_MEGAJOULES);
+            if (!receiverIsEnabled || radiatorMode)
+                return;
+
+            var alternatorPower = alternatorRatio * powerInputMegajoules * 0.001;
+
+            var alternatorSupplyRatio = alternatorPower / total_thermal_power_provided;
+            var alternatorWasteheat = Math.Min(alternatorPower * AverageEfficiencyFraction, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES) * AverageEfficiencyFraction);
+
+            supplyFNResourcePerSecond(alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+            supplyFNResourcePerSecond(alternatorWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            if (stockModuleGenerator != null)
+                stockModuleGenerator.generatorIsActive = alternatorPower > 0;
+
+            if (outputModuleResource != null)
+            {
+                outputModuleResource.rate = alternatorPower * 1000;
+                mockInputResource.rate = alternatorPower * -1000;
+            }
         }
 
         public double MaxStableMegaWattPower
@@ -2195,6 +2317,48 @@ namespace FNPlugin
                 return power.ToString("0.0") + " MW";
             else
                 return (power * 1000).ToString("0.0") + " kW";
+        }
+
+        private void ConnectToModuleGenerator()
+        {
+            stockModuleGenerator = part.FindModuleImplementing<ModuleGenerator>();
+
+            if (stockModuleGenerator == null)
+                return;
+
+            outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
+
+            if (outputModuleResource != null)
+            {
+                moduleGeneratorShutdownBaseEvent = stockModuleGenerator.Events["Shutdown"];
+                if (moduleGeneratorShutdownBaseEvent != null)
+                {
+                    moduleGeneratorShutdownBaseEvent.guiActive = false;
+                    moduleGeneratorShutdownBaseEvent.guiActiveEditor = false;
+                }
+
+                moduleGeneratorActivateBaseEvent = stockModuleGenerator.Events["Activate"];
+                if (moduleGeneratorActivateBaseEvent != null)
+                {
+                    moduleGeneratorActivateBaseEvent.guiActive = false;
+                    moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
+                }
+
+                moduleGeneratorEfficienctBaseField = stockModuleGenerator.Fields["efficiency"];
+                if (moduleGeneratorEfficienctBaseField != null)
+                {
+                    moduleGeneratorEfficienctBaseField.guiActive = false;
+                    moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
+                }
+
+                initialGeneratorPowerEC = outputModuleResource.rate;
+
+                mockInputResource = new ModuleResource();
+                mockInputResource.name = outputModuleResource.name;
+                mockInputResource.id = outputModuleResource.name.GetHashCode();
+
+                stockModuleGenerator.resHandler.inputResources.Add(mockInputResource);
+            }
         }
     }
 }

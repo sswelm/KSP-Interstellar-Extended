@@ -12,7 +12,6 @@ using System.Text;
 using TweakScale;
 using UnityEngine;
 
-
 namespace FNPlugin.Reactors
 {
     [KSPModule("#LOC_KSPIE_Reactor_moduleName")]
@@ -579,8 +578,9 @@ namespace FNPlugin.Reactors
         [KSPField]public bool isConnectedToChargedGenerator;
 
         // shared variabels
-        protected bool decay_ongoing = false;
-        protected bool initialized = false;
+        protected bool decay_ongoing;
+        protected bool initialized;
+        protected bool messagedRanOutOfFuel;
 
         protected double currentGeeForce;
         protected double animationStarted = 0;
@@ -1792,12 +1792,7 @@ namespace FNPlugin.Reactors
                 if (CheatOptions.InfinitePropellant || stored_fuel_ratio > 0.99)
                     statusStr = Localizer.Format("#LOC_KSPIE_Reactor_status1", powerPcnt.ToString("0.0000"));//"Active (" +  + "%)"
                 else if (current_fuel_variant != null)
-                {
-                    if (stored_fuel_ratio == 0)
-                        statusStr = current_fuel_variant.ReactorFuels.OrderBy(fuel => GetFuelAvailability(fuel)).First().ResourceName + " " + Localizer.Format("#LOC_KSPIE_Reactor_status2");//"Deprived"
-                    else
-                        statusStr = current_fuel_variant.ReactorFuels.OrderBy(fuel => GetFuelAvailability(fuel)).First().ResourceName + (stored_fuel_ratio * 100) + "%";
-                }
+                    statusStr = current_fuel_variant.ReactorFuels.OrderBy(fuel => GetFuelAvailability(fuel)).First().ResourceName + " " + Localizer.Format("#LOC_KSPIE_Reactor_status2");//"Deprived"
             }
             else
             {
@@ -1847,15 +1842,6 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled && maximumPower > 0)
             {
-                //if (ReactorIsOverheating())
-                //{
-                //	if (FlightGlobals.ActiveVessel == vessel)
-                //		ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_Reactor_reactorIsOverheating"), 5.0f, ScreenMessageStyle.UPPER_CENTER);
-
-                //	IsEnabled = false;
-                //	return;
-                //}
-
                 max_power_to_supply = Math.Max(maximumPower * timeWarpFixedDeltaTime, 0);
 
                 UpdateGeeforceModfier();
@@ -1879,19 +1865,25 @@ namespace FNPlugin.Reactors
                 
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
 
-                var true_variant = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult, false).FirstOrDefault();
-                fuel_ratio = CheatOptions.InfinitePropellant ? 1 : true_variant != null ? Math.Min(true_variant.FuelRatio, 1) : 0;
-
                 LookForAlternativeFuelTypes();
 
                 UpdateCapacities();
 
+                var true_variant = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult, false).FirstOrDefault();
+                fuel_ratio = CheatOptions.InfinitePropellant ? 1 : true_variant != null ? Math.Min(true_variant.FuelRatio, 1) : 0;
+
                 if (fuel_ratio < 0.99999)
                 {
-                    var message = Localizer.Format("#LOC_KSPIE_Reactor_ranOutOfFuelFor") + " " + CurrentFuelMode.ModeGUIName;
-                    Debug.Log("[KSPI]: " + message);
-                    ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+                    if (!messagedRanOutOfFuel)
+                    {
+                        messagedRanOutOfFuel = true;
+                        var message = Localizer.Format("#LOC_KSPIE_Reactor_ranOutOfFuelFor") + " " + CurrentFuelMode.ModeGUIName;
+                        Debug.Log("[KSPI]: " + message);
+                        ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+                    }
                 }
+                else
+                    messagedRanOutOfFuel = false;
              
                 thermalThrottleRatio = connectedEngines.Any(m => m.RequiresThermalHeat) ? Math.Min(1, connectedEngines.Where(m => m.RequiresThermalHeat).Sum(e => e.CurrentThrottle)) : 0;
                 plasmaThrottleRatio = connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.CurrentThrottle)) : 0;
@@ -1978,9 +1970,7 @@ namespace FNPlugin.Reactors
 
                     for (var i = 0; i < current_fuel_variant.ReactorFuels.Count; i++)
                     {
-                        var consumedMass = ConsumeReactorFuel(current_fuel_variant.ReactorFuels[i], totalPowerReceivedFixed / geeForceModifier);
-
-                        consumedFuelTotalFixed += consumedMass;
+                        consumedFuelTotalFixed += ConsumeReactorFuel(current_fuel_variant.ReactorFuels[i], totalPowerReceivedFixed / geeForceModifier);
                     }
 
                     var consumedFuelTotalPerSecond = consumedFuelTotalFixed / timeWarpFixedDeltaTime;
@@ -2089,7 +2079,7 @@ namespace FNPlugin.Reactors
 
             if (stored_fuel_ratio < 0.99)
             {
-                Debug.Log("[KSPI]: " + "restored fuelmode to " + originalFuelMode.ModeGUIName);
+                //Debug.Log("[KSPI]: " + "restored fuelmode to " + originalFuelMode.ModeGUIName);
                 CurrentFuelMode = originalFuelMode;
                 stored_fuel_ratio = originalFuelRatio;
             }
@@ -2811,7 +2801,7 @@ namespace FNPlugin.Reactors
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_Radius"), radius + "m", bold_style, text_style);//"Radius"
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CoreTemperature"), coretempStr, bold_style, text_style);//"Core Temperature"
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_StatusLabel"), statusStr, bold_style, text_style);//"Status"
-                PrintToGUILayout(Localizer.Format("Fuel Mode"), fuelModeStr, bold_style, text_style);//"Fuel Mode"
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelMode"), fuelModeStr, bold_style, text_style);//"Fuel Mode"
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelEfficiencyLabel"), (FuelEfficiency * 100).ToString(), bold_style, text_style);//"Fuel Efficiency"
 
                 WindowReactorSpecificOverride();

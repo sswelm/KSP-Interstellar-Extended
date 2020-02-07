@@ -12,6 +12,8 @@ namespace FNPlugin
     {
         [KSPField(guiActive = true, guiActiveEditor = true,  guiName = "#LOC_KSPIE_EngineECU2_MaxThrust", guiUnits = " kN", guiFormat = "F3")]//Max Thrust
         public double maximumThrust;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaximumFuelFlow", guiFormat = "F3")]//Maximum FuelFlow
+        public double maxFuelFlow;
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_FuelConfig")]//Fuel Config
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]
@@ -44,22 +46,9 @@ namespace FNPlugin
         public double thrustPower;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_EngineECU2_FusionRatio", guiFormat = "F3")]//Fusion Ratio
         public double fusionRatio;
-        
-        // Settings
-        [KSPField]
-        public float minThrottleRatioMk1 = 0.2f;
-        [KSPField]
-        public float minThrottleRatioMk2 = 0.1f;
-        [KSPField]
-        public float minThrottleRatioMk3 = 0.05f;
-        [KSPField]
-        public float minThrottleRatioMk4 = 0.05f;
-        [KSPField]
-        public float minThrottleRatioMk5 = 0.05f;
 
         [KSPField]
         public string intakeResource = "IntakeAtm";
-
         [KSPField]
         public double thrustmultiplier = 1;
         [KSPField]
@@ -91,9 +80,6 @@ namespace FNPlugin
         public float upgradeCost = 100;
         [KSPField]
         public double rateMultplier = 1;
-
-        [KSPField]
-        public float throttle;
 
         public ModuleEngines curEngineT;
         public ModuleEnginesWarp curEngineWarp;
@@ -602,11 +588,19 @@ namespace FNPlugin
         {
             get
             {
-                _usefulConfigurations = GetUsableConfigurations(FuelConfigurations);
+                var allFuelConfigurations = FuelConfigurations;
+
+                _usefulConfigurations = GetUsableConfigurations(allFuelConfigurations);
                 if (_usefulConfigurations == null)
                 {
-                    Debug.Log("[KSPI]: UsefulConfigurations Broke!");
-                    return FuelConfigurations;
+                    Debug.LogError("[KSPI]: UsefulConfigurations Broke!");
+                    return allFuelConfigurations;
+                }
+
+                if (_usefulConfigurations.Count == 0)
+                {
+                    Debug.LogWarning("[KSPI]: No UsefulConfigurations Found, Returning all available instead");
+                    _usefulConfigurations = allFuelConfigurations;
                 }
 
                 return _usefulConfigurations;

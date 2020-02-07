@@ -65,11 +65,27 @@ namespace FNPlugin
         public double fuelflow_throtle_modifier = 1;
 
         [KSPField]
+        protected double fuelflowThrottleMaxValue = 100;
+        [KSPField]
+        public double effectiveFuelflowThrottle;
+        [KSPField]
+        public double ispFlowMultiplier;
+        [KSPField]
+        public double exhaustModifier;
+        [KSPField]
+        public double maxEngineFuelFlow;
+        [KSPField]
+        public double fuelEffectRatio;
+        [KSPField]
+        public float powerEffectRatio;
+        [KSPField]
+        public float runningEffectRatio;
+
+        [KSPField]
         public double startupHeatReductionRatio = 0;
         [KSPField]
         public double missingPrecoolerProportionExponent = 0.5;
-        [KSPField]
-        public double exhaustModifier;        
+       
         [KSPField]
         public double minimumBaseIsp = 0;
         [KSPField]
@@ -131,6 +147,10 @@ namespace FNPlugin
         [KSPField]
         public float maxThermalNozzleIsp = 0;
         [KSPField]
+        public float maxJetModeBaseIsp = 0;
+        [KSPField]
+        public float maxLfoModeBaseIsp = 0;
+        [KSPField]
         public double skinInternalConductionMult = 1;
         [KSPField]
         public double skinThermalMassModifier = 1;
@@ -167,7 +187,7 @@ namespace FNPlugin
         [KSPField]
         public string EffectNameLithium = String.Empty;
         [KSPField]
-        public string EffectNameSpool= String.Empty;
+        public string EffectNameSpool = String.Empty;
         [KSPField]
         public string runningEffectNameLFO = String.Empty;
         [KSPField]
@@ -276,7 +296,7 @@ namespace FNPlugin
         public double powerToMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_SpaceHeatProduction")]//Space Heat Production
         public double spaceHeatProduction = 100;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_EngineHeatProduction", guiFormat = "F5")]//Engine Heat Production
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_EngineHeatProduction", guiFormat = "F5")]//Engine Heat Production
         public double engineHeatProduction;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxThrustOnEngine", guiUnits = " kN")]//Max Thrust On Engine
         public float maxThrustOnEngine;
@@ -416,16 +436,12 @@ namespace FNPlugin
         [KSPField]
         public float requestedThrottle;
         [KSPField]
-        public float powerEffectRatio;
-        [KSPField]
-        public float runningEffectRatio;
-        [KSPField]
         public double received_megajoules_ratio;
         [KSPField]
         public double pre_cooler_area;
         [KSPField]
         public double intakes_open_area;
-        [KSPField]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ModuleSabreHeating_MissingPrecoolerRatio")]
         public double missingPrecoolerRatio;
         [KSPField]
         public float effectiveJetengineAccelerationSpeed;
@@ -440,6 +456,18 @@ namespace FNPlugin
         [KSPField]
         public double reactorHeatModifier;
 
+        [KSPField]
+        public bool hasJetUpgradeTech1;
+        [KSPField]
+        public bool hasJetUpgradeTech2;
+        [KSPField]
+        public bool hasJetUpgradeTech3;
+        [KSPField]
+        public bool hasJetUpgradeTech4;
+        [KSPField]
+        public bool hasJetUpgradeTech5;
+
+
         // Constants
         protected const double _hydroloxDecompositionEnergy = 16.2137;
 
@@ -451,8 +479,9 @@ namespace FNPlugin
         
         protected double _heatDecompositionFraction;
 
-        [KSPField (guiActive = true, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFeulFlow")]//Max FeulFlow
-        protected double fuelflowThrottleMaxValue = 100;
+        //[KSPField (guiActive = true, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFeulFlow")]//Max FeulFlow
+
+
 
         protected float _fuelCoolingFactor = 1;
         protected float _fuelToxicity;
@@ -727,9 +756,13 @@ namespace FNPlugin
 
             _flameoutText = Localizer.Format("#autoLOC_219016");
 
-            // use default when maxThermalNozzleIsp is not configured
+            // use default when not configured
             if (maxThermalNozzleIsp == 0)
                 maxThermalNozzleIsp = PluginHelper.MaxThermalNozzleIsp;
+            if (maxJetModeBaseIsp == 0)
+                maxJetModeBaseIsp = maxThermalNozzleIsp;
+            if (maxLfoModeBaseIsp == 0)
+                maxLfoModeBaseIsp = maxThermalNozzleIsp;
 
             ScaleParameters();            
 
@@ -860,11 +893,11 @@ namespace FNPlugin
                     fuelConfignodes = getPropellants(isJet);
                 }
 
-                bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
-                bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
-                bool hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
-                bool hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
-                bool hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
+                hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
+                hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
+                hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
+                hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
+                hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
 
                 _jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
                 _jetTechBonusCurveChange = _jetTechBonus / 9.92992f;
@@ -1083,7 +1116,7 @@ namespace FNPlugin
                     }
                 }
 
-                Fields["airflowHeatModifier"].guiActive = _currentpropellant_is_jet;
+                //Fields["airflowHeatModifier"].guiActive = _currentpropellant_is_jet;
             }
             catch (Exception e)
             {
@@ -1767,7 +1800,7 @@ namespace FNPlugin
                 // flameout when reactor cannot produce power
                 myAttachedEngine.flameoutBar = AttachedReactor.CanProducePower ? 0 : float.MaxValue;
 
-                if (myAttachedEngine.getIgnitionState && currentThrottle > 0)
+                if (myAttachedEngine.getIgnitionState && myAttachedEngine.currentThrottle > 0)
                     GenerateThrustFromReactorHeat();
                 else
                 {
@@ -1865,9 +1898,9 @@ namespace FNPlugin
                         runningEffectRatio = 0;
 
                         if (!String.IsNullOrEmpty(_powerEffectNameParticleFX))
-                            part.Effect(_powerEffectNameParticleFX, powerEffectRatio, -1);
+                            part.Effect(_powerEffectNameParticleFX, powerEffectRatio);
                         if (!String.IsNullOrEmpty(_runningEffectNameParticleFX))
-                            part.Effect(_runningEffectNameParticleFX, runningEffectRatio, -1);
+                            part.Effect(_runningEffectNameParticleFX, runningEffectRatio);
                     }
 
                     UpdateThrottleAnimation(0);
@@ -1938,7 +1971,7 @@ namespace FNPlugin
                             ? 1 - _currentAnimatioRatio / pulseDuration 
                             : 0;
 
-                        part.Effect(_powerEffectNameParticleFX, powerEffectRatio, -1);
+                        part.Effect(_powerEffectNameParticleFX, powerEffectRatio);
                     }
 
                     if (!String.IsNullOrEmpty(_runningEffectNameParticleFX))
@@ -1947,7 +1980,7 @@ namespace FNPlugin
                             ? 1 - _currentAnimatioRatio / pulseDuration 
                             : 0;
 
-                        part.Effect(_runningEffectNameParticleFX, runningEffectRatio, -1);
+                        part.Effect(_runningEffectNameParticleFX, runningEffectRatio);
                     }
                     
                 }
@@ -2141,8 +2174,6 @@ namespace FNPlugin
                     max_fuel_flow_rate = 1e-10;
                 }
 
-                //fuelflow_throtle_modifier = _currentpropellant_is_jet && calculatedMaxThrust > 0 && final_max_thrust_in_space > 0 ? calculatedMaxThrust / final_max_thrust_in_space : 1;
-
                 // set engines maximum fuel flow
                 if (IsPositiveValidNumber(max_fuel_flow_rate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRato))
                     maxFuelFlowOnEngine = (float)Math.Max(max_fuel_flow_rate * adjustedFuelFlowMult * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
@@ -2186,7 +2217,7 @@ namespace FNPlugin
                     reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
 
                     spaceHeatProduction = heatProductionMultiplier * reactorHeatModifier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
-                    engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 999999);
+                    engineHeatProduction = spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult);
 
                     myAttachedEngine.heatProduction = (float)(engineHeatProduction * Math.Max(0, startupHeatReductionRatio));
                     startupHeatReductionRatio = Math.Min(1, startupHeatReductionRatio + currentThrottle);
@@ -2194,18 +2225,19 @@ namespace FNPlugin
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX)
                 {
-                    var maxEngineFuelFlow = myAttachedEngine.maxThrust > minimumThrust ? myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY : 0;
+                    maxEngineFuelFlow = myAttachedEngine.maxThrust > minimumThrust ? myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY : 0;
+                    fuelEffectRatio = currentMassFlow / maxEngineFuelFlow;
 
                     if (!String.IsNullOrEmpty(_powerEffectNameParticleFX))
                     {
-                        powerEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.currentThrottle, currentMassFlow / maxEngineFuelFlow)) : 0;
-                        part.Effect(_powerEffectNameParticleFX, powerEffectRatio, -1);
+                        powerEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.currentThrottle, fuelEffectRatio)) : 0;
+                        part.Effect(_powerEffectNameParticleFX, powerEffectRatio);
                     }
 
                     if (!String.IsNullOrEmpty(_runningEffectNameParticleFX))
                     {
-                        runningEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.requestedThrottle, currentMassFlow / maxEngineFuelFlow)) : 0;
-                        part.Effect(_runningEffectNameParticleFX, powerEffectRatio, -1);
+                        runningEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.requestedThrottle, fuelEffectRatio)) : 0;
+                        part.Effect(_runningEffectNameParticleFX, powerEffectRatio);
                     }
 
                     UpdateThrottleAnimation(Math.Max(powerEffectRatio, runningEffectRatio));
@@ -2322,7 +2354,11 @@ namespace FNPlugin
             if (IsPositiveValidNumber(AttachedReactor.FuelRato))
                 baseMaxIsp *= AttachedReactor.FuelRato;
 
-            if (baseMaxIsp > maxThermalNozzleIsp && !isPlasmaNozzle)
+            if (baseMaxIsp > maxJetModeBaseIsp && _currentpropellant_is_jet)
+                baseMaxIsp = maxJetModeBaseIsp;
+            else if (baseMaxIsp > maxLfoModeBaseIsp && _propellantIsLFO)
+                baseMaxIsp = maxLfoModeBaseIsp;
+            else if (baseMaxIsp > maxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = maxThermalNozzleIsp;
 
             fuelflowThrottleMaxValue = minimumBaseIsp > 0 ? 100 * Math.Max(1, baseMaxIsp / Math.Min(baseMaxIsp, minimumBaseIsp)) : 100;
@@ -2350,20 +2386,20 @@ namespace FNPlugin
                 _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * maxThermalNozzleIsp;
 
                 if (UsePlasmaAfterBurner)  // when  mixing charged particles from reactor with cold propellant
-                    _maxISP = _maxISP + Math.Pow((double)(decimal)ispThrottle / 100, 2) * plasmaAfterburnerRange * baseMaxIsp;
+                    _maxISP = _maxISP + Math.Pow(ispThrottle / 100d, 2) * plasmaAfterburnerRange * baseMaxIsp;
             }
 
-            var effectiveFuelflowThrottle = Math.Min(fuelflowThrottleMaxValue, (double)(decimal)fuelflowThrottle);
+            effectiveFuelflowThrottle = Math.Min(fuelflowThrottleMaxValue, (double)(decimal)fuelflowThrottle);
 
             fuelflowMultplier = Math.Min(Math.Max(100, fuelflowThrottleMaxValue * _ispPropellantMultiplier), effectiveFuelflowThrottle) / 100;
 
-            var fueFlowDivider = fuelflowMultplier > 0 ? 1 / fuelflowMultplier : 0;
+            var fuelFlowDivider = fuelflowMultplier > 0 ? 1 / fuelflowMultplier : 0;
 
-            var ispFlowMultiplier = _ispPropellantMultiplier * fueFlowDivider;
+            ispFlowMultiplier = _ispPropellantMultiplier * fuelFlowDivider;
 
             _maxISP *= ispFlowMultiplier;
 
-            exhaustModifier = Math.Min(fuelflowThrottleMaxValue, fueFlowDivider * 100) / fuelflowThrottleMaxValue;
+            exhaustModifier = Math.Pow(  Math.Min(1, (effectiveFuelflowThrottle / _ispPropellantMultiplier) / fuelflowThrottleMaxValue), 0.5);
         }
 
         public override string GetInfo()

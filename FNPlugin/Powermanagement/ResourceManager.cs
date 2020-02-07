@@ -333,6 +333,7 @@ namespace FNPlugin
             PowerGenerated powerGenerated;
             if (!power_produced.TryGetValue(pm, out powerGenerated))
             {
+                //Debug.Log("KSPI: ResourceManager added " + power + " " + resource_name + " " + " from " + pm.Id);
                 powerGenerated = new PowerGenerated();
                 power_produced.Add(pm, powerGenerated);
             }
@@ -475,26 +476,19 @@ namespace FNPlugin
             currentPowerSupply += managed_supply_per_second;
             stablePowerSupply += maximum_power;
 
-            var addedPower = new PowerGenerated
-            {
-                currentSupply = managed_supply_per_second,
-                currentProvided = provided_demand_power_per_second,
-                maximumSupply = maximum_power,
-                minimumSupply = minimum_power_per_second
-            };
-
             PowerGenerated powerGenerated;
             if (!power_produced.TryGetValue(pm, out powerGenerated))
-                power_produced.Add(pm, addedPower);
-            else
             {
-                powerGenerated.currentSupply += addedPower.currentSupply;
-                powerGenerated.currentProvided += addedPower.currentProvided;
-                powerGenerated.maximumSupply += addedPower.maximumSupply;
-                powerGenerated.minimumSupply += addedPower.minimumSupply;
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
             }
 
-            return addedPower;
+            powerGenerated.currentSupply += managed_supply_per_second;
+            powerGenerated.currentProvided += Math.Min(provided_demand_power_per_second, GetCurrentUnfilledResourceDemand());
+            powerGenerated.maximumSupply += maximum_power;
+            powerGenerated.minimumSupply += minimum_power_per_second;
+
+            return powerGenerated;
         }
 
         public double managedPowerSupplyPerSecondWithMinimumRatio(IResourceSupplier pm, double maximum_power, double ratio_min)
@@ -1271,7 +1265,7 @@ namespace FNPlugin
             GUILayout.Label(getPowerFormatString((double)stored_supply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES)
+            if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand)
             {
                 var stored_supply_percentage = stored_supply != 0 ? stored_total_power_supplied / stored_supply : 0;
 
@@ -1289,19 +1283,23 @@ namespace FNPlugin
             double new_power_supply = getStoredSurplus();
             double net_utilisation_supply = getDemandStableSupply();
 
-            GUIStyle net_poer_style = new_power_supply < -0.001 ? red_label : green_label;
-            GUIStyle utilisation_style = net_utilisation_supply > 1.001 ? red_label : green_label;
-
             GUILayout.BeginHorizontal();
             var new_power_label = (resource_name == ResourceManager.FNRESOURCE_WASTEHEAT) ? Localizer.Format("#LOC_KSPIE_ResourceManager_NetChange") : Localizer.Format("#LOC_KSPIE_ResourceManager_NetPower");//"Net Change""Net Power"
             GUILayout.Label(new_power_label, left_bold_label, GUILayout.ExpandWidth(true));
+
+            GUIStyle net_poer_style = new_power_supply < -0.001 ? red_label : green_label;
+
             GUILayout.Label(getPowerFormatString(new_power_supply), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            if (!double.IsNaN(net_utilisation_supply) && !double.IsInfinity(net_utilisation_supply))
+            if (!net_utilisation_supply.IsInfinityOrNaN() && 
+                (resource_name != ResourceManager.FNRESOURCE_MEGAJOULES || (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand)))
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Utilisation"), left_bold_label, GUILayout.ExpandWidth(true));//"Utilisation"
+
+                GUIStyle utilisation_style = net_utilisation_supply > 1.001 ? red_label : green_label;
+
                 GUILayout.Label((net_utilisation_supply).ToString("P2"), utilisation_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
                 GUILayout.EndHorizontal();
             }
