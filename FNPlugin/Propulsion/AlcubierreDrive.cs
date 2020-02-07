@@ -85,7 +85,7 @@ namespace FNPlugin
         [KSPField] 
         public double gravityMaintenancePowerMultiplier = 4;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_WarpWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_WarpWindow_Hidden", enabledText = "#LOC_KSPIE_AlcubierreDrive_WarpWindow_Shown", affectSymCounterparts = UI_Scene.All)]//Warp Window--Hidden--Shown
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_WarpWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_WarpWindow_Hidden", enabledText = "#LOC_KSPIE_AlcubierreDrive_WarpWindow_Shown", affectSymCounterparts = UI_Scene.None)]//Warp Window--Hidden--Shown
         public bool showWindow = false;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_AutoRendevousCircularize"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_False", enabledText = "#LOC_KSPIE_AlcubierreDrive_True", affectSymCounterparts = UI_Scene.All)]//Auto Rendevous/Circularize-False-True
         public bool matchExitToDestinationSpeed = true;
@@ -270,6 +270,8 @@ namespace FNPlugin
             IsCharging = true;
             holdAltitude = false;
             antigravityPercentage = 100;
+
+            UpdateAllDriveState();
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_stopChargingDrive", active = false)]
@@ -279,6 +281,8 @@ namespace FNPlugin
             IsCharging = false;
             holdAltitude = false;
             antigravityPercentage = 0;
+
+            UpdateAllDriveState();
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_activateWarpDrive", active = true)]
@@ -439,6 +443,8 @@ namespace FNPlugin
             IsEnabled = true;
             showTrail = true;
 
+            UpdateAllDriveState();
+
             existing_warp_speed = selectedWarpSpeed;
         }
 
@@ -455,6 +461,9 @@ namespace FNPlugin
 
             // mark warp to be disabled
             IsEnabled = false;
+
+            UpdateAllDriveState();
+
             // Disable sound
             warp_sound.Stop();
 
@@ -1055,6 +1064,11 @@ namespace FNPlugin
 
             if (IsSlave) return;
 
+            UpdateAllDriveState();
+        }
+
+        private void UpdateAllDriveState()
+        {
             foreach (var drive in alcubierreDrives)
             {
                 drive.UpdateState(IsEnabled, IsCharging, IsEnabled, selected_factor);
