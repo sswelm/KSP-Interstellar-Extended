@@ -46,6 +46,9 @@ namespace FNPlugin.Powermanagement
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
 
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Surplus", guiUnits = " MW", guiFormat = "F4")]
+        public double powerSurplus;
+
         // privates
         List<string> inputResourceNames;
         List<double> inputResourceRate;
@@ -54,7 +57,7 @@ namespace FNPlugin.Powermanagement
         double wasteheatRatio;
         double overheatingModifier;
         double fuelRatio;
-        double powerSurplus;
+
         double currentUnfilledResourceDemand;
         double currentRequestedConsumptionRate;
         double currentFixedConsumption;

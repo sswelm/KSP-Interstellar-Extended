@@ -333,6 +333,7 @@ namespace FNPlugin
             PowerGenerated powerGenerated;
             if (!power_produced.TryGetValue(pm, out powerGenerated))
             {
+                //Debug.Log("KSPI: ResourceManager added " + power + " " + resource_name + " " + " from " + pm.Id);
                 powerGenerated = new PowerGenerated();
                 power_produced.Add(pm, powerGenerated);
             }
@@ -475,26 +476,19 @@ namespace FNPlugin
             currentPowerSupply += managed_supply_per_second;
             stablePowerSupply += maximum_power;
 
-            var addedPower = new PowerGenerated
-            {
-                currentSupply = managed_supply_per_second,
-                currentProvided = provided_demand_power_per_second,
-                maximumSupply = maximum_power,
-                minimumSupply = minimum_power_per_second
-            };
-
             PowerGenerated powerGenerated;
             if (!power_produced.TryGetValue(pm, out powerGenerated))
-                power_produced.Add(pm, addedPower);
-            else
             {
-                powerGenerated.currentSupply += addedPower.currentSupply;
-                powerGenerated.currentProvided += addedPower.currentProvided;
-                powerGenerated.maximumSupply += addedPower.maximumSupply;
-                powerGenerated.minimumSupply += addedPower.minimumSupply;
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
             }
 
-            return addedPower;
+            powerGenerated.currentSupply += managed_supply_per_second;
+            powerGenerated.currentProvided += Math.Min(provided_demand_power_per_second, GetCurrentUnfilledResourceDemand());
+            powerGenerated.maximumSupply += maximum_power;
+            powerGenerated.minimumSupply += minimum_power_per_second;
+
+            return powerGenerated;
         }
 
         public double managedPowerSupplyPerSecondWithMinimumRatio(IResourceSupplier pm, double maximum_power, double ratio_min)

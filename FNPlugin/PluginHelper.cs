@@ -657,10 +657,9 @@ namespace FNPlugin
             }
 
             if (HighLogic.CurrentGame != null)
-            {
                 return !TechnologyIsInUse || HasTech(id);
-            }
-            return false;
+            else
+                return true;
         }
 
         public static float getKerbalRadiationDose(int kerbalidx)
@@ -893,6 +892,8 @@ namespace FNPlugin
 
         public void Update()
         {
+            //Debug.Log("[KSPI]: PluginHelper Update Started");
+
             if (ApplicationLauncher.Ready && !buttonAdded)
             {
                 appLauncherButton = InitializeApplicationButton();
@@ -1126,7 +1127,7 @@ namespace FNPlugin
                         PluginHelper.JetUpgradeTech1 = plugin_settings.GetValue("JetUpgradeTech1");
                         Debug.Log("[KSPI]: JetUpgradeTech1 " + PluginHelper.JetUpgradeTech1);
                     }
-                    if (plugin_settings.HasValue("JetUpgradeTech1"))
+                    if (plugin_settings.HasValue("JetUpgradeTech2"))
                     {
                         PluginHelper.JetUpgradeTech2 = plugin_settings.GetValue("JetUpgradeTech2");
                         Debug.Log("[KSPI]: JetUpgradeTech2 " + PluginHelper.JetUpgradeTech2);

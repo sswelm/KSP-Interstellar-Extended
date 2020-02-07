@@ -215,7 +215,7 @@ namespace FNPlugin
         public double electrical_power_currently_needed;
 
         // Debug
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public double maximumElectricPower;
         [KSPField]
         public double stableMaximumReactorPower;
@@ -930,7 +930,7 @@ namespace FNPlugin
                 maximumElectricPower = (_totalEff >= 0)
                     ? !chargedParticleMode
                         ? PowerRatio * _totalEff * maxThermalPower
-                        : PowerRatio * _totalEff * maxChargedPowerForThermalGenerator 
+                        : PowerRatio * _totalEff * maxChargedPowerForChargedGenerator 
                     : 0;
 
                 MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower, "0.0", "0.000");

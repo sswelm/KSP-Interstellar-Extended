@@ -14,6 +14,8 @@ namespace FNPlugin
         protected List<Part> similarParts;
         protected String[] resources_to_supply;
 
+        public Guid Id { get; private set;}
+
         protected int partNrInList;
         protected double timeWarpFixedDeltaTime;
 
@@ -706,6 +708,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            Id = Guid.NewGuid();
+
             if (state == StartState.Editor || resources_to_supply == null) return;
 
             part.OnJustAboutToBeDestroyed -= OnJustAboutToBeDestroyed;
