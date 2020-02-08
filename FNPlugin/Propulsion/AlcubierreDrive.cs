@@ -29,9 +29,23 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public string serialisedwarpvector;
 
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Main Control"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_Enabled", enabledText = "#LOC_KSPIE_AlcubierreDrive_Disabled", affectSymCounterparts = UI_Scene.None)]
+        public bool IsSlave;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Trail Effects"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_Enabled", enabledText = "#LOC_KSPIE_AlcubierreDrive_Disabled", affectSymCounterparts = UI_Scene.All)]
+        public bool hideTrail = false;
+
         // non persistant
+        public const string warpEffect1ShaderPath = "Unlit/Transparent";
+        public const string warpEffect2ShaderPath = "Unlit/Transparent";
+        public const string warpWhiteFlashPath = "WarpPlugin/ParticleFX/warp10";
+        public const string warpRedFlashPath = "WarpPlugin/ParticleFX/warpr10";
+        public const string warpTexturePath = "WarpPlugin/ParticleFX/warp";
+        public const string warprTexturePath = "WarpPlugin/ParticleFX/warpr";
+
+        public string warpSoundPath = "WarpPlugin/Sounds/warp_sound";
+
         [KSPField]
-        public bool showTrail;
+        public int numberOfThrotleSettings;
         [KSPField]
         public double warpPowerReqMult = 0.5;
         [KSPField]
@@ -42,8 +56,6 @@ namespace FNPlugin
         public double GThreshold = 2;
         [KSPField]
         public int InstanceID;
-        [KSPField]
-        public bool IsSlave;
         [KSPField]
         public string AnimationName = "";
         [KSPField]
@@ -195,12 +207,13 @@ namespace FNPlugin
         private Texture[] warp_textures2;
         private AudioSource warp_sound;
 
-        double universalTime;
         double currentExoticMatter;
         double maxExoticMatter;
         double exoticMatterRatio;
         double tex_count;
+        double moduleMass;
 
+        private bool activeTrail;
         private bool vesselWasInOuterspace;
         private bool hasrequiredupgrade;
         private bool selectedTargetVesselIsClosest;
@@ -237,11 +250,9 @@ namespace FNPlugin
         private Collider warp_effect1_collider;
         private Collider warp_effect2_collider;
 
-        private Orbit predictedExitOrbit;
         private PartResourceDefinition exoticResourceDefinition;
         private CelestialBody warpInitialMainBody;
         private CelestialBody closestCelestrialBody;
-        private Orbit departureOrbit;
         private Vector3d departureVelocity;
         private ModuleReactionWheel moduleReactionWheel;
         private ResourceBuffers resourceBuffers;
@@ -249,8 +260,16 @@ namespace FNPlugin
         private Texture2D warpWhiteFlash;
         private Texture2D warpRedFlash;
 
-        BaseField antigravityField;
+        private BaseField antigravityField;
 
+        // Actions
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_WarpWindow")]
+        public void ToggleNextPropellantAction(KSPActionParam param)
+        {
+            showWindow = !showWindow;
+        }
+
+        
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_startChargingDrive", active = true)]
         public void StartCharging()
         {
@@ -340,7 +359,7 @@ namespace FNPlugin
         {
             var maxFactor = 0;
 
-            var numberOfThrotleSettings = _engineThrotle.Count();
+            numberOfThrotleSettings = _engineThrotle.Count();
 
             for (var i = 0; i < numberOfThrotleSettings; i++)
             {
@@ -357,6 +376,8 @@ namespace FNPlugin
 
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
+
+            numberOfThrotleSettings = _engineThrotle.Count();
 
             var selectedWarpSpeed = _engineThrotle[selected_factor];
 
@@ -420,11 +441,9 @@ namespace FNPlugin
             warp_sound.loop = true;
 
             // prevent g-force effects for current and next frame
-            //part.vessel.IgnoreGForces(2);
             PluginHelper.IgnoreGForces(part, 2);
 
             warpInitialMainBody = vessel.mainBody;
-            departureOrbit = new Orbit(vessel.orbit);
             departureVelocity = vessel.orbit.GetFrameVel();
 
             active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
@@ -441,7 +460,7 @@ namespace FNPlugin
                 vessel.GoOffRails();
             
             IsEnabled = true;
-            showTrail = true;
+            activeTrail = true;
 
             UpdateAllDriveState();
 
@@ -459,10 +478,15 @@ namespace FNPlugin
                 return;
             }
 
+
             // mark warp to be disabled
             IsEnabled = false;
 
+            // update visuals all warp drives
             UpdateAllDriveState();
+
+            // update list of warp drives
+            alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
 
             // Disable sound
             warp_sound.Stop();
@@ -774,9 +798,9 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             if (state != StartState.Editor)
-            {
                 vesselTotalMass = vessel.GetTotalMass();
-            }
+
+            numberOfThrotleSettings = _engineThrotle.Count();
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 260, 100);
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
@@ -810,21 +834,17 @@ namespace FNPlugin
                 Events["ToggleWarpSpeedUp"].active = !IsSlave;
                 Events["ToggleWarpSpeedDown"].active = !IsSlave;
                 Events["ReduceWarpPower"].active = !IsSlave;
-
                 Fields["showWindow"].guiActive = !IsSlave;
                 Fields["matchExitToDestinationSpeed"].guiActive = !IsSlave;
                 Fields["maximizeWarpSpeed"].guiActive = !IsSlave;
                 Fields["holdAltitude"].guiActive = !IsSlave;
                 Fields["spaceSafetyDistance"].guiActive = !IsSlave;
-
-                //Fields["warpEngineThrottle"].guiActive = !IsSlave;
                 Fields["maximumAllowedWarpThrotle"].guiActive = !IsSlave;
                 Fields["warpToMassRatio"].guiActive = !IsSlave;
                 Fields["minPowerRequirementForLightSpeed"].guiActive = !IsSlave;
                 Fields["currentPowerRequirementForWarp"].guiActive = !IsSlave;
                 Fields["totalWarpPower"].guiActive = !IsSlave;
                 Fields["powerRequirementForMaximumAllowedLightSpeed"].guiActive = !IsSlave;
-
                 Fields["antigravityAcceleration"].guiActive = !IsSlave;
 
                 BaseField holdAltitudeField = Fields["holdAltitude"];
@@ -861,18 +881,24 @@ namespace FNPlugin
 
                 alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
 
+                // if all drives are slaves, convert the current into a master
+                if (alcubierreDrives.All(m => m.IsSlave))
+                {
+                    Debug.Log("[KSPI]: All drives were in slave mode, converting drive " + InstanceID + " into master");
+                    IsSlave = false;
+                }
+
+                // if current is not a slave, turn all other drives into slaves
                 if (!IsSlave)
                 {
-                    Debug.Log("[KSPI]: AlcubierreDrive Create Slaves");
-                    
                     foreach (var drive in alcubierreDrives)
                     {
                         var driveId = drive.GetInstanceID();
 
                         if (driveId == InstanceID) continue;
 
+                        Debug.Log("[KSPI]: Created AlcubierreDrive Slave for drive " + driveId);
                         drive.IsSlave = true;
-                        Debug.Log("[KSPI]: AlcubierreDrive " + driveId + " != " + InstanceID);
                     }
                 }
 
@@ -909,8 +935,8 @@ namespace FNPlugin
                 //warp_effect.layer = LayerMask.NameToLayer("Ignore Raycast");
                 //warp_effect.renderer.material = new Material(KSP.IO.File.ReadAllText<AlcubierreDrive>("AlphaSelfIllum.shader"));
 
-                warp_effect1_renderer.material.shader = Shader.Find("Unlit/Transparent");
-                warp_effect2_renderer.material.shader = Shader.Find("Unlit/Transparent");
+                warp_effect1_renderer.material.shader = Shader.Find(warpEffect1ShaderPath);
+                warp_effect2_renderer.material.shader = Shader.Find(warpEffect2ShaderPath);
 
                 warpWhiteFlash = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp10", false);
                 warpRedFlash = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warpr10", false);
@@ -979,7 +1005,7 @@ namespace FNPlugin
                 //warp_effect.transform.localScale.z = 200f;
 
                 warp_sound = gameObject.AddComponent<AudioSource>();
-                warp_sound.clip = GameDatabase.Instance.GetAudioClip("WarpPlugin/Sounds/warp_sound");
+                warp_sound.clip = GameDatabase.Instance.GetAudioClip(warpSoundPath);
                 warp_sound.volume = GameSettings.SHIP_VOLUME;
 
                 //warp_sound.panLevel = 0;
@@ -1014,17 +1040,19 @@ namespace FNPlugin
 
         public void VesselChangedSOI()
         {
-            if (!IsSlave)
-            {
-                Debug.Log("[KSPI]: AlcubierreDrive Vessel Changed SOI");
-            }
+            if (IsSlave)
+                return;
+
+            Debug.Log("[KSPI]: AlcubierreDrive Vessel Changed SOI");
         }
 
         public void Update()
         {
-            if (!HighLogic.LoadedSceneIsEditor) return;
+            if (!HighLogic.LoadedSceneIsEditor)
+                return;
 
-	        double moduleMass;
+            partMass = part.mass;
+
 			var warpdriveList = vessel.GetVesselAndModuleMass<AlcubierreDrive>(out vesselTotalMass, out moduleMass);
 
             totalWarpPower = warpdriveList.Sum(w => w.warpStrength * (w.isupgraded ? w.warpPowerMultTech1 : w.warpPowerMultTech0));
@@ -1040,21 +1068,16 @@ namespace FNPlugin
             Events["DeactivateWarpDrive"].active = !IsSlave && IsEnabled;
             Fields["driveStatus"].guiActive = !IsSlave && IsCharging;
 
-            vesselTotalMass = vessel.GetTotalMass();
-
-            if (!IsSlave)
+            if (moduleReactionWheel != null && !hideTrail)
             {
-                if (moduleReactionWheel != null)
-                {
-                    moduleReactionWheel.Fields["authorityLimiter"].guiActive = false;
-                    moduleReactionWheel.Fields["actuatorModeCycle"].guiActive = false;
-                    moduleReactionWheel.Fields["stateString"].guiActive = false;
-                    moduleReactionWheel.Events["OnToggle"].guiActive = false;
+                moduleReactionWheel.Fields["authorityLimiter"].guiActive = false;
+                moduleReactionWheel.Fields["actuatorModeCycle"].guiActive = false;
+                moduleReactionWheel.Fields["stateString"].guiActive = false;
+                moduleReactionWheel.Events["OnToggle"].guiActive = false;
 
-                    moduleReactionWheel.PitchTorque = IsEnabled ? (float)(2 * vesselTotalMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                    moduleReactionWheel.YawTorque = IsEnabled ? (float)(2 * vesselTotalMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                    moduleReactionWheel.RollTorque = IsEnabled ? (float)(2 * vesselTotalMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                }
+                moduleReactionWheel.PitchTorque = activeTrail ? (float)(10 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                moduleReactionWheel.YawTorque = activeTrail ? (float)(10 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                moduleReactionWheel.RollTorque = activeTrail ? (float)(10 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
             }
 
             if (ResearchAndDevelopment.Instance != null)
@@ -1075,9 +1098,9 @@ namespace FNPlugin
             }
         }
 
-        private void UpdateState(bool isEnabled, bool isCharging, bool showTrail, int selected_factor)
+        private void UpdateState(bool isEnabled, bool isCharging, bool activeTrail, int selected_factor)
         {
-            this.showTrail = showTrail;
+            this.activeTrail = activeTrail;
             this.selected_factor = selected_factor;
 
             if (animationState == null) return;
@@ -1106,13 +1129,8 @@ namespace FNPlugin
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
         {
-            //if (antigravityField != null)
-            //    antigravityField.guiActive = !IsSlave;
-
             if (!IsSlave)
-            {
                 PluginHelper.UpdateIgnoredGForces();
-            }
 
             if (vessel == null) return;
 
@@ -1129,9 +1147,8 @@ namespace FNPlugin
             gravityDragPercentage = (1 - gravityDragRatio) * 100;
 
             maximumWarpForGravityPull = gravityPull > 0 ? 1 / gravityPull : 0;
-            var toClosestBody = vessel.CoMD - closestCelestrialBody.position;
 
-            cosineAngleToClosestBody = Vector3d.Dot(part.transform.up.normalized, toClosestBody.normalized);
+            cosineAngleToClosestBody = Vector3d.Dot(part.transform.up.normalized, (vessel.CoMD - closestCelestrialBody.position).normalized);
 
             var cosineAngleModifier = selectedTargetVesselIsClosest ? 0.25 : (1 + 0.5 * cosineAngleToClosestBody);
 
@@ -1145,8 +1162,7 @@ namespace FNPlugin
             if (alcubierreDrives != null)
                 totalWarpPower = alcubierreDrives.Sum(p => p.warpStrength * (p.isupgraded ? warpPowerMultTech1 : warpPowerMultTech0));
 
-            //if (!IsEnabled)
-            vesselTotalMass = vessel.totalMass;
+            vesselTotalMass = vessel.GetTotalMass();
 
             if (alcubierreDrives != null && totalWarpPower != 0 && vesselTotalMass != 0)
             {
@@ -1226,19 +1242,20 @@ namespace FNPlugin
                 InitiateWarp();
 
             var currentOrbit = vessel.orbitDriver.orbit;
-            universalTime = Planetarium.GetUniversalTime();
+            var universalTime = Planetarium.GetUniversalTime();
 
             if (IsEnabled)
             {
                 counterCurrent++;
 
                 // disable any geeforce effects durring warp
-                //part.vessel.IgnoreGForces(1);
                 PluginHelper.IgnoreGForces(part, 2);
 
                 var reverseHeadingWarp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
                 var newDirection = currentOrbitalVelocity + reverseHeadingWarp;
+
+                var predictedExitOrbit = new Orbit(currentOrbit);
 
                 long multiplier = 0;
                 do
@@ -1309,7 +1326,9 @@ namespace FNPlugin
                 }
             }
 
-            if (showTrail)
+            warp_sound.volume = GameSettings.SHIP_VOLUME;
+
+            if (activeTrail && !hideTrail)
             {
                 var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
                 var endBeamPos = shipPos + part.transform.up * warp_size;
@@ -1481,7 +1500,7 @@ namespace FNPlugin
             if (!double.IsNaN(antigravityForceVector.x) && !double.IsNaN(antigravityForceVector.y) && !double.IsNaN(antigravityForceVector.z))
             {
                 if (vessel.packed)
-                    vessel.orbit.Perturb(antigravityForceVector * fixedDeltaTime, universalTime);
+                    vessel.orbit.Perturb(antigravityForceVector * fixedDeltaTime, Planetarium.GetUniversalTime());
                 else
                     vessel.ChangeWorldVelocity(antigravityForceVector * fixedDeltaTime);
             }
@@ -1670,6 +1689,7 @@ namespace FNPlugin
             Debug.Log("[KSPI]: Develocitize");
 
             // This code is inspired quite heavily by HyperEdit's OrbitEditor.cs
+            var universalTime = Planetarium.GetUniversalTime();
             var currentOrbit = vessel.orbitDriver.orbit;
             Vector3d currentOrbitalVelocity = currentOrbit.getOrbitalVelocityAtUT(universalTime);
             Vector3d progradeNormalizedVelocity = currentOrbitalVelocity.normalized;
