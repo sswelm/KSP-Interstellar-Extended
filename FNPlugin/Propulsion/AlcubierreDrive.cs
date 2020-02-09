@@ -42,6 +42,7 @@ namespace FNPlugin
         public const string warpTexturePath = "WarpPlugin/ParticleFX/warp";
         public const string warprTexturePath = "WarpPlugin/ParticleFX/warpr";
 
+        [KSPField]
         public string warpSoundPath = "WarpPlugin/Sounds/warp_sound";
 
         [KSPField]
@@ -93,7 +94,7 @@ namespace FNPlugin
         [KSPField] 
         public bool allowWarpTurning = true;
         [KSPField] 
-        public float headingChangedTimeout = 25;
+        public float headingChangedTimeout = 50;
         [KSPField] 
         public double gravityMaintenancePowerMultiplier = 4;
 
@@ -238,6 +239,7 @@ namespace FNPlugin
         private int minimum_selected_factor;
         private int maximumWarpSpeedFactor;
         private int minimumPowerAllowedFactor;
+        private int warpTrailTimeout;
 
         private long insufficientPowerTimeout = 10;
         private long initiateWarpTimeout;
@@ -1094,7 +1096,7 @@ namespace FNPlugin
         {
             foreach (var drive in alcubierreDrives)
             {
-                drive.UpdateState(IsEnabled, IsCharging, IsEnabled, selected_factor);
+                drive.UpdateState(IsEnabled, IsCharging, IsEnabled && warpTrailTimeout == 0, selected_factor);
             }
         }
 
@@ -1328,7 +1330,7 @@ namespace FNPlugin
 
             warp_sound.volume = GameSettings.SHIP_VOLUME;
 
-            if (activeTrail && !hideTrail)
+            if (activeTrail && !hideTrail && warpTrailTimeout == 0)
             {
                 var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
                 var endBeamPos = shipPos + part.transform.up * warp_size;
@@ -1355,6 +1357,9 @@ namespace FNPlugin
                 warp_effect2_renderer.enabled = false;
                 warp_effect1_renderer.enabled = false;
             }
+
+            if (warpTrailTimeout > 0)
+                warpTrailTimeout--;
         }
 
         private static double DeltaVToCircularize(Orbit orbit)
@@ -1674,14 +1679,16 @@ namespace FNPlugin
             if (!vessel.packed)
                 vessel.GoOnRails();
 
-            // make jump visible in warp trail
-            //tex_count = +8;
-
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverseHeading + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
             // disables physics and puts the ship into a propagated orbit , is this still needed?
             if (!vessel.packed)
                 vessel.GoOffRails();
+
+            // disable warp trail for 2 frames to prevent graphic glitches
+            warpTrailTimeout = 2;
+
+            UpdateAllDriveState();
         }
 
         private void Develocitize()
