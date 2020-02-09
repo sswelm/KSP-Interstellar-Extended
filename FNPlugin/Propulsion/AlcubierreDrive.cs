@@ -1055,16 +1055,16 @@ namespace FNPlugin
             Events["DeactivateWarpDrive"].active = !IsSlave && IsEnabled;
             Fields["driveStatus"].guiActive = !IsSlave && IsCharging;
 
-            if (moduleReactionWheel != null && !hideTrail)
+            if (moduleReactionWheel != null)
             {
                 moduleReactionWheel.Fields["authorityLimiter"].guiActive = false;
                 moduleReactionWheel.Fields["actuatorModeCycle"].guiActive = false;
                 moduleReactionWheel.Fields["stateString"].guiActive = false;
                 moduleReactionWheel.Events["OnToggle"].guiActive = false;
 
-                moduleReactionWheel.PitchTorque = activeTrail ? (float)(10 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                moduleReactionWheel.YawTorque = activeTrail ? (float)(10 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                moduleReactionWheel.RollTorque = activeTrail ? (float)(10 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                moduleReactionWheel.PitchTorque = activeTrail ? (float)(5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                moduleReactionWheel.YawTorque = activeTrail ? (float)(5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                moduleReactionWheel.RollTorque = activeTrail ? (float)(5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
             }
 
             if (ResearchAndDevelopment.Instance != null)
