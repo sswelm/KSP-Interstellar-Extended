@@ -33,6 +33,7 @@ namespace FNPlugin
             GameEvents.onVesselSOIChanged.Add(OmVesselSOIChanged);
             GameEvents.onGameStateLoad.Add(OmGameStateLoad);
             GameEvents.onVesselLoaded.Add(OmVesselLoad);
+            GameEvents.onPartDestroyed.Add(OmPartDestroyed);
 
             GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
             GameEvents.onVesselGoOffRails.Add(OnVesselGoOnRails);
@@ -50,6 +51,7 @@ namespace FNPlugin
             GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
             GameEvents.onVesselGoOffRails.Remove(OnVesselGoOnRails);
 
+            GameEvents.onPartDestroyed.Remove(OmPartDestroyed);
             GameEvents.onVesselLoaded.Remove(OmVesselLoad);
             GameEvents.onGameStateLoad.Remove(OmGameStateLoad);
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
@@ -105,6 +107,28 @@ namespace FNPlugin
             SupplyPriorityManager.Reset();
 
             ResetReceivers();
+        }
+
+        void OmPartDestroyed(Part part)
+        {
+            Debug.Log("[KSPI]: GameEventSubscriber - detected OmPartDestroyed");
+
+            AlcubierreDrive drive = part.FindModuleImplementing<AlcubierreDrive>();
+
+            if (drive != null)
+            {
+                if (drive.IsSlave)
+                {
+                    Debug.Log("[KSPI]: GameEventSubscriber - destroyed part is a slave warpdrive");
+                    drive = drive.vessel.FindPartModulesImplementing<AlcubierreDrive>().FirstOrDefault(m => !m.IsSlave);
+                }
+
+                if (drive != null)
+                {
+                    Debug.Log("[KSPI]: GameEventSubscriber - deactivate master warp drive");
+                    drive.DeactivateWarpDrive();
+                }
+            }
         }
 
         void OmVesselLoad(Vessel vessel)
