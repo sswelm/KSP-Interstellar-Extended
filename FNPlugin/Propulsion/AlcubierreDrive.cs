@@ -193,9 +193,16 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_MaxChargePowerRequired", guiFormat = "F3", guiUnits = " m/s")]//Max Charge Power Required
         private double maxChargePowerRequired;
 
-        private double recievedExoticMaintenancePower;
-        private double exoticMatterMaintenanceRatio;
-        private double exoticMatterProduced;
+        // Debugging
+        [KSPField(guiActive = true)]
+        public double recievedExoticMaintenancePower;
+        [KSPField(guiActive = true)]
+        public double exoticMatterMaintenanceRatio;
+        [KSPField(guiActive = true)]
+        public double exoticMatterProduced;
+        [KSPField(guiActive = true)]
+        public double minimumExoticMatterMaintenanceRatio;
+
         private double responseFactor;
         private double stablePowerSupply;
         private double orbitMultiplier;
@@ -333,11 +340,12 @@ namespace FNPlugin
                 return;
             }
 
-            double exoticMatterAvailable;
-            double totalExoticMatterAvailable;
-            part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exoticMatterAvailable, out totalExoticMatterAvailable);
+            //double exoticMatterAvailable;
+            //double totalExoticMatterAvailable;
+            //part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exoticMatterAvailable, out totalExoticMatterAvailable);
+            //if (!CheatOptions.InfinitePropellant && exoticMatterAvailable < exotic_power_required * 0.999 * 0.5)
 
-            if (!CheatOptions.InfinitePropellant && exoticMatterAvailable < exotic_power_required * 0.999 * 0.5)
+            if (antigravityPercentage < 0.5 || (minimumExoticMatterMaintenanceRatio < 0.999 && antigravityPercentage >= 0.5))
             {
                 string message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpdriveIsNotFullyChargedForWarp");
                 Debug.Log("[KSPI]: " + message);
@@ -1062,9 +1070,9 @@ namespace FNPlugin
                 moduleReactionWheel.Fields["stateString"].guiActive = false;
                 moduleReactionWheel.Events["OnToggle"].guiActive = false;
 
-                moduleReactionWheel.PitchTorque = activeTrail ? (float)(5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                moduleReactionWheel.YawTorque = activeTrail ? (float)(5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                moduleReactionWheel.RollTorque = activeTrail ? (float)(5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                moduleReactionWheel.PitchTorque = activeTrail ? (5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                moduleReactionWheel.YawTorque = activeTrail ? (5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                moduleReactionWheel.RollTorque = activeTrail ? (5 * part.mass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
             }
 
             if (ResearchAndDevelopment.Instance != null)
@@ -1386,14 +1394,23 @@ namespace FNPlugin
             if (totalWarpPower != 0 && vesselTotalMass != 0)
             {
                 warpToMassRatio = totalWarpPower / vesselTotalMass;
-                exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required*vesselTotalMass * powerRequirementMultiplier) / warpToMassRatio;
+                exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required * vesselTotalMass * powerRequirementMultiplier) / warpToMassRatio;
                 exoticMatterRatio = exotic_power_required > 0 ? Math.Min(1, currentExoticMatter / exotic_power_required) : 0;
+            }
+            else
+            {
+                exotic_power_required = 0;
+                exoticMatterRatio = 0;
             }
 
             GenerateAntiGravity();
 
             // maintenance power depend on vessel mass and experienced geeforce
-            requiredExoticMaintenancePower = exoticMatterRatio * exoticMatterRatio * vesselTotalMass * powerRequirementMultiplier * vessel.gravityForPos.magnitude * gravityMaintenancePowerMultiplier;
+
+            var maximumExoticMaintenancePower = vesselTotalMass * powerRequirementMultiplier * vessel.gravityForPos.magnitude * gravityMaintenancePowerMultiplier;
+            var minimumExoticMaintenancePower = 0.5 * 0.5 * maximumExoticMaintenancePower;
+
+            requiredExoticMaintenancePower = exoticMatterRatio * exoticMatterRatio * maximumExoticMaintenancePower;
 
             var overheatingRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
@@ -1403,7 +1420,9 @@ namespace FNPlugin
                    ? requiredExoticMaintenancePower
                    : consumeFNResourcePerSecond(overheatModifier * requiredExoticMaintenancePower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            exoticMatterMaintenanceRatio = requiredExoticMaintenancePower > 0 ? recievedExoticMaintenancePower / requiredExoticMaintenancePower : 1;
+            minimumExoticMatterMaintenanceRatio = minimumExoticMaintenancePower > 0 ? recievedExoticMaintenancePower / minimumExoticMaintenancePower : 0;
+
+            exoticMatterMaintenanceRatio = requiredExoticMaintenancePower > 0 ? recievedExoticMaintenancePower / requiredExoticMaintenancePower : 0;
 
             ProduceWasteheat(recievedExoticMaintenancePower);
 
