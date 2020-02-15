@@ -44,6 +44,8 @@ namespace FNPlugin
 
         [KSPField]
         public string warpSoundPath = "WarpPlugin/Sounds/warp_sound";
+        [KSPField]
+        public double warpSoundPitchExp = 0.1;
 
         [KSPField]
         public double warpPowerReqMult = 0.5;
@@ -1278,7 +1280,7 @@ namespace FNPlugin
 
             warpEngineThrottle = _engineThrotle[selected_factor];
 
-            warp_sound.pitch = (float)Math.Pow(warpEngineThrottle, 0.1);
+            warp_sound.pitch = (float)Math.Pow(warpEngineThrottle, warpSoundPitchExp);
 
             tex_count += warpEngineThrottle;
 
