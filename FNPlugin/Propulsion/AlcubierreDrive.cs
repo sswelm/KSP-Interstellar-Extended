@@ -46,8 +46,6 @@ namespace FNPlugin
         public string warpSoundPath = "WarpPlugin/Sounds/warp_sound";
 
         [KSPField]
-        public int numberOfThrotleSettings;
-        [KSPField]
         public double warpPowerReqMult = 0.5;
         [KSPField]
         public double responseMultiplier = 0.005;
@@ -194,20 +192,16 @@ namespace FNPlugin
         private double maxChargePowerRequired;
 
         // Debugging
-        [KSPField(guiActive = true)]
         public double recievedExoticMaintenancePower;
-        [KSPField(guiActive = true)]
         public double exoticMatterMaintenanceRatio;
-        [KSPField(guiActive = true)]
         public double exoticMatterProduced;
-        [KSPField(guiActive = true)]
         public double minimumExoticMatterMaintenanceRatio;
 
         private double responseFactor;
         private double stablePowerSupply;
         private double orbitMultiplier;
 
-        private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
+        private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000, 1300, 1600, 2000, 2500, 3200, 4000, 5000, 6300, 8000, 10000, 13000, 16000, 20000, 25000, 32000, 40000, 50000, 63000, 80000, 100000 };
 
         private GameObject warp_effect;
         private GameObject warp_effect2;
@@ -298,7 +292,7 @@ namespace FNPlugin
             holdAltitude = false;
             antigravityPercentage = 100;
 
-            UpdateAllDriveState();
+            UpdateAllWarpDrives();
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_stopChargingDrive", active = false)]
@@ -309,7 +303,7 @@ namespace FNPlugin
             holdAltitude = false;
             antigravityPercentage = 0;
 
-            UpdateAllDriveState();
+            UpdateAllWarpDrives();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_activateWarpDrive")]
@@ -340,11 +334,6 @@ namespace FNPlugin
                 return;
             }
 
-            //double exoticMatterAvailable;
-            //double totalExoticMatterAvailable;
-            //part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exoticMatterAvailable, out totalExoticMatterAvailable);
-            //if (!CheatOptions.InfinitePropellant && exoticMatterAvailable < exotic_power_required * 0.999 * 0.5)
-
             if (antigravityPercentage < 0.5 || (minimumExoticMatterMaintenanceRatio < 0.999 && antigravityPercentage >= 0.5))
             {
                 string message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpdriveIsNotFullyChargedForWarp");
@@ -373,9 +362,7 @@ namespace FNPlugin
         {
             var maxFactor = 0;
 
-            numberOfThrotleSettings = _engineThrotle.Count();
-
-            for (var i = 0; i < numberOfThrotleSettings; i++)
+            for (var i = 0; i < _engineThrotle.Length; i++)
             {
                 if (_engineThrotle[i] > lightspeed)
                     return maxFactor;
@@ -390,8 +377,6 @@ namespace FNPlugin
 
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
-
-            numberOfThrotleSettings = _engineThrotle.Count();
 
             var selectedWarpSpeed = _engineThrotle[selected_factor];
 
@@ -476,7 +461,7 @@ namespace FNPlugin
             IsEnabled = true;
             activeTrail = true;
 
-            UpdateAllDriveState();
+            UpdateAllWarpDrives();
 
             existing_warp_speed = selectedWarpSpeed;
         }
@@ -490,6 +475,11 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive", active = false)]
         public void DeactivateWarpDrive()
         {
+            DeactivateWarpDrive(true);
+        }
+
+        public void DeactivateWarpDrive(bool controlled)
+        {
             Debug.Log("[KSPI]: Deactivate Warp Drive event called");
 
             if (!IsEnabled)
@@ -501,11 +491,11 @@ namespace FNPlugin
             // mark warp to be disabled
             IsEnabled = false;
 
-            // update visuals all warp drives
-            UpdateAllDriveState();
-
             // update list of warp drives
             alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
+
+            // update visuals all warp drives
+            UpdateAllWarpDrives();
 
             // Disable sound
             warp_sound.Stop();
@@ -513,14 +503,13 @@ namespace FNPlugin
             Vector3d reverse_warp_heading =  new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
 
             // prevent g-force effects for current and next frame
-            //part.vessel.IgnoreGForces(2);
             PluginHelper.IgnoreGForces(part, 2);
 
-            // puts the ship back into a simulated orbit and reenables physics, is this still needed?
+            // puts the ship back into a simulated orbit and reenables physics
             if (!this.vessel.packed)
                 vessel.GoOnRails();
 
-            if (matchExitToDestinationSpeed && departureVelocity != null)
+            if (controlled && matchExitToDestinationSpeed && departureVelocity != null)
             {
                 Debug.Log("[KSPI]: vessel departure velocity " + departureVelocity.x + " " + departureVelocity.y + " " + departureVelocity.z);
                 Vector3d reverse_initial_departure_velocity = new Vector3d(-departureVelocity.x, -departureVelocity.y, -departureVelocity.z);
@@ -541,7 +530,7 @@ namespace FNPlugin
             if (!this.vessel.packed)
                 vessel.GoOffRails();
 
-            if (matchExitToDestinationSpeed && vessel.atmDensity == 0)
+            if (controlled && matchExitToDestinationSpeed && vessel.atmDensity == 0)
             {
                 Vector3d circulizationVector;
 
@@ -795,8 +784,6 @@ namespace FNPlugin
         {
             if (state != StartState.Editor)
                 vesselTotalMass = vessel.GetTotalMass();
-
-            numberOfThrotleSettings = _engineThrotle.Count();
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 260, 100);
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
@@ -1082,10 +1069,10 @@ namespace FNPlugin
 
             if (IsSlave) return;
 
-            UpdateAllDriveState();
+            UpdateAllWarpDrives();
         }
 
-        private void UpdateAllDriveState()
+        private void UpdateAllWarpDrives()
         {
             foreach (var drive in alcubierreDrives)
             {
@@ -1291,6 +1278,8 @@ namespace FNPlugin
 
             warpEngineThrottle = _engineThrotle[selected_factor];
 
+            warp_sound.pitch = (float)Math.Pow(warpEngineThrottle, 0.1);
+
             tex_count += warpEngineThrottle;
 
             if (!IsSlave)
@@ -1433,15 +1422,6 @@ namespace FNPlugin
                 availablePower = CheatOptions.InfiniteElectricity
                     ? currentPowerRequirementForWarp
                     : stablePowerSupply;
-
-                //if (IsCharging && availablePower < minPowerRequirementForLightSpeed)
-                //{
-                //    var message = "Maximum power supply of " + availablePower.ToString("0") + " MW is insufficient power, you need at at least " + minPowerRequirementForLightSpeed.ToString("0") + " MW of Power to jump to Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass.";
-                //    Debug.Log("[KSPI]: " + message);
-                //    ScreenMessages.PostScreenMessage(message, 5);
-                //    StopCharging();
-                //    return;
-                //}
 
                 maxChargePowerRequired = ((antigravityPercentage * 0.005 * exotic_power_required) - currentExoticMatter) * 1000;
 
@@ -1590,7 +1570,7 @@ namespace FNPlugin
 
                     Debug.Log("[KSPI]: " + Localizer.Format(message));
                     ScreenMessages.PostScreenMessage(Localizer.Format(message), 5);
-                    DeactivateWarpDrive();
+                    DeactivateWarpDrive(true);
                     vesselWasInOuterspace = false;
                     return;
                 }
@@ -1635,7 +1615,7 @@ namespace FNPlugin
                     var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg5", availablePower.ToString("0"),minPowerRequirementForLightSpeed.ToString("0"));//"Maximum power supply of " +  + " MW is insufficient power, you need at at least " +  + " MW of Power to maintain Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass."
                     Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5);
-                    DeactivateWarpDrive();
+                    DeactivateWarpDrive(false);
                     return;
                 }
 
@@ -1650,7 +1630,7 @@ namespace FNPlugin
 
                     Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5);
-                    DeactivateWarpDrive();
+                    DeactivateWarpDrive(true);
                     return;
                 }
                 var insufficientMessage = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_insufficientPowerPercentageAt") + " " + (powerReturned / currentPowerRequirementForWarp * 100).ToString("0.0") + "% " + Localizer.Format("#LOC_KSPIE_AlcubierreDrive_reducingElectricPowerDrain");
@@ -1692,7 +1672,7 @@ namespace FNPlugin
             // disable warp trail for 2 frames to prevent graphic glitches
             warpTrailTimeout = 2;
 
-            UpdateAllDriveState();
+            UpdateAllWarpDrives();
         }
 
         private void Develocitize()
@@ -1775,7 +1755,6 @@ namespace FNPlugin
             GUILayout.EndHorizontal();
         }
 
-
         private void Window(int windowID)
         {
             try
@@ -1849,7 +1828,7 @@ namespace FNPlugin
                     ActivateWarpDrive();
 
                 if (IsEnabled && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive"), GUILayout.ExpandWidth(true)))
-                    DeactivateWarpDrive();
+                    DeactivateWarpDrive(true);
 
                 if (!IsEnabled && !IsCharging && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_startChargingDrive"), GUILayout.ExpandWidth(true)))
                     StartCharging();

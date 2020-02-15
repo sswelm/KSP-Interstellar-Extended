@@ -1047,6 +1047,8 @@ namespace FNPlugin
             //if (currentMaxThrust > recordMaxThrust)
             //    recordMaxThrust = currentMaxThrust;
 
+            resourceBuffers.Init(this.part);
+
             try
             {
                 // setup propellant after startup to allow InterstellarFuelSwitch to configure the propellant
