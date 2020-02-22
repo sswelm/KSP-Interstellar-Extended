@@ -32,6 +32,8 @@ namespace FNPlugin
         public double powerMult = 1;
         [KSPField(isPersistant = false)]
         public double bufferMult = 8;
+        [KSPField(isPersistant = false)]
+        public int rcsIndex = 0;
 
         [KSPField(isPersistant = true, guiActive = false)]
         public double storedPower = 0;
@@ -225,7 +227,7 @@ namespace FNPlugin
 
             try
             {
-                attachedRCS = this.part.FindModuleImplementing<ModuleRCSFX>();
+                attachedRCS = this.part.FindModulesImplementing<ModuleRCSFX>().Skip(rcsIndex).FirstOrDefault();
 
                 // old legacy stuff
                 if (baseThrust == 0 && maxThrust > 0)
