@@ -523,6 +523,8 @@ namespace FNPlugin
             capacityStr = PluginHelper.formatMassStr(antimatterResource.amount * antimatterDensity);
             maxAmountStr = PluginHelper.formatMassStr(antimatterResource.maxAmount * antimatterDensity);
 
+            part.explosionPotential = (float)antimatterResource.amount * 30000;
+
             UpdateTargetMass();
 
             UpdateTolerances();
