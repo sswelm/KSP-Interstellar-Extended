@@ -2057,7 +2057,7 @@ namespace FNPlugin
                         // determine allowed power
                         var maximumRecievePower = MaximumRecievePower;
 
-                        var currentRecievalPower = Math.Min(MaximumRecievePower * PowerRatio, maximumRecievePower * powerCapacityEfficiency);
+                        var currentRecievalPower = Math.Min(maximumRecievePower * PowerRatio, maximumRecievePower * powerCapacityEfficiency);
                         var maximumRecievalPower = maximumRecievePower * powerCapacityEfficiency;
 
                         // get effective beamtoPower efficiency
@@ -2241,12 +2241,12 @@ namespace FNPlugin
             return Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Getinfo", diameter);//"Diameter: " +  + " m"
         }
 
-        public double getPowerFromSatellite(VesselMicrowavePersistence vmp)
+        public double GetCurrentReceiverdPower(VesselMicrowavePersistence vmp)
         {
             ReceivedPowerData data;
             if (receiverIsEnabled && received_power.TryGetValue(vmp.Vessel, out data))
             {
-                return data.AvailablePower;
+                return data.CurrentRecievedPower;
             }
 
             return 0;
@@ -2260,7 +2260,7 @@ namespace FNPlugin
                 var receivers = vess.FindPartModulesImplementing<BeamedPowerReceiver>();
                 foreach (BeamedPowerReceiver receiver in receivers)
                 {
-                    enumerated_power += receiver.getPowerFromSatellite(vmp);
+                    enumerated_power += receiver.GetCurrentReceiverdPower(vmp);
                 }
             }
             return enumerated_power;
