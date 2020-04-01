@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace FNPlugin.Reactors
 {
+    [KSPModule("Nuclear Salt Water Reactor")]
+    class InterstellarNSWR : InterstellarFissionMSRGC { }
+
     [KSPModule("Nuclear Thermal Reactor")]
     class InterstellarFissionNTR : InterstellarFissionMSRGC { }
 
