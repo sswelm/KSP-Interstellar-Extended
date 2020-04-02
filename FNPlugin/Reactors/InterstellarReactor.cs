@@ -1764,6 +1764,7 @@ namespace FNPlugin.Reactors
 
             currentMass = part.mass;
             currentRawPowerOutput = RawPowerOutput;
+            coretempStr = CoreTemperature.ToString("0") + " K";
 
             Events["DeactivateReactor"].guiActive = HighLogic.LoadedSceneIsFlight && showShutDownInFlight && IsEnabled;
 
@@ -1771,7 +1772,8 @@ namespace FNPlugin.Reactors
             {
                 UpdateConnectedRecieversStr();
                 reactorSurface = radius * radius;
-            }
+                
+            }            
         }
 
         protected void UpdateFuelMode()
@@ -1784,8 +1786,6 @@ namespace FNPlugin.Reactors
             Events["StartBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && !breedtritium && IsFuelNeutronRich && IsEnabled;
             Events["StopBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && breedtritium && IsFuelNeutronRich && IsEnabled;
             UpdateFuelMode();
-
-            coretempStr = CoreTemperature.ToString("0") + " K";
 
             if (IsEnabled && CurrentFuelMode != null)
             {
