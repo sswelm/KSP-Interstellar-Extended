@@ -291,6 +291,11 @@ namespace FNPlugin.Resources
 
         private static void AddMissingResource(string resourname, int refBody, List<CrustalResource> bodyCrustalComposition)
         {
+            if (resourname == InterstellarResourcesConfiguration.Instance.Regolith)
+            {
+                Debug.Log("[KSPI]: AddMissingResource : Ignored resource '" + resourname + "'");
+            }
+
             // verify it is a defined resource
             PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourname);
             if (definition == null)
@@ -311,7 +316,6 @@ namespace FNPlugin.Resources
             if (abundance <= 0)
             {
                 Debug.LogWarning("[KSPI]: AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
-                //return;
             }
 
             // create Crustalresource from definition and abundance
