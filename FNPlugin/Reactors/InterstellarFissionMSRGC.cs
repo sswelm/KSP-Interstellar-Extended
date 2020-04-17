@@ -155,17 +155,11 @@ namespace FNPlugin.Reactors
                     return base.MaximumThermalPower;
                 }
 
-                if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
+                var actinideResourse = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+
+                if (actinideResourse != null && actinideResourse.maxAmount > 0)
                 {
-
-                    // get total amount of all fuels
-                    double fuel_mass = CurrentFuelMode.Variants.Sum(m => m.ReactorFuels.Sum(fuel => GetLocalResourceAmount(fuel) * fuel.DensityInTon));
-
-                    double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
-
-                    double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * CurrentFuelMode.NormalisedReactionRate * CurrentFuelMode.NormalisedReactionRate * CurrentFuelMode.NormalisedReactionRate * 2.5), 1.0);
-                    
-                    fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
+                    double fuel_actinide_mass_ratio = Math.Pow(actinideResourse.amount / actinideResourse.maxAmount, 1 / CurrentFuelMode.NormalisedReactionRate);
 
                     actinidesModifer = Math.Sqrt(fuel_actinide_mass_ratio);
 
