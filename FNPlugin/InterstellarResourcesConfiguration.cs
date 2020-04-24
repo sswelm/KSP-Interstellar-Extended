@@ -11,6 +11,7 @@ namespace FNPlugin
         public const String _ANTIMATTER = "Antimatter";
         public const String _INTAKEATMOSPHERE = "IntakeAtm";
         public const String _THORIUM_TETRAFLOURIDE = "ThF4";
+        public const String _URANIUM_233 = "Uranium-233";
         public const String _URANIUM_NITRIDE = "UraniumNitride";
         public const String _ENRICHED_URANIUM = "EnrichedUranium";
         public const String _ACTINIDES = "Actinides";
@@ -135,6 +136,7 @@ namespace FNPlugin
         public String TritiumGas { get { return _tritium_gas; } }
         public String UraniumTetraflouride { get { return _uranium_TerraFloride; } }
         public String UraniumNitride { get { return _URANIUM_NITRIDE; } }
+        public String Uranium233 { get { return _URANIUM_233; } }
         public String EnrichedUrarium { get { return _ENRICHED_URANIUM; } }
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
         public String Water { get { return _water; } }

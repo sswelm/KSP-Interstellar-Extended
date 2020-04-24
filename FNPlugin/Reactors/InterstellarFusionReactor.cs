@@ -208,7 +208,7 @@ namespace FNPlugin.Reactors
             return hasAllFuels;
         }
 
-        protected override void WindowReactorSpecificOverride()
+        protected override void WindowReactorControlSpecificOverride()
         {
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(Localizer.Format("#LOC_KSPIE_FissionPB_NextModebutton"), GUILayout.ExpandWidth(true)))//"Next Fusion Mode"

@@ -40,6 +40,8 @@ namespace FNPlugin.Redist
 
         //double RequestedThermalHeat { get; set; }
 
+        double MaxCoreTemperature { get; }
+
         double ProducedWasteHeat { get; }
 
         double PowerBufferBonus { get; }

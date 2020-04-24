@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Reactors
 {
@@ -23,7 +24,7 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
         [KSPField]
-        public double actinidesModifer;
+        public double actinidesModifer = 1;
         [KSPField]
         public double temperatureThrotleExponent = 0.5;
         [KSPField(guiActive = false)]
@@ -31,7 +32,9 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false)]
         public double temp_diff;
         [KSPField(guiActive = false)]
-        public double minimumTemperature;
+        public double minimumTemperature = 0;
+        [KSPField(guiActive = false)]
+        public bool canDumpActinides = false;
 
         PartResourceDefinition fluorineGasDefinition;
         PartResourceDefinition depletedFuelDefinition;
@@ -45,6 +48,32 @@ namespace FNPlugin.Reactors
         double reactorFuelMaxAmount;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
+
+        [KSPEvent(guiName = "#LOC_Dump_Actinides", guiActiveEditor = false, guiActive = true)]
+        public void DumpActinides()
+        {
+            var actinides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+            if (actinides == null)
+            {
+                Debug.LogError("[KSPI]: actinides not found on " + part.partInfo.title);
+                return;
+            }
+
+            var uranium233 = part.Resources[InterstellarResourcesConfiguration.Instance.Uranium233];
+            if (uranium233 == null)
+            {
+                Debug.LogError("[KSPI]: uranium-233 not found on " + part.partInfo.title);
+                return;
+            }
+
+            actinides.amount = 0;
+            uranium233.amount = Math.Max(0, uranium233.amount - actinides.maxAmount);
+
+            var message = Localizer.Format("#LOC_Dumped_Actinides");
+            ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+            Debug.Log("[KSPI]: " + message);
+        }
+
 
         [KSPEvent(guiName = "#LOC_KSPIE_FissionMSRGC_SwapFuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]//Swap Fuel
         public void SwapFuelMode()
@@ -155,19 +184,13 @@ namespace FNPlugin.Reactors
                     return base.MaximumThermalPower;
                 }
 
-                if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
+                var actinidesResource = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+
+                if (actinidesResource != null)
                 {
+                    var fuel_actinide_mass_ratio = 1 - actinidesResource.amount / actinidesResource.maxAmount;
 
-                    // get total amount of all fuels
-                    double fuel_mass = CurrentFuelMode.Variants.Sum(m => m.ReactorFuels.Sum(fuel => GetLocalResourceAmount(fuel) * fuel.DensityInTon));
-
-                    double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
-
-                    double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * CurrentFuelMode.NormalisedReactionRate * CurrentFuelMode.NormalisedReactionRate * CurrentFuelMode.NormalisedReactionRate * 2.5), 1.0);
-                    
-                    fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
-
-                    actinidesModifer = Math.Sqrt(fuel_actinide_mass_ratio);
+                    actinidesModifer = Math.Pow(fuel_actinide_mass_ratio * fuel_actinide_mass_ratio, CurrentFuelMode.NormalisedReactionRate);
 
                     return base.MaximumThermalPower * actinidesModifer;
                 }
@@ -176,11 +199,16 @@ namespace FNPlugin.Reactors
             }
         }
 
+        protected override void WindowReactorStatusSpecificOverride()
+        {
+            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Actinides_Poisoning"), (100 - actinidesModifer * 100).ToString("0.000000") + "%", bold_style, text_style);
+        }
+
         public override double CoreTemperature
         {
             get
             {
-                if (!CheatOptions.IgnoreMaxTemperature && HighLogic.LoadedSceneIsFlight && !isupgraded && powerPcnt > min_throttle * 100)
+                if (!CheatOptions.IgnoreMaxTemperature && HighLogic.LoadedSceneIsFlight && !isupgraded && powerPcnt >= min_throttle * 100)
                 {
                     var baseCoreTemperature = base.CoreTemperature;
 
@@ -192,11 +220,16 @@ namespace FNPlugin.Reactors
                         temp_scale = baseCoreTemperature / 2;
 
                     temp_diff = (baseCoreTemperature - temp_scale) * Math.Pow(powerPcnt / 100, temperatureThrotleExponent);
-                    return Math.Min(temp_scale + temp_diff, baseCoreTemperature);
+                    return Math.Min(temp_scale + temp_diff, actinidesModifer * baseCoreTemperature);
                 }
                 else
-                    return base.CoreTemperature;
+                    return actinidesModifer * base.CoreTemperature;
             }
+        }
+
+        public override double MaxCoreTemperature
+        {
+            get { return actinidesModifer * base.CoreTemperature; }
         }
 
         public override void OnUpdate()
@@ -209,6 +242,7 @@ namespace FNPlugin.Reactors
 
             Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = checkFuelModes() > 1;
             Events["EditorSwapFuel"].guiActiveEditor = fuel_modes.Count > 1;
+            Events["DumpActinides"].guiActive = canDumpActinides;
 
             base.OnUpdate();
         }
@@ -257,6 +291,7 @@ namespace FNPlugin.Reactors
                 }
             }
 
+            Events["DumpActinides"].guiActive = canDumpActinides;
             Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = checkFuelModes() > 1;
             Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
             Events["EditorSwapFuel"].guiActiveEditor = fuel_modes.Count > 1;

@@ -167,6 +167,8 @@ namespace FNPlugin.Reactors
 
         public double CoreTemperature { get { return 1500; } }
 
+        public virtual double MaxCoreTemperature  { get { return CoreTemperature; } }
+
         public double HotBathTemperature { get { return CoreTemperature * 1.5f; } }
 
         public double StableMaximumReactorPower { get { return MaximumThermalPower; } }

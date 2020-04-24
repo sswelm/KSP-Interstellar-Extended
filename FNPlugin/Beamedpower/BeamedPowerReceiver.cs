@@ -783,6 +783,8 @@ namespace FNPlugin
 
         public double CoreTemperature { get { return hothBathTemperature; } }
 
+        public double MaxCoreTemperature { get { return hothBathTemperature; } }
+
         public double HotBathTemperature { get { return hothBathTemperature; } }
 
         public double StableMaximumReactorPower { get { return RawMaximumPower; } }

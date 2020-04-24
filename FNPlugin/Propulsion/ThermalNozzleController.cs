@@ -151,6 +151,8 @@ namespace FNPlugin
         [KSPField]
         public float maxLfoModeBaseIsp = 0;
         [KSPField]
+        public float effectiveIsp;
+        [KSPField]
         public double skinInternalConductionMult = 1;
         [KSPField]
         public double skinThermalMassModifier = 1;
@@ -399,12 +401,13 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_ElectricalyPowered", guiUnits = "%", guiFormat = "F3")]//Electricaly Powered
         public double received_megajoules_percentage;
 
-
         [KSPField(isPersistant = true, guiActive = false, guiName = "Jet Spool Ratio", guiFormat = "F2")]
         public float jetSpoolRatio = 0;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Spool Effect Ratio", guiFormat = "F2")]
         public float spoolEffectRatio = 0;
 
+        [KSPField]
+        public double coreTemperature = 3000;
         [KSPField]
         public double minimumThrust = 0.000001;
         [KSPField]
@@ -922,8 +925,6 @@ namespace FNPlugin
             catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in SetupPropellant" + e.Message); }
         }
 
-
-
         private void UpdateConfigEffects()
         {
             if (myAttachedEngine is ModuleEnginesFX)
@@ -1030,6 +1031,11 @@ namespace FNPlugin
 
                 UpdateIspEngineParams();
             }
+            //else if (IsEnabled == false)
+            //{
+            //    try { EstimateEditorPerformance(); }
+            //    catch (Exception e) { Debug.LogError("[KSPI]: EstimateEditorPerformance Exception in Update " + e.Message); }
+            //}
         }
 
         // Note: does not seem to be called while in vab mode
@@ -1203,7 +1209,7 @@ namespace FNPlugin
                     (fuel.RequiresUpgrade == false || (_fuelRequiresUpgrade && isupgraded)) &&
                     (fuel.IsLFO == false || (fuel.IsLFO && PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))) &&
                     (fuel.CoolingFactor >= AttachedReactor.MinCoolingFactor) &&
-                    (fuel.MinimumCoreTemp <= AttachedReactor.CoreTemperature) &&
+                    (fuel.MinimumCoreTemp <= AttachedReactor.MaxCoreTemperature) &&
                     ((fuel.AtomType & AttachedReactor.SupportedPropellantAtoms) == fuel.AtomType) &&
                     ((fuel.AtomType & this.supportedPropellantAtoms) == fuel.AtomType) &&
                     ((fuel.PropType & AttachedReactor.SupportedPropellantTypes) == fuel.PropType) &&
@@ -1282,7 +1288,7 @@ namespace FNPlugin
                          list_of_propellants.Any(m => PartResourceLibrary.Instance.GetDefinition(m.name) == null)
                     || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                     || (_fuelRequiresUpgrade && !isupgraded)
-                    || (_fuelMinimumCoreTemp > AttachedReactor.CoreTemperature)
+                    || (_fuelMinimumCoreTemp > AttachedReactor.MaxCoreTemperature)
                     || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
                     || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                     || ((_atomType & AttachedReactor.SupportedPropellantAtoms) != _atomType)
@@ -1477,7 +1483,8 @@ namespace FNPlugin
 
         private void UpdateThrustPropellantMultiplier()
         {
-            var linearFraction = Math.Max(0, Math.Min(1, (AttachedReactor.CoreTemperature - _minDecompositionTemp) / (_maxDecompositionTemp - _minDecompositionTemp)));
+            coreTemperature = myAttachedEngine.currentThrottle > 0 ? AttachedReactor.CoreTemperature : AttachedReactor.MaxCoreTemperature;
+            var linearFraction = Math.Max(0, Math.Min(1, (coreTemperature - _minDecompositionTemp) / (_maxDecompositionTemp - _minDecompositionTemp)));
             _heatDecompositionFraction = Math.Pow(0.36, Math.Pow(3 - linearFraction * 3, 2) / 2);
             var rawthrustPropellantMultiplier = Math.Sqrt(_heatDecompositionFraction * _decompositionEnergy / _hydroloxDecompositionEnergy) * 1.04 + 1;
 
@@ -1505,7 +1512,9 @@ namespace FNPlugin
 
             if (!_currentpropellant_is_jet)
             {
-                atmosphereCurve.Add(0, (float)(_maxISP * atmosphere_isp_efficiency), 0, 0);
+                effectiveIsp = (float)(_maxISP * atmosphere_isp_efficiency);
+
+                atmosphereCurve.Add(0, effectiveIsp, 0, 0);
 
                 var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
                 var wasteheatModifier = wasteheatRatioDecelerationMult > 0 ? Math.Max((1 - wasteheatRatio) * wasteheatRatioDecelerationMult, 1) : 1;
@@ -1572,8 +1581,13 @@ namespace FNPlugin
                     atmosphereCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
                     atmosphereCurve.Add(1, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
                 }
-                else
+                else if (originalAtmosphereCurve != null)
                     atmosphereCurve = originalAtmosphereCurve;
+                else
+                    atmosphereCurve.Add(0, effectiveIsp);
+
+                if (vessel != null)
+                    effectiveIsp = atmosphereCurve.Evaluate((float)vessel.atmDensity);
 
                 if (overrideAtmCurve && jetPerformanceProfile == 0)
                 {
@@ -1833,10 +1847,10 @@ namespace FNPlugin
 
                     calculatedMaxThrust *= _thrustPropellantMultiplier * sootModifier;
 
-                    var effectiveIsp = isJet ? Math.Min(current_isp, maxThermalNozzleIsp) : current_isp;
+                    effectiveIsp = isJet ? (float)Math.Min(current_isp, maxThermalNozzleIsp) : (float)current_isp;
 
                     var newIsp = new FloatCurve();
-                    newIsp.Add(0, (float)effectiveIsp, 0, 0);
+                    newIsp.Add(0, effectiveIsp, 0, 0);
                     myAttachedEngine.atmosphereCurve = newIsp;
 
                     if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
@@ -2351,7 +2365,9 @@ namespace FNPlugin
             if (AttachedReactor == null)
                 return;
 
-            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCoreTempIspMult;
+            coreTemperature = myAttachedEngine.currentThrottle > 0 ? AttachedReactor.CoreTemperature : AttachedReactor.MaxCoreTemperature;
+
+            baseMaxIsp = Math.Sqrt(coreTemperature) * EffectiveCoreTempIspMult;
 
             if (IsPositiveValidNumber(AttachedReactor.FuelRato))
                 baseMaxIsp *= AttachedReactor.FuelRato;
@@ -2446,7 +2462,7 @@ namespace FNPlugin
 
             return coretempthreshold <= 0
                 ? 1.0
-                : AttachedReactor.CoreTemperature < coretempthreshold
+                : AttachedReactor.MaxCoreTemperature < coretempthreshold
                     ? (AttachedReactor.CoreTemperature + lowcoretempbase) / (coretempthreshold + lowcoretempbase)
                     : 1.0 + PluginHelper.HighCoreTempThrustMult * Math.Max(Math.Log10(AttachedReactor.CoreTemperature / coretempthreshold), 0);
         }
