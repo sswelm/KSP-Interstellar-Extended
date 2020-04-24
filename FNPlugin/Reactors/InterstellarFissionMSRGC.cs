@@ -49,7 +49,7 @@ namespace FNPlugin.Reactors
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
-        [KSPEvent(guiName = "#LOC_Dump_Actinides", guiActiveEditor = false, guiActive = true)]
+        [KSPEvent(guiName = "#LOC_KSPIE_FissionMSRGC_Dump_Actinides", guiActiveEditor = false, guiActive = true)]
         public void DumpActinides()
         {
             var actinides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
@@ -201,7 +201,7 @@ namespace FNPlugin.Reactors
 
         protected override void WindowReactorStatusSpecificOverride()
         {
-            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Actinides_Poisoning"), (100 - actinidesModifer * 100).ToString("0.000000") + "%", bold_style, text_style);
+            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_FissionMSRGC_Actinides_Poisoning"), (100 - actinidesModifer * 100).ToString("0.000000") + "%", bold_style, text_style);
         }
 
         public override double CoreTemperature
