@@ -1,14 +1,5 @@
-﻿using FNPlugin.Extensions;
-using FNPlugin.Power;
-using FNPlugin.Reactors;
-using FNPlugin.Redist;
-using FNPlugin.Wasteheat;
-using KSP.Localization;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using TweakScale;
 using UnityEngine;
 
 namespace FNPlugin.Powermanagement
@@ -33,7 +24,7 @@ namespace FNPlugin.Powermanagement
 
         private double megajoulesAfterLoad = 0;
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;

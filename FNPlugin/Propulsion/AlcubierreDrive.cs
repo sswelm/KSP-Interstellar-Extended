@@ -294,7 +294,7 @@ namespace FNPlugin
             holdAltitude = false;
             antigravityPercentage = 100;
 
-            UpdateAllWarpDrives();
+            UpdateAllWarpDriveEffects();
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_stopChargingDrive", active = false)]
@@ -305,7 +305,7 @@ namespace FNPlugin
             holdAltitude = false;
             antigravityPercentage = 0;
 
-            UpdateAllWarpDrives();
+            UpdateAllWarpDriveEffects();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_activateWarpDrive")]
@@ -463,7 +463,7 @@ namespace FNPlugin
             IsEnabled = true;
             activeTrail = true;
 
-            UpdateAllWarpDrives();
+            UpdateAllWarpDriveEffects();
 
             existing_warp_speed = selectedWarpSpeed;
         }
@@ -497,7 +497,7 @@ namespace FNPlugin
             alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
 
             // update visuals all warp drives
-            UpdateAllWarpDrives();
+            UpdateAllWarpDriveEffects();
 
             // Disable sound
             warp_sound.Stop();
@@ -1010,6 +1010,8 @@ namespace FNPlugin
 
             warpdriveType = originalName;
 
+            // update visuals all warp drives
+            UpdateAllWarpDriveEffects();
         }
 
         private void antigravityFloatChanged(BaseField field, object oldFieldValueObj)
@@ -1071,18 +1073,18 @@ namespace FNPlugin
 
             if (IsSlave) return;
 
-            UpdateAllWarpDrives();
+            UpdateAllWarpDriveEffects();
         }
 
-        private void UpdateAllWarpDrives()
+        private void UpdateAllWarpDriveEffects()
         {
             foreach (var drive in alcubierreDrives)
             {
-                drive.UpdateState(IsEnabled, IsCharging, IsEnabled && warpTrailTimeout == 0, selected_factor);
+                drive.UpdateEffect(IsEnabled, IsCharging, IsEnabled && warpTrailTimeout == 0, selected_factor);
             }
         }
 
-        private void UpdateState(bool isEnabled, bool isCharging, bool activeTrail, int selected_factor)
+        private void UpdateEffect(bool isEnabled, bool isCharging, bool activeTrail, int selected_factor)
         {
             this.activeTrail = activeTrail;
             this.selected_factor = selected_factor;
@@ -1674,7 +1676,7 @@ namespace FNPlugin
             // disable warp trail for 2 frames to prevent graphic glitches
             warpTrailTimeout = 2;
 
-            UpdateAllWarpDrives();
+            UpdateAllWarpDriveEffects();
         }
 
         private void Develocitize()
