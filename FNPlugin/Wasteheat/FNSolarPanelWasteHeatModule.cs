@@ -41,10 +41,6 @@ namespace FNPlugin
         public double sunAOA;
         [KSPField]
         public double calculatedEfficency;
-        //[KSPField(guiActive = true)]
-        //public float flowRate;
-        //[KSPField(guiActive = true)]
-        //public double _flowRate;
         [KSPField]
         public double kerbalism_nominalRate;
         [KSPField]
@@ -136,8 +132,8 @@ namespace FNPlugin
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, (double)(decimal)(_outputType == ResourceType.electricCharge ? _solarPanel.chargeRate * 0.001f : _solarPanel.chargeRate));
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)(decimal)(_outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * 1000));
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate * 0.001f : _solarPanel.chargeRate);
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * 1000);
                 _resourceBuffers.Init(part);
             }
 
@@ -210,19 +206,16 @@ namespace FNPlugin
 
             if (_outputType == ResourceType.other) return;
 
-            //_flowRate = _solarPanel._flowRate;
-            //flowRate = _solarPanel.flowRate;
             chargeRate = _solarPanel.chargeRate;
             efficiencyMult = _solarPanel.efficiencyMult;
             _efficMult = _solarPanel._efficMult;
 
             calculatedEfficency = _solarPanel._efficMult > 0 
                 ? _solarPanel._efficMult
-                : (double)(decimal)_solarPanel.temperatureEfficCurve.Evaluate((Single)part.skinTemperature) * (double)(decimal)_solarPanel.timeEfficCurve.Evaluate((Single)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * (double)(decimal)_solarPanel.efficiencyMult;
+                : _solarPanel.temperatureEfficCurve.Evaluate((float)part.skinTemperature) * _solarPanel.timeEfficCurve.Evaluate((float)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * _solarPanel.efficiencyMult;
             
             maxSupply = 0;
             solarRate = 0;
-
             sunAOA = 0;
             CalculateSolarFlowRate(calculatedEfficency / scale, ref maxSupply, ref solarRate);
 
@@ -233,10 +226,6 @@ namespace FNPlugin
                 part.RequestResource(_solarPanel.resourceName, kerbalism_panelPower * fixedDeltaTime);
             else if (outputResourceCurrentRequest > 0)
                 part.RequestResource(_solarPanel.resourceName, outputResourceCurrentRequest);
-            //else if (flowRate > 0)
-            //    part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
-            //else if (_flowRate> 0)
-            //    part.RequestResource(_solarPanel.resourceName, _flowRate * fixedDeltaTime);
             else
                 part.RequestResource(_solarPanel.resourceName, solarRate * fixedDeltaTime);
 
@@ -267,7 +256,7 @@ namespace FNPlugin
                 double sunAoa;
 
                 if (_solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT)
-                    sunAoa = (double)(decimal)Mathf.Clamp(Vector3.Dot(_solarPanel.trackingDotTransform.forward, trackDirection), 0f, 1f);
+                    sunAoa = Mathf.Clamp(Vector3.Dot(_solarPanel.trackingDotTransform.forward, trackDirection), 0f, 1f);
                 else if (_solarPanel.panelType != ModuleDeployableSolarPanel.PanelType.CYLINDRICAL)
                     sunAoa = 0.25;
                 else
@@ -280,7 +269,7 @@ namespace FNPlugin
                     else
                         direction = part.partTransform.right;
 
-                    sunAoa = (1d - (double)(decimal)Math.Abs(Vector3.Dot(direction, trackDirection))) * 0.318309873;
+                    sunAoa = (1d - Math.Abs(Vector3.Dot(direction, trackDirection))) * 0.318309873;
                 }
 
                 sunAOA += sunAoa;
@@ -290,13 +279,13 @@ namespace FNPlugin
 
         private static bool GetLineOfSight(ModuleDeployablePart solarPanel, StarLight star, Vector3d trackDir)
         {
-            var old = solarPanel.trackingBody;
+            var trackingBody = solarPanel.trackingBody;
             solarPanel.trackingTransformLocal = star.star.transform;
             solarPanel.trackingTransformScaled = star.star.scaledBody.transform;
             string blockingObject = "";
             var trackingLos = solarPanel.CalculateTrackingLOS(trackDir, ref blockingObject);
-            solarPanel.trackingTransformLocal = old.transform;
-            solarPanel.trackingTransformScaled = old.scaledBody.transform;
+            solarPanel.trackingTransformLocal = trackingBody.transform;
+            solarPanel.trackingTransformScaled = trackingBody.scaledBody.transform;
             return trackingLos;
         }
 
