@@ -197,10 +197,15 @@ namespace FNPlugin
                 double.TryParse(kerbalism_panelOutput, out kerbalism_panelPower);
             }
 
-            if (outputResource != null)
+            if (outputResource != null && _solarPanel.deployState == ModuleDeployablePart.DeployState.EXTENDED)
             {
                 outputResourceRate = outputResource.rate;
                 outputResourceCurrentRequest = outputResource.currentRequest;
+            }
+            else
+            {
+                outputResourceRate = 0;
+                outputResourceCurrentRequest = 0;
             }
 
             if (_outputType == ResourceType.other) return;
