@@ -72,7 +72,6 @@ namespace FNPlugin
         [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineIsp")]//Engine Isp
         protected double engineIsp;
         [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineFuelFlow")]//Engine Fuel Flow
-
         protected float engineFuelFlow;
         [KSPField(guiActive = false)]
         protected double chargedParticleRatio;
@@ -82,6 +81,8 @@ namespace FNPlugin
         protected double max_theoratical_fuel_flow_rate;
         [KSPField(guiActive = false)]
         protected double currentIsp;
+        [KSPField(guiActive = false)]
+        protected float currentThrust;
 
         //Internal
         UI_FloatRange simulatedThrottleFloatRange;
@@ -363,6 +364,7 @@ namespace FNPlugin
 
                 _max_charged_particles_power = currentMaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = exhaustAllowed && _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0;
+
                 _charged_particles_received = _charged_particles_requested > 0 ? consumeFNResourcePerSecond(_charged_particles_requested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
 
                 // update Isp
@@ -398,6 +400,14 @@ namespace FNPlugin
                         _charged_particles_received = 0;
                         _previous_charged_particles_received = 0;
                     }
+                }
+
+                if (_charged_particles_received == 0)
+                {
+                    _chargedParticleMaximumPercentageUsage = 0;
+
+                    UpdateRunningEffect();
+                    UpdatePowerEffect();
                 }
 
                 // calculate power cost
@@ -473,6 +483,7 @@ namespace FNPlugin
             } 
             else 
             {
+                _chargedParticleMaximumPercentageUsage = 0;
                 _attached_engine.maxFuelFlow = 0.0000000001f;
                 _recievedElectricPower = 0;
                 _charged_particles_requested = 0;
@@ -480,15 +491,27 @@ namespace FNPlugin
                 _engineMaxThrust = 0;
             }
 
-            if (!string.IsNullOrEmpty(runningEffectName))
-            {
-                var runningEffectRatio = exhaustAllowed && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
-                part.Effect(runningEffectName, runningEffectRatio, -1);
-            }
+            currentThrust = _attached_engine.GetCurrentThrust();
+
+            UpdateRunningEffect();
+            UpdatePowerEffect();
+        }
+
+        private void UpdatePowerEffect()
+        {
             if (!string.IsNullOrEmpty(powerEffectName))
             {
-                var powerEffectRatio = exhaustAllowed && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
+                var powerEffectRatio = exhaustAllowed && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 && currentThrust > 0 ? _attached_engine.currentThrottle : 0;
                 part.Effect(powerEffectName, powerEffectRatio, -1);
+            }
+        }
+
+        private void UpdateRunningEffect()
+        {
+            if (!string.IsNullOrEmpty(runningEffectName))
+            {
+                var runningEffectRatio = exhaustAllowed && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 && currentThrust > 0 ? _attached_engine.currentThrottle : 0;
+                part.Effect(runningEffectName, runningEffectRatio, -1);
             }
         }
 

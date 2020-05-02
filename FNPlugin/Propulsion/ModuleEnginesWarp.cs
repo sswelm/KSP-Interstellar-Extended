@@ -36,6 +36,10 @@ namespace FNPlugin
         [KSPField]
         public double demandMass;
         [KSPField]
+        public double remainingMass;
+
+
+        [KSPField]
         public double fuelRatio;
         [KSPField]
         private double averageDensityInTonPerLiter;
@@ -45,16 +49,33 @@ namespace FNPlugin
         private double ratioSumWithoutMass;
         [KSPField]
         private double ratioHeadingVersusRequest;
+        [KSPField]
+        public double totalmassVessel;
+        [KSPField]
+        public double massDelta;
+        [KSPField]
+        public double deltaV;
 
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
 
+        Transform _engineThrustTransform;
+        Vector3d _engineThrustTransformUp;
+
         protected double isp_d;
         protected double throttle_d;
 
+
+        [KSPField]
+        public double _realIsp;
+        [KSPField]
+        public double _thrustPersistent;
+        [KSPField]
+        public bool _getIgnitionState;
+        [KSPField]
+        public float _currentThrottle;
+
         // Persistent values to use during timewarp
-        double _ispPersistent;
-        double _thrustPersistent;
         double _throttlePersistent;
 
         int vesselChangedSIOCountdown;
@@ -86,6 +107,7 @@ namespace FNPlugin
 
         // Are we transitioning from timewarp to reatime?
         bool _warpToReal = false;
+
 
         public void VesselChangedSOI()
         {
@@ -276,13 +298,18 @@ namespace FNPlugin
             if (double.IsNaN(this.finalThrust) || double.IsInfinity(finalThrust))
                 Debug.LogWarning("[KSPI]: finalThrust  is " + finalThrust);
 
+            _realIsp = realIsp;
+            _currentThrottle = currentThrottle;
+            _getIgnitionState = getIgnitionState;
+
+            requestedFlow = this.requestedMassFlow;
+            totalmassVessel = this.vessel.totalMass;
+
             // Check if we are in time warp mode
             if (!vessel.packed)
             {
                 // allow throtle to be used up to Geeforce treshold
                 TimeWarp.GThreshold = GThreshold;
-
-                requestedFlow = this.requestedMassFlow;
 
                 demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
 
@@ -290,8 +317,6 @@ namespace FNPlugin
                 // Update values to use during timewarp
                 if (!_warpToReal)
                 {
-                    _ispPersistent = realIsp;
-
                     _throttlePersistent = vessel.ctrlState.mainThrottle;
 
                     if (_throttlePersistent == 0 && finalThrust < 0.0000005)
@@ -307,9 +332,7 @@ namespace FNPlugin
                 // Timewarp mode: perturb orbit using thrust
                 _warpToReal = true; // Set to true for transition to realtime
 
-                requestedFlow = this.requestedMassFlow;
-
-                _thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * realIsp;
+                _thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * _realIsp;
 
                 // only persist thrust if active and non zero throttle or significant thrust
                 if (getIgnitionState && (currentThrottle > 0 || _thrustPersistent > 0.0000005))
@@ -323,10 +346,20 @@ namespace FNPlugin
 
                     // determine maximum deltaV durring this frame
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
-                    var remainingMass = this.vessel.totalMass - demandMass;
-                    var deltaV = realIsp * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass);
+                    remainingMass = totalmassVessel - demandMass;
 
-                    double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
+                    deltaV = _realIsp * GameConstants.STANDARD_GRAVITY * Math.Log(totalmassVessel / remainingMass);
+
+                    _engineThrustTransform = this.part.FindModelTransform(thrustVectorTransformName);
+                    if (_engineThrustTransform == null)
+                    {
+                        _engineThrustTransform = this.part.transform;
+                        _engineThrustTransformUp = (Vector3d)_engineThrustTransform.up;
+                    }
+                    else
+                        _engineThrustTransformUp = (Vector3d)_engineThrustTransform.forward * -1;
+
+                    double persistentThrustDot = Vector3d.Dot(_engineThrustTransformUp, vessel.obt_velocity);
                     if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaV * 2))
                     {
                         var message = Localizer.Format("#LOC_KSPIE_ModuleEnginesWarp_PostMsg1");//"Thrust warp stopped - orbital speed too low"
@@ -339,11 +372,13 @@ namespace FNPlugin
                     fuelRatio = CollectFuel(demandMass, ResourceFlowMode.ALL_VESSEL);
 
                     // Calculate thrust and deltaV if demand output > 0
-                    if (IsPositiveValidNumber(fuelRatio) && IsPositiveValidNumber(demandMass) && IsPositiveValidNumber(this.vessel.totalMass) && IsPositiveValidNumber(_ispPersistent))
+                    if (IsPositiveValidNumber(fuelRatio) && IsPositiveValidNumber(demandMass) && IsPositiveValidNumber(totalmassVessel) && IsPositiveValidNumber(_realIsp))
                     {
                         remainingMass = this.vessel.totalMass - (demandMass * fuelRatio); // Mass at end of burn
-                        deltaV = _ispPersistent * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
-                        vessel.orbit.Perturb(deltaV * (Vector3d)this.part.transform.up, Planetarium.GetUniversalTime()); // Update vessel orbit
+
+                        massDelta = Math.Log(totalmassVessel / remainingMass);
+                        deltaV = _realIsp * GameConstants.STANDARD_GRAVITY * massDelta; // Delta V from burn
+                        vessel.orbit.Perturb(deltaV * _engineThrustTransformUp, Planetarium.GetUniversalTime()); // Update vessel orbit
 
                         if (fuelRatio < 0.999)
                         {
@@ -376,7 +411,7 @@ namespace FNPlugin
 
             // Update display numbers
             thrust_d = _thrustPersistent;
-            isp_d = _ispPersistent;
+            isp_d = _realIsp;
             throttle_d = _throttlePersistent;
         }
 
