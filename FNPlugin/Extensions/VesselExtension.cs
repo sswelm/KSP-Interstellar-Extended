@@ -67,11 +67,11 @@ namespace FNPlugin.Extensions
 
             if (requestedDirection == Vector3d.zero) return 1;
 
-            var ratioHeadingVersusRequest = Vector3d.Dot(engine.vessel.transform.up.normalized, requestedDirection);
+            var ratioHeadingVersusRequest = Vector3d.Dot(engine.transform.up.normalized, requestedDirection);
 
             if (forceRotation || ratioHeadingVersusRequest > 0.995)
             {
-                vessel.transform.Rotate(Quaternion.FromToRotation(engine.vessel.transform.up.normalized, requestedDirection).eulerAngles, Space.World);
+                vessel.transform.Rotate(Quaternion.FromToRotation(engine.transform.up.normalized, requestedDirection).eulerAngles, Space.World);
                 vessel.SetRotation(vessel.transform.rotation);
                 return 1;
             }
