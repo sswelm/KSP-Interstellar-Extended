@@ -43,5 +43,7 @@ namespace FNPlugin.Redist
         void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource);
 
         double RawMaximumPowerForPowerGeneration { get; }
+
+        double MaxCoreTemperature { get; }
     }
 }
