@@ -570,9 +570,14 @@ namespace FNPlugin
         public double[] current_power_distributed = new double[6];
         public double[] stable_power_distributed = new double[6];
 
+        public double getPowerNetChange()
+        {
+            return stored_supply - stored_resource_demand;
+        }
+
         public double getStoredSurplus()
         {
-            return Math.Max(0, stored_supply - stored_resource_demand);
+            return Math.Max(0, getPowerNetChange());
         }
 
         public double getCurrentSurplus()
@@ -1157,7 +1162,7 @@ namespace FNPlugin
                 else
                     return (power / 1000).ToString("0.00") + " GW";
             }
-            else if (power >= 1)
+            else if (absPower >= 1)
             {
                 if (absPower > 100)
                     return power.ToString("0") + " MW";
@@ -1280,7 +1285,7 @@ namespace FNPlugin
             GUILayout.Label(getPowerFormatString((double)stored_resource_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            double new_power_supply = getStoredSurplus();
+            double new_power_supply = getPowerNetChange();
             double net_utilisation_supply = getDemandStableSupply();
 
             GUILayout.BeginHorizontal();
@@ -1292,8 +1297,8 @@ namespace FNPlugin
             GUILayout.Label(getPowerFormatString(new_power_supply), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            if (!net_utilisation_supply.IsInfinityOrNaN() && 
-                (resource_name != ResourceManager.FNRESOURCE_MEGAJOULES || (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand / 2)))
+            if (!net_utilisation_supply.IsInfinityOrNaN() &&
+                (resource_name != ResourceManager.FNRESOURCE_MEGAJOULES || (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && (net_utilisation_supply < 2 || stored_supply >= stored_current_demand))))
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Utilisation"), left_bold_label, GUILayout.ExpandWidth(true));//"Utilisation"

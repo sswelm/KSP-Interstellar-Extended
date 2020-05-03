@@ -329,10 +329,19 @@ namespace FNPlugin
         }
 
         // FixedUpdate is also called in the Editor
-        public void FixedUpdate() 
+        public void FixedUpdate()
         {
             if (HighLogic.LoadedSceneIsEditor)
                 return;
+
+            UpdateRunningEffect();
+            UpdatePowerEffect();
+        }
+
+        
+        public override void OnFixedUpdate() 
+        {
+            base.OnFixedUpdate();
 
             if (_attached_engine == null)
                 return;
@@ -395,11 +404,11 @@ namespace FNPlugin
 
                         _previous_charged_particles_received = _charged_particles_received;
                     }
-                    else if (_previous_charged_particles_received > 0)
-                    {
-                        wasteheatConsumption = _previous_charged_particles_received;
-                        _previous_charged_particles_received = 0;
-                    }
+                    //else if (_previous_charged_particles_received > 0)
+                    //{
+                    //    wasteheatConsumption = _previous_charged_particles_received;
+                    //    _previous_charged_particles_received = 0;
+                    //}
                     else
                     {
                         wasteheatConsumption = 0;
@@ -421,7 +430,7 @@ namespace FNPlugin
                 // calculate power cost
                 var ispPowerCostMultiplier = 1 + max_power_multiplier - Math.Log10(currentIsp / minimum_isp);
                 var minimumEnginePower = _attached_reactor.MagneticNozzlePowerMult * _charged_particles_received * ispPowerCostMultiplier * 0.005 * Math.Max(_attached_reactor_distance, 1);
-                var neededBufferPower = Math.Min(Math.Max(powerBufferMax - powerBufferStore, 0), minimumEnginePower);
+                var neededBufferPower = Math.Min(getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES) ,  Math.Min(Math.Max(powerBufferMax - powerBufferStore, 0), minimumEnginePower));
                 _requestedElectricPower = minimumEnginePower + neededBufferPower;
 
                 _recievedElectricPower = CheatOptions.InfiniteElectricity || _requestedElectricPower == 0
@@ -500,27 +509,24 @@ namespace FNPlugin
             }
 
             currentThrust = _attached_engine.GetCurrentThrust();
-
-            UpdateRunningEffect();
-            UpdatePowerEffect();
         }
 
         private void UpdatePowerEffect()
         {
-            if (!string.IsNullOrEmpty(powerEffectName))
-            {
-                var powerEffectRatio = exhaustAllowed && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 && currentThrust > 0 ? _attached_engine.currentThrottle : 0;
-                part.Effect(powerEffectName, powerEffectRatio, -1);
-            }
+            if (string.IsNullOrEmpty(powerEffectName))
+                return;
+
+            var powerEffectRatio = exhaustAllowed && _attached_engine != null && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 && currentThrust > 0 ? _attached_engine.currentThrottle : 0;
+            part.Effect(powerEffectName, powerEffectRatio, -1);
         }
 
         private void UpdateRunningEffect()
         {
-            if (!string.IsNullOrEmpty(runningEffectName))
-            {
-                var runningEffectRatio = exhaustAllowed && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 && currentThrust > 0 ? _attached_engine.currentThrottle : 0;
-                part.Effect(runningEffectName, runningEffectRatio, -1);
-            }
+            if (string.IsNullOrEmpty(runningEffectName))
+                return;
+
+            var runningEffectRatio = exhaustAllowed && _attached_engine != null && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 && currentThrust > 0 ? _attached_engine.currentThrottle : 0;
+            part.Effect(runningEffectName, runningEffectRatio, -1);
         }
 
         // Note: does not seem to be called while in vab mode
