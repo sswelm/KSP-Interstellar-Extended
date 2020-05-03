@@ -83,6 +83,8 @@ namespace FNPlugin
         protected double currentIsp;
         [KSPField(guiActive = false)]
         protected float currentThrust;
+        [KSPField(guiActive = false)]
+        protected double wasteheatConsumption;
 
         //Internal
         UI_FloatRange simulatedThrottleFloatRange;
@@ -387,19 +389,25 @@ namespace FNPlugin
                 {
                     if (_attached_engine.isOperational && _attached_engine.currentThrottle > 0)
                     {
-                        consumeFNResourcePerSecond(_charged_particles_received, ResourceManager.FNRESOURCE_WASTEHEAT);
+                        wasteheatConsumption = _charged_particles_received > _previous_charged_particles_received 
+                            ? _charged_particles_received + (_charged_particles_received - _previous_charged_particles_received)
+                            : _charged_particles_received - (_previous_charged_particles_received - _charged_particles_received);
+
                         _previous_charged_particles_received = _charged_particles_received;
                     }
                     else if (_previous_charged_particles_received > 0)
                     {
-                        consumeFNResourcePerSecond(_previous_charged_particles_received, ResourceManager.FNRESOURCE_WASTEHEAT);
+                        wasteheatConsumption = _previous_charged_particles_received;
                         _previous_charged_particles_received = 0;
                     }
                     else
                     {
+                        wasteheatConsumption = 0;
                         _charged_particles_received = 0;
                         _previous_charged_particles_received = 0;
                     }
+
+                    consumeFNResourcePerSecond(wasteheatConsumption, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 if (_charged_particles_received == 0)

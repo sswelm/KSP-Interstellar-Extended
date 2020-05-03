@@ -141,6 +141,9 @@ namespace FNPlugin
         [KSPField]
         public bool showDetailedInfo = true;
 
+        [KSPField]
+        public bool controlWasteHeatBuffer = true;
+
         /// <summary>
         /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
         /// </summary>
@@ -485,10 +488,16 @@ namespace FNPlugin
             this.resources_to_supply = resources_to_supply;
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5, true));
+
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 1000 / powerOutputMultiplier));
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+
+            if (controlWasteHeatBuffer)
+            {
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5, true));
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            }
+
             resourceBuffers.Init(this.part);
 
             base.OnStart(state);
@@ -1313,7 +1322,9 @@ namespace FNPlugin
             if (!maintainsMegaWattPowerBuffer)
                 return;
 
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            if (controlWasteHeatBuffer)
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+
             if (maxStableMegaWattPower > 0)
             { 
                 _powerState = PowerStates.PowerOnline;
@@ -1368,7 +1379,9 @@ namespace FNPlugin
                 megawattBufferAmount = (minimumBufferSize * 50);
             }
             
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            if (controlWasteHeatBuffer)
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
             resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
             resourceBuffers.UpdateBuffers();

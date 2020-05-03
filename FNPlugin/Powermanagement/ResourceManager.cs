@@ -1265,7 +1265,7 @@ namespace FNPlugin
             GUILayout.Label(getPowerFormatString((double)stored_supply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand)
+            if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand / 2)
             {
                 var stored_supply_percentage = stored_supply != 0 ? stored_total_power_supplied / stored_supply : 0;
 
@@ -1293,7 +1293,7 @@ namespace FNPlugin
             GUILayout.EndHorizontal();
 
             if (!net_utilisation_supply.IsInfinityOrNaN() && 
-                (resource_name != ResourceManager.FNRESOURCE_MEGAJOULES || (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand)))
+                (resource_name != ResourceManager.FNRESOURCE_MEGAJOULES || (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand / 2)))
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Utilisation"), left_bold_label, GUILayout.ExpandWidth(true));//"Utilisation"
