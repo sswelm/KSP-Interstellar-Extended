@@ -144,10 +144,10 @@ namespace FNPlugin.Refinery
             return collectorsList.Where(m => m.bIsEnabled).Sum(m => m.resourceProduction);
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             dFixedDeltaTime = fixedDeltaTime;
-            _effectiveMaxPower = PowerRequirements * productionModidier;
+            _effectiveMaxPower = PowerRequirements * productionModifier;
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
 
