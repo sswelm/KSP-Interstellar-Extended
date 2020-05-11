@@ -675,10 +675,7 @@ namespace FNPlugin
 
             PartUpgradeHandler.Upgrade partUpgrade;
             if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
-            {
-                //Debug.Log("[KSPI]: found PARTUPGRADE " + id + ", checking techRequired " + partUpgrade.techRequired);
                 id = partUpgrade.techRequired;
-            }
 
             if (HighLogic.CurrentGame != null)
                 return !TechnologyIsInUse || HasTech(id);
