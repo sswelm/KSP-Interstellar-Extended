@@ -1,0 +1,37 @@
+[x] framework
+[x] liquid resources
+[x] stock tank defs
+[ ] better tank diversity (non-cryo)
+[x] cargo resources
+[x] radioactive resources
+[ ] gas resources
+[x] cryostats
+[x] NTO cryostat
+[ ] accurate cryo parameters
+[x] methalox ratio
+[x] cryo 3H decay to He
+[ ] gas 3H decay to He
+[ ] consistent dry mass
+[ ] HexCans
+[ ] Missing resources without CRP, or add CRP as hard dependency
+
+stock has 1:8 rocket fuel mass ratio
+I think the tank mass should be between about 1/2 of what it is in stock.
+Or balance the new mass so benchmark rocket would have same dV with kerlox as with stock.
+The benchmark rocket as 4563 vac dV stock. lfo 1:8 0.25t
+new: ???
+See: http://www.alternatewars.com/Games/KSP/Tut2/KSP_Tutorial_2-6.htm
+
+Realism holes:
+  - tank plumbing can be rewired in flight
+    - but, docking port already connects all resources in the vessel
+  - the common bulkhead "moves" when shitching tanks in flight
+
+Specialized, tanks
+  - liquid tanks without insulation and liquifiers
+    - have higher mass ratio
+
+Tanks missing config (probably):
+Hex segments
+hex core
+  - do not forget to remove fuel jetisson (is in framework)
