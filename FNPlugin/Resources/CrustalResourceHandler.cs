@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Resources
@@ -293,7 +292,8 @@ namespace FNPlugin.Resources
         {
             if (resourname == InterstellarResourcesConfiguration.Instance.Regolith)
             {
-                Debug.Log("[KSPI]: AddMissingResource : Ignored resource '" + resourname + "'");
+                Debug.Log("[KSPI]: AddMissingResource : Ignored Regolith");
+                return;
             }
 
             // verify it is a defined resource
@@ -381,6 +381,5 @@ namespace FNPlugin.Resources
                 CheckForLock = false
             });
         }
-
     }
 }
