@@ -178,12 +178,12 @@ namespace FNPlugin
                 if (plugin_settings.HasValue("Helium4GasResourceName"))
                 {
                     _helium4_gas = plugin_settings.GetValue("Helium4GasResourceName");
-                    Debug.Log("[KSPI]: Helium4 Gas resource name set to " + LqdHelium4);
+                    Debug.Log("[KSPI]: Helium4 Gas resource name set to " + Helium4Gas);
                 }
                 if (plugin_settings.HasValue("Helium3GasResourceName"))
                 {
                     _helium3_gas = plugin_settings.GetValue("Helium3GasResourceName");
-                    Debug.Log("[KSPI]: Helium3 Gas resource name set to " + LqdHelium4);
+                    Debug.Log("[KSPI]: Helium3 Gas resource name set to " + Helium3Gas);
                 }
                 if (plugin_settings.HasValue("HeliumResourceName"))
                 {
@@ -239,7 +239,7 @@ namespace FNPlugin
                 if (plugin_settings.HasValue("XenonGasResourceName"))
                 {
                     _xenongas = plugin_settings.GetValue("XenonGasResourceName");
-                    Debug.Log("[KSPI]: XenonGas resource name set to " + Regolith);
+                    Debug.Log("[KSPI]: XenonGas resource name set to " + XenonGas);
                 }
                 if (plugin_settings.HasValue("SolarWindResourceName"))
                 {
