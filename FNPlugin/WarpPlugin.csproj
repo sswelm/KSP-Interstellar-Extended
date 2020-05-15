@@ -92,6 +92,7 @@
     <Compile Include="Collectors\SolarWindCollector.cs" />
     <Compile Include="Collectors\UniversalCrustExtractor.cs" />
     <Compile Include="Extensions\Approximate.cs" />
+    <Compile Include="Extensions\BoolExtensions.cs" />
     <Compile Include="Extensions\Decimal.cs" />
     <Compile Include="Extensions\DoubleExtensions.cs" />
     <Compile Include="Extensions\VesselExtension.cs" />
