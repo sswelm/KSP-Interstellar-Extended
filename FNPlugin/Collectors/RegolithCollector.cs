@@ -1,9 +1,9 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Collectors
 {
@@ -40,12 +40,9 @@ namespace FNPlugin.Collectors
         protected string strReceivedPower = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Altitude", guiUnits = " m")]//Altitude
         protected string strAltitude = "";
-
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ResourceProduction", guiUnits = " Unit/s")]//Resource Production
         public double resourceProduction;
 
-        // internals
-        protected double dResourceFlow = 0;
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ActivateDrill", active = true)]//Activate Drill
         public void ActivateCollector()
@@ -92,7 +89,8 @@ namespace FNPlugin.Collectors
                 ActivateCollector();
         }
 
-        
+        protected string strRegolithResourceName;
+        protected double dResourceFlow = 0;
         protected double dDistanceFromStar = 0; // distance of the current vessel from the system's star
         protected double dConcentrationRegolith = 0; // regolith concentration at the current location
         protected double dRegolithSpareCapacity = 0; // spare capacity for the regolith on the vessel
@@ -103,6 +101,7 @@ namespace FNPlugin.Collectors
         uint counter = 0; // helper counter for update cycles, so that we can only do some calculations once in a while
         uint anotherCounter = 0; // helper counter for fixedupdate cycles, so that we can only do some calculations once in a while (I don't want to add complexity by using the previous counter in two places - also update and fixedupdate cycles can be out of sync, apparently)
         protected double dFinalConcentration;
+
         AbundanceRequest regolithRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
         {
             ResourceType = HarvestTypes.Planetary,
@@ -120,9 +119,13 @@ namespace FNPlugin.Collectors
             if (state == StartState.Editor) return; // collecting won't work in editor
 
             Debug.Log("[KSPI]: RegolithCollector on " + part.name + " was Force Activated");
-            this.part.force_activate();
+            part.force_activate();
 
             localStar = GetCurrentStar();
+
+            // gets density of the regolith resource
+            strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
+            dRegolithDensity = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(strRegolithResourceName).density;
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI part window so that it's less crowded
             var MAGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
@@ -247,27 +250,20 @@ namespace FNPlugin.Collectors
         // checks if the vessel is not in atmosphere and if it can therefore collect regolith. Also checks if the vessel is landed and if it is not splashed (not sure if non atmospheric bodies can have oceans in KSP or modded galaxies, let's put this in to be sure)
         private bool IsCollectLegal()
         {
-            bool bCanCollect = false;
-
-
             if (vessel.checkLanded() == false || vessel.checkSplashed() == true)
             {
                 strStarDist = UpdateDistanceInGUI();
                 strRegolithConc = "0";
-                return bCanCollect;
+                return false;
             }
-
-            else if (FlightGlobals.currentMainBody.atmosphere == true) // won't collect in atmosphere
+            else if (FlightGlobals.currentMainBody.atmosphere && FlightGlobals.currentMainBody.atmDensityASL * FlightGlobals.currentMainBody.atmosphereDepth > 7000) // won't collect in significant atmosphere
             {
                 strStarDist = UpdateDistanceInGUI();
                 strRegolithConc = "0";
-                return bCanCollect;
+                return false;
             }
             else
-            {
-                bCanCollect = true;
-                return bCanCollect; // all checks green, ok to collect
-            }
+                return true; // all checks green, ok to collect
         }
 
         // this snippet returns true if the part is extended
@@ -336,7 +332,9 @@ namespace FNPlugin.Collectors
              * still be at least SOME regolith to be mined.
              */
             double dAltModifier = (altitude + 500) / 2500;
-            double dConcentration =  dAltModifier * (dAvgMunDistance / (Vector3d.Distance(planetPosition, sunPosition))); // get a basic concentration. Should range from numbers lower than one for planets further away from the sun, to about 2.5 at Moho
+            double dAtmosphereModifier = Math.Pow(1 - FlightGlobals.currentMainBody.atmDensityASL, FlightGlobals.currentMainBody.atmosphereDepth * 0.001);
+
+            double dConcentration = dAtmosphereModifier * dAltModifier * (dAvgMunDistance / Vector3d.Distance(planetPosition, sunPosition)); // get a basic concentration. Should range from numbers lower than one for planets further away from the sun, to about 2.5 at Moho
             return dConcentration;
         }
 
@@ -361,12 +359,8 @@ namespace FNPlugin.Collectors
             //Debug.Log("Inside Collect function.");
             //dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
             dConcentrationRegolith = GetFinalConcentration();
-
-            string strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
+            
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
-
-            // gets density of the regolith resource
-            dRegolithDensity = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(strRegolithResourceName).density;
 
             var partsThatContainRegolith = part.GetConnectedResources(strRegolithResourceName);
             dRegolithSpareCapacity = partsThatContainRegolith.Sum(r => r.maxAmount - r.amount);
@@ -375,8 +369,6 @@ namespace FNPlugin.Collectors
             {
                 dConcentrationRegolith = dLastRegolithConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the above function CalculateRegolithConcentration correctly
             }
-
-
 
             if (dConcentrationRegolith > 0 && (dRegolithSpareCapacity > 0))
             {
@@ -440,9 +432,7 @@ namespace FNPlugin.Collectors
             {
                 dTotalWasteHeatProduction = dPowerRequirementsMW * wasteHeatModifier; // calculate amount of heat to be produced
                 supplyFNResourcePerSecond(dTotalWasteHeatProduction, ResourceManager.FNRESOURCE_WASTEHEAT); // push the heat onto them
-            }
-            
+            }            
         }
-
     }
 }
