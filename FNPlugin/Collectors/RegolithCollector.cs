@@ -98,6 +98,7 @@ namespace FNPlugin.Collectors
         protected double dTotalWasteHeatProduction = 0; // total waste heat produced in the cycle
         protected double dAltitude = 0; // current terrain altitude
         protected bool bTouchDown = false; // helper bool, is the part touching the ground
+
         uint counter = 0; // helper counter for update cycles, so that we can only do some calculations once in a while
         uint anotherCounter = 0; // helper counter for fixedupdate cycles, so that we can only do some calculations once in a while (I don't want to add complexity by using the previous counter in two places - also update and fixedupdate cycles can be out of sync, apparently)
         protected double dFinalConcentration;
@@ -105,7 +106,7 @@ namespace FNPlugin.Collectors
         AbundanceRequest regolithRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
         {
             ResourceType = HarvestTypes.Planetary,
-            ResourceName = "Regolith",
+            ResourceName = InterstellarResourcesConfiguration.Instance.Regolith,
             BodyId = 1, // this will need to be updated before 'sending the request'
             Latitude = 0, // this will need to be updated before 'sending the request'
             Longitude = 0, // this will need to be updated before 'sending the request'
@@ -341,23 +342,18 @@ namespace FNPlugin.Collectors
         // calculates the distance to sun
         private static double CalculateDistanceToSun(Vector3d vesselPosition, Vector3d sunPosition)
         {
-            double dDistance = Vector3d.Distance(vesselPosition, sunPosition);
-            return dDistance;
+            return Vector3d.Distance(vesselPosition, sunPosition);
         }
 
         // helper function for readying the distance for the GUI
         private string UpdateDistanceInGUI()
         {
-            string distance = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F0") + " km";
-            return distance;
+            return ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F0") + " km";
         }
-
 
         // the main collecting function
         private void CollectRegolith(double deltaTimeInSeconds, bool offlineCollecting)
         {
-            //Debug.Log("Inside Collect function.");
-            //dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
             dConcentrationRegolith = GetFinalConcentration();
             
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
