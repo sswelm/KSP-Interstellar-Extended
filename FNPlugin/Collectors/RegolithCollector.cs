@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
@@ -229,23 +230,20 @@ namespace FNPlugin.Collectors
             }
         }
 
-        /** 
-         * This function should allow this module to work in solar systems other than the vanilla KSP one as well. There are some instances where it will fail (systems with a black hole instead of a star etc).
-         * It checks current reference body's temperature at 0 altitude. If it is less than 2k K, it checks this body's reference body next and so on.
-         */
+        // find local star
         protected CelestialBody GetCurrentStar()
         {
             int iDepth = 0;
-            var star = FlightGlobals.currentMainBody;
-            while ((iDepth < 10) && (star.GetTemperature(0) < 2000))
+            var starsByBody = KopernicusHelper.StarsByBody;
+            var localStar = FlightGlobals.currentMainBody;
+
+            while ((iDepth < 10) && starsByBody.ContainsKey(localStar))
             {
-                star = star.referenceBody;
+                localStar = localStar.referenceBody;
                 iDepth++;
             }
-            if ((star.GetTemperature(0) < 2000) || (star.name == "Galactic Core"))
-                star = null;
 
-            return star;
+            return localStar;
         }
 
         // checks if the vessel is not in atmosphere and if it can therefore collect regolith. Also checks if the vessel is landed and if it is not splashed (not sure if non atmospheric bodies can have oceans in KSP or modded galaxies, let's put this in to be sure)
@@ -257,7 +255,7 @@ namespace FNPlugin.Collectors
                 strRegolithConc = "0";
                 return false;
             }
-            else if (FlightGlobals.currentMainBody.atmosphere && FlightGlobals.currentMainBody.atmDensityASL * FlightGlobals.currentMainBody.atmosphereDepth > 7000) // won't collect in significant atmosphere
+            else if (FlightGlobals.currentMainBody.atmosphere && (FlightGlobals.currentMainBody.atmDensityASL * FlightGlobals.currentMainBody.atmosphereDepth > 7000)) // won't collect in significant atmosphere
             {
                 strStarDist = UpdateDistanceInGUI();
                 strRegolithConc = "0";
@@ -358,13 +356,10 @@ namespace FNPlugin.Collectors
             
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
 
-            var partsThatContainRegolith = part.GetConnectedResources(strRegolithResourceName);
-            dRegolithSpareCapacity = partsThatContainRegolith.Sum(r => r.maxAmount - r.amount);
+            dRegolithSpareCapacity = part.GetConnectedResources(strRegolithResourceName).Sum(r => r.maxAmount - r.amount);
 
             if (offlineCollecting)
-            {
                 dConcentrationRegolith = dLastRegolithConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the above function CalculateRegolithConcentration correctly
-            }
 
             if (dConcentrationRegolith > 0 && (dRegolithSpareCapacity > 0))
             {

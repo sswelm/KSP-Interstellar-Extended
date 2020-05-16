@@ -186,7 +186,7 @@ namespace FNPlugin.Resources
             var homePlanetSun = Planetarium.fetch.Sun;
             if (!stars.Any(m => m.star.name == homePlanetSun.name))
             {
-                Debug.LogWarning(debugPrefix + "homeplanet star was not found, adding homeplanet star as default sun");
+                Debug.LogWarning(debugPrefix + "homeplanet localStar was not found, adding homeplanet localStar as default sun");
                 stars.Add(new StarLight() { star = Planetarium.fetch.Sun, relativeLuminocity = 1 });
             }
 
