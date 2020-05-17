@@ -32,13 +32,13 @@ namespace FNPlugin.Powermanagement
         public float electricSupplyPriority = 5;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_SpareMWCapacity",  guiUnits = " MW", guiFormat = "F3")]//Spare MW Capacity
         public double spareResourceCapacity;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_Remainingsupplylifetime", guiUnits = " s", guiFormat = "F0")]//Remaining supply lifetime
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Remainingsupplylifetime", guiUnits = " s", guiFormat = "F0")]//Remaining supply lifetime
         public double batterySupplyRemaining;
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Power
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Power
         public double currentMaxPower = 1;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_PowerSupply", guiUnits = " MW", guiFormat = "F3")]//Power Supply
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_PowerSupply", guiUnits = " MW", guiFormat = "F3")]//Power Supply
         public double powerSupply;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_Wasteheat", guiUnits = " MJ", guiFormat = "F3")]//Wasteheat
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Wasteheat", guiUnits = " MJ", guiFormat = "F3")]//Wasteheat
         public double wasteheat;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = " MW", guiFormat = "F4")]
@@ -46,8 +46,12 @@ namespace FNPlugin.Powermanagement
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Surplus", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = true, guiUnits = " MW", guiFormat = "F4")]
         public double powerSurplus;
+        [KSPField(isPersistant = false, guiActive = false, guiFormat = "F4")]
+        public double effectiveFuelRatio;
+        [KSPField(isPersistant = false, guiActive = false, guiUnits = " MW", guiFormat = "F4")]
+        public double effectiveMaxPower;
 
         // privates
         List<string> inputResourceNames;
@@ -101,9 +105,10 @@ namespace FNPlugin.Powermanagement
                 if (currentBatteryResource != null)
                 {
                     var currentInputConversionRate = inputResourceRate[i];
+
                     currentRequestedConsumptionRate = electrical_power_currently_needed * currentInputConversionRate;
                     currentFixedConsumption = currentRequestedConsumptionRate * fixedDeltaTime;
-                    var currentFuelRatio = currentFixedConsumption == 0 ? 0 : currentBatteryResource.amount / currentFixedConsumption;
+                    var currentFuelRatio = currentFixedConsumption == 0 ? 1 : currentBatteryResource.amount / currentFixedConsumption;
 
                     if (currentFuelRatio < fuelRatio)
                         fuelRatio = currentFuelRatio;
@@ -117,8 +122,10 @@ namespace FNPlugin.Powermanagement
                 }
             }
 
-            var effectiveFuelRatio = Math.Min(1, fuelRatio);
+            effectiveFuelRatio = Math.Min(1, fuelRatio);
             var rawPowerSupply = effectiveFuelRatio * electrical_power_currently_needed;
+
+            effectiveMaxPower = currentMaxPower * efficiency * effectiveFuelRatio;
             
 
             powerSupply = efficiency * rawPowerSupply;
@@ -130,7 +137,7 @@ namespace FNPlugin.Powermanagement
                 requestedPower = 0;
                 consumedPower = 0;
 
-                supplyFNResourcePerSecondWithMax(powerSupply, currentMaxPower * efficiency * effectiveFuelRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
+                supplyFNResourcePerSecondWithMax(powerSupply, effectiveMaxPower, ResourceManager.FNRESOURCE_MEGAJOULES);
                 if (inefficiency > 0)
                     supplyFNResourcePerSecondWithMax(wasteheat, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
             }
@@ -165,7 +172,9 @@ namespace FNPlugin.Powermanagement
             }
             else
             {
-                // nothing yet
+                supplyFNResourcePerSecondWithMax(0, effectiveMaxPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                if (inefficiency > 0)
+                    supplyFNResourcePerSecondWithMax(wasteheat, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
             }
         }
 
