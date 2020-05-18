@@ -6,7 +6,7 @@ namespace FNPlugin.Refinery
     {
         public double ProductionRate { get { return _current_rate; } }
 
-        double _efficiency = 0.01149;
+        private double _efficiency = 0.01149;   // base efficiency
 
         public double Efficiency { get { return _efficiency;}}
 
@@ -31,8 +31,8 @@ namespace FNPlugin.Refinery
             if (PluginHelper.UpgradeAvailable("ScienceLabUpgradeE"))
                 techLevel++;
 
-            if (techLevel == 5)
-                _efficiency /= 50;
+            if (techLevel >= 5)
+                _efficiency /= 20;
             if (techLevel == 4)
                 _efficiency /= 100;
             else if (techLevel == 3)
