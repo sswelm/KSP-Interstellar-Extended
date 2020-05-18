@@ -2,6 +2,7 @@
 using System;
 using UnityEngine;
 using KSP.Localization;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -14,6 +15,11 @@ namespace FNPlugin
         // Persistant
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_IFS_Cryostat_Cooling"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_On", enabledText = "#LOC_IFS_Cryostat_Off")]//Cooling--On--Off
         public bool isDisabled = false;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_IFS_Cryostat_PowerBuffer"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_On", enabledText = "#LOC_IFS_Cryostat_Off")]//Cooling--On--Off
+        public bool maintainElectricChargeBuffer = true;
+
+        [KSPField(isPersistant = true)]
+        public bool autoConfigElectricChargeBuffer = true;
         [KSPField(isPersistant = true)]
         public double storedTemp = 0;
 
@@ -51,7 +57,7 @@ namespace FNPlugin
 
         //GUI
         [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Power")]//Power
-        public string powerStatusStr = String.Empty;
+        public string powerStatusStr = string.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Boiloff")]//Boiloff
         public string boiloffStr;
         [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Temperature", guiFormat = "F3", guiUnits = " K")]//Temperature
@@ -88,7 +94,14 @@ namespace FNPlugin
             externalTemperatureField = Fields["externalTemperature"];
 
             if (state == StartState.Editor)
+            {
+                if (autoConfigElectricChargeBuffer)
+                {
+                    maintainElectricChargeBuffer = part.Resources.Contains("ElectricCharge").IsFalse();
+                    autoConfigElectricChargeBuffer = false;
+                }
                 return;
+            }
 
             part.temperature = storedTemp;
             part.skinTemperature = storedTemp;
@@ -103,13 +116,19 @@ namespace FNPlugin
                 part.AddResource(node);
             }
 
-            resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.ElectricCharge, 2));
-            resourceBuffers.Init(this.part);
+            if (maintainElectricChargeBuffer)
+            {
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.ElectricCharge, 2));
+                resourceBuffers.Init(this.part);
+            }
         }
 
         private void UpdateElectricChargeBuffer(double currentPowerUsage)
         {
+            if (resourceBuffers == null)
+                return;
+
             resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ElectricCharge, currentPowerUsage);
             resourceBuffers.UpdateBuffers();
         }
