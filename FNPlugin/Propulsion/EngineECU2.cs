@@ -736,6 +736,8 @@ namespace FNPlugin
 
         [KSPField]
         public double maxAtmosphereDensity = -1;
+        [KSPField]
+        public double minIsp = 100;
 
         [KSPField]
         public bool atmChangeFlow = false;

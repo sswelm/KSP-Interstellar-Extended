@@ -488,9 +488,22 @@ namespace FNPlugin
             curEngineT.requestedThrottle = 0;
 
             ScreenMessages.PostScreenMessage(reason, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+            HideExhaust();
+        }
+
+        private void HideExhaust()
+        {
             foreach (var fxGroup in part.fxGroups)
             {
                 fxGroup.setActive(false);
+            }
+        }
+
+        private void ShowExhaust()
+        {
+            foreach (var fxGroup in part.fxGroups)
+            {
+                fxGroup.setActive(true);
             }
         }
 
@@ -620,12 +633,14 @@ namespace FNPlugin
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg1"), 1.0f, ScreenMessageStyle.UPPER_CENTER);
                     curEngineT.maxFuelFlow = 1e-10f;
                     curEngineT.maxThrust = 1e-10f;
+                    HideExhaust();
                 }
-                else if (MinIsp < 100)
+                else if (MinIsp < _currentActiveConfiguration.minIsp)
                 {
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg3"), 1.0f, ScreenMessageStyle.UPPER_CENTER);
                     curEngineT.maxFuelFlow = 1e-10f;
                     curEngineT.maxThrust = 1e-10f;
+                    HideExhaust();
                 }
                 else
                 {
@@ -661,11 +676,13 @@ namespace FNPlugin
                 {
                     curEngineT.maxFuelFlow = 1e-10f;
                     curEngineT.maxThrust = 1e-10f;
+                    HideExhaust();
                 }
-                else if (MinIsp < 100)
+                else if (MinIsp < _currentActiveConfiguration.minIsp)
                 {
                     curEngineT.maxFuelFlow = 1e-10f;
                     curEngineT.maxThrust = 1e-10f;
+                    HideExhaust();
                 }
                 else
                 {
