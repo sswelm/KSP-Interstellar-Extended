@@ -735,6 +735,9 @@ namespace FNPlugin
         public string ignoreForThrustCurve = "";
 
         [KSPField]
+        public double maxAtmosphereDensity = -1;
+
+        [KSPField]
         public bool atmChangeFlow = false;
         [KSPField]
         public bool useVelCurve = false;

@@ -43,7 +43,7 @@ namespace FNPlugin
         [KSPField]
         public bool selectableIsp = false;
         [KSPField]
-        public double maxAtmosphereDensity = 0.001;
+        public double maxAtmosphereDensity = -1;
         [KSPField]
         public double leathalDistance = 2000;
         [KSPField]
@@ -560,16 +560,16 @@ namespace FNPlugin
 
             if (curEngineT == null || !curEngineT.isEnabled) return;
 
-            if (curEngineT.currentThrottle > 0)
+            if (curEngineT.requestedThrottle > 0)
             {
-                if (maxAtmosphereDensity >= 0 && vessel.atmDensity > maxAtmosphereDensity)
-                    ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg1"));//"Inertial Fusion cannot operate in atmosphere!"
+                //if (vessel.atmDensity > maxAtmosphereDensity || vessel.atmDensity > _currentActiveConfiguration.maxAtmosphereDensity)
+                //    ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg1"));//"Inertial Fusion cannot operate in atmosphere!"
 
                 if (radhazard && rad_safety_features)
                     ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg2"));//"Engines throttled down as they presently pose a radiation hazard"
 
-                if (SelectedIsp <= 10)
-                    ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg3"));//"Engine Stall"
+                //if (MinIsp <= 100)
+                //    ShutDown(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg3"));//"Engine Stall"
             }
 
             KillKerbalsWithRadiation(fusionRatio);
@@ -614,8 +614,24 @@ namespace FNPlugin
                 // Update FuelFlow
                 maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
 
-                curEngineT.maxFuelFlow = (float)maxFuelFlow;
-                curEngineT.maxThrust = (float)maximumThrust;
+                if ((maxAtmosphereDensity >= 0 && vessel.atmDensity > maxAtmosphereDensity)
+                      || (_currentActiveConfiguration.maxAtmosphereDensity >= 0 && vessel.atmDensity > _currentActiveConfiguration.maxAtmosphereDensity))
+                {
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg1"), 1.0f, ScreenMessageStyle.UPPER_CENTER);
+                    curEngineT.maxFuelFlow = 1e-10f;
+                    curEngineT.maxThrust = 1e-10f;
+                }
+                else if (MinIsp < 100)
+                {
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg3"), 1.0f, ScreenMessageStyle.UPPER_CENTER);
+                    curEngineT.maxFuelFlow = 1e-10f;
+                    curEngineT.maxThrust = 1e-10f;
+                }
+                else
+                {
+                    curEngineT.maxFuelFlow = Mathf.Max((float)maxFuelFlow, 1e-10f);
+                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 1e-10f);
+                }
 
                 if (!curEngineT.getFlameoutState && fusionRatio < 0.9 && recievedPowerPerSecond > 0)
                     curEngineT.status = Localizer.Format("#LOC_KSPIE_FusionECU2_statu1");//"Insufficient Electricity"
@@ -640,8 +656,22 @@ namespace FNPlugin
 
                 maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
 
-                curEngineT.maxFuelFlow = (float)maxFuelFlow;
-                curEngineT.maxThrust = (float)maximumThrust;
+                if ((maxAtmosphereDensity >= 0 && vessel.atmDensity > maxAtmosphereDensity)
+                    || (_currentActiveConfiguration.maxAtmosphereDensity >= 0 && vessel.atmDensity > _currentActiveConfiguration.maxAtmosphereDensity))
+                {
+                    curEngineT.maxFuelFlow = 1e-10f;
+                    curEngineT.maxThrust = 1e-10f;
+                }
+                else if (MinIsp < 100)
+                {
+                    curEngineT.maxFuelFlow = 1e-10f;
+                    curEngineT.maxThrust = 1e-10f;
+                }
+                else
+                {
+                    curEngineT.maxFuelFlow = Mathf.Max((float)maxFuelFlow, 1e-10f);
+                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 1e-10f);
+                }
 
                 SetRatios();
             }
