@@ -632,20 +632,20 @@ namespace FNPlugin
                 {
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg1"), 1.0f, ScreenMessageStyle.UPPER_CENTER);
                     curEngineT.maxFuelFlow = 1e-10f;
-                    curEngineT.maxThrust = 1e-10f;
+                    curEngineT.maxThrust = 0.0001f;
                     HideExhaust();
                 }
                 else if (MinIsp < _currentActiveConfiguration.minIsp)
                 {
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg3"), 1.0f, ScreenMessageStyle.UPPER_CENTER);
                     curEngineT.maxFuelFlow = 1e-10f;
-                    curEngineT.maxThrust = 1e-10f;
+                    curEngineT.maxThrust = 0.0001f;
                     HideExhaust();
                 }
                 else
                 {
                     curEngineT.maxFuelFlow = Mathf.Max((float)maxFuelFlow, 1e-10f);
-                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 1e-10f);
+                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 0.0001f);
                 }
 
                 if (!curEngineT.getFlameoutState && fusionRatio < 0.9 && recievedPowerPerSecond > 0)
@@ -675,19 +675,19 @@ namespace FNPlugin
                     || (_currentActiveConfiguration.maxAtmosphereDensity >= 0 && vessel.atmDensity > _currentActiveConfiguration.maxAtmosphereDensity))
                 {
                     curEngineT.maxFuelFlow = 1e-10f;
-                    curEngineT.maxThrust = 1e-10f;
+                    curEngineT.maxThrust = 0.0001f;
                     HideExhaust();
                 }
                 else if (MinIsp < _currentActiveConfiguration.minIsp)
                 {
                     curEngineT.maxFuelFlow = 1e-10f;
-                    curEngineT.maxThrust = 1e-10f;
+                    curEngineT.maxThrust = 0.0001f;
                     HideExhaust();
                 }
                 else
                 {
                     curEngineT.maxFuelFlow = Mathf.Max((float)maxFuelFlow, 1e-10f);
-                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 1e-10f);
+                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 0.0001f);
                 }
 
                 SetRatios();

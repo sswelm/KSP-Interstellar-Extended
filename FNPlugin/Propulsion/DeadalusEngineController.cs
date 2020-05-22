@@ -71,7 +71,7 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_temperatureStr")]
         public string temperatureStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiUnits = " m/s")]
-        public double speedOfLight;
+        public double engineSpeedOfLight;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio = 0;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_relativity", guiFormat = "F10")]
@@ -179,23 +179,23 @@ namespace FNPlugin
         public string guiPowerMk9;
 
         [KSPField]
-        public float wasteheatMk1 = 2500;
+        public float wasteheatMk1 = 0;
         [KSPField]
-        public float wasteheatMk2 = 2500;
+        public float wasteheatMk2 = 0;
         [KSPField]
-        public float wasteheatMk3 = 2500;
+        public float wasteheatMk3 = 0;
         [KSPField]
-        public float wasteheatMk4 = 2500;
+        public float wasteheatMk4 = 0;
         [KSPField]
-        public float wasteheatMk5 = 2500;
+        public float wasteheatMk5 = 0;
         [KSPField]
-        public float wasteheatMk6 = 2500;
+        public float wasteheatMk6 = 0;
         [KSPField]
-        public float wasteheatMk7 = 2500;
+        public float wasteheatMk7 = 0;
         [KSPField]
-        public float wasteheatMk8 = 2500;
+        public float wasteheatMk8 = 0;
         [KSPField]
-        public float wasteheatMk9 = 2500;
+        public float wasteheatMk9 = 0;
 
         [KSPField]
         public double powerRequirementMk1 = 0;
@@ -215,6 +215,25 @@ namespace FNPlugin
         public double powerRequirementMk8 = 0;
         [KSPField]
         public double powerRequirementMk9 = 0;
+
+        [KSPField]
+        public double powerProductionMk1 = 0;
+        [KSPField]
+        public double powerProductionMk2 = 0;
+        [KSPField]
+        public double powerProductionMk3 = 0;
+        [KSPField]
+        public double powerProductionMk4 = 0;
+        [KSPField]
+        public double powerProductionMk5 = 0;
+        [KSPField]
+        public double powerProductionMk6 = 0;
+        [KSPField]
+        public double powerProductionMk7 = 0;
+        [KSPField]
+        public double powerProductionMk8 = 0;
+        [KSPField]
+        public double powerProductionMk9 = 0;
 
         [KSPField]
         public double thrustIspMk1 = 83886;
@@ -451,6 +470,34 @@ namespace FNPlugin
             }
         }
 
+        public double PowerProduction
+        {
+            get
+            {
+                switch (_engineGenerationType)
+                {
+                    case (int)GenerationType.Mk1:
+                        return powerProductionMk1;
+                    case (int)GenerationType.Mk2:
+                        return powerProductionMk2;
+                    case (int)GenerationType.Mk3:
+                        return powerProductionMk3;
+                    case (int)GenerationType.Mk4:
+                        return powerProductionMk4;
+                    case (int)GenerationType.Mk5:
+                        return powerProductionMk5;
+                    case (int)GenerationType.Mk6:
+                        return powerProductionMk6;
+                    case (int)GenerationType.Mk7:
+                        return powerProductionMk7;
+                    case (int)GenerationType.Mk8:
+                        return powerProductionMk8;
+                    default:
+                        return powerProductionMk9;
+                }
+            }
+        }
+
         public double RawEngineIsp
         {
             get
@@ -479,21 +526,14 @@ namespace FNPlugin
             }
         }
 
-        public double EngineIsp
-        {
-            get
-            {
-                return RawEngineIsp * ispMultiplier * Math.Pow(part.mass / partMass, massIspExp);
-            }
-        }
+        public double EngineIsp { get { return RawEngineIsp * ispMultiplier * Math.Pow(part.mass / partMass, massIspExp); } }
 
-        private double EffectivePowerRequirement
-        {
-            get
-            {
-                return PowerRequirement * powerRequirementMultiplier;
-            }
-        }
+        private double EffectiveMaxPowerRequirement { get { return PowerRequirement * powerRequirementMultiplier; } }
+
+        private double EffectiveMaxPowerProduction { get { return PowerProduction * powerRequirementMultiplier; } }
+
+        private double EffectiveMaxFusionWasteHeat { get { return FusionWasteHeat * wasteHeatMultiplier; } }
+
 
         public void upgradePartModule()
         {
@@ -506,8 +546,12 @@ namespace FNPlugin
         {
             try
             {
+                String[] resources_to_supply = { ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_MEGAJOULES };
+                this.resources_to_supply = resources_to_supply;
+                base.OnStart(state);
+
                 stopWatch = new Stopwatch();
-                speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
+                engineSpeedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
 
                 UpdateFuelFactors();
 
@@ -826,7 +870,7 @@ namespace FNPlugin
                 radhazardstr = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_radhazardstr3");//"None."
             }
 
-            Fields["powerUsage"].guiActive = EffectivePowerRequirement > 0;
+            Fields["powerUsage"].guiActive = EffectiveMaxPowerRequirement > 0;
         }
 
         private void ShutDown(string reason)
@@ -855,7 +899,7 @@ namespace FNPlugin
             {
                 worldSpaceVelocity = vessel.orbit.GetFrameVel().magnitude;
 
-                lightSpeedRatio = Math.Min(worldSpaceVelocity / speedOfLight, 0.9999999999);
+                lightSpeedRatio = Math.Min(worldSpaceVelocity / engineSpeedOfLight, 0.9999999999);
 
                 timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
 
@@ -954,8 +998,8 @@ namespace FNPlugin
                         this.part.Effect(effectName, (float)(throttle * fusionRatio), -1);
 
                     // Update FuelFlow
-                    effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
-                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+                    effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
+                    calculatedFuelflow = (fusionRatio * effectiveMaxThrustInKiloNewton) / effectiveIsp / GameConstants.STANDARD_GRAVITY;
                     massFlowRateKgPerSecond = thrustRatio * curEngineT.currentThrottle * calculatedFuelflow * 0.001;
 
                     if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
@@ -984,8 +1028,8 @@ namespace FNPlugin
                         TimeWarp.SetRate(0, true);
                     }
 
-                    effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
-                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+                    effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
+                    calculatedFuelflow = fusionRatio * effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
                     massFlowRateKgPerSecond = calculatedFuelflow * 0.001;
 
                     if (TimeWarp.fixedDeltaTime > 20)
@@ -1021,7 +1065,7 @@ namespace FNPlugin
                     if (!String.IsNullOrEmpty(effectName))
                         this.part.Effect(effectName, 0, -1);
 
-                    powerUsage = "0.000 GW / " + (EffectivePowerRequirement * 0.001).ToString("0.000") + " GW";
+                    powerUsage = "0.000 GW / " + (EffectiveMaxPowerRequirement * 0.001).ToString("0.000") + " GW";
 
                     if (!(percentageFuelRemaining > (100 - fuelLimit) || lightSpeedRatio > speedLimit))
                     {
@@ -1032,10 +1076,11 @@ namespace FNPlugin
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
                     calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
                     massFlowRateKgPerSecond = 0;
+                    fusionRatio = 0;
                 }
 
-                curEngineT.maxFuelFlow = (float)calculatedFuelflow;
-                curEngineT.maxThrust = (float)effectiveMaxThrustInKiloNewton;
+                curEngineT.maxFuelFlow = Mathf.Max((float)calculatedFuelflow,  1e-10f);
+                curEngineT.maxThrust =  Mathf.Max((float)effectiveMaxThrustInKiloNewton, 0.0001f);
                 
                 massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
                 thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * GameConstants.STANDARD_GRAVITY * 1e-12;
@@ -1144,13 +1189,15 @@ namespace FNPlugin
         private double ProcessPowerAndWasteHeat(float requestedThrottle)
         {
             // Calculate Fusion Ratio
-            var effectivePowerRequirement = EffectivePowerRequirement;
+            var effectiveMaxPowerRequirement = EffectiveMaxPowerRequirement;
+            var effectiveMaxPowerProduction = EffectiveMaxPowerProduction;
+            var effectiveMaxFusionWasteHeat = EffectiveMaxFusionWasteHeat;
 
             var wasteheatRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_WASTEHEAT);
 
             var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10;
 
-            var requestedPower = requestedThrottle * effectivePowerRequirement * wasteheatModifier;
+            var requestedPower = requestedThrottle * effectiveMaxPowerRequirement * wasteheatModifier;
 
             finalRequestedPower = requestedPower * wasteheatModifier;
 
@@ -1158,13 +1205,16 @@ namespace FNPlugin
                 ? finalRequestedPower
                 : consumeFNResourcePerSecond(finalRequestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            var plasmaRatio = requestedPower > 0 ? recievedPower / requestedPower : wasteheatModifier;
+            var plasmaRatio = !requestedPower.IsInfinityOrNaNorZero() && !recievedPower.IsInfinityOrNaNorZero() ? Math.Min(1, recievedPower / requestedPower) : 0;
 
             powerUsage = (recievedPower * 0.001).ToString("0.000") + " GW / " + (requestedPower * 0.001).ToString("0.000") + " GW";
 
             // The Aborbed wasteheat from Fusion production and reaction
-            if (!CheatOptions.IgnoreMaxTemperature)
-                supplyFNResourcePerSecond(requestedThrottle * plasmaRatio * FusionWasteHeat * wasteHeatMultiplier, ResourceManager.FNRESOURCE_WASTEHEAT);
+            if (!CheatOptions.IgnoreMaxTemperature && effectiveMaxFusionWasteHeat > 0)
+                supplyFNResourcePerSecondWithMax(requestedThrottle * plasmaRatio * effectiveMaxFusionWasteHeat, effectiveMaxFusionWasteHeat, ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            if (!CheatOptions.InfiniteElectricity && effectiveMaxPowerProduction > 0)
+                supplyFNResourcePerSecondWithMax(requestedThrottle * plasmaRatio * effectiveMaxPowerProduction, effectiveMaxPowerProduction, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             return plasmaRatio;
         }
