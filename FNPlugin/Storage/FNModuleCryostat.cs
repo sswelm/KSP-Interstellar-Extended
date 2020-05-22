@@ -15,7 +15,7 @@ namespace FNPlugin
         // Persistant
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_IFS_Cryostat_Cooling"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_On", enabledText = "#LOC_IFS_Cryostat_Off")]//Cooling--On--Off
         public bool isDisabled = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_IFS_Cryostat_PowerBuffer"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_On", enabledText = "#LOC_IFS_Cryostat_Off")]//Cooling--On--Off
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Cryostat_PowerBuffer"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_Off", enabledText = "#LOC_IFS_Cryostat_On")]//Cooling--On--Off
         public bool maintainElectricChargeBuffer = true;
 
         [KSPField(isPersistant = true)]
@@ -69,6 +69,7 @@ namespace FNPlugin
         private BaseField boiloffStrField;
         private BaseField powerStatusStrField;
         private BaseField externalTemperatureField;
+        private BaseField maintainElectricChargeBufferField;
             
         private double environmentBoiloff;
         private double environmentFactor;
@@ -92,12 +93,19 @@ namespace FNPlugin
             boiloffStrField = Fields["boiloffStr"];
             powerStatusStrField = Fields["powerStatusStr"];
             externalTemperatureField = Fields["externalTemperature"];
+            maintainElectricChargeBufferField = Fields["maintainElectricChargeBuffer"];
 
             if (state == StartState.Editor)
             {
                 if (autoConfigElectricChargeBuffer)
                 {
-                    maintainElectricChargeBuffer = part.Resources.Contains("ElectricCharge").IsFalse();
+                    var exitingElectricCharge = part.Resources["ElectricCharge"];
+
+                    bool hasHigherThanDefaultBuffer = exitingElectricCharge != null && exitingElectricCharge.maxAmount > powerReqKW / 50;
+
+                    //Debug.Log("[KSPI]: FNModuleCryostat: hasHigherThanDefaultBuffer: " + hasHigherThanDefaultBuffer);
+
+                    maintainElectricChargeBuffer = hasHigherThanDefaultBuffer.IsFalse();
                     autoConfigElectricChargeBuffer = false;
                 }
                 return;
@@ -111,8 +119,8 @@ namespace FNPlugin
             {
                 ConfigNode node = new ConfigNode("RESOURCE");
                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.ElectricCharge);
-                node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
-                node.AddValue("amount", powerReqKW > 0  ? powerReqKW / 50 : 1);
+                node.AddValue("maxAmount", requiresPower ? powerReqKW / 50 : 1);
+                node.AddValue("amount", requiresPower ? powerReqKW / 50 : 1);
                 part.AddResource(node);
             }
 
@@ -146,10 +154,12 @@ namespace FNPlugin
                 if (HighLogic.LoadedSceneIsEditor)
                 {
                     isDisabledField.guiActiveEditor = true;
+                    maintainElectricChargeBufferField.guiActiveEditor = true;
                     return;
                 }
 
-                isDisabledField.guiActive = powerReqKW > 0;
+                isDisabledField.guiActive = requiresPower;
+                maintainElectricChargeBufferField.guiActive = requiresPower;
 
                 bool coolingIsRelevant = cryostat_resource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
 
@@ -192,9 +202,15 @@ namespace FNPlugin
                 powerStatusStrField.guiActive = false;
 
                 if (HighLogic.LoadedSceneIsEditor)
+                {
                     isDisabledField.guiActiveEditor = false;
+                    maintainElectricChargeBufferField.guiActiveEditor = false;
+                }
                 else
-                    isDisabledField.guiActive = false; 
+                {
+                    isDisabledField.guiActive = false;
+                    maintainElectricChargeBufferField.guiActive = false;
+                }
             }
         }
 
