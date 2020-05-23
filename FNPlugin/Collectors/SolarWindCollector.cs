@@ -822,7 +822,7 @@ namespace FNPlugin
 
             var atmosphereModifier = Math.Max(0, 1 - Math.Pow(vessel.atmDensity, 0.2));
 
-            var helioSpereIonisationBonus = helioSphereFactor > 0.6 && helioSphereFactor < 1 ? 0.99 : 0.01;
+            var helioSpereIonisationBonus = helioSphereFactor > 0.6 && helioSphereFactor < 1 ? 1 - Math.Pow(helioSphereFactor, 5) : 0;
 
             effectiveIonisationFactor = ionisationFacingFactor * atmosphereModifier * Math.Max(helioSpereIonisationBonus, Math.Pow(ionisationPercentage * 0.01, 2));
             effectiveNonIonisationFactor = 1 - effectiveIonisationFactor;
