@@ -946,7 +946,7 @@ namespace FNPlugin
             }
         }
 
-        public override void OnFixedUpdate()
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
             if (curEngineT == null) return;
 
@@ -1268,7 +1268,13 @@ namespace FNPlugin
 
         public override int getPowerPriority() 
         {
-            return powerPriority;
+            // when providing surplus power, we want to be one of the first to consume and thermfore provide power
+            return PowerProduction > PowerRequirement ? 1 : powerPriority;
+        }
+
+        public override int getSupplyPriority()
+        {
+            return 1;
         }
 
         public override string GetInfo()
