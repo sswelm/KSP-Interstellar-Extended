@@ -29,6 +29,7 @@ namespace FNPlugin
 
         [KSPField]
         public string fuelSwitchName = "Fusion Type";
+
         [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk1", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk1
         public double powerRequirement = 0;
         [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk2", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk2
@@ -40,6 +41,17 @@ namespace FNPlugin
         [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk5", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk5
         public double powerRequirementUpgraded4 = 0;
 
+        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk1
+        public double powerProduction = 0;
+        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk2
+        public double powerProductionUpgraded1 = 0;
+        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk3
+        public double powerProductionUpgraded2 = 0;
+        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk4
+        public double powerProductionUpgraded3 = 0;
+        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk5
+        public double powerProductionUpgraded4 = 0;
+
         [KSPField]
         public bool selectableIsp = false;
         [KSPField]
@@ -48,6 +60,8 @@ namespace FNPlugin
         public double leathalDistance = 2000;
         [KSPField]
         public double killDivider = 0;
+        [KSPField]
+        public int powerPriority = 4;
 
         [KSPField]
         public double fusionWasteHeat = 625;
@@ -80,8 +94,10 @@ namespace FNPlugin
         //public bool useMegajouleBattery = false;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_AvailablePower", guiFormat = "F3", guiUnits = " MW")]//Available Power
         public double availablePower;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_PowerRequirement", guiFormat = "F3", guiUnits = " MW")]//Power Requirement
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaxPowerRequirement", guiFormat = "F3", guiUnits = " MW")]//Max Power Requirement
         public double currentMaximumPowerRequirement;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaxPowerProduction", guiFormat = "F3", guiUnits = " MW")]//Max Power Production
+        public double currentMaximumPowerProduction;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_LaserWasteheat", guiFormat = "F3", guiUnits = " MW")]//Laser Wasteheat
         public double laserWasteheat;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_AbsorbedWasteheat", guiFormat = "F3", guiUnits = " MW")]//Absorbed Wasteheat
@@ -101,6 +117,8 @@ namespace FNPlugin
 
         [KSPField]
         public double requiredPowerPerSecond;
+        [KSPField]
+        public double producedPowerPerSecond;
         [KSPField]
         public double requestedPowerPerSecond;
         [KSPField]
@@ -229,13 +247,9 @@ namespace FNPlugin
             }
         }
 
-        public double CurrentMaximumPowerRequirement
+        public double GetCurrentMaximumPowerRequirement()
         {
-            get
-            {
-                currentMaximumPowerRequirement = PowerRequirementMaximum * powerRequirementMultiplier;
-                return currentMaximumPowerRequirement;
-            }
+            return PowerRequirementMaximum * powerRequirementMultiplier * PowerMult();
         }
 
         public double PowerRequirementMaximum
@@ -243,15 +257,37 @@ namespace FNPlugin
             get
             {
                 if (EngineGenerationType == GenerationType.Mk1)
-                    return powerRequirement * PowerMult();
+                    return powerRequirement;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return powerRequirementUpgraded1 * PowerMult();
+                    return powerRequirementUpgraded1;
                 else if (EngineGenerationType == GenerationType.Mk3)
-                    return powerRequirementUpgraded2 * PowerMult();
+                    return powerRequirementUpgraded2;
                 else if (EngineGenerationType == GenerationType.Mk4)
-                    return powerRequirementUpgraded3 * PowerMult();
+                    return powerRequirementUpgraded3;
                 else
-                    return powerRequirementUpgraded4 * PowerMult(); 
+                    return powerRequirementUpgraded4; 
+            }
+        }
+
+        public double GetCurrentMaximumPowerProduction()
+        {
+            return PowerProductionMaximum * powerRequirementMultiplier * PowerMult();
+        }
+
+        public double PowerProductionMaximum
+        {
+            get
+            {
+                if (EngineGenerationType == GenerationType.Mk1)
+                    return powerProduction;
+                else if (EngineGenerationType == GenerationType.Mk2)
+                    return powerProductionUpgraded1;
+                else if (EngineGenerationType == GenerationType.Mk3)
+                    return powerProductionUpgraded2;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return powerProductionUpgraded3;
+                else
+                    return powerProductionUpgraded4;
             }
         }
 
@@ -563,7 +599,7 @@ namespace FNPlugin
             }
         }
 
-        public override void OnFixedUpdate()
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
             temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
             MinIsp = BaseFloatCurve.Evaluate((float)Altitude);
@@ -593,10 +629,13 @@ namespace FNPlugin
 
             availablePower = Math.Max(getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES), getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
 
+            currentMaximumPowerProduction = GetCurrentMaximumPowerProduction();
+            currentMaximumPowerRequirement = GetCurrentMaximumPowerRequirement();
+
+            requiredPowerPerSecond = curEngineT.currentThrottle * currentMaximumPowerRequirement;
+
             if (curEngineT.currentThrottle > 0)
             {
-                requiredPowerPerSecond = curEngineT.currentThrottle * CurrentMaximumPowerRequirement;
-
                 requestedPowerPerSecond = Math.Min(requiredPowerPerSecond, availablePower);
 
                 recievedPowerPerSecond = requestedPowerPerSecond <= 0 ? 0 
@@ -606,11 +645,17 @@ namespace FNPlugin
 
                 fusionRatio = requiredPowerPerSecond > 0 ? Math.Min(1, recievedPowerPerSecond / requiredPowerPerSecond) : 1;
 
-                laserWasteheat = recievedPowerPerSecond * (1 - LaserEfficiency);
+                var inefficiency = 1 - LaserEfficiency;
+
+                laserWasteheat = recievedPowerPerSecond * inefficiency;
+                producedPowerPerSecond = fusionRatio * currentMaximumPowerProduction;
+
+                if (!CheatOptions.InfiniteElectricity && currentMaximumPowerProduction > 0)
+                    supplyFNResourcePerSecondWithMax(producedPowerPerSecond, currentMaximumPowerProduction, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature && laserWasteheat > 0)
-                    supplyFNResourcePerSecond(laserWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecondWithMax(laserWasteheat, currentMaximumPowerRequirement * inefficiency, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
@@ -632,14 +677,14 @@ namespace FNPlugin
                 {
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg1"), 1.0f, ScreenMessageStyle.UPPER_CENTER);
                     curEngineT.maxFuelFlow = 1e-10f;
-                    curEngineT.maxThrust = 0.0001f;
+                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 0.0001f);
                     HideExhaust();
                 }
                 else if (MinIsp < _currentActiveConfiguration.minIsp)
                 {
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg3"), 1.0f, ScreenMessageStyle.UPPER_CENTER);
                     curEngineT.maxFuelFlow = 1e-10f;
-                    curEngineT.maxThrust = 0.0001f;
+                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 0.0001f);
                     HideExhaust();
                 }
                 else
@@ -658,8 +703,6 @@ namespace FNPlugin
                 requestedPowerPerSecond = 0;
                 recievedPowerPerSecond = 0;
 
-                requiredPowerPerSecond = CurrentMaximumPowerRequirement;
-
                 fusionRatio = requiredPowerPerSecond > 0 ? Math.Min(1, availablePower / requiredPowerPerSecond) : 1;
 
                 currentIsp = hasIspThrottling ? SelectedIsp : MinIsp;
@@ -675,13 +718,13 @@ namespace FNPlugin
                     || (_currentActiveConfiguration.maxAtmosphereDensity >= 0 && vessel.atmDensity > _currentActiveConfiguration.maxAtmosphereDensity))
                 {
                     curEngineT.maxFuelFlow = 1e-10f;
-                    curEngineT.maxThrust = 0.0001f;
+                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 0.0001f);
                     HideExhaust();
                 }
                 else if (MinIsp < _currentActiveConfiguration.minIsp)
                 {
                     curEngineT.maxFuelFlow = 1e-10f;
-                    curEngineT.maxThrust = 0.0001f;
+                    curEngineT.maxThrust = Mathf.Max((float)maximumThrust, 0.0001f);
                     HideExhaust();
                 }
                 else
@@ -697,7 +740,7 @@ namespace FNPlugin
             maxTempatureRadiators = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
             radiatorPerformance = Math.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001);
             partEmissiveConstant = part.emissiveConstant;
-            base.OnFixedUpdate();
+            //base.OnFixedUpdate();
         }
 
         private void SetRatios()
@@ -773,7 +816,13 @@ namespace FNPlugin
 
         public override int getPowerPriority()
         {
-            return 4;
-        }    
+            // when providing surplus power, we want to be one of the first to consume and thermfore provide power
+            return PowerProductionMaximum > PowerRequirementMaximum ? 1 : powerPriority;
+        }
+
+        public override int getSupplyPriority()
+        {
+            return 1;
+        }
     }
 }
