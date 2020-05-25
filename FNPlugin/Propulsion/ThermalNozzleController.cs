@@ -206,7 +206,8 @@ namespace FNPlugin
         [KSPField]
         public float windowWidth = 200;
 
-
+        [KSPField]
+        public double ispCoreTempMult = 0;
         [KSPField]
         public bool showPartTemperature = true;
         [KSPField]
@@ -566,7 +567,7 @@ namespace FNPlugin
 
         public double EffectiveCoreTempIspMult
         {
-            get { return PluginHelper.IspCoreTempMult + IspTempMultOffset; }
+            get { return (ispCoreTempMult == 0 ? PluginHelper.IspCoreTempMult : ispCoreTempMult) + IspTempMultOffset; }
         }
 
         public bool UsePlasmaPower
@@ -2431,7 +2432,7 @@ namespace FNPlugin
             {
                 var ispMultiplier = float.Parse(propellantNode.GetValue("ispMultiplier"));
                 var guiname = propellantNode.GetValue("guiName");
-                returnStr = returnStr + "--" + guiname + "--\n" + "ISP: " + ispMultiplier.ToString("0.000") + " x " + (PluginHelper.IspCoreTempMult + IspTempMultOffset).ToString("0.000") + " x Sqrt(Core Temperature)" + "\n";
+                returnStr = returnStr + "--" + guiname + "--\n" + "ISP: " + ispMultiplier.ToString("0.000") + " x " + EffectiveCoreTempIspMult.ToString("0.000") + " x Sqrt(Core Temperature)" + "\n";
             }
             return returnStr;
         }
