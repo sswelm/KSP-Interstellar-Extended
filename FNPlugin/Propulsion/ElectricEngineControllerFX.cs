@@ -157,9 +157,11 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
         public double timeDilation = 1;
 
-        [KSPField(guiActive = false)]
+        [KSPField]
+        public double prefabMass;
+        [KSPField]
         public double expectedMass = 0;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double desiredMass = 0;
 
         [KSPField(guiActive = false)]
@@ -429,15 +431,17 @@ namespace FNPlugin
 
         private void ScaleParameters()
         {
-            expectedMass = (double)(decimal)part.prefabMass * Math.Pow(storedAbsoluteFactor, massTweakscaleExponent);
-            desiredMass = (double)(decimal)part.prefabMass * Math.Pow(storedAbsoluteFactor, massExponent);
+            prefabMass = part.prefabMass;
+            expectedMass = prefabMass * Math.Pow(storedAbsoluteFactor, massTweakscaleExponent);
+            desiredMass = prefabMass * Math.Pow(storedAbsoluteFactor, massExponent);
             scaledMaxPower = maxPower * Math.Pow(storedAbsoluteFactor, powerExponent);
         }
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return (float)(desiredMass - expectedMass);
+            return (float)desiredMass;
         }
+
         public ModifierChangeWhen GetModuleMassChangeWhen()
         {
             return ModifierChangeWhen.STAGED;
