@@ -122,9 +122,9 @@ namespace FNPlugin
         public double calculated_thrust;
         [KSPField(guiActive = false)]
         public double simulated_max_thrust;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
         public double engineIsp;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput",  guiFormat = "F3", guiUnits = " MW")]
         public double scaledMaxPower = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiUnits = " t")]
         public float partMass = 0;
