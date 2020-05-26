@@ -238,14 +238,14 @@ namespace FNPlugin
         public bool canUsePlasmaPower = false;
         [KSPField]
         public double requiredMegajouleRatio = 0;
-        [KSPField]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_Radius", guiUnits = " m", guiFormat = "F3")]//Radius
         public double radius = 2.5;
         [KSPField]
         public double exitArea = 1;
         [KSPField]
         public double exitAreaScaleExponent = 2;
         [KSPField]
-        public double plasmaAfterburnerRange = 20;
+        public double plasmaAfterburnerRange = 2;
         [KSPField]
         public bool showThrustPercentage = true;
         [KSPField]
@@ -253,12 +253,10 @@ namespace FNPlugin
         [KSPField]
         public float throttleAnimExp = 1;
 
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_Radius", guiUnits = " m", guiFormat = "F3")]//Radius
-        public double scaledRadius;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_ExitArea", guiUnits = " m2", guiFormat = "F3")]//Exit Area
         public double scaledExitArea = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_AfterburnerTechReq")]//Afterburner upgrade tech
-        public string afterburnerTechReq = String.Empty;
+        public string afterburnerTechReq = string.Empty;
 
         //GUI
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_Propellant")]//Propellant
@@ -552,7 +550,7 @@ namespace FNPlugin
                 _myAttachedReactor = value;
                 if (_myAttachedReactor == null)
                     return;
-                _myAttachedReactor.AttachThermalReciever(id, scaledRadius);
+                _myAttachedReactor.AttachThermalReciever(id, radius);
             }
         }
 
@@ -650,7 +648,6 @@ namespace FNPlugin
 
         private void ScaleParameters()
         {
-            scaledRadius = radius * storedAbsoluteFactor;
             scaledExitArea = exitArea * Math.Pow(storedAbsoluteFactor, exitAreaScaleExponent);
         }
 
@@ -1009,8 +1006,11 @@ namespace FNPlugin
                     this.showIspThrotle = this.isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
 
                     var ispThrottleField = Fields["ispThrottle"];
-                    ispThrottleField.guiActiveEditor = showIspThrotle;
-                    ispThrottleField.guiActive = showIspThrotle;
+                    if (ispThrottleField != null)
+                    {
+                        ispThrottleField.guiActiveEditor = showIspThrotle;
+                        ispThrottleField.guiActive = showIspThrotle;
+                    }
                 }
 
                 Debug.Log("[KSPI]: ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal searchResult with distance " + partDistance);
@@ -1775,7 +1775,7 @@ namespace FNPlugin
 
                 // attach/detach with radius
                 if (myAttachedEngine.isOperational)
-                    AttachedReactor.AttachThermalReciever(id, scaledRadius);
+                    AttachedReactor.AttachThermalReciever(id, radius);
                 else
                     AttachedReactor.DetachThermalReciever(id);
 
@@ -2229,7 +2229,7 @@ namespace FNPlugin
                 {
                     ispHeatModifier =  Math.Sqrt(realIspEngine) * (UsePlasmaPower ? plasmaAfterburnerHeatModifier : thermalHeatModifier);
                     powerToMass = part.mass > 0 ? Math.Sqrt(maxThrustOnEngine / part.mass) : 0;
-                    radiusHeatModifier = Math.Pow(scaledRadius * radiusHeatProductionMult, radiusHeatProductionExponent);
+                    radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
                     reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
 
@@ -2484,7 +2484,7 @@ namespace FNPlugin
             {
                 // re-attach with updated radius
                 _myAttachedReactor.DetachThermalReciever(id);
-                _myAttachedReactor.AttachThermalReciever(id, scaledRadius);
+                _myAttachedReactor.AttachThermalReciever(id, radius);
 
                 Fields["vacuumPerformance"].guiActiveEditor = true;
                 Fields["radiusModifier"].guiActiveEditor = true;
@@ -2533,15 +2533,15 @@ namespace FNPlugin
 
         private double GetHeatExchangerThrustMultiplier()
         {
-            if (AttachedReactor == null || AttachedReactor.Radius == 0 || scaledRadius == 0) return 0;
+            if (AttachedReactor == null || AttachedReactor.Radius == 0 || radius == 0) return 0;
 
             var currentFraction = _myAttachedReactor.GetFractionThermalReciever(id);
 
             if (currentFraction == 0) return storedFractionThermalReciever;
 
             // scale down thrust if it's attached to a larger sized reactor
-            var  heatExchangeRatio = scaledRadius >= AttachedReactor.Radius ? 1
-                : scaledRadius * scaledRadius / AttachedReactor.Radius / AttachedReactor.Radius;
+            var  heatExchangeRatio = radius >= AttachedReactor.Radius ? 1
+                : radius * radius / AttachedReactor.Radius / AttachedReactor.Radius;
 
             storedFractionThermalReciever = Math.Min(currentFraction, heatExchangeRatio);
 
