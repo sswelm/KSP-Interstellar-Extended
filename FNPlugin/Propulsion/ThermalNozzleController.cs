@@ -90,6 +90,9 @@ namespace FNPlugin
         public double minimumBaseIsp = 0;
         [KSPField]
         public bool canUsePureChargedPower = false;
+
+        [KSPField]
+        public float takeoffIntakeBonus = 0.002f;
         [KSPField]
         public float jetengineAccelerationBaseSpeed = 0.2f;
         [KSPField]
@@ -297,7 +300,7 @@ namespace FNPlugin
         public double powerToMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_SpaceHeatProduction")]//Space Heat Production
         public double spaceHeatProduction = 100;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_EngineHeatProduction", guiFormat = "F5")]//Engine Heat Production
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_EngineHeatProduction", guiFormat = "F5")]//Engine Heat Production
         public double engineHeatProduction;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxThrustOnEngine", guiUnits = " kN")]//Max Thrust On Engine
         public float maxThrustOnEngine;
@@ -377,7 +380,7 @@ namespace FNPlugin
         protected double availableThermalPower;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_AvailableCPower", guiUnits = " MJ")]//Available C Power 
         protected double availableChargedPower;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_AirFlowHeatModifier", guiFormat = "F3")]//Air Flow Heat Modifier
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_AirFlowHeatModifier", guiFormat = "F3")]//Air Flow Heat Modifier
         protected double airflowHeatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_ThermalPowerSupply", guiFormat = "F3")]//Thermal Power Supply
         protected double effectiveThermalSupply;
@@ -405,6 +408,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Spool Effect Ratio", guiFormat = "F2")]
         public float spoolEffectRatio = 0;
 
+        [KSPField]
+        public double baseJetHeatproduction = 0;
         [KSPField]
         public double coreTemperature = 3000;
         [KSPField]
@@ -1547,7 +1552,7 @@ namespace FNPlugin
             {
                 if (overrideVelocityCurve && jetPerformanceProfile == 0)    // Ramjet
                 {
-                    velCurve.Add(0, 0.002f + _jetTechBonusPercentage * 0.01f);
+                    velCurve.Add(0, takeoffIntakeBonus + _jetTechBonusPercentage * 0.01f);
                     velCurve.Add(3 - _jetTechBonusCurveChange, 1);
                     velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
                     velCurve.Add(14, 0 + _jetTechBonusPercentage);
@@ -1555,7 +1560,7 @@ namespace FNPlugin
                 }
                 else if (overrideVelocityCurve && jetPerformanceProfile == 1)   // Turbojet
                 {
-                    velCurve.Add(0.0f, 0.20f + _jetTechBonusPercentage * 2);
+                    velCurve.Add(0.0f, takeoffIntakeBonus + 0.20f + _jetTechBonusPercentage * 2);
                     velCurve.Add(0.2f, 0.60f + _jetTechBonusPercentage);
                     velCurve.Add(0.5f, 0.80f + _jetTechBonusPercentage);
                     velCurve.Add(1.0f, 1.00f);
@@ -2232,9 +2237,12 @@ namespace FNPlugin
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
                     reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
+                    var jetHeatProduction = baseJetHeatproduction > 0 ? baseJetHeatproduction : spaceHeatProduction;
 
                     spaceHeatProduction = heatProductionMultiplier * reactorHeatModifier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
-                    engineHeatProduction = spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult);
+                    engineHeatProduction = isJet
+                        ? jetHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult) 
+                        : spaceHeatProduction;
 
                     myAttachedEngine.heatProduction = (float)(engineHeatProduction * Math.Max(0, startupHeatReductionRatio));
                     startupHeatReductionRatio = Math.Min(1, startupHeatReductionRatio + currentThrottle);
