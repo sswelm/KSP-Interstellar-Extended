@@ -2240,7 +2240,7 @@ namespace FNPlugin
                     var jetHeatProduction = baseJetHeatproduction > 0 ? baseJetHeatproduction : spaceHeatProduction;
 
                     spaceHeatProduction = heatProductionMultiplier * reactorHeatModifier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
-                    engineHeatProduction = isJet
+                    engineHeatProduction = _currentpropellant_is_jet
                         ? jetHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult) 
                         : spaceHeatProduction;
 
