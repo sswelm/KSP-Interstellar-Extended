@@ -1552,7 +1552,7 @@ namespace FNPlugin
             {
                 if (overrideVelocityCurve && jetPerformanceProfile == 0)    // Ramjet
                 {
-                    velCurve.Add(0, takeoffIntakeBonus + _jetTechBonusPercentage * 0.01f);
+                    velCurve.Add(0, _jetTechBonusPercentage * 0.01f + takeoffIntakeBonus);
                     velCurve.Add(3 - _jetTechBonusCurveChange, 1);
                     velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
                     velCurve.Add(14, 0 + _jetTechBonusPercentage);
@@ -1560,8 +1560,8 @@ namespace FNPlugin
                 }
                 else if (overrideVelocityCurve && jetPerformanceProfile == 1)   // Turbojet
                 {
-                    velCurve.Add(0.0f, takeoffIntakeBonus + 0.20f + _jetTechBonusPercentage * 2);
-                    velCurve.Add(0.2f, 0.60f + _jetTechBonusPercentage);
+                    velCurve.Add(0.0f, 0.20f + _jetTechBonusPercentage * 2 + takeoffIntakeBonus);
+                    velCurve.Add(0.2f, 0.50f + _jetTechBonusPercentage);
                     velCurve.Add(0.5f, 0.80f + _jetTechBonusPercentage);
                     velCurve.Add(1.0f, 1.00f);
                     velCurve.Add(2.0f, 0.80f + _jetTechBonusPercentage);
@@ -1570,17 +1570,19 @@ namespace FNPlugin
                     velCurve.Add(5.0f, 0.20f + _jetTechBonusPercentage);
                     velCurve.Add(7.0f, 0.00f);
                 }
+                else if (overrideVelocityCurve && jetPerformanceProfile == 2)   // Turbo ramjet
+                {
+                    velCurve.Add(0.0f, 0.10f + _jetTechBonusPercentage + takeoffIntakeBonus);
+                    velCurve.Add(0.2f, 0.25f + _jetTechBonusPercentage);
+                    velCurve.Add(0.5f, 0.50f + _jetTechBonusPercentage);
+                    velCurve.Add(1.0f, 1.00f);
+                    velCurve.Add(10, 0 + _jetTechBonusPercentage);
+                    velCurve.Add(20, 0);
+                }
                 else
                     velCurve = originalVelocityCurve;
 
-                if (overrideAtmosphereCurve && jetPerformanceProfile == 0)
-                {
-                    atmosphereCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
-                    atmosphereCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
-                    atmosphereCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
-                    atmosphereCurve.Add(1, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
-                }
-                else if (overrideAtmosphereCurve && jetPerformanceProfile == 1)
+                if (overrideAtmosphereCurve )
                 {
                     atmosphereCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
                     atmosphereCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
@@ -1604,7 +1606,7 @@ namespace FNPlugin
                     atmCurve.Add(0.64f, (float)Math.Min(1, 0.90 + 0.05 * performance_bonus));
                     atmCurve.Add(1, 1);
                 }
-                else if (overrideAtmCurve && jetPerformanceProfile == 1)
+                else if (overrideAtmCurve)
                 {
                     atmCurve.Add(0, 0);
                     atmCurve.Add(0.01f, (float)Math.Min(1, 0.10 + 0.10 * performance_bonus));
