@@ -394,9 +394,9 @@ namespace FNPlugin
         public double maximumChargedPower;
         [KSPField(guiActive = false, guiActiveEditor = true, guiFormat = "F3", guiName = "#LOC_KSPIE_ThermalNozzleController_MaximumReactorPower", guiUnits = " MW")]//Maximum Reactor Power
         public double maximumReactorPower;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiFormat = "F3", guiName = "#LOC_KSPIE_ThermalNozzleController_HeatThrustModifier")]//Heat Thrust Modifier
+        [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3", guiName = "#LOC_KSPIE_ThermalNozzleController_HeatThrustModifier")]//Heat Thrust Modifier
         public double heatThrustModifier;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiFormat = "F3", guiName = "#LOC_KSPIE_ThermalNozzleController_PowerThrustModifier")]//Heat Thrust Modifier
+        [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3", guiName = "#LOC_KSPIE_ThermalNozzleController_PowerThrustModifier")]//Heat Thrust Modifier
         public double powerThrustModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_EffectiveThrustFraction")]//Effective Thrust Fraction
         public double effectiveThrustFraction = 1;
