@@ -27,6 +27,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool rad_safety_features = true;
 
+
+
+
         [KSPField]
         public double massThrustExp = 0;
         [KSPField]
@@ -39,6 +42,8 @@ namespace FNPlugin
         public double higherScaleIspExponent = 0.25;
         [KSPField]
         public double lowerScaleIspExponent = 1;
+        [KSPField]
+        public double GThreshold = 9;
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
         public float speedLimit = 1;
@@ -49,6 +54,7 @@ namespace FNPlugin
 
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_powerUsage")]
         public string powerUsage;
+
         [KSPField]
         public double finalRequestedPower;
 
@@ -74,7 +80,7 @@ namespace FNPlugin
         public double engineSpeedOfLight;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio = 0;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_relativity", guiFormat = "F10")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_relativity", guiFormat = "F10")]
         public double relativity;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
         public double timeDilation;
@@ -85,6 +91,10 @@ namespace FNPlugin
         public float partMass = 1;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fusionRatio", guiFormat = "F6")]
         public double fusionRatio = 0;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsCurrent")]
+        public double fuelAmounts;
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsMax")]
+        public double fuelAmountsMax;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")]
         public string fuelAmountsRatio;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_thrustPowerInTeraWatt", guiFormat = "F2", guiUnits = " TW")]
@@ -655,17 +665,17 @@ namespace FNPlugin
             if (fusionFuelResourceDefinition1 != null)
             {
                 ratioSum += fusionFuelRatio1;
-                densitySum += (double)(decimal)fusionFuelResourceDefinition1.density * fusionFuelRatio1; 
+                densitySum += fusionFuelResourceDefinition1.density * fusionFuelRatio1; 
             }
             if (fusionFuelResourceDefinition2 != null)
             {
                 ratioSum += fusionFuelRatio2;
-                densitySum += (double)(decimal)fusionFuelResourceDefinition2.density * fusionFuelRatio2; 
+                densitySum += fusionFuelResourceDefinition2.density * fusionFuelRatio2; 
             }
             if (fusionFuelResourceDefinition3 != null)
             {
                 ratioSum += fusionFuelRatio3;
-                densitySum += (double)(decimal)fusionFuelResourceDefinition3.density * fusionFuelRatio3; 
+                densitySum += fusionFuelResourceDefinition3.density * fusionFuelRatio3; 
             }
 
             averageDensity = densitySum / ratioSum;
@@ -747,12 +757,10 @@ namespace FNPlugin
                     return;
                 }
 
-                double fusionFuelCurrentAmount1;
-                double fusionFuelMaxAmount1;
-                part.GetConnectedResourceTotals(fusionFuelResourceDefinition1.id, out fusionFuelCurrentAmount1, out fusionFuelMaxAmount1);
+                part.GetConnectedResourceTotals(fusionFuelResourceDefinition1.id, out fuelAmounts, out fuelAmountsMax);
 
-                percentageFuelRemaining = fusionFuelCurrentAmount1 / fusionFuelMaxAmount1 * 100;
-                fuelAmountsRatio = percentageFuelRemaining.ToString("0.0000") + "% " + fusionFuelMaxAmount1.ToString("0") + " L";
+                percentageFuelRemaining = fuelAmountsMax > 0 ? fuelAmounts / fuelAmountsMax * 100 : 0;
+                fuelAmountsRatio = percentageFuelRemaining.ToString("0.000000") + "% ";
             }
             catch (Exception e)
             {
@@ -983,10 +991,9 @@ namespace FNPlugin
 
                 if (throttle > 0 && !this.vessel.packed)
                 {
-                    TimeWarp.GThreshold = 9;
+                    TimeWarp.GThreshold = GThreshold;
 
-                    var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
-                    var thrustRatio = Math.Max(thrustPercentage * 0.01, 0.01);
+                    var thrustRatio = Math.Max(curEngineT.thrustPercentage * 0.01, 0.01);
                     var scaledThrottle = Math.Pow(thrustRatio * throttle, ispThrottleExponent);
                     effectiveIsp = timeDilation * engineIsp * scaledThrottle;
 
@@ -1029,7 +1036,7 @@ namespace FNPlugin
                     }
 
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
-                    calculatedFuelflow = fusionRatio * effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+                    calculatedFuelflow = effectiveIsp > 0 ? fusionRatio * effectiveMaxThrustInKiloNewton / effectiveIsp / PhysicsGlobals.GravitationalAcceleration : 0;
                     massFlowRateKgPerSecond = calculatedFuelflow * 0.001;
 
                     if (TimeWarp.fixedDeltaTime > 20)
@@ -1065,7 +1072,7 @@ namespace FNPlugin
                     if (!String.IsNullOrEmpty(effectName))
                         this.part.Effect(effectName, 0, -1);
 
-                    powerUsage = "0.000 GW / " + (EffectiveMaxPowerRequirement * 0.001).ToString("0.000") + " GW";
+                    powerUsage = "0.000 MW / " + (EffectiveMaxPowerRequirement).ToString("0.000") + " MW";
 
                     if (!(percentageFuelRemaining > (100 - fuelLimit) || lightSpeedRatio > speedLimit))
                     {
@@ -1207,7 +1214,7 @@ namespace FNPlugin
 
             var plasmaRatio = !requestedPower.IsInfinityOrNaNorZero() && !recievedPower.IsInfinityOrNaNorZero() ? Math.Min(1, recievedPower / requestedPower) : 0;
 
-            powerUsage = (recievedPower * 0.001).ToString("0.000") + " GW / " + (requestedPower * 0.001).ToString("0.000") + " GW";
+            powerUsage = recievedPower.ToString("0.000") + " MW / " + requestedPower.ToString("0.000") + " MW";
 
             // The Aborbed wasteheat from Fusion production and reaction
             if (!CheatOptions.IgnoreMaxTemperature && effectiveMaxFusionWasteHeat > 0)
