@@ -10,6 +10,9 @@ namespace FNPlugin.Extensions
         // Perturb an orbit by a deltaV vector
         public static void Perturb(this Orbit orbit, Vector3d deltaVV, double universalTime)
         {
+            if (deltaVV.magnitude == 0)
+                return;
+
             // Transpose deltaVV Y and Z to match orbit frame
             Vector3d deltaVV_orbit = deltaVV.xzy;
 

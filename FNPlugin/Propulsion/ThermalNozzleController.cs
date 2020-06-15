@@ -1645,50 +1645,48 @@ namespace FNPlugin
         {
             var atmospherecurve = new FloatCurve();
 
-            if (AttachedReactor != null)
-            {
-                UpdateMaxIsp();
-
-                if (_maxISP <= 0)
-                    return;
-
-                var base_max_thrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * GetHeatExchangerThrustMultiplier();
-                var max_thrust_in_space = base_max_thrust;
-                base_max_thrust *= _thrustPropellantMultiplier;
-
-                final_max_thrust_in_space = base_max_thrust;
-
-                maxFuelFlowOnEngine = (float)Math.Max(base_max_thrust / (GameConstants.STANDARD_GRAVITY * _maxISP), 1e-10);
-                myAttachedEngine.maxFuelFlow = maxFuelFlowOnEngine;
-
-                maxThrustOnEngine = (float)Math.Max(base_max_thrust, minimumThrust);
-                myAttachedEngine.maxThrust = maxThrustOnEngine;
-
-                var max_thrust_in_current_atmosphere = max_thrust_in_space;
-
-                UpdateAtmosphericPresureTreshold();
-
-                // update engine thrust/ISP for thermal noozle
-                if (!_currentpropellant_is_jet)
-                {
-                    max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, minimumThrust);
-
-                    var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(max_thrust_in_current_atmosphere / max_thrust_in_space, 0.01) : 0.01;
-                    _minISP = _maxISP * thrustAtmosphereRatio;
-                }
-                else
-                    _minISP = _maxISP;
-
-                atmospherecurve.Add(0, (float)_maxISP, 0, 0);
-                atmospherecurve.Add(1, (float)_minISP, 0, 0);
-
-                myAttachedEngine.atmosphereCurve = atmospherecurve;
-            }
-            else
+            if (AttachedReactor == null)
             {
                 atmospherecurve.Add(0, (float)minimumThrust, 0, 0);
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
+
+            UpdateMaxIsp();
+
+            if (_maxISP <= 0)
+                return;
+
+            var base_max_thrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * GetHeatExchangerThrustMultiplier();
+            var max_thrust_in_space = base_max_thrust;
+            base_max_thrust *= _thrustPropellantMultiplier;
+
+            final_max_thrust_in_space = base_max_thrust;
+
+            maxFuelFlowOnEngine = (float)Math.Max(base_max_thrust / (GameConstants.STANDARD_GRAVITY * _maxISP), 1e-10);
+            myAttachedEngine.maxFuelFlow = maxFuelFlowOnEngine;
+
+            maxThrustOnEngine = (float)Math.Max(base_max_thrust, minimumThrust);
+            myAttachedEngine.maxThrust = maxThrustOnEngine;
+
+            var max_thrust_in_current_atmosphere = max_thrust_in_space;
+
+            UpdateAtmosphericPresureTreshold();
+
+            // update engine thrust/ISP for thermal noozle
+            if (!_currentpropellant_is_jet)
+            {
+                max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, minimumThrust);
+
+                var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(max_thrust_in_current_atmosphere / max_thrust_in_space, 0.01) : 0.01;
+                _minISP = _maxISP * thrustAtmosphereRatio;
+            }
+            else
+                _minISP = _maxISP;
+
+            atmospherecurve.Add(0, (float)_maxISP, 0, 0);
+            atmospherecurve.Add(1, (float)_minISP, 0, 0);
+
+            myAttachedEngine.atmosphereCurve = atmospherecurve;
         }
 
         public override void OnFixedUpdate()
