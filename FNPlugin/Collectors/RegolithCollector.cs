@@ -237,7 +237,7 @@ namespace FNPlugin.Collectors
             var starsByBody = KopernicusHelper.StarsByBody;
             var localStar = FlightGlobals.currentMainBody;
 
-            while ((iDepth < 10) && starsByBody.ContainsKey(localStar))
+            while ((iDepth < 10) && !starsByBody.ContainsKey(localStar))
             {
                 localStar = localStar.referenceBody;
                 iDepth++;
