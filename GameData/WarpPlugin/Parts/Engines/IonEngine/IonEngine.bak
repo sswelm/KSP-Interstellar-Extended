@@ -1,11 +1,12 @@
-// Non RealismOverhaul ion engine needs to be adjusted to make it more balanced with KSPIE engines that require a lot more power
-@PART[ionEngine]:NEEDS[!RealismOverhaul]
+@PART[ionEngine]:AFTER[RealismOverhaul]
 {
-   	-MODULE[MultiModeEngine] {}
+	-MODULE[MultiModeEngine] {}	
 
-	-MODULE[ElectricEngineThrustLimiter]{}
+   	-MODULE[ElectricEngineThrustLimiter]{}
 
    	-MODULE[ModuleEnginesFX] {}
+
+	-MODULE[ModuleEnginesRF] {}	
 
 	-MODULE[EngineGroupModule] {}
 
@@ -55,12 +56,12 @@
 	{
 		name = ElectricEngineControllerFX
 
-		Mk1Power = 0.1				// 10% of normal thrust
-		Mk2Power = 0.1467799
-		Mk3Power = 0.2154435
-		Mk4Power = 0.3162278
-		Mk5Power = 0.4641589
-		Mk6Power = 0.6812921
+		Mk1Power = 0.001
+		Mk2Power = 0.00316
+		Mk3Power = 0.01
+		Mk4Power = 0.0316
+		Mk5Power = 0.1
+		Mk6Power = 0.316
 		Mk7Power = 1
 
 		Mk2Tech = IonEngineUpgradeA
@@ -82,25 +83,9 @@
 		maxPower = 51.9984
 		baseISP = 34035.6564
 		baseIspDivider = 34035.6564
-		exitArea = 0.2
+		exitArea = 0.25
 		ispGears = 1
 		type = 32
-
-		powerThrustMultiplierWithoutReactors:NEEDS[!NearFutureElectrical] = 600
-		powerReqMultWithoutReactor:NEEDS[!NearFutureElectrical] = 0.0017
 	}
 }
 
-@PART[ionEngine]:BEFORE[WarpPlugin]
-{
-	-MODULE[TweakScale],* { }
-}
-@PART[ionEngine]:FOR[WarpPlugin]
-{
-	%MODULE[TweakScale]:NEEDS[TweakScale]
-	{
-		type = stack
-		defaultScale = 0.625
-		scaleFactors = 0.2, 0.3, 0.45, 0.625, 0.95, 1.25, 1.875, 2.5
-	}
-}
