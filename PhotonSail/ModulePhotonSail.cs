@@ -349,6 +349,8 @@ namespace PhotonSail
         double energyOnSailnWatt;
         double dragHeatInJoule;
 
+        const double Rad2Degree = 180 / Math.PI; // 57.295779513;
+
         const int animatedRays = 400;
 
         int solarPhotovoltaicTechLevel;
@@ -1117,7 +1119,7 @@ namespace PhotonSail
             }
 
             // convert radian into angle in degree
-            var pitchAngleInDegree = Math.Acos(cosConeAngle) * (double)(decimal)Mathf.Rad2Deg;
+            var pitchAngleInDegree = Math.Acos(cosConeAngle) * Rad2Degree;
             if (double.IsNaN(pitchAngleInDegree))
                 pitchAngleInDegree = 0;
 
