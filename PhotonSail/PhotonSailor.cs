@@ -1,17 +1,46 @@
-﻿using System.Collections.Generic;
+﻿using FNPlugin.Constants;
+using System.Collections.Generic;
 using System.Linq;
-using FNPlugin.Constants;
 using UnityEngine;
 
 namespace PhotonSail
 {
+    public class VesselData
+    {
+        public double TotalVesselMassInKg { get;  set; }
+        public double TotalVesselMass { get;  set; }
+        public bool? HasSolarSail { get; set; }
+        public uint SolarSailPersistentId { get; set; }
+        public ModulePhotonSail ModulePhotonSail { get; set; }
+        public ProtoPartModuleSnapshot ProtoPartModuleSnapshot { get; set; }
+
+        public void UpdateMass(Vessel vessel)
+        {
+            if (TotalVesselMass != 0)
+                return;
+
+            // for each part
+            foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
+            {
+                TotalVesselMass += protoPartSnapshot.mass;
+                foreach (var resource in protoPartSnapshot.resources)
+                {
+                    TotalVesselMass += resource.amount * resource.definition.density;
+                }
+            }
+
+            TotalVesselMassInKg = TotalVesselMass * 1000;
+        }
+    }
+
+
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, new[] {GameScenes.SPACECENTER, GameScenes.TRACKSTATION, GameScenes.FLIGHT, GameScenes.EDITOR})]
     public sealed class PhotonSailor : ScenarioModule
     {
+        public Dictionary<uint, VesselData> vesselDataDict = new Dictionary<uint, VesselData>();
+
         /// <summary> global access </summary>
         public static PhotonSailor Fetch { get; private set; } = null;
-
-        private static Dictionary<Part, Vector3> initializedParts = new Dictionary<Part, Vector3>();
 
         public PhotonSailor()
         {
@@ -45,78 +74,93 @@ namespace PhotonSail
                     )
                     continue;
 
-                if ((Vessel.Situations.LANDED & vessel.situation) == Vessel.Situations.LANDED)
-                    continue;
-
-                if ((Vessel.Situations.SPLASHED & vessel.situation) == Vessel.Situations.SPLASHED)
-                    continue;
-
-                if ((Vessel.Situations.PRELAUNCH & vessel.situation) == Vessel.Situations.PRELAUNCH)
-                    continue;
-
-                double totalVesselMass = 0;
-
-                // for each part
-                foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
+                // lookup vesselData
+                if (!vesselDataDict.TryGetValue(vessel.persistentId, out VesselData vesselData))
                 {
-                    totalVesselMass += protoPartSnapshot.mass;
-                    foreach (var resource in protoPartSnapshot.resources)
-                    {
-                        totalVesselMass += resource.amount * resource.definition.density;
-                    }
+                    vesselData = new VesselData();
+                    vesselDataDict.Add(vessel.persistentId, vesselData);
                 }
 
-                Debug.Log("[PhotonSailor]: totalVesselMass: " + totalVesselMass);
-                double totalVesselMassInKg = totalVesselMass * 1000;
+                // skip further processing if no solar sail present
+                if (vesselData.HasSolarSail.HasValue && !vesselData.HasSolarSail.Value)
+                    continue;
 
-                // for each part
-                foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
+                if (((Vessel.Situations.LANDED & vessel.situation) == Vessel.Situations.LANDED)
+                    || ((Vessel.Situations.SPLASHED & vessel.situation) == Vessel.Situations.SPLASHED)
+                    || ((Vessel.Situations.PRELAUNCH & vessel.situation) == Vessel.Situations.PRELAUNCH))
+                    continue;
+
+                //reset mass to initiate a recalculation
+                vesselData.TotalVesselMass = 0;
+
+                if (vesselData.ProtoPartModuleSnapshot != null)
                 {
-                    BackgroundSolarSail(protoPartSnapshot, vessel, totalVesselMassInKg);
+                    ProtoPartSnapshot protoPartSnapshot = vessel.protoVessel.protoPartSnapshots.FirstOrDefault(m => m.persistentId == vesselData.SolarSailPersistentId);
+
+                    if (protoPartSnapshot != null)
+                        BackgroundSolarSail(protoPartSnapshot, vessel, vesselData);
+                    else
+                    {
+                        vesselData.HasSolarSail = null;
+                        vesselData.ProtoPartModuleSnapshot = null;
+                        UnityEngine.Debug.Log("[PhotonSailor]: Fail to find protoPartSnapshots " + vesselData.SolarSailPersistentId);
+                    }
+                }
+                else
+                {
+                    foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
+                    {
+                        if (BackgroundSolarSail(protoPartSnapshot, vessel, vesselData))
+                            break;
+                        else
+                            vesselData.HasSolarSail = false;
+                    }
                 }
             }
         }
 
-        private static void BackgroundSolarSail(ProtoPartSnapshot protoPartSnapshot, Vessel vessel, double totalVesselMassInKg)
+        private static bool BackgroundSolarSail(ProtoPartSnapshot protoPartSnapshot, Vessel vessel, VesselData vesselData)
         {
-            AvailablePart availablePart = PartLoader.getPartInfoByName(protoPartSnapshot.partName);
+            if (vesselData.ProtoPartModuleSnapshot == null)
+            {
+                AvailablePart availablePart = PartLoader.getPartInfoByName(protoPartSnapshot.partName);
 
-            // get part prefab (required for module properties)
-            Part partPrefab = availablePart?.partPrefab;
+                // get modulePhotonSail
+                vesselData.ModulePhotonSail = availablePart?.partPrefab?.FindModuleImplementing<ModulePhotonSail>();
 
-            // get modulePhotonSail
-            ModulePhotonSail modulePhotonSail = partPrefab?.FindModuleImplementing<ModulePhotonSail>();
+                if (vesselData.ModulePhotonSail is null)
+                    return false;
 
-            if (modulePhotonSail is null)
-                return;
+                vesselData.ProtoPartModuleSnapshot = protoPartSnapshot.modules.FirstOrDefault(m => m.moduleName == nameof(ModulePhotonSail));
 
-            ProtoPartModuleSnapshot protoPartModuleSnapshot = protoPartSnapshot.modules.FirstOrDefault(m => m.moduleName == nameof(ModulePhotonSail));
+                if (vesselData.ProtoPartModuleSnapshot == null)
+                    return false;
 
-            if (protoPartModuleSnapshot == null)
-                return;
+                vesselData.HasSolarSail = true;
+                vesselData.SolarSailPersistentId = protoPartSnapshot.persistentId;
+            }
 
             // load modulePhotonSail IsEnabled
-            if (!protoPartModuleSnapshot.moduleValues.TryGetValue(nameof(modulePhotonSail.IsEnabled), ref modulePhotonSail.IsEnabled))
-                return;
+            if (!vesselData.ProtoPartModuleSnapshot.moduleValues.TryGetValue(nameof(vesselData.ModulePhotonSail.IsEnabled), ref vesselData.ModulePhotonSail.IsEnabled))
+                return false;
 
-            if (!modulePhotonSail.IsEnabled)
-                return;
+            if (!vesselData.ModulePhotonSail.IsEnabled)
+                return false;
 
             Transform vesselTransform = vessel.GetTransform();
             Vector3d positionVessel = vessel.GetWorldPos3D();
 
             // update solar flux
-            modulePhotonSail.UpdateSolarFlux(Planetarium.GetUniversalTime(), positionVessel, vessel);
+            vesselData.ModulePhotonSail.UpdateSolarFlux(Planetarium.GetUniversalTime(), positionVessel, vessel);
+            // update mass
+            vesselData.UpdateMass(vessel);
 
             foreach (var starLight in KopernicusHelper.Stars)
             {
                 Vector3d vesselNormal = vesselTransform.up.normalized;
 
-                // calculate vector between vessel and star transmitter
-                Vector3d powerSourceToVesselVector = positionVessel - starLight.position;
-
                 // Magnitude of force proportional to cosine-squared of angle between sun-line and normal
-                var cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, vesselNormal);
+                var cosConeAngle = Vector3d.Dot((positionVessel - starLight.position).normalized, vesselNormal);
 
                 // If normal points away from sun, negate so our force is always away from the sun
                 // so that turning the backside towards the sun thrusts correctly
@@ -126,25 +170,19 @@ namespace PhotonSail
                     cosConeAngle = -cosConeAngle;
                 }
 
-                //Debug.Log("[PhotonSailor]: starLight.solarFlux " + starLight.solarFlux + " modulePhotonSail.surfaceArea " + modulePhotonSail.surfaceArea);
-
-                var energyOnSailInWatt = starLight.solarFlux * modulePhotonSail.surfaceArea;
-
                 // calculate effective radiation pressure on solarSail
+                var energyOnSailInWatt = starLight.solarFlux * vesselData.ModulePhotonSail.surfaceArea;
                 var reflectedRadiationPressureOnSail = 2 * energyOnSailInWatt / GameConstants.speedOfLight * cosConeAngle;
-
-                var photonReflectionRatio = 1;
-
-                var reflectedPhotonForceVector = vesselNormal * reflectedRadiationPressureOnSail * photonReflectionRatio * cosConeAngle;
+                var reflectedPhotonForceVector = vesselNormal * reflectedRadiationPressureOnSail * cosConeAngle;
 
                 // calculate acceleration
-                var totalAccelerationVector = totalVesselMassInKg > 0 ? reflectedPhotonForceVector / totalVesselMassInKg : Vector3d.zero;
-
-                //Debug.Log("[PhotonSailor]: apply force " + totalAccelerationVector.magnitude);
+                var totalAccelerationVector = vesselData.TotalVesselMassInKg > 0 ? reflectedPhotonForceVector / vesselData.TotalVesselMassInKg : Vector3d.zero;
 
                 // apply force
                 ModulePhotonSail.ChangeVesselVelocity(vessel, Planetarium.GetUniversalTime(), totalAccelerationVector * TimeWarp.fixedDeltaTime);
             }
+
+            return true;
         }
     }
 }

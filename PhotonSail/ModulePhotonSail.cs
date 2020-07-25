@@ -35,7 +35,7 @@ namespace PhotonSail
         public Vector3d powerSourceToVesselVector;
     }
 
-    class ModulePhotonSail : PartModule, IBeamedPowerReceiver, IPartMassModifier, IRescalable<ModulePhotonSail>
+    public class ModulePhotonSail : PartModule, IBeamedPowerReceiver, IPartMassModifier, IRescalable<ModulePhotonSail>
     {
         // Persistent Variables
         [KSPField(isPersistant = true)]

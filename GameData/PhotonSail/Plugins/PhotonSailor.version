@@ -3,6 +3,12 @@
 	"URL":"https://raw.githubusercontent.com/sswelm/KSP-Interstellar-Extended/master/GameData/PhotonSail/Plugins/PhotonSailor.version",
 	"DOWNLOAD":"https://kerbal.curseforge.com/projects/photonsail/files",
 	"CHANGE_LOG_URL":"https://spacedock.info/mod/1895/Photon%20Sailor",
-	"VERSION":{"MAJOR":1,"MINOR":5,"PATCH":1,"BUILD":0},
-	"KSP_VERSION":{"MAJOR":1,"MINOR":8,"PATCH":1}
+	"VERSION":{"MAJOR":1,"MINOR":6,"PATCH":0,"BUILD":0},
+	"KSP_VERSION":{"MAJOR":1,"MINOR":8,"PATCH":1},
+	"KSP_VERSION_MIN":
+	{
+		"MAJOR":1,
+		"MINOR":8,
+		"PATCH":1
+	}
 }
