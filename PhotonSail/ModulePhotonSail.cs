@@ -496,7 +496,7 @@ namespace PhotonSail
             if (state == StartState.None || state == StartState.Editor)
                 return;
 
-            UnityEngine.Debug.Log("[KSPI]: ModulePhotonSail on " + part.name + " was Force Activated");
+            UnityEngine.Debug.Log("[PhotonSailor]: ModulePhotonSail on " + part.name + " was Force Activated");
             this.part.force_activate();
 
             CreateBeamArray();
@@ -673,8 +673,7 @@ namespace PhotonSail
                 VesselMicrowavePersistence transmitter = transmitData.Key;
                 KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>> routeRelayData = transmitData.Value;
 
-                ReceivedPowerData beamedPowerData;
-                if (!received_power.TryGetValue(transmitter.Vessel, out beamedPowerData))
+                if (!received_power.TryGetValue(transmitter.Vessel, out var beamedPowerData))
                 {
                     beamedPowerData = new ReceivedPowerData
                     {
@@ -796,7 +795,7 @@ namespace PhotonSail
             ApplyDrag(universalTime, vesselMassInKg);
 
             // update solar flux
-            UpdateSolarFlux(universalTime, positionVessel);
+            UpdateSolarFlux(universalTime, positionVessel, vessel);
 
             // unconditionally apply solarflux energy for every star
             foreach (var starLight in KopernicusHelper.Stars)
@@ -814,9 +813,9 @@ namespace PhotonSail
             var sortedConnectedTransmitters =  connectedTransmitters.Select(transmitter =>
             {
                 var normalizedPowerSourceToVesselVector = (positionVessel - transmitter.Transmitter.Vessel.GetWorldPos3D()).normalized;
-                var cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, this.part.transform.up);
+                var cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, vessel.transform.up);
                 if (cosConeAngle < 0)
-                    cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, -this.part.transform.up);
+                    cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, -vessel.transform.up);
                 return new { cosConeAngle, transmitter };
             }).OrderByDescending(m => m.cosConeAngle).Select(m => m.transmitter);
 
@@ -918,9 +917,9 @@ namespace PhotonSail
                 {
                     connectedTransmittersCount++;
 
-                    var cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, this.part.transform.up);
+                    var cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, this.vessel.transform.up);
                     if (cosConeAngle < 0)
-                        cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, -this.part.transform.up);
+                        cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, -this.vessel.transform.up);
                     var effectiveDiameter = cosConeAngle * diameter;
 
                     var labdaSpotSize = powerSourceToVesselVector.magnitude * kscLaserWavelength / kscLaserAperture;
@@ -1013,7 +1012,7 @@ namespace PhotonSail
             }
         }
 
-        private void UpdateSolarFlux(double universalTime, Vector3d vesselPosition)
+        public void UpdateSolarFlux(double universalTime, Vector3d vesselPosition, Vessel vessel)
         {
             totalSolarFluxInWatt = 0;
 
@@ -1021,7 +1020,7 @@ namespace PhotonSail
             {
                 starLight.position = starLight.star.position;
                 starLight.hasLineOfSight = LineOfSightToSun(vesselPosition, starLight.star);
-                starLight.solarFlux = starLight.hasLineOfSight ? solarFluxAtDistance(part.vessel, starLight.star, starLight.relativeLuminocity) : 0;
+                starLight.solarFlux = starLight.hasLineOfSight ? solarFluxAtDistance(vessel, starLight.star, starLight.relativeLuminocity) : 0;
                 totalSolarFluxInWatt += starLight.solarFlux;
             }
         }
@@ -1035,7 +1034,7 @@ namespace PhotonSail
 
             var maximumDragCoefficient = 4 * specularRatio + 3.3 * diffuseRatio;
             Vector3d normalizedOrbitalVector = part.vessel.obt_velocity.normalized;
-            var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, normalizedOrbitalVector);
+            var cosOrbitRaw = Vector3d.Dot(vessel.transform.up, normalizedOrbitalVector);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
             var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
 
@@ -1050,15 +1049,15 @@ namespace PhotonSail
             maximumDragPerSquareMeter = (float)(dragForcePerSquareMeter * maximumDragCoefficient);
             
             // calculate specular Drag
-            Vector3d partNormal = this.part.transform.up;
+            Vector3d vesselNormal = vessel.transform.up;
             if (cosOrbitRaw < 0)
-                partNormal = -partNormal;
+                vesselNormal = -vesselNormal;
 
             var specularDragCoefficient = squaredCosOrbitalDrag + 3 * squaredCosOrbitalDrag * highOrbitModifier;
             var specularDragPerSquareMeter = specularDragCoefficient * dragForcePerSquareMeter * specularRatio;
             var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea;
             specularSailDragInNewton = (float)specularDragInNewton;
-            Vector3d specularDragForce = specularDragInNewton * partNormal;
+            Vector3d specularDragForce = specularDragInNewton * vesselNormal;
 
             // calculate Diffuse Drag
             var diffuseDragCoefficient = 1 + highOrbitModifier + squaredCosOrbitalDrag * 1.3 * highOrbitModifier;
@@ -1081,7 +1080,7 @@ namespace PhotonSail
             dragHeatInJoule = dragHeatInMegajoule * 1e+6;
         }
 
-        private static void ChangeVesselVelocity(Vessel vessel, double universalTime, Vector3d acceleration)
+        public static void ChangeVesselVelocity(Vessel vessel, double universalTime, Vector3d acceleration)
         {
             if (double.IsNaN(acceleration.x) || double.IsNaN(acceleration.y) || double.IsNaN(acceleration.z))
                 return;
@@ -1090,7 +1089,7 @@ namespace PhotonSail
                 return;
 
             if (vessel.packed)
-                vessel.orbit.Perturb(acceleration, universalTime);
+                vessel.GetOrbit().Perturb(acceleration, universalTime);
             else
                 vessel.ChangeWorldVelocity(acceleration);
         }
@@ -1101,11 +1100,11 @@ namespace PhotonSail
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
 
             // take part vector 
-            Vector3d partNormal = this.part.transform.up;
+            Vector3d vesselNormal = vessel.transform.up;
             var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
 
             // Magnitude of force proportional to cosine-squared of angle between sun-line and normal
-            var cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, partNormal);
+            var cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, vesselNormal);
 
             var cosConeAngleIsNegative = cosConeAngle < 0;
 
@@ -1114,8 +1113,8 @@ namespace PhotonSail
             if (cosConeAngleIsNegative)
             {
                 // recalculate Magnitude of force proportional to cosine-squared of angle between sun-line and normal
-                partNormal = -partNormal;
-                cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, partNormal);
+                vesselNormal = -vesselNormal;
+                cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, vesselNormal);
             }
 
             // convert radian into angle in degree
@@ -1199,7 +1198,7 @@ namespace PhotonSail
             }
 
             // old : F = 2 PA cos α cos α n
-            var reflectedPhotonForceVector = partNormal * reflectedRadiationPresureOnSail * photonReflectionRatio * cosConeAngle;
+            var reflectedPhotonForceVector = vesselNormal * reflectedRadiationPresureOnSail * photonReflectionRatio * cosConeAngle;
 
             // calculate the vector at 90 degree angle in the direction of the vector
             //var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
@@ -1232,10 +1231,10 @@ namespace PhotonSail
             var dragDissipationRatio = totalEmissivity > 0 ? Math.Min(0, backsideEmissivity / totalEmissivity) : 0;
 
             // calculate equlibrium drag force from dissipation at back side
-            var dissipationDragForceVector = -partNormal * absorbedPhotonForce * dragDissipationRatio;
+            var dissipationDragForceVector = -vesselNormal * absorbedPhotonForce * dragDissipationRatio;
 
             // calculate equlibrium drag force from dissipation at back side
-            var dissipationPushForceVector = partNormal * absorbedPhotonForce * pushDissipationRatio;
+            var dissipationPushForceVector = vesselNormal * absorbedPhotonForce * pushDissipationRatio;
 
             // calculate sum of all force vectors
             Vector3d totalForceVector = reflectedPhotonForceVector + absorbedPhotonForceVector + dissipationPushForceVector + dissipationDragForceVector;
@@ -1244,7 +1243,7 @@ namespace PhotonSail
             var totalAccelerationVector = vesselMassInKg > 0 ? totalForceVector / vesselMassInKg: Vector3d.zero;
 
             // all force
-            ChangeVesselVelocity(this.vessel, universalTime, totalAccelerationVector * (double)(decimal)TimeWarp.fixedDeltaTime);
+            ChangeVesselVelocity(this.vessel, universalTime, totalAccelerationVector * TimeWarp.fixedDeltaTime);
 
             // Update displayed force & acceleration
             var signedForce = totalForceVector.magnitude * sign(cosConeAngleIsNegative);
