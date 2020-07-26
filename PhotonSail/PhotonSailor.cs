@@ -1,4 +1,6 @@
 ﻿using FNPlugin.Constants;
+using FNPlugin.Resources;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -149,15 +151,21 @@ namespace PhotonSail
 
             Transform vesselTransform = vessel.GetTransform();
             Vector3d positionVessel = vessel.GetWorldPos3D();
+            double UT = Planetarium.GetUniversalTime();
+            Orbit vesselOrbit = vessel.GetOrbit();
 
             // update solar flux
-            vesselData.ModulePhotonSail.UpdateSolarFlux(Planetarium.GetUniversalTime(), positionVessel, vessel);
+            vesselData.ModulePhotonSail.UpdateSolarFlux(UT, positionVessel, vessel);
             // update mass
             vesselData.UpdateMass(vessel);
 
+            Vector3d vesselNormal;
+
+            Vector3d totalPhotonAccelerationVector = Vector3d.zero;
+
             foreach (var starLight in KopernicusHelper.Stars)
             {
-                Vector3d vesselNormal = vesselTransform.up.normalized;
+                vesselNormal = vesselTransform.up.normalized;
 
                 // Magnitude of force proportional to cosine-squared of angle between sun-line and normal
                 var cosConeAngle = Vector3d.Dot((positionVessel - starLight.position).normalized, vesselNormal);
@@ -176,13 +184,59 @@ namespace PhotonSail
                 var reflectedPhotonForceVector = vesselNormal * reflectedRadiationPressureOnSail * cosConeAngle;
 
                 // calculate acceleration
-                var totalAccelerationVector = vesselData.TotalVesselMassInKg > 0 ? reflectedPhotonForceVector / vesselData.TotalVesselMassInKg : Vector3d.zero;
+                var accelerationVector = vesselData.TotalVesselMassInKg > 0 ? reflectedPhotonForceVector / vesselData.TotalVesselMassInKg : Vector3d.zero;
 
-                // apply force
-                ModulePhotonSail.ChangeVesselVelocity(vessel, Planetarium.GetUniversalTime(), totalAccelerationVector * TimeWarp.fixedDeltaTime);
+                totalPhotonAccelerationVector += accelerationVector;
             }
 
+            var orbitalVector = vesselOrbit.getOrbitalVelocityAtUT(UT);
+            var normalizedOrbitalVector = orbitalVector.normalized;
+            var cosOrbitRaw = Vector3d.Dot(vessel.transform.up, normalizedOrbitalVector);
+            var cosOrbitalDrag = Math.Abs(cosOrbitRaw);
+            var squaredCosOrbitalDrag = cosOrbitalDrag * cosOrbitalDrag;
+            var atmosphericGasKgPerSquareMeter = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vesselOrbit.referenceBody, vessel.altitude);
+
+            var effectiveSpeedForDrag = Math.Max(0, orbitalVector.magnitude);
+            var dragForcePerSquareMeter = atmosphericGasKgPerSquareMeter * 0.5 * effectiveSpeedForDrag * effectiveSpeedForDrag;
+            var effectiveSurfaceArea = cosOrbitalDrag * vesselData.ModulePhotonSail.surfaceArea;
+
+            // calculate normal
+            vesselNormal = vessel.transform.up;
+            if (cosOrbitRaw < 0)
+                vesselNormal = -vesselNormal;
+
+            // calculate specular drag
+            var specularDragCoefficient = squaredCosOrbitalDrag + 3 * squaredCosOrbitalDrag;
+            var specularDragPerSquareMeter = specularDragCoefficient * dragForcePerSquareMeter * 0.1;
+            var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea;
+            Vector3d specularDragForce = specularDragInNewton * vesselNormal;
+
+            // calculate Diffuse Drag
+            var diffuseDragCoefficient = 2 + squaredCosOrbitalDrag * 1.3;
+            var diffuseDragPerSquareMeter = diffuseDragCoefficient * dragForcePerSquareMeter * 0.9;
+            var diffuseDragInNewton = diffuseDragPerSquareMeter * effectiveSurfaceArea;
+            Vector3d diffuseDragForceVector = diffuseDragInNewton * normalizedOrbitalVector * -1;
+
+            Vector3d combinedDragDecelerationVector = vesselData.TotalVesselMassInKg > 0 ? (specularDragForce + diffuseDragForceVector) / vesselData.TotalVesselMassInKg : Vector3d.zero;
+
+            // apply force
+            Perturb(vesselOrbit, (totalPhotonAccelerationVector + combinedDragDecelerationVector) * TimeWarp.fixedDeltaTime, UT, orbitalVector);
+
             return true;
+        }
+
+        public static void Perturb(Orbit orbit, Vector3d deltaVV, double universalTime, Vector3d orbitalVelocity)
+        {
+            if (deltaVV.magnitude == 0)
+                return;
+
+            // Transpose deltaVV Y and Z to match orbit frame
+            Vector3d deltaVV_orbit = deltaVV.xzy;
+
+            // Update with current position and new velocity
+            orbit.UpdateFromStateVectors(orbit.getRelativePositionAtUT(universalTime), orbitalVelocity + deltaVV_orbit, orbit.referenceBody, universalTime);
+            orbit.Init();
+            orbit.UpdateFromUT(universalTime);
         }
     }
 }

@@ -38,7 +38,7 @@ namespace PhotonSail
     public class ModulePhotonSail : PartModule, IBeamedPowerReceiver, IPartMassModifier, IRescalable<ModulePhotonSail>
     {
         // Persistent Variables
-        [KSPField(guiActiveEditor = true, guiActive = true, isPersistant = true)]
+        [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
         public double previousPeA;
@@ -1084,7 +1084,7 @@ namespace PhotonSail
             // apply drag to vessel
             var highAtmosphereModifier = highAltitudeDistance * highAltitudeDistance * highAltitudeDistance;
 
-            ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * combinedDragDecelerationVector * (double)(decimal)TimeWarp.fixedDeltaTime);
+            ChangeVesselVelocity(vessel.orbit, vessel, universalTime, highAtmosphereModifier * combinedDragDecelerationVector * (double)(decimal)TimeWarp.fixedDeltaTime);
 
             weightedDragCoefficient = specularDragCoefficient * specularRatio + diffuseDragCoefficient * diffuseRatio;
 
@@ -1093,7 +1093,7 @@ namespace PhotonSail
             dragHeatInJoule = dragHeatInMegajoule * 1e+6;
         }
 
-        public static void ChangeVesselVelocity(Vessel vessel, double universalTime, Vector3d acceleration)
+        public static void ChangeVesselVelocity(Orbit orbit, Vessel vessel, double universalTime, Vector3d acceleration)
         {
             if (double.IsNaN(acceleration.x) || double.IsNaN(acceleration.y) || double.IsNaN(acceleration.z))
                 return;
@@ -1102,7 +1102,7 @@ namespace PhotonSail
                 return;
 
             if (vessel.packed)
-                vessel.GetOrbit().Perturb(acceleration, universalTime);
+                orbit.Perturb(acceleration, universalTime);
             else
                 vessel.ChangeWorldVelocity(acceleration);
         }
@@ -1146,7 +1146,7 @@ namespace PhotonSail
             }
             else
             {
-                // skip beamed power in undesireable direction
+                // skip beamed power in undesirable direction
                 if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
                     return 0;
 
@@ -1256,7 +1256,7 @@ namespace PhotonSail
             var totalAccelerationVector = vesselMassInKg > 0 ? totalForceVector / vesselMassInKg: Vector3d.zero;
 
             // all force
-            ChangeVesselVelocity(this.vessel, universalTime, totalAccelerationVector * TimeWarp.fixedDeltaTime);
+            ChangeVesselVelocity(vessel.orbit, this.vessel, universalTime, totalAccelerationVector * TimeWarp.fixedDeltaTime);
 
             // Update displayed force & acceleration
             var signedForce = totalForceVector.magnitude * sign(cosConeAngleIsNegative);
