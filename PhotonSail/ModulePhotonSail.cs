@@ -820,7 +820,7 @@ namespace PhotonSail
             connectedTransmittersCount = connectedTransmitters.Count;
 
             // apply photon pressure from Kerbal Space Station Beamed Power facility
-            ProcesKscBeamedPower(vesselMassInKg, universalTime, ref positionVessel, (double)(decimal)beamedPowerThrottleRatio * (double)(decimal)rentedBeamedPowerThrottleRatio, ref absorbedPhotonHeatInWatt);
+            ProcessKscBeamedPower(vesselMassInKg, universalTime, ref positionVessel, (double)(decimal)beamedPowerThrottleRatio * (double)(decimal)rentedBeamedPowerThrottleRatio, ref absorbedPhotonHeatInWatt);
 
             // sort transmitter on most favoritable angle
             var sortedConnectedTransmitters =  connectedTransmitters.Select(transmitter =>
@@ -864,27 +864,10 @@ namespace PhotonSail
             powerSupply.SupplyMegajoulesPerSecondWithMax(photovoltaicFlowRate, photovoltaicPotential);
 
             // apply wasteheat
-            ProcesThermalDynamics(absorbedPhotonHeatInWatt);
+            ProcessThermalDynamics(absorbedPhotonHeatInWatt);
 
             // display beamed rays
             AnimateRays();
-
-            // apply solarsail effect to all vessels
-            //foreach (var currentvessel in FlightGlobals.Vessels)
-            //{
-            //    var vesselNormal = currentvessel.GetOrbitDriver().orbit.GetWorldSpaceVel();
-            //    var vectorToSun = vessel.GetWorldPos3D() -  _localStar.position;
-
-            //    //var cosConeAngle = Vector3d.Dot(vectorToSun.normalized, vesselNormal);
-            //    //var cosConeAngleIsNegative = cosConeAngle < 0;
-            //    //if (cosConeAngleIsNegative)
-            //    //    vesselNormal = -vesselNormal;
-
-            //    float angleAwayFromSun = -(float)(globalAngle / radToDegreeMult);
-            //    var desiredVesselHeading = Vector3d.RotateTowards(vesselNormal, vectorToSun, angleAwayFromSun, 1);
-            //    var vesselDeceleration = desiredVesselHeading.normalized * globalAcceleration;
-            //    ChangeVesselVelocity(currentvessel, universalTime, vesselDeceleration * TimeWarp.fixedDeltaTime);
-            //}
         }
 
         private void GetPhotonStatisticsForWavelength(double wavelength, ref double reflection, ref double photovolaticEfficiency)
@@ -894,34 +877,34 @@ namespace PhotonSail
             photovolaticEfficiency = reflectionDefinition != null ? reflectionDefinition.PhotonPhotovoltaicPercentage * 0.01 : 0;
         }
 
-        private void ProcesKscBeamedPower(double vesselMassInKg, double universalTime, ref Vector3d positionVessel, double beamedPowerThrottleRatio, ref double receivedHeatInWatt)
+        private void ProcessKscBeamedPower(double vesselMassInKg, double universalTime, ref Vector3d positionVessel, double beamedPowerThrottleRatio, ref double receivedHeatInWatt)
         {
             if (kscLaserPowerInWatt <= 0 || kscLaserAperture <= 0)
                 return;
 
             var homeWorldBody = Planetarium.fetch.Home;
             Vector3d positionKscLaser = homeWorldBody.GetWorldSurfacePosition(kscLaserLatitude, kscLaserLongitude, kscLaserAltitude);
-            Vector3d centerOfHomeworld = homeWorldBody.position;
+            Vector3d centerOfHomeWorld = homeWorldBody.position;
 
             hasLineOfSightToKtc = LineOfSightToTransmitter(positionVessel, positionKscLaser);
 
             if (hasLineOfSightToKtc)
             {
-                // calculate spotsize and received power From Ktc
+                // calculate spotSize and received power From Ktc
                 Vector3d powerSourceToVesselVector = positionVessel - positionKscLaser;
-                var beamAngleKscToCenterInDegree = Vector3d.Angle(powerSourceToVesselVector, positionVessel - centerOfHomeworld);
-                var beamAngleKscToVesselInDegree = Vector3d.Angle(centerOfHomeworld - positionKscLaser, centerOfHomeworld - positionVessel);
+                var beamAngleKscToCenterInDegree = Vector3d.Angle(powerSourceToVesselVector, positionVessel - centerOfHomeWorld);
+                var beamAngleKscToVesselInDegree = Vector3d.Angle(centerOfHomeWorld - positionKscLaser, centerOfHomeWorld - positionVessel);
 
                 kscLaserElevationAngle = 90 - beamAngleKscToCenterInDegree - beamAngleKscToVesselInDegree;
                 var kscLaserElevationAngleInRadian = (Math.Sin(kscLaserElevationAngle * (double)(decimal)Mathf.Deg2Rad));
                 var kscAtmosphereMultiplier = kscLaserElevationAngleInRadian > 0 ? 1 / kscLaserElevationAngleInRadian : 0;
-                var kscAtmosphereAbsorbtionEfficiency = Math.Max(0, 1 - kscAtmosphereMultiplier * kscAtmosphereAbsorbtionRatio);
+                var atmosphereAbsorptionEfficiency = Math.Max(0, 1 - kscAtmosphereMultiplier * kscAtmosphereAbsorbtionRatio);
 
                 var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature || kscPhotonReflection == 1 
                     ? kscLaserPowerInWatt
                     : Math.Min(kscLaserPowerInWatt, Math.Max(0, (maxSailHeatDissipationInWatt - receivedHeatInWatt - dragHeatInJoule) / (1 - kscPhotonReflection)));
 
-                availableBeamedKscEnergy = kscAtmosphereAbsorbtionEfficiency * surfaceKscEnergy;
+                availableBeamedKscEnergy = atmosphereAbsorptionEfficiency * surfaceKscEnergy;
 
                 if (Funding.Instance != null && Funding.Instance.Funds < availableBeamedKscEnergy * 1e-9)
                     return;
@@ -978,14 +961,14 @@ namespace PhotonSail
                     {
                         var effectRatio = (effect - i) / effect;
                         var scale = ray.spotsize * 4 * effectRatio < diameter ? 1 : 2;
-                        var spotsize = (float)Math.Max(availableSailDiameter * effectRatio, ray.spotsize * effectRatio);
-                        UpdateVisibleBeam(part, beamEffectArray[beamCounter++], ray.powerSourceToVesselVector, scale, spotsize);
+                        var spotSize = (float)Math.Max(availableSailDiameter * effectRatio, ray.spotsize * effectRatio);
+                        UpdateVisibleBeam(part, beamEffectArray[beamCounter++], ray.powerSourceToVesselVector, scale, spotSize);
                     }
                 }
             }
         }
 
-        private void ProcesThermalDynamics(double absorbedPhotonHeatInWatt)
+        private void ProcessThermalDynamics(double absorbedPhotonHeatInWatt)
         {
             var thermalMassPerKilogram = (double)(decimal)part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;            
 
@@ -1019,9 +1002,9 @@ namespace PhotonSail
 
         private void ResetBeams()
         {
-            for (var i = 0; i < beamEffectArray.Length; i++)
+            foreach (var beamEffect in beamEffectArray)
             {
-                UpdateVisibleBeam(part, beamEffectArray[i], Vector3d.zero, 0, 0);
+                UpdateVisibleBeam(part, beamEffect, Vector3d.zero, 0, 0);
             }
         }
 
@@ -1107,7 +1090,7 @@ namespace PhotonSail
                 vessel.ChangeWorldVelocity(acceleration);
         }
 
-        private double GenerateForce(double photonReflectionRatio, double photovoltaicEffiency, ref double receivedHeatInWatt, ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
+        private double GenerateForce(double photonReflectionRatio, double photovoltaicEfficiency, ref double receivedHeatInWatt, ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamSpotSize = 1)
         {
             // calculate vector between vessel and star transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -1121,7 +1104,7 @@ namespace PhotonSail
 
             var cosConeAngleIsNegative = cosConeAngle < 0;
 
-            // If normal points away from sun, negate so our force is always away from the sun
+            // If normal points away from sun/transmitter, negate so our force is always away from the sun/transmitter
             // so that turning the backside towards the sun thrusts correctly
             if (cosConeAngleIsNegative)
             {
@@ -1142,7 +1125,7 @@ namespace PhotonSail
                 totalSolarEnergyReceivedInMJ = energyOnSailnWatt * cosConeAngle * 1e-6;
 
                 doorsPhotovoltaicKiloWatt = sailSurfaceModifier == 0 ? 0.4 * (1 - cosConeAngle) : Math.Max(0.05, cosConeAngle);
-                doorsPhotovoltaicKiloWatt *= doorPhotovotalicRatio * energyOnSailnWatt * 0.001 * 0.9 * Math.Sqrt(photovoltaicEffiency);
+                doorsPhotovoltaicKiloWatt *= doorPhotovotalicRatio * energyOnSailnWatt * 0.001 * 0.9 * Math.Sqrt(photovoltaicEfficiency);
             }
             else
             {
@@ -1152,12 +1135,12 @@ namespace PhotonSail
 
                 energyOnSailnWatt = availableEnergyInWatt * sailSurfaceModifier;
                 doorsPhotovoltaicKiloWatt = sailSurfaceModifier > 0 && cosConeAngleIsNegative 
-                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.001 * 0.9 * Math.Max(0.05, cosConeAngle) * Math.Sqrt(photovoltaicEffiency): 0; 
+                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.001 * 0.9 * Math.Max(0.05, cosConeAngle) * Math.Sqrt(photovoltaicEfficiency): 0; 
             }
 
             // generate Photovoltaic power
             var currentSailPhotovoltaicRatio = cosConeAngleIsNegative ? frontPhotovotalicRatio : backPhotovotalicRatio;
-            var maxSailPhotovoltaicEnergyInKiloWatt = energyOnSailnWatt * 0.001 * currentSailPhotovoltaicRatio * photovoltaicEffiency;
+            var maxSailPhotovoltaicEnergyInKiloWatt = energyOnSailnWatt * 0.001 * currentSailPhotovoltaicRatio * photovoltaicEfficiency;
             photovoltaicPotential += doorsPhotovoltaicKiloWatt + maxSailPhotovoltaicEnergyInKiloWatt;
             photovoltaicFlowRate += doorsPhotovoltaicKiloWatt + maxSailPhotovoltaicEnergyInKiloWatt * cosConeAngle;
 
@@ -1167,14 +1150,14 @@ namespace PhotonSail
             // calculate solar light force at current location
             var maximumPhotonForceInNewton = photonReflectionRatio * maxReflectedRadiationPressure;
 
-            // calculate effective radiation pressure on solarsail
+            // calculate effective radiation pressure on SolarSail
             var reflectedRadiationPressureOnSail = isSun ? maxReflectedRadiationPressure * cosConeAngle : maxReflectedRadiationPressure;
 
             // register force 
             if (isSun)
-                totalForceInNewtonFromSolarEnergy += maximumPhotonForceInNewton * sign(cosConeAngleIsNegative);
+                totalForceInNewtonFromSolarEnergy += maximumPhotonForceInNewton * Sign(cosConeAngleIsNegative);
             else
-                totalForceInNewtonFromBeamedPower += maximumPhotonForceInNewton * sign(cosConeAngleIsNegative);
+                totalForceInNewtonFromBeamedPower += maximumPhotonForceInNewton * Sign(cosConeAngleIsNegative);
 
             if (!IsEnabled)
                 return 0;
@@ -1192,7 +1175,7 @@ namespace PhotonSail
                     if (totalEnergy > 0)
                     {
                         ray.spotsize = totalEnergy > 0
-                            ? (ray.spotsize * (ray.energyInGigaWatt / totalEnergy)) + (beamspotsize * (availableEnergyInGigaWatt / totalEnergy)) 
+                            ? (ray.spotsize * (ray.energyInGigaWatt / totalEnergy)) + (beamSpotSize * (availableEnergyInGigaWatt / totalEnergy)) 
                             : 0;
                     }
 
@@ -1204,7 +1187,7 @@ namespace PhotonSail
                     { 
                         energyInGigaWatt = availableEnergyInGigaWatt, 
                         cosConeAngle = cosConeAngle, 
-                        spotsize = beamspotsize, 
+                        spotsize = beamSpotSize, 
                         powerSourceToVesselVector = powerSourceToVesselVector 
                     });
                 }
@@ -1216,11 +1199,11 @@ namespace PhotonSail
             // calculate the vector at 90 degree angle in the direction of the vector
             //var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
             // new F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
-            // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficien
-            //var effectiveForce = radiationPresureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
+            // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficient
+            //var effectiveForce = radiationPressureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
 
             // calculate acceleration from absorbed photons
-            Vector3d photonAbsorbtionVector = -(positionPowerSource - positionVessel).normalized;
+            Vector3d photonAbsorptionVector = -(positionPowerSource - positionVessel).normalized;
 
             // calculate ratio of non reflected photons
             var absorbedPhotonsRatio = 1 - photonReflectionRatio;
@@ -1232,7 +1215,7 @@ namespace PhotonSail
             var absorbedPhotonForce = reflectedRadiationPressureOnSail * 0.5 * absorbedPhotonsRatio;
 
             // calculate force vector from absorbed photons
-            var absorbedPhotonForceVector = absorbedPhotonForce * photonAbsorbtionVector;
+            var absorbedPhotonForceVector = absorbedPhotonForce * photonAbsorptionVector;
 
             // calculate emmisivity of both sides of the sail
             var totalEmissivity = absorbedPhotonsRatio + backsideEmissivity;
@@ -1259,8 +1242,8 @@ namespace PhotonSail
             ChangeVesselVelocity(vessel.orbit, this.vessel, universalTime, totalAccelerationVector * TimeWarp.fixedDeltaTime);
 
             // Update displayed force & acceleration
-            var signedForce = totalForceVector.magnitude * sign(cosConeAngleIsNegative);
-            var signedAccel = totalAccelerationVector.magnitude * sign(cosConeAngleIsNegative);
+            var signedForce = totalForceVector.magnitude * Sign(cosConeAngleIsNegative);
+            var signedAccel = totalAccelerationVector.magnitude * Sign(cosConeAngleIsNegative);
 
             if (isSun)
             {
@@ -1269,7 +1252,7 @@ namespace PhotonSail
             }
             else
             {
-                receivedBeamedPowerList.Add(new ReceivedBeamedPower { pitchAngle = pitchAngleInDegree, receivedPower = energyOnSailnWatt * 1e-6, spotsize = beamspotsize, cosConeAngle = cosConeAngle });
+                receivedBeamedPowerList.Add(new ReceivedBeamedPower { pitchAngle = pitchAngleInDegree, receivedPower = energyOnSailnWatt * 1e-6, spotsize = beamSpotSize, cosConeAngle = cosConeAngle });
                 beamedSailForce += signedForce;
                 beamed_acc_d += signedAccel;
             }
@@ -1302,15 +1285,15 @@ namespace PhotonSail
             previousFixedDeltaTime = TimeWarp.fixedDeltaTime;
         }
 
-        private static int sign(bool cosConeAngleIsNegative)
+        private static int Sign(bool cosConeAngleIsNegative)
         {
             return cosConeAngleIsNegative ? -1 : 1;
         }
 
-        private static void UpdateVisibleBeam(Part part, BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = 200000)
+        private static void UpdateVisibleBeam(Part part, BeamEffect beamEffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamLength = 200000)
         {
             var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
-            var endBeamPos = part.transform.position + normalizedPowerSourceToVesselVector * beamlength;
+            var endBeamPos = part.transform.position + normalizedPowerSourceToVesselVector * beamLength;
             var midPos = part.transform.position - endBeamPos;
             var timeCorrection = TimeWarp.CurrentRate > 1 ? -part.vessel.obt_velocity * (double)(decimal)TimeWarp.fixedDeltaTime : Vector3d.zero;
 
@@ -1318,9 +1301,9 @@ namespace PhotonSail
             var solarVectorY = normalizedPowerSourceToVesselVector.y * 90 - 90;
             var solarVectorZ = normalizedPowerSourceToVesselVector.z * 90;
 
-            beameffect.solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
-            beameffect.solar_effect.transform.localScale = new Vector3(beamSize, (float)(beamlength * scaleModifer), beamSize);
-            beameffect.solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
+            beamEffect.solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
+            beamEffect.solar_effect.transform.localScale = new Vector3(beamSize, (float)(beamLength * scaleModifer), beamSize);
+            beamEffect.solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
         }
 
         private static double solarFluxAtDistance(Vessel vessel, CelestialBody star, double luminosity)
@@ -1329,9 +1312,9 @@ namespace PhotonSail
             var distanceToSurfaceStar = toStar.magnitude - star.Radius;
             var scaledDistance = 1 + Math.Min(1, distanceToSurfaceStar / star.Radius);
             var nearStarDistance = star.Radius * 0.25 * scaledDistance * scaledDistance;
-            var distanceForeffectiveDistance = Math.Max(distanceToSurfaceStar, nearStarDistance);
-            var distAU = distanceForeffectiveDistance / GameConstants.kerbin_sun_distance;
-            return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (distAU * distAU);
+            var distanceForEffectiveDistance = Math.Max(distanceToSurfaceStar, nearStarDistance);
+            var kerbinSunDistance = distanceForEffectiveDistance / GameConstants.kerbin_sun_distance;
+            return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (kerbinSunDistance * kerbinSunDistance);
         }
 
         private static void runAnimation(string animationName, Animation anim, float speed, float aTime)
