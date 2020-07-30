@@ -1,14 +1,14 @@
-﻿using FNPlugin.Constants;
+﻿using FNPlugin;
+using FNPlugin.Beamedpower;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
-using FNPlugin.Beamedpower;
-using FNPlugin;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
 using UnityEngine;
-using KSP.Localization;
 
 namespace PhotonSail
 {
@@ -227,6 +227,8 @@ namespace PhotonSail
         [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_KSCLaserMinElevationAngle")]//KCS Laser Min Elevation Angle
         public double kscLaserMinElevationAngle = 70;
 
+        [KSPField] 
+        public int animatedRays = 400;
         [KSPField]
         public double kscAtmosphereAbsorbtionRatio = 0.11;
         [KSPField]
@@ -336,9 +338,9 @@ namespace PhotonSail
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Skin Heating", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = -100)]
         //public float skinHeating = 0;
 
-        double solar_acc_d = 0;
-        double beamed_acc_d = 0;
-        double sailSurfaceModifier = 0;
+        double solar_acc_d;
+        double beamed_acc_d;
+        double sailSurfaceModifier;
         double initialMass;
         double kscPhotonReflection;
         double kscPhotovoltaic;
@@ -352,31 +354,28 @@ namespace PhotonSail
         double energyOnSailnWatt;
         double dragHeatInJoule;
 
-        const double Rad2Degree = 180 / Math.PI; // 57.295779513;
-
-        const int animatedRays = 400;
-
         int solarPhotovoltaicTechLevel;
         int beamCounter;
         int updateCounter;
         int buttonPressedTime = 10;
-        
-        List<ReceivedBeamedPower> receivedBeamedPowerList = new List<ReceivedBeamedPower>();
-        IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
-        Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
+
         List<PhotonReflectionDefinition> photonReflectionDefinitions = new List<PhotonReflectionDefinition>();
         List<ReceivedPowerData> connectedTransmitters = new List<ReceivedPowerData>();
-        List<BeamRay> beamRays = new List<BeamRay>();
+        IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
 
         IPowerSupply powerSupply;
         BeamEffect[] beamEffectArray;
         Texture2D beamTexture;
         Shader transparentShader;
-        Animation solarSailAnim1 = null;
-        Animation solarSailAnim2 = null;
+        Animation solarSailAnim1;
+        Animation solarSailAnim2;
 
-        Queue<double> periapsisChangeQueue = new Queue<double>(30);
-        Queue<double> apapsisChangeQueue = new Queue<double>(30);
+        readonly List<BeamRay> beamRays = new List<BeamRay>();
+        readonly List<ReceivedBeamedPower> receivedBeamedPowerList = new List<ReceivedBeamedPower>();
+        readonly Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
+
+        readonly Queue<double> periapsisChangeQueue = new Queue<double>(30);
+        readonly Queue<double> apapsisChangeQueue = new Queue<double>(30);
 
         public int ReceiverType { get { return 7; } }                       // receiver from either top or bottom
 
@@ -409,8 +408,8 @@ namespace PhotonSail
         public void DeploySail()
         {
             Debug.Log("[PhotonSailor]: DeploySail called");
-            runAnimation(animName, solarSailAnim1, 0.5f, 0);
-            runAnimation(animName, solarSailAnim2, 0.5f, 0);
+            RunAnimation(animName, solarSailAnim1, 0.5f, 0);
+            RunAnimation(animName, solarSailAnim2, 0.5f, 0);
             IsEnabled = true;
             buttonPressedTime = updateCounter;
         }
@@ -420,8 +419,8 @@ namespace PhotonSail
         public void RetractSail()
         {
             Debug.Log("[PhotonSailor]: RetractSail called");
-            runAnimation(animName, solarSailAnim1, -0.5f, 1);
-            runAnimation(animName, solarSailAnim2, -0.5f, 1);
+            RunAnimation(animName, solarSailAnim1, -0.5f, 1);
+            RunAnimation(animName, solarSailAnim2, -0.5f, 1);
             IsEnabled = false;
         }
 
@@ -435,7 +434,7 @@ namespace PhotonSail
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: FNGenerator.OnRescale " + e.Message);
+                Debug.LogError("[PhotonSailor]: FNGenerator.OnRescale " + e.Message);
             }
         }
 
@@ -499,7 +498,7 @@ namespace PhotonSail
 
             DetermineKscLaserAperture();
 
-            DermineMassTechMultiplier();
+            DetermineMassTechMultiplier();
 
             kscLaserPowerInGigaWatt = kscLaserPowerInWatt * 1e-9;
 
@@ -581,7 +580,7 @@ namespace PhotonSail
             kscLaserAperture *= kscApertureMult;
         }
 
-        private void DermineMassTechMultiplier()
+        private void DetermineMassTechMultiplier()
         {
             if (ResearchAndDevelopment.Instance == null)
             {
@@ -618,9 +617,8 @@ namespace PhotonSail
 
         private BeamEffect CreateBeam(int renderQueue)
         {
-            var beam = new BeamEffect();
+            var beam = new BeamEffect {solar_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder)};
 
-            beam.solar_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             beam.solar_effect.transform.localScale = Vector3.zero;
             beam.solar_effect.transform.position = Vector3.zero;
             beam.solar_effect.transform.rotation = part.transform.rotation;
@@ -641,8 +639,8 @@ namespace PhotonSail
         public void Update()
         {
             // Sail deployment GUI
-            Events["DeploySail"].active = !IsEnabled;
-            Events["RetractSail"].active = IsEnabled;
+            Events[nameof(DeploySail)].active = !IsEnabled;
+            Events[nameof(RetractSail)].active = IsEnabled;
             partMass = part.mass;
 
             if (HighLogic.LoadedSceneIsFlight)
@@ -749,11 +747,11 @@ namespace PhotonSail
             Fields[nameof(diffuseSailDragInNewton)].guiActive = diffuseSailDragInNewton > 0;
             Fields[nameof(specularSailDragInNewton)].guiActive = specularSailDragInNewton > 0;
 
-            var relevantOrbitalData = 
-                vessel.situation != global::Vessel.Situations.SPLASHED && 
-                vessel.situation != global::Vessel.Situations.LANDED &&
-                vessel.situation != global::Vessel.Situations.PRELAUNCH && 
-                vessel.situation != global::Vessel.Situations.FLYING; 
+            var relevantOrbitalData =
+                (vessel.situation & Vessel.Situations.SPLASHED) != Vessel.Situations.SPLASHED && 
+                (vessel.situation & Vessel.Situations.LANDED) != Vessel.Situations.LANDED &&
+                (vessel.situation & Vessel.Situations.PRELAUNCH) != Vessel.Situations.PRELAUNCH && 
+                (vessel.situation & Vessel.Situations.FLYING) != Vessel.Situations.FLYING; 
 
             Fields[nameof(periapsisChange)].guiActive = relevantOrbitalData;
             Fields[nameof(apapsisChange)].guiActive = relevantOrbitalData;
@@ -1114,8 +1112,8 @@ namespace PhotonSail
             }
 
             // convert radian into angle in degree
-            var pitchAngleInDegree = Math.Acos(cosConeAngle) * Rad2Degree;
-            if (double.IsNaN(pitchAngleInDegree))
+            var pitchAngleInDegree = Math.Acos(cosConeAngle) * Orbit.Rad2Deg;
+            if (double.IsNaN(pitchAngleInDegree) || double.IsInfinity(pitchAngleInDegree))
                 pitchAngleInDegree = 0;
 
             if (isSun)
@@ -1317,9 +1315,9 @@ namespace PhotonSail
             return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (kerbinSunDistance * kerbinSunDistance);
         }
 
-        private static void runAnimation(string animationName, Animation anim, float speed, float aTime)
+        private static void RunAnimation(string animationName, Animation anim, float speed, float aTime)
         {
-            if (animationName == null || anim == null || string.IsNullOrEmpty(animationName))
+            if (anim == null || string.IsNullOrEmpty(animationName))
                 return;
 
             anim[animationName].speed = speed;

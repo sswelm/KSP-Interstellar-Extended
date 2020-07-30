@@ -42,7 +42,7 @@ namespace PhotonSail
         public Dictionary<uint, VesselData> vesselDataDict = new Dictionary<uint, VesselData>();
 
         /// <summary> global access </summary>
-        public static PhotonSailor Fetch { get; private set; } = null;
+        public static PhotonSailor Fetch { get; private set; }
 
         public PhotonSailor()
         {
