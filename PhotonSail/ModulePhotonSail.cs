@@ -810,7 +810,7 @@ namespace PhotonSail
             // update solar flux
             UpdateSolarFlux(universalTime, positionVessel, vessel);
 
-            // unconditionally apply solarflux energy for every star
+            // unconditionally apply solarFlux energy for every star
             foreach (var starLight in KopernicusHelper.Stars)
             {
                 GenerateForce(reflectedPhotonRatio, solarPhotovoltaicEfficiencyFactor, ref absorbedPhotonHeatInWatt, ref starLight.position, ref positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
