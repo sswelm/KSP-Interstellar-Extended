@@ -1215,25 +1215,25 @@ namespace PhotonSail
             // calculate force vector from absorbed photons
             var absorbedPhotonForceVector = absorbedPhotonForce * photonAbsorptionVector;
 
-            // calculate emmisivity of both sides of the sail
+            // calculate emissivity of both sides of the sail
             var totalEmissivity = absorbedPhotonsRatio + backsideEmissivity;
 
             // calculate percentage of energy leaving through the receiving side, accelerating the vessel
-            var pushDissipationRatio = totalEmissivity > 0 ? Math.Min(0, absorbedPhotonsRatio / totalEmissivity) : 0;
+            var pushDissipationRatio = totalEmissivity > 0 ? Math.Max(0, absorbedPhotonsRatio / totalEmissivity) : 0;
 
             // calculate percentage of energy leaving through the backside, decelerating the vessel
-            var dragDissipationRatio = totalEmissivity > 0 ? Math.Min(0, backsideEmissivity / totalEmissivity) : 0;
+            var dragDissipationRatio = totalEmissivity > 0 ? Math.Max(0, backsideEmissivity / totalEmissivity) : 0;
 
-            // calculate equlibrium drag force from dissipation at back side
+            // calculate equilibrium drag force from dissipation at back side
             var dissipationDragForceVector = -vesselNormal * absorbedPhotonForce * dragDissipationRatio;
 
-            // calculate equlibrium drag force from dissipation at back side
+            // calculate equilibrium drag force from dissipation at back side
             var dissipationPushForceVector = vesselNormal * absorbedPhotonForce * pushDissipationRatio;
 
             // calculate sum of all force vectors
             Vector3d totalForceVector = reflectedPhotonForceVector + absorbedPhotonForceVector + dissipationPushForceVector + dissipationDragForceVector;
 
-            // caclculate acceleration
+            // calculate acceleration
             var totalAccelerationVector = vesselMassInKg > 0 ? totalForceVector / vesselMassInKg: Vector3d.zero;
 
             // all force
