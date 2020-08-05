@@ -9,17 +9,24 @@ namespace PhotonSail
 {
     public class VesselData
     {
+        public uint VesselPersistentId { get; set; }
+        public uint SolarSailPersistentId { get; set; }
+
         public double TotalVesselMassInKg { get;  set; }
         public double TotalVesselMass { get;  set; }
-        public bool? HasSolarSail { get; set; }
-        public uint SolarSailPersistentId { get; set; }
+        public bool? HasOpenSolarSail { get; set; }
+
         public ModulePhotonSail ModulePhotonSail { get; set; }
         public ProtoPartModuleSnapshot ProtoPartModuleSnapshot { get; set; }
 
+        public VesselData(uint persistentId)
+        {
+            VesselPersistentId = persistentId;
+        }
+
         public void UpdateMass(Vessel vessel)
         {
-            if (TotalVesselMass != 0)
-                return;
+            TotalVesselMass = 0;
 
             // for each part
             foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
@@ -37,29 +44,9 @@ namespace PhotonSail
 
 
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, new[] {GameScenes.SPACECENTER, GameScenes.TRACKSTATION, GameScenes.FLIGHT, GameScenes.EDITOR})]
-    public sealed class PhotonSailor : ScenarioModule
+    public sealed class PhotonBackgroundProcessing : ScenarioModule
     {
-        public Dictionary<uint, VesselData> vesselDataDict = new Dictionary<uint, VesselData>();
-
-        /// <summary> global access </summary>
-        public static PhotonSailor Fetch { get; private set; }
-
-        public PhotonSailor()
-        {
-            // enable global access
-            Fetch = this;
-        }
-
-        private void OnDestroy()
-        {
-            Fetch = null;
-        }
-
-        public override void OnLoad(ConfigNode node)
-        {
-            base.OnLoad(node);
-            // everything in there will be called only one time : the first time a game is loaded from the main menu
-        }
+        private static readonly Dictionary<uint, VesselData> vesselDataDict = new Dictionary<uint, VesselData>();
 
         /// <summary>
         /// Called by the part every refresh frame where it is active, which can be less frequent than FixedUpdate which is called every processing frame
@@ -69,61 +56,79 @@ namespace PhotonSail
             // for each vessel
             foreach (Vessel vessel in FlightGlobals.Vessels)
             {
-                if (vessel.loaded || vessel.isEVA || vessel.isActiveVessel)
+                // ignore Kerbals
+                if (vessel.isEVA)
                     continue;
 
+                // ignore landed or floating vessels
+                if (vessel.LandedOrSplashed)
+                    continue;
+
+                // ignore irrelevant vessel types
                 if (vessel.vesselType == VesselType.Debris
                     || vessel.vesselType == VesselType.Flag
-                    || vessel.vesselType == VesselType.SpaceObject 
-                    || vessel.vesselType == VesselType.DeployedSciencePart 
+                    || vessel.vesselType == VesselType.SpaceObject
+                    || vessel.vesselType == VesselType.DeployedSciencePart
                     || vessel.vesselType == VesselType.DeployedScienceController
-                    )
+                )
                     continue;
 
-                if ((Vessel.Situations.LANDED & vessel.situation) == Vessel.Situations.LANDED
-                    || (Vessel.Situations.SPLASHED & vessel.situation) == Vessel.Situations.SPLASHED
-                    || (Vessel.Situations.PRELAUNCH & vessel.situation) == Vessel.Situations.PRELAUNCH 
-                    || (Vessel.Situations.FLYING & vessel.situation) == Vessel.Situations.FLYING)
+                // ignore irrelevant vessel situations
+                if ((vessel.situation & Vessel.Situations.PRELAUNCH) == Vessel.Situations.PRELAUNCH
+                    || (vessel.situation & Vessel.Situations.FLYING) == Vessel.Situations.FLYING)
                     continue;
 
                 // lookup vesselData
                 if (!vesselDataDict.TryGetValue(vessel.persistentId, out VesselData vesselData))
                 {
-                    vesselData = new VesselData();
+                    vesselData = new VesselData(vessel.persistentId);
                     vesselDataDict.Add(vessel.persistentId, vesselData);
                 }
 
-                // skip further processing if no solar sail present
-                if (vesselData.HasSolarSail.HasValue && !vesselData.HasSolarSail.Value)
+                if (vessel.loaded)
+                {
+                    ProcessesLoadedVessel(vessel, vesselData);
+                    continue;
+                }
+
+                // skip further processing if no open solar sail present
+                if (vesselData.HasOpenSolarSail.HasValue && vesselData.HasOpenSolarSail.Value == false)
                     continue;
 
-                //reset mass to initiate a recalculation
-                vesselData.TotalVesselMass = 0;
-
+                // process solar sail if we already found a open solar sail
                 if (vesselData.ProtoPartModuleSnapshot != null)
                 {
-                    ProtoPartSnapshot protoPartSnapshot = vessel.protoVessel.protoPartSnapshots.FirstOrDefault(m => m.persistentId == vesselData.SolarSailPersistentId);
+                    ProtoPartSnapshot protoPartSnapshot = vessel.protoVessel.protoPartSnapshots
+                        .FirstOrDefault(m => m.persistentId == vesselData.SolarSailPersistentId);
 
                     if (protoPartSnapshot != null)
                         BackgroundSolarSail(protoPartSnapshot, vessel, vesselData);
                     else
                     {
-                        vesselData.HasSolarSail = null;
+                        vesselData.HasOpenSolarSail = null;
                         vesselData.ProtoPartModuleSnapshot = null;
                         Debug.Log("[PhotonSailor]: Fail to find protoPartSnapshots " + vesselData.SolarSailPersistentId);
                     }
+                    continue;
                 }
-                else
+
+                // look for a solar sail
+                foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
                 {
-                    foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
-                    {
-                        if (BackgroundSolarSail(protoPartSnapshot, vessel, vesselData))
-                            break;
-                        else
-                            vesselData.HasSolarSail = false;
-                    }
+                    BackgroundSolarSail(protoPartSnapshot, vessel, vesselData);
+
+                    // break search if we found a open solar sail
+                    if (vesselData.HasOpenSolarSail.HasValue && vesselData.HasOpenSolarSail.Value)
+                        break;
                 }
             }
+        }
+
+        private static void ProcessesLoadedVessel(Vessel vessel, VesselData vesselData)
+        {
+            vesselData.ModulePhotonSail = vessel.FindPartModuleImplementing<ModulePhotonSail>();
+
+            vesselData.HasOpenSolarSail = vesselData.ModulePhotonSail?.IsEnabled;
         }
 
         private static bool BackgroundSolarSail(ProtoPartSnapshot protoPartSnapshot, Vessel vessel, VesselData vesselData)
@@ -143,16 +148,17 @@ namespace PhotonSail
                 if (vesselData.ProtoPartModuleSnapshot == null)
                     return false;
 
-                vesselData.HasSolarSail = true;
                 vesselData.SolarSailPersistentId = protoPartSnapshot.persistentId;
+
+                // load modulePhotonSail IsEnabled
+                if (!vesselData.ProtoPartModuleSnapshot.moduleValues.TryGetValue(nameof(vesselData.ModulePhotonSail.IsEnabled), ref vesselData.ModulePhotonSail.IsEnabled))
+                    return false;
+
+                if (vesselData.ModulePhotonSail.IsEnabled)
+                    vesselData.HasOpenSolarSail = true;
+                else
+                    return false;
             }
-
-            // load modulePhotonSail IsEnabled
-            if (!vesselData.ProtoPartModuleSnapshot.moduleValues.TryGetValue(nameof(vesselData.ModulePhotonSail.IsEnabled), ref vesselData.ModulePhotonSail.IsEnabled))
-                return false;
-
-            if (!vesselData.ModulePhotonSail.IsEnabled)
-                return false;
 
             Transform vesselTransform = vessel.GetTransform();
             Vector3d positionVessel = vessel.GetWorldPos3D();
@@ -163,7 +169,7 @@ namespace PhotonSail
 
             // update solar flux
             vesselData.ModulePhotonSail.UpdateSolarFlux(universalTime, positionVessel, vessel);
-            // update mass
+            // update vessel mass
             vesselData.UpdateMass(vessel);
 
             var totalPhotonAccelerationVector = CalculatePhotonForceVector(vesselData, vesselTransform, positionVessel);
