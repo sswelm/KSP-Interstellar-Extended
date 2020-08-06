@@ -9,7 +9,8 @@ namespace PhotonSail
 {
     public class VesselData
     {
-        public uint VesselPersistentId { get; set; }
+        public Vessel Vessel { get; set; }
+
         public uint SolarSailPersistentId { get; set; }
 
         public double TotalVesselMassInKg { get;  set; }
@@ -19,9 +20,9 @@ namespace PhotonSail
         public ModulePhotonSail ModulePhotonSail { get; set; }
         public ProtoPartModuleSnapshot ProtoPartModuleSnapshot { get; set; }
 
-        public VesselData(uint persistentId)
+        public VesselData(Vessel vessel)
         {
-            VesselPersistentId = persistentId;
+            Vessel = vessel;
         }
 
         public void UpdateMass(Vessel vessel)
@@ -44,9 +45,16 @@ namespace PhotonSail
 
 
     [KSPScenario(ScenarioCreationOptions.AddToAllGames, new[] {GameScenes.SPACECENTER, GameScenes.TRACKSTATION, GameScenes.FLIGHT, GameScenes.EDITOR})]
-    public sealed class PhotonBackgroundProcessing : ScenarioModule
+    public sealed class PhotonSailBackgroundProcessing : ScenarioModule
     {
-        private static readonly Dictionary<uint, VesselData> vesselDataDict = new Dictionary<uint, VesselData>();
+        private static readonly Dictionary<Guid, VesselData> vesselDataDict = new Dictionary<Guid, VesselData>();
+
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+
+            vesselDataDict.Clear();
+        }
 
         /// <summary>
         /// Called by the part every refresh frame where it is active, which can be less frequent than FixedUpdate which is called every processing frame
@@ -79,10 +87,10 @@ namespace PhotonSail
                     continue;
 
                 // lookup vesselData
-                if (!vesselDataDict.TryGetValue(vessel.persistentId, out VesselData vesselData))
+                if (!vesselDataDict.TryGetValue(vessel.id, out VesselData vesselData))
                 {
-                    vesselData = new VesselData(vessel.persistentId);
-                    vesselDataDict.Add(vessel.persistentId, vesselData);
+                    vesselData = new VesselData(vessel);
+                    vesselDataDict.Add(vessel.id, vesselData);
                 }
 
                 if (vessel.loaded)
