@@ -160,6 +160,9 @@ namespace PhotonSail
                 // load modulePhotonSail IsEnabled
                 if (!vesselData.ProtoPartModuleSnapshot.moduleValues.TryGetValue(nameof(vesselData.ModulePhotonSail.IsEnabled), ref vesselData.ModulePhotonSail.IsEnabled))
                     return false;
+
+                if (vesselData.ModulePhotonSail.IsEnabled)
+                    return true;
             }
 
             return false;
