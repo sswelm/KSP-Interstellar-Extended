@@ -190,6 +190,40 @@ namespace PhotonSail
             return stars;
         }
 
+        public static bool LineOfSightToSun(Vector3d vesselPosition, CelestialBody star)
+        {
+            return LineOfSightToTransmitter(vesselPosition, star.position, star.name);
+        }
+
+        public static bool LineOfSightToTransmitter(Vector3d vesselPosition, Vector3d transmitterPosition, string ignoreBody = "")
+        {
+            Vector3d bminusa = transmitterPosition - vesselPosition;
+
+            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
+            {
+                // the star should not block line of sight to the sun
+                if (referenceBody.name == ignoreBody)
+                    continue;
+
+                Vector3d refminusa = referenceBody.position - vesselPosition;
+
+                if (Vector3d.Dot(refminusa, bminusa) <= 0)
+                    continue;
+
+                var normalizedBminusa = bminusa.normalized;
+
+                var cosReferenceSunNormB = Vector3d.Dot(refminusa, normalizedBminusa);
+
+                if (cosReferenceSunNormB >= bminusa.magnitude)
+                    continue;
+
+                Vector3d tang = refminusa - cosReferenceSunNormB * normalizedBminusa;
+                if (tang.magnitude < referenceBody.Radius)
+                    return false;
+            }
+            return true;
+        }
+
 
     }
 }

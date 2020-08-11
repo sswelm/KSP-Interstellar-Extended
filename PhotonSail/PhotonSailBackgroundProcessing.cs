@@ -15,7 +15,7 @@ namespace PhotonSail
 
         public double TotalVesselMassInKg { get;  set; }
         public double TotalVesselMass { get;  set; }
-        public bool? HasOpenSolarSail { get; set; }
+        public bool? HasSolarSail { get; set; }
 
         public ModulePhotonSail ModulePhotonSail { get; set; }
         public ProtoPartModuleSnapshot ProtoPartModuleSnapshot { get; set; }
@@ -81,11 +81,6 @@ namespace PhotonSail
                 )
                     continue;
 
-                // ignore irrelevant vessel situations
-                if ((vessel.situation & Vessel.Situations.PRELAUNCH) == Vessel.Situations.PRELAUNCH
-                    || (vessel.situation & Vessel.Situations.FLYING) == Vessel.Situations.FLYING)
-                    continue;
-
                 // lookup vesselData
                 if (!vesselDataDict.TryGetValue(vessel.id, out VesselData vesselData))
                 {
@@ -99,36 +94,39 @@ namespace PhotonSail
                     continue;
                 }
 
-                // skip further processing if no open solar sail present
-                if (vesselData.HasOpenSolarSail.HasValue && vesselData.HasOpenSolarSail.Value == false)
+                // skip further processing if no solar sail present
+                if (vesselData.HasSolarSail.HasValue && vesselData.HasSolarSail.Value == false)
                     continue;
+
+                if (vesselData.HasSolarSail.HasValue == false)
+                {
+                    // look for a solar sail
+                    foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
+                    {
+                        if (LoadSolarSail(protoPartSnapshot, vesselData))
+                        {
+                            // break search if we found a open solar sail
+                            if (vesselData.ModulePhotonSail.IsEnabled)
+                                break;
+                        }
+                    }
+
+                    // stop searching is no sail was found
+                    if (vesselData.HasSolarSail.HasValue == false)
+                    {
+                        vesselData.HasSolarSail = false;
+                        continue;
+                    }
+                }
 
                 // process solar sail if we already found a open solar sail
-                if (vesselData.ProtoPartModuleSnapshot != null)
-                {
-                    ProtoPartSnapshot protoPartSnapshot = vessel.protoVessel.protoPartSnapshots
-                        .FirstOrDefault(m => m.persistentId == vesselData.SolarSailPersistentId);
+                ProtoPartSnapshot photonSailSnapshot = vessel.protoVessel.protoPartSnapshots
+                    .FirstOrDefault(m => m.persistentId == vesselData.SolarSailPersistentId);
 
-                    if (protoPartSnapshot != null)
-                        BackgroundSolarSail(protoPartSnapshot, vessel, vesselData);
-                    else
-                    {
-                        vesselData.HasOpenSolarSail = null;
-                        vesselData.ProtoPartModuleSnapshot = null;
-                        Debug.Log("[PhotonSailor]: Fail to find protoPartSnapshots " + vesselData.SolarSailPersistentId);
-                    }
+                if (photonSailSnapshot == null)
                     continue;
-                }
 
-                // look for a solar sail
-                foreach (ProtoPartSnapshot protoPartSnapshot in vessel.protoVessel.protoPartSnapshots)
-                {
-                    BackgroundSolarSail(protoPartSnapshot, vessel, vesselData);
-
-                    // break search if we found a open solar sail
-                    if (vesselData.HasOpenSolarSail.HasValue && vesselData.HasOpenSolarSail.Value)
-                        break;
-                }
+                BackgroundSolarSail(photonSailSnapshot, vessel, vesselData);
             }
         }
 
@@ -136,10 +134,10 @@ namespace PhotonSail
         {
             vesselData.ModulePhotonSail = vessel.FindPartModuleImplementing<ModulePhotonSail>();
 
-            vesselData.HasOpenSolarSail = vesselData.ModulePhotonSail?.IsEnabled;
+            vesselData.HasSolarSail = vesselData.ModulePhotonSail?.IsEnabled;
         }
 
-        private static bool BackgroundSolarSail(ProtoPartSnapshot protoPartSnapshot, Vessel vessel, VesselData vesselData)
+        private static bool LoadSolarSail(ProtoPartSnapshot protoPartSnapshot, VesselData vesselData)
         {
             if (vesselData.ProtoPartModuleSnapshot == null)
             {
@@ -157,16 +155,25 @@ namespace PhotonSail
                     return false;
 
                 vesselData.SolarSailPersistentId = protoPartSnapshot.persistentId;
+                vesselData.HasSolarSail = true;
 
                 // load modulePhotonSail IsEnabled
                 if (!vesselData.ProtoPartModuleSnapshot.moduleValues.TryGetValue(nameof(vesselData.ModulePhotonSail.IsEnabled), ref vesselData.ModulePhotonSail.IsEnabled))
                     return false;
-
-                if (vesselData.ModulePhotonSail.IsEnabled)
-                    vesselData.HasOpenSolarSail = true;
-                else
-                    return false;
             }
+
+            return false;
+        }
+
+        private static void BackgroundSolarSail(ProtoPartSnapshot protoPartSnapshot, Vessel vessel, VesselData vesselData)
+        {
+            // load modulePhotonSail IsEnabled
+            if (!vesselData.ProtoPartModuleSnapshot.moduleValues.TryGetValue(nameof(vesselData.ModulePhotonSail.IsEnabled), ref vesselData.ModulePhotonSail.IsEnabled))
+                return;
+
+            // quit processing if it is closed
+            if (vesselData.ModulePhotonSail.IsEnabled == false)
+                return;
 
             Transform vesselTransform = vessel.GetTransform();
             Vector3d positionVessel = vessel.GetWorldPos3D();
@@ -175,7 +182,7 @@ namespace PhotonSail
             Vector3d serializedOrbitalVelocity = vesselOrbit.getOrbitalVelocityAtUT(universalTime);
             Vector3d orbitalVector = serializedOrbitalVelocity.xzy;
 
-            // update solar flux
+            // update solar flux (and checks line of light)
             vesselData.ModulePhotonSail.UpdateSolarFlux(universalTime, positionVessel, vessel);
             // update vessel mass
             vesselData.UpdateMass(vessel);
@@ -186,8 +193,6 @@ namespace PhotonSail
 
             // apply force
             Perturb(vesselOrbit, (totalPhotonAccelerationVector + combinedDragDecelerationVector) * TimeWarp.fixedDeltaTime, universalTime, serializedOrbitalVelocity);
-
-            return true;
         }
 
         private static Vector3d CalculatePhotonForceVector(VesselData vesselData, Transform vesselTransform, Vector3d positionVessel)

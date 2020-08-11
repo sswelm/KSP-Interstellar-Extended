@@ -17,6 +17,17 @@ namespace FNPlugin.Resources
         static List<StarLight> stars;
         static Dictionary<CelestialBody, StarLight> starsByBody;
 
+        static private double astronomicalUnit;
+        static public double AstronomicalUnit
+        {
+            get
+            {
+                if (astronomicalUnit == 0)
+                    astronomicalUnit = FlightGlobals.GetHomeBody().orbit.semiMajorAxis;
+                return astronomicalUnit;
+            }
+        }
+
         /// <summary>
         /// Retrieves list of Starlight data
         /// </summary>
