@@ -6,11 +6,11 @@ using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
 using FNPlugin.Wasteheat;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -265,8 +265,6 @@ namespace FNPlugin
         [KSPField]
         public double thermalEnergyEfficiency = 1;
         [KSPField]
-        public double chargedParticleEnergyEfficiency = 1;
-        [KSPField]
         public double thermalProcessingModifier = 1;
         [KSPField]
         public bool canSwitchBandwidthInEditor = false;
@@ -335,8 +333,6 @@ namespace FNPlugin
         [KSPField]
         public double powerMult = 1;
         [KSPField]
-        public double powerHeatMultiplier = 1;
-        [KSPField]
         public double averageEfficiencyFraction;
 
         [KSPField(isPersistant = true)]
@@ -352,8 +348,6 @@ namespace FNPlugin
         public bool showBandWidthName = false;
         [KSPField]
         public bool showSelectedBandwidthConfiguration = true;
-
-
 
         protected BaseField _beamedpowerField;
         protected BaseField _powerInputMegajoulesField;
@@ -393,17 +387,15 @@ namespace FNPlugin
         protected ModuleDeployableAntenna deployableAntenna;
 
         protected FNRadiator fnRadiator;
-        protected PartModule warpfixer;
+        protected PartModule warpFixer;
 
         public Queue<double> beamedPowerQueue = new Queue<double>(10);
         public Queue<double> beamedPowerMaxQueue = new Queue<double>(10);
         
         public Queue<double> solarFluxQueue = new Queue<double>(50);
-        public Queue<double> flowRateQueue = new Queue<double>(50);
 
         //Internal 
-        protected bool isLoaded = false;
-        protected bool waitForAnimationToComplete = false;
+        protected bool isLoaded;
         protected double total_conversion_waste_heat_production;
         protected double connectedRecieversSum;
         protected int initializationCountdown;
@@ -1049,8 +1041,8 @@ namespace FNPlugin
 
             if (part.Modules.Contains("WarpFixer"))
             {
-                warpfixer = part.Modules["WarpFixer"];
-                _field_kerbalism_output = warpfixer.Fields["field_output"];
+                warpFixer = part.Modules["WarpFixer"];
+                _field_kerbalism_output = warpFixer.Fields["field_output"];
             }
 
             if (IsThermalSource && !isThermalReceiverSlave)
@@ -1177,7 +1169,7 @@ namespace FNPlugin
                 _resourceBuffers.Init(this.part);
             }
 
-            // look for any transmitter partmodule
+            // look for any transmitter partModule
             part_transmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
             if (part_transmitter != null)
             {
@@ -1952,7 +1944,7 @@ namespace FNPlugin
             currentGeneratorThermalEnergyRequestRatio = 0;
         }
 
-        // Is called durring OnUpdate to reduce processor load
+        // Is called during OnUpdate to reduce processor load
         private void CalculateInputPower()
         {
             total_conversion_waste_heat_production = 0;
