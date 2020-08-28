@@ -1,0 +1,9 @@
+INFO
+{
+	Name = Orbital Survey Plus
+	Version = 2.3.6
+	ReleaseDate = Monday, March 26, 2018
+	KSP = 1.4.1
+	Author = Chase Barnes (Wheffle)
+	Email = altoid287@gmail.com
+}
