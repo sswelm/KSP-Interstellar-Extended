@@ -707,6 +707,11 @@ namespace FNPlugin
             }
         }
 
+        public static double GetBlackBodyDissipation(double effectiveSurfaceArea, double temperatureDelta)
+        {
+            return effectiveSurfaceArea * PhysicsGlobals.StefanBoltzmanConstant * temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
+        }
+
         public static ConfigNode getKerbal(int kerbalidx)
         {
             try

@@ -1759,7 +1759,7 @@ namespace FNPlugin
             if (isMirror && receiverIsEnabled)
             {
                 var thermalMassPerKilogram = part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
-                dissipationInMegaJoules = GetBlackBodyDissipation(solarReceptionSurfaceArea, part.temperature) * 1e-6; ;
+                dissipationInMegaJoules = PluginHelper.GetBlackBodyDissipation(solarReceptionSurfaceArea, part.temperature) * 1e-6; ;
                 var temperatureChange = fixedDeltaTime * -(dissipationInMegaJoules / thermalMassPerKilogram);
                 part.temperature = part.temperature + temperatureChange;
             }
@@ -2161,11 +2161,6 @@ namespace FNPlugin
             thermalSolarInputMegajoulesMax = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarReceptionEfficiency;
             solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
             thermalSolarInputMegajoules = thermalSolarInputMegajoulesMax * solarFacingFactor;
-        }
-
-        private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
-        {
-            return surfaceArea * PhysicsGlobals.StefanBoltzmanConstant * temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
         }
 
         private void AddAlternatorPower()

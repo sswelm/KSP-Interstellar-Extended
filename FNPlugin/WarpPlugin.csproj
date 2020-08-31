@@ -226,6 +226,7 @@
     <Compile Include="Storage\AntimatterStorageTank.cs" />
     <Compile Include="Propulsion\ModuleSolarSail.cs" />
     <Compile Include="Refinery\WaterElectroliser.cs" />
+    <Compile Include="Wasteheat\FNPassiveThermalDissipation.cs" />
     <Compile Include="Wasteheat\FNWasteheatBuffer.cs" />
     <Compile Include="Wasteheat\FNWasteheatExplode.cs" />
     <Compile Include="Wasteheat\RadiatorManager.cs" />

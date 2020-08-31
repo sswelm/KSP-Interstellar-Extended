@@ -23,14 +23,14 @@ namespace FNPlugin
         [KSPField( guiActive = true,  guiName = "#LOC_KSPIE_SolarPanelWH_CurrentSolarPower", guiUnits = " MW", guiFormat= "F5")]//Current Solar Power
         public double megaJouleSolarPowerSupply;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarPanelWH_MaximumSolarPower", guiUnits = " MW", guiFormat = "F5")]//Maximum Solar Power
-        public double solarMaxSupply = 0;
+        public double solarMaxSupply;
         [KSPField(guiActive = false, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
         public double astronomicalUnit;
 
         [KSPField]
         public string resourceName;
         [KSPField]
-        public double solar_supply = 0;
+        public double solar_supply;
         [KSPField]
         public float chargeRate;
         [KSPField]
