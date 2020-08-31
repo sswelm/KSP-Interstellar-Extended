@@ -192,7 +192,7 @@
     <Compile Include="Science\DTMagnetometer.cs" />
     <Compile Include="Reactors\FNAntimatterReactor.cs" />
     <Compile Include="Science\FNSeismicProbe.cs" />
-    <Compile Include="Reactors\FNThermalHeatExchanger.cs" />
+    <Compile Include="Powermanagement\FNThermalPowerGenerator.cs" />
     <Compile Include="Refinery\InterstellarRefinery.cs" />
     <Compile Include="InterstellarResourcesConfiguration.cs" />
     <Compile Include="Science\InterstellarTelescope.cs" />
@@ -229,7 +229,6 @@
     <Compile Include="Wasteheat\FNPassiveThermalDissipation.cs" />
     <Compile Include="Wasteheat\FNWasteheatBuffer.cs" />
     <Compile Include="Wasteheat\FNWasteheatExplode.cs" />
-    <Compile Include="Wasteheat\FNHeatPump.cs" />
     <Compile Include="Wasteheat\RadiatorManager.cs" />
     <Compile Include="Wasteheat\RadiatorProperties.cs" />
   </ItemGroup>

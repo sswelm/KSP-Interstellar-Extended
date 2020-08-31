@@ -1140,7 +1140,7 @@ namespace FNPlugin
             }
         }
 
-        protected string getPowerFormatString(double power)
+        public static string getPowerFormatString(double power)
         {
             var absPower = Math.Abs(power);
 
