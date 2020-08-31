@@ -229,6 +229,7 @@
     <Compile Include="Wasteheat\FNPassiveThermalDissipation.cs" />
     <Compile Include="Wasteheat\FNWasteheatBuffer.cs" />
     <Compile Include="Wasteheat\FNWasteheatExplode.cs" />
+    <Compile Include="Wasteheat\FNHeatPump.cs" />
     <Compile Include="Wasteheat\RadiatorManager.cs" />
     <Compile Include="Wasteheat\RadiatorProperties.cs" />
   </ItemGroup>

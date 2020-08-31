@@ -612,8 +612,6 @@ namespace FNPlugin.Reactors
         List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
         Queue<double> averageGeeforce = new Queue<double>();
         Queue<double> averageOverheat = new Queue<double>();
-        Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
-        Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
         double tritium_density;
         double helium4_density;
@@ -973,27 +971,18 @@ namespace FNPlugin.Reactors
 
         public double ProducedWasteHeat { get { return ongoing_total_power_generated; } }
 
-        public void AttachThermalReciever(Guid key, double radius)
+        public override void AttachThermalReciever(Guid key, double radius)
         {
             if (!connectedRecievers.ContainsKey(key))
                 connectedRecievers.Add(key, radius);
             UpdateConnectedRecieversStr();
         }
 
-        public void DetachThermalReciever(Guid key)
+        public override void DetachThermalReciever(Guid key)
         {
             if (connectedRecievers.ContainsKey(key))
                 connectedRecievers.Remove(key);
             UpdateConnectedRecieversStr();
-        }
-
-        public double GetFractionThermalReciever(Guid key)
-        {
-            double result;
-            if (connectedRecieversFraction.TryGetValue(key, out result))
-                return result;
-            else
-                return 0;
         }
 
         public virtual void OnRescale(ScalingFactor factor)

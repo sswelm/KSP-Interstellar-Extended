@@ -1,21 +1,20 @@
 ﻿using System;
-using System.Runtime.Remoting.Messaging;
-using UnityEngine;
 
 namespace FNPlugin.Wasteheat
 {
     class FNPassiveThermalDissipation: PartModule
     {
         // configuration
-        [KSPField(guiActive = true, guiName = "Surface Area", guiUnits = " m\xB2", guiFormat = "F3")]
-        public double solarDissipationSurfaceArea = 0;
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "Deployed Surface Area", guiUnits = " m\xB2", guiFormat = "F3")]
+        public double deployedSurfaceArea = 0;
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "Folded Surface Area", guiUnits = " m\xB2", guiFormat = "F3")]
+        public double foldedSurfaceArea = 0;
         [KSPField]
-        public double solarDissipationEmissiveConstant = 0;
-
+        public double thermalMassModifier = 1;
+        [KSPField] 
+        public double emissiveConstant = 0.025;
         [KSPField]
-        public double thermalMassModifier;
-
-        [KSPField] public double emissiveConstant = 0.02;
+        public double minimumAngle = 0.025;
 
         // state
         [KSPField(isPersistant = true)]
@@ -30,42 +29,35 @@ namespace FNPlugin.Wasteheat
         public double dissipationInMegaJoules;
         [KSPField(guiActive = true, guiName = "Heat Absorbtion", guiUnits = " MW", guiFormat = "F3")] //Absorbtion
         public double deltaEnergyIncreaseInMegajoules;
-
         [KSPField(guiActive = true, guiName = "Stock SolarFlux", guiFormat = "F1")]//Solar Flux
         public double stockSolarFlux;
-        //[KSPField(guiActive = true, guiName = "Classic SolarFlux", guiFormat = "F4")]//Solar Flux
-        //public double classicSolarFlux;
         [KSPField(guiActive = true, guiName = "Simulated SolarFlux", guiFormat = "F1")]//Solar Flux
         public double simulatedSolarFlux;
-        //[KSPField(guiActive = true, guiName = "Delta SolarFlux ", guiFormat = "F1")]//Solar Flux
-        //public double deltaSolarFlux;
-
-        //[KSPField(guiActive = false, guiFormat = "F0", guiUnits = " m")]
-        //public double calculatedDistanceToSun;
         [KSPField(guiActive = false, guiFormat = "F0", guiUnits = " m")]
         public double realDistanceToSun;
         [KSPField(guiActive = false, guiFormat = "F0", guiUnits = " m")]
         public double distanceFromStarCenterToVessel;
-
-        //[KSPField(guiActive = false)]
-        //public double fluxMultiplier;
-        //[KSPField(guiActive = true)] 
-        //public double distanceToVesselDelta;
-
-        //[KSPField(guiActive = true)] 
-        //public double omega;
-        //[KSPField(guiActive = true)] 
-        //public double theta;
-        //[KSPField(guiActive = true, guiFormat = "F0")]
-        //public double num;
-
         [KSPField(guiActive = true, guiName = "Cosine Factor", guiFormat = "F4")] 
         public double cosAngle;
 
-
-        // session
+        // session variables
         private int _countDown;
         private double _thermalMassPerKilogram;
+        private ModuleDeployableSolarPanel _deployableSolarPanel;
+
+        public double SurfaceArea
+        {
+            get
+            {
+                if (_deployableSolarPanel == null)
+                    return Math.Max(deployedSurfaceArea, foldedSurfaceArea);
+
+                if (_deployableSolarPanel.deployState == ModuleDeployablePart.DeployState.EXTENDED)
+                    return deployedSurfaceArea;
+                else
+                    return foldedSurfaceArea;
+            }
+        }
 
 
         public override void OnStart(PartModule.StartState state)
@@ -75,7 +67,7 @@ namespace FNPlugin.Wasteheat
 
             _countDown = 50;
             part.thermalMassModifier = thermalMassModifier;
-            
+            _deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
 
             if (isInitialized) return;
 
@@ -89,10 +81,28 @@ namespace FNPlugin.Wasteheat
         {
             if (HighLogic.LoadedSceneIsEditor) return;
 
+            MaintainPartTermperatureAtStartup();
+
+            if (!(SurfaceArea > 0) || !(emissiveConstant > 0)) return;
+
             _thermalMassPerKilogram = part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
-            CalculateDistances();
+            ProcessHeatAbsorbstion();
 
+            ProcessHeatDissipation();
+        }
+
+        private void ProcessHeatDissipation()
+        {
+            var effectiveSurfaceArea = SurfaceArea * emissiveConstant * 2;
+            var temperatureDelta = System.Math.Max(0, part.skinTemperature - 4);
+            dissipationInMegaJoules = PluginHelper.GetBlackBodyDissipation(effectiveSurfaceArea, temperatureDelta) * 1e-6;
+            var temperatureChange = TimeWarp.fixedDeltaTime * -(dissipationInMegaJoules / _thermalMassPerKilogram);
+            part.skinTemperature = Math.Max(4, part.skinTemperature + temperatureChange);
+        }
+
+        private void MaintainPartTermperatureAtStartup()
+        {
             if (_countDown > 0)
             {
                 part.temperature = storedPartTemperature;
@@ -104,23 +114,11 @@ namespace FNPlugin.Wasteheat
                 storedPartTemperature = part.temperature;
                 storedPartSkinTemperature = part.skinTemperature;
             }
-
-            if (!(solarDissipationSurfaceArea > 0) || !(solarDissipationEmissiveConstant > 0)) return;
-
-            dissipationInMegaJoules = PluginHelper.GetBlackBodyDissipation(solarDissipationSurfaceArea * solarDissipationEmissiveConstant, System.Math.Max(0,  part.temperature - 4)) * 1e-6;
-            var temperatureChange = TimeWarp.fixedDeltaTime * -(dissipationInMegaJoules / _thermalMassPerKilogram);
-            part.temperature = Math.Max(4, part.temperature + temperatureChange);
         }
 
-        private void CalculateDistances()
+        private void ProcessHeatAbsorbstion()
         {
             stockSolarFlux = vessel.solarFlux;
-
-            //var toStar = vessel.CoMD - vessel.mainBody.position;
-            //distanceFromStarCenterToVessel = toStar.magnitude;
-            //if (distanceFromStarCenterToVessel <= 0)
-            //    return;
-
             
             var astronomicalUnit = FlightGlobals.GetHomeBody().orbit.semiMajorAxis;
 
@@ -131,7 +129,7 @@ namespace FNPlugin.Wasteheat
                 Vector3d vector3d = position - scaledSpace;
                 var distance = vector3d.magnitude;
                 distanceFromStarCenterToVessel = distance * ScaledSpace.ScaleFactor;
-                cosAngle = Math.Min(1, Math.Max(0, Vector3d.Dot(vector3d.normalized, this.vessel.transform.up)));
+                cosAngle = Math.Max(minimumAngle, Math.Min(1, Math.Abs(Vector3d.Dot(vector3d.normalized, this.vessel.transform.up))));
 
                 //// normalize vector using distance
                 //var sunVector = (Vector3)(vector3d / distance);
@@ -162,13 +160,10 @@ namespace FNPlugin.Wasteheat
                 //classicSolarFlux = solarRadiance * Math.PI * Math.Pow(starRadius / realDistanceToSun, 2);
                 simulatedSolarFlux = solarRadiance * Math.PI * Math.Pow(starRadius / distanceFromStarCenterToVessel, 2);
 
-                //deltaSolarFlux = Math.Max(0, classicSolarFlux - simulatedSolarFlux);
-
-                deltaEnergyIncreaseInMegajoules = cosAngle * simulatedSolarFlux * solarDissipationSurfaceArea * emissiveConstant * 1e-6;
+                deltaEnergyIncreaseInMegajoules = cosAngle * simulatedSolarFlux * SurfaceArea * emissiveConstant * 1e-6;
                 var deltaTemperatureChange = TimeWarp.fixedDeltaTime * (deltaEnergyIncreaseInMegajoules / _thermalMassPerKilogram);
 
                 part.skinTemperature = Math.Max(4, part.skinTemperature + deltaTemperatureChange);
-                //part.temperature = Math.Max(4, part.temperature + deltaTemperatureChange);
             }
         }
     }

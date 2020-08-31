@@ -96,11 +96,11 @@ namespace FNPlugin.Reactors
 
         //-----------------------------------------------------------------------------------------------
 
-        public void AttachThermalReciever(Guid key, double radius)
+        public override void AttachThermalReciever(Guid key, double radius)
         {
             try
             {
-                UnityEngine.Debug.Log("[KSPI]: InterstellarReactor.ConnectReciever: Guid: " + key + " radius: " + radius);
+                UnityEngine.Debug.Log("[KSPI]: FNThermalHeatExchanger.AttachThermalReciever: Guid: " + key + " radius: " + radius);
 
                 if (!connectedRecievers.ContainsKey(key))
                 {
@@ -111,27 +111,17 @@ namespace FNPlugin.Reactors
             }
             catch (Exception error)
             {
-                UnityEngine.Debug.LogError("[KSPI]: InterstellarReactor.ConnectReciever exception: " + error.Message);
+                UnityEngine.Debug.LogError("[KSPI]: FNThermalHeatExchanger.AttachThermalReciever exception: " + error.Message);
             }
         }
 
-        public void DetachThermalReciever(Guid key)
+        public override void DetachThermalReciever(Guid key)
         {
-            if (connectedRecievers.ContainsKey(key))
-            {
-                connectedRecievers.Remove(key);
-                connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
-                connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum);
-            }
-        }
+            if (!connectedRecievers.ContainsKey(key)) return;
 
-        public double GetFractionThermalReciever(Guid key)
-        {
-            double result;
-            if (connectedRecieversFraction.TryGetValue(key, out result))
-                return result;
-            else
-                return 0;
+            connectedRecievers.Remove(key);
+            connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
+            connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum);
         }
 
         public double ProducedThermalHeat { get { return 0; } }

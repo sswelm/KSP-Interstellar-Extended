@@ -11,6 +11,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ResourceManager_UpdateCounter")]//Update Counter
         public long updateCounter;
 
+        protected Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
+        protected Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
+
         protected List<Part> similarParts;
         protected String[] resources_to_supply;
 
@@ -20,6 +23,28 @@ namespace FNPlugin
         protected double timeWarpFixedDeltaTime;
 
         private Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
+
+
+        public virtual void AttachThermalReciever(Guid key, double radius)
+        {
+            if (!connectedRecievers.ContainsKey(key))
+                connectedRecievers.Add(key, radius);
+        }
+
+        public virtual void DetachThermalReciever(Guid key)
+        {
+            if (connectedRecievers.ContainsKey(key))
+                connectedRecievers.Remove(key);
+        }
+
+        public virtual double GetFractionThermalReciever(Guid key)
+        {
+            double result;
+            if (connectedRecieversFraction.TryGetValue(key, out result))
+                return result;
+            else
+                return 0;
+        }
 
         public void receiveFNResource(double power, String resourcename)
         {
