@@ -104,8 +104,7 @@ namespace FNPlugin.Wasteheat
 
             dissipationInMegaJoules = PluginHelper.GetBlackBodyDissipation(solarDissipationSurfaceArea * solarDissipationEmissiveConstant, System.Math.Max(0,  part.temperature - 4)) * 1e-6;
             var temperatureChange = TimeWarp.fixedDeltaTime * -(dissipationInMegaJoules / _thermalMassPerKilogram);
-
-            part.temperature += temperatureChange;
+            part.temperature = Math.Max(4, part.temperature - temperatureChange);
         }
 
         private void CalculateDistances()
@@ -160,7 +159,7 @@ namespace FNPlugin.Wasteheat
             var deltaEnergyIncreaseInMegajoules = deltaSolarFlux * solarDissipationSurfaceArea * part.emissiveConstant * 1e-6;
 
             var deltaTemperatureChange = TimeWarp.fixedDeltaTime * -(deltaEnergyIncreaseInMegajoules / _thermalMassPerKilogram);
-            part.skinTemperature += deltaTemperatureChange;
+            part.skinTemperature = Math.Max(4, part.skinTemperature - deltaTemperatureChange);
         }
     }
 }
