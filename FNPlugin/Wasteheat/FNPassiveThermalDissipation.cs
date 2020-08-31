@@ -12,7 +12,9 @@ namespace FNPlugin.Wasteheat
         [KSPField]
         public double thermalMassModifier = 1;
         [KSPField] 
-        public double emissiveConstant = 0.025;
+        public double emissiveConstantFront = 0.025;
+        [KSPField]
+        public double emissiveConstantBack = 0.1;
         [KSPField]
         public double minimumAngle = 0.025;
 
@@ -83,7 +85,7 @@ namespace FNPlugin.Wasteheat
 
             MaintainPartTermperatureAtStartup();
 
-            if (!(SurfaceArea > 0) || !(emissiveConstant > 0)) return;
+            if (!(SurfaceArea > 0) || !(emissiveConstantFront > 0)) return;
 
             _thermalMassPerKilogram = part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
@@ -94,11 +96,30 @@ namespace FNPlugin.Wasteheat
 
         private void ProcessHeatDissipation()
         {
-            var effectiveSurfaceArea = SurfaceArea * emissiveConstant * 2;
-            var temperatureDelta = System.Math.Max(0, part.skinTemperature - 4);
-            dissipationInMegaJoules = PluginHelper.GetBlackBodyDissipation(effectiveSurfaceArea, temperatureDelta) * 1e-6;
-            var temperatureChange = TimeWarp.fixedDeltaTime * -(dissipationInMegaJoules / _thermalMassPerKilogram);
-            part.skinTemperature = Math.Max(4, part.skinTemperature + temperatureChange);
+            dissipationInMegaJoules = 0;
+            // front
+            {
+                var effectiveSurfaceArea = SurfaceArea * emissiveConstantFront;
+                var temperatureDelta = System.Math.Max(0, part.skinTemperature - 4);
+                var dissipationFront = PluginHelper.GetBlackBodyDissipation(effectiveSurfaceArea, temperatureDelta) * 1e-6;
+                dissipationInMegaJoules += dissipationFront;
+                var temperatureChange = TimeWarp.fixedDeltaTime * -(dissipationFront / _thermalMassPerKilogram);
+
+                if (!double.IsNaN(temperatureChange))
+                    part.skinTemperature = Math.Max(4, part.skinTemperature + temperatureChange);
+            }
+
+            // back
+            {
+                var effectiveSurfaceArea = SurfaceArea * emissiveConstantBack;
+                var temperatureDelta = System.Math.Max(0, part.temperature - 4);
+                var dissipationBack =  PluginHelper.GetBlackBodyDissipation(effectiveSurfaceArea, temperatureDelta) * 1e-6;
+                dissipationInMegaJoules += dissipationBack;
+                var temperatureChange = TimeWarp.fixedDeltaTime * -(dissipationBack / _thermalMassPerKilogram);
+
+                if (!double.IsNaN(temperatureChange))
+                    part.temperature = Math.Max(4, part.temperature + temperatureChange);
+            }
         }
 
         private void MaintainPartTermperatureAtStartup()
@@ -119,7 +140,7 @@ namespace FNPlugin.Wasteheat
         private void ProcessHeatAbsorbstion()
         {
             stockSolarFlux = vessel.solarFlux;
-            
+
             var astronomicalUnit = FlightGlobals.GetHomeBody().orbit.semiMajorAxis;
 
             if (FlightIntegrator.sunBody != null)
@@ -158,12 +179,19 @@ namespace FNPlugin.Wasteheat
                 var solarRadiance = 4 * astronomicalUnit * astronomicalUnit * PhysicsGlobals.SolarLuminosityAtHome / surfaceAreaSun;
 
                 //classicSolarFlux = solarRadiance * Math.PI * Math.Pow(starRadius / realDistanceToSun, 2);
-                simulatedSolarFlux = solarRadiance * Math.PI * Math.Pow(starRadius / distanceFromStarCenterToVessel, 2);
 
-                deltaEnergyIncreaseInMegajoules = cosAngle * simulatedSolarFlux * SurfaceArea * emissiveConstant * 1e-6;
+                var starRadiusToDistanceVessel = starRadius / (distanceFromStarCenterToVessel - (starRadius * 0.7581877534));
+                simulatedSolarFlux = solarRadiance * Math.PI * starRadiusToDistanceVessel * starRadiusToDistanceVessel;
+
+                deltaEnergyIncreaseInMegajoules = cosAngle * simulatedSolarFlux * SurfaceArea * emissiveConstantFront * 1e-6;
+
+                if (CheatOptions.IgnoreMaxTemperature)
+                    return;
+
                 var deltaTemperatureChange = TimeWarp.fixedDeltaTime * (deltaEnergyIncreaseInMegajoules / _thermalMassPerKilogram);
 
-                part.skinTemperature = Math.Max(4, part.skinTemperature + deltaTemperatureChange);
+                if (!double.IsNaN(deltaTemperatureChange))
+                    part.skinTemperature = Math.Max(4, part.skinTemperature + deltaTemperatureChange);
             }
         }
     }

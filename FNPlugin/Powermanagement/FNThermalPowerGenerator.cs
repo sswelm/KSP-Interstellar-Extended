@@ -16,13 +16,13 @@ namespace FNPlugin.Reactors
         [KSPField] public double hotColdBathRatioExponent = 0.5;
 
         //GUI
-        [KSPField(guiActive = false, guiName = "Maximum Power Supply")]
+        [KSPField(guiActive = false, guiName = "Maximum Power Supply", guiFormat = "F3")]
         public double maximumPowerSupplyInMegaWatt;
-        [KSPField(guiActive = true, guiName = "Maximum Power Supply")]
+        [KSPField(guiActive = true, guiName = "Maximum Power Supply", guiFormat = "F3")]
         public string maximumPowerSupply;
-        [KSPField(guiActive = false, guiName = "Current Power Supply")]
+        [KSPField(guiActive = false, guiName = "Current Power Supply", guiFormat = "F3")]
         public double currentPowerSupplyInMegaWatt;
-        [KSPField(guiActive = true, guiName = "Current Power Supply")]
+        [KSPField(guiActive = true, guiName = "Current Power Supply", guiFormat = "F3")]
         public string currentPowerSupply;
 
         [KSPField(guiActive = true, guiName = "Radiator Temperature")]
@@ -74,6 +74,9 @@ namespace FNPlugin.Reactors
             else
                 radiatorTemperature = _stackAttachedParts.Min(m => m.temperature);
 
+            if (double.IsNaN(radiatorTemperature))
+                return;
+
             var hotColdBathRatio = 1 - Math.Min(1, (radiatorTemperature / part.temperature));
 
             var thermalConversionEfficiency = maxConversionEfficiency * hotColdBathRatio;
@@ -113,7 +116,8 @@ namespace FNPlugin.Reactors
             var temperatureChange = fixedDeltaTime * (currentPowerSupplyInMegaWatt / thermalMassPerKilogram);
 
             // lower part temperature
-            part.temperature = Math.Max(4, part.temperature - temperatureChange);
+            if (!double.IsNaN(temperatureChange))
+                part.temperature = Math.Max(4, part.temperature - temperatureChange);
         }
 
         private void DumpWasteheatInAttachedParts(double fixedDeltaTime, double wasteheatInMegaJoules)
@@ -128,7 +132,8 @@ namespace FNPlugin.Reactors
                                                stackThermalMassPerKilogram);
 
             // increase stack part with waste temperature
-            stackAttachedPart.temperature = Math.Max(4, stackAttachedPart.temperature + stackWasteTemperatureChange);
+            if (!double.IsNaN(stackWasteTemperatureChange))
+                stackAttachedPart.temperature = Math.Max(4, stackAttachedPart.temperature + stackWasteTemperatureChange);
         }
 
         public override int getSupplyPriority()
