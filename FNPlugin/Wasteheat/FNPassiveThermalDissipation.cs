@@ -89,7 +89,7 @@ namespace FNPlugin.Wasteheat
 
             _thermalMassPerKilogram = part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
-            ProcessHeatAbsorbstion();
+            ProcessHeatAbsorbtion();
 
             ProcessHeatDissipation();
         }
@@ -137,7 +137,7 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        private void ProcessHeatAbsorbstion()
+        private void ProcessHeatAbsorbtion()
         {
             stockSolarFlux = vessel.solarFlux;
 
