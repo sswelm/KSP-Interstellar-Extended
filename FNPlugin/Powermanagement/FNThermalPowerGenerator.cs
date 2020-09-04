@@ -16,16 +16,15 @@ namespace FNPlugin.Reactors
         [KSPField] public double hotColdBathRatioExponent = 0.5;
 
         //GUI
-        [KSPField(guiActive = false, guiName = "Maximum Power Supply", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiName = "Maximum Power Supply", guiFormat = "F3", guiUnits = " MW")]
         public double maximumPowerSupplyInMegaWatt;
         [KSPField(guiActive = true, guiName = "Maximum Power Supply", guiFormat = "F3")]
         public string maximumPowerSupply;
-        [KSPField(guiActive = false, guiName = "Current Power Supply", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiName = "Current Power Supply", guiFormat = "F3", guiUnits = " MW")]
         public double currentPowerSupplyInMegaWatt;
         [KSPField(guiActive = true, guiName = "Current Power Supply", guiFormat = "F3")]
         public string currentPowerSupply;
-
-        [KSPField(guiActive = true, guiName = "Radiator Temperature")]
+        [KSPField(guiActive = true, guiName = "Radiator Temperature", guiFormat = "F3", guiUnits = " K")]
         public double radiatorTemperature;
 
         // reference types
@@ -113,11 +112,14 @@ namespace FNPlugin.Reactors
             var thermalMassPerKilogram =
                 part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
-            var temperatureChange = fixedDeltaTime * (currentPowerSupplyInMegaWatt / thermalMassPerKilogram);
+            var temperatureChange = 0.5 * fixedDeltaTime * (currentPowerSupplyInMegaWatt / thermalMassPerKilogram);
 
             // lower part temperature
             if (!double.IsNaN(temperatureChange))
+            {
                 part.temperature = Math.Max(4, part.temperature - temperatureChange);
+                part.skinTemperature = Math.Max(4, part.skinTemperature - temperatureChange);
+            }
         }
 
         private void DumpWasteheatInAttachedParts(double fixedDeltaTime, double wasteheatInMegaJoules)
@@ -127,13 +129,16 @@ namespace FNPlugin.Reactors
             var stackThermalMassPerKilogram = stackAttachedPart.mass * stackAttachedPart.thermalMassModifier *
                                               PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
-            var stackWasteTemperatureChange = fixedDeltaTime *
+            var stackWasteTemperatureChange = 0.5 * fixedDeltaTime *
                                               (wasteheatInMegaJoules / _stackAttachedParts.Count /
                                                stackThermalMassPerKilogram);
 
             // increase stack part with waste temperature
             if (!double.IsNaN(stackWasteTemperatureChange))
+            {
                 stackAttachedPart.temperature = Math.Max(4, stackAttachedPart.temperature + stackWasteTemperatureChange);
+                stackAttachedPart.skinTemperature = Math.Max(4, stackAttachedPart.skinTemperature + stackWasteTemperatureChange);
+            }
         }
 
         public override int getSupplyPriority()

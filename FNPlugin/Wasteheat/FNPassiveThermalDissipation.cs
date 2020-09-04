@@ -96,25 +96,31 @@ namespace FNPlugin.Wasteheat
             // front
             {
                 var effectiveSurfaceArea = SurfaceArea * emissiveConstantFront;
-                var temperatureDelta = System.Math.Max(0, part.skinTemperature - 4);
+                var temperatureDelta = Math.Max(0, 0.5 * (storedPartTemperature + storedPartSkinTemperature) - 4);
                 var dissipationFront = PluginHelper.GetBlackBodyDissipation(effectiveSurfaceArea, temperatureDelta) * 1e-6;
                 dissipationInMegaJoules += dissipationFront;
-                var temperatureChange = TimeWarp.fixedDeltaTime * -(dissipationFront / _thermalMassPerKilogram);
+                var temperatureChange = 0.5 * TimeWarp.fixedDeltaTime * (dissipationFront / _thermalMassPerKilogram);
 
                 if (!double.IsNaN(temperatureChange))
-                    part.skinTemperature = Math.Max(4, part.skinTemperature + temperatureChange);
+                {
+                    part.temperature = Math.Max(4, part.temperature - temperatureChange);
+                    part.skinTemperature = Math.Max(4, part.skinTemperature - temperatureChange);
+                }
             }
 
             // back
             {
                 var effectiveSurfaceArea = SurfaceArea * emissiveConstantBack;
-                var temperatureDelta = System.Math.Max(0, part.temperature - 4);
+                var temperatureDelta = Math.Max(0, 0.5 * (storedPartTemperature + storedPartSkinTemperature) - 4);
                 var dissipationBack =  PluginHelper.GetBlackBodyDissipation(effectiveSurfaceArea, temperatureDelta) * 1e-6;
                 dissipationInMegaJoules += dissipationBack;
-                var temperatureChange = TimeWarp.fixedDeltaTime * -(dissipationBack / _thermalMassPerKilogram);
+                var temperatureChange = 0.5 * TimeWarp.fixedDeltaTime * (dissipationBack / _thermalMassPerKilogram);
 
                 if (!double.IsNaN(temperatureChange))
-                    part.temperature = Math.Max(4, part.temperature + temperatureChange);
+                {
+                    part.temperature = Math.Max(4, part.temperature - temperatureChange);
+                    part.skinTemperature = Math.Max(4, part.skinTemperature - temperatureChange);
+                }
             }
         }
 
@@ -184,10 +190,13 @@ namespace FNPlugin.Wasteheat
                 if (CheatOptions.IgnoreMaxTemperature)
                     return;
 
-                var deltaTemperatureChange = TimeWarp.fixedDeltaTime * (deltaEnergyIncreaseInMegajoules / _thermalMassPerKilogram);
+                var deltaTemperatureChange = 0.5 * TimeWarp.fixedDeltaTime * (deltaEnergyIncreaseInMegajoules / _thermalMassPerKilogram);
 
                 if (!double.IsNaN(deltaTemperatureChange))
+                {
+                    part.temperature = Math.Max(4, part.temperature + deltaTemperatureChange);
                     part.skinTemperature = Math.Max(4, part.skinTemperature + deltaTemperatureChange);
+                }
             }
         }
     }

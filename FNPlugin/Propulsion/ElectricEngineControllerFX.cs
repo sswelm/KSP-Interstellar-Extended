@@ -917,7 +917,7 @@ namespace FNPlugin
 
                     thrust_d = calculated_thrust;
 
-                    ratioHeadingVersusRequest = _attachedEngine.PersistHeading(_vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
+                    ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
 
                     if (ratioHeadingVersusRequest == 1)
                         PersistantThrust((double)(decimal)TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.totalMass, thrust_d, _ispPersistent);

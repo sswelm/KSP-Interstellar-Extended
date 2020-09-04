@@ -1067,7 +1067,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    ratioHeadingVersusRequest = curEngineT.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
+                    ratioHeadingVersusRequest = vessel.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
 
                     if (!String.IsNullOrEmpty(effectName))
                         this.part.Effect(effectName, 0, -1);
@@ -1112,7 +1112,7 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
-            ratioHeadingVersusRequest = curEngineT.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
+            ratioHeadingVersusRequest = vessel.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
             if (ratioHeadingVersusRequest != 1)
             {
                 UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);

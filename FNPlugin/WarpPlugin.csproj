@@ -106,6 +106,7 @@
     <Compile Include="Powermanagement\IFNChargedParticleSource.cs" />
     <Compile Include="Powermanagement\IFNPowerSource.cs" />
     <Compile Include="Powermanagement\KspiSuperCapacitator.cs" />
+    <Compile Include="Propulsion\FNPersistentRotation.cs" />
     <Compile Include="Propulsion\FNSimpleEngineIgnatorFX.cs" />
     <Compile Include="Propulsion\IFNEngineNoozle.cs" />
     <Compile Include="Propulsion\ThermalEngineFuel.cs" />
