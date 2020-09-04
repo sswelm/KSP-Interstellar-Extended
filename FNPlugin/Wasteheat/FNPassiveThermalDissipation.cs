@@ -29,7 +29,7 @@ namespace FNPlugin.Wasteheat
         // GUI
         [KSPField(guiActive = true, guiName = "Heat Dissipation", guiUnits = " MW", guiFormat = "F3")]//Dissipation
         public double dissipationInMegaJoules;
-        [KSPField(guiActive = true, guiName = "Heat Absorbtion", guiUnits = " MW", guiFormat = "F3")] //Absorbtion
+        [KSPField(guiActive = true, guiName = "Heat Absorption", guiUnits = " MW", guiFormat = "F3")] //Absorption
         public double deltaEnergyIncreaseInMegajoules;
         [KSPField(guiActive = true, guiName = "Stock SolarFlux", guiFormat = "F1")]//Solar Flux
         public double stockSolarFlux;
@@ -54,13 +54,9 @@ namespace FNPlugin.Wasteheat
                 if (_deployableSolarPanel == null)
                     return Math.Max(deployedSurfaceArea, foldedSurfaceArea);
 
-                if (_deployableSolarPanel.deployState == ModuleDeployablePart.DeployState.EXTENDED)
-                    return deployedSurfaceArea;
-                else
-                    return foldedSurfaceArea;
+                return _deployableSolarPanel.deployState == ModuleDeployablePart.DeployState.EXTENDED ? deployedSurfaceArea : foldedSurfaceArea;
             }
         }
-
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -83,13 +79,13 @@ namespace FNPlugin.Wasteheat
         {
             if (HighLogic.LoadedSceneIsEditor) return;
 
-            MaintainPartTermperatureAtStartup();
+            MaintainPartTemperatureAtStartup();
 
             if (!(SurfaceArea > 0) || !(emissiveConstantFront > 0)) return;
 
             _thermalMassPerKilogram = part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
-            ProcessHeatAbsorbtion();
+            ProcessHeatAbsorption();
 
             ProcessHeatDissipation();
         }
@@ -122,7 +118,7 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        private void MaintainPartTermperatureAtStartup()
+        private void MaintainPartTemperatureAtStartup()
         {
             if (_countDown > 0)
             {
@@ -137,7 +133,7 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        private void ProcessHeatAbsorbtion()
+        private void ProcessHeatAbsorption()
         {
             stockSolarFlux = vessel.solarFlux;
 
