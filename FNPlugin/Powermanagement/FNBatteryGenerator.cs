@@ -157,7 +157,7 @@ namespace FNPlugin.Powermanagement
 
                         var spareRoom = Math.Max(0, currentBatteryResource.maxAmount - currentBatteryResource.amount);
                         var currentInputConversionRate = inputResourceRate[i];
-                        var maxPowerNeeded = currentInputConversionRate > 0 ? 0 : spareRoom / currentInputConversionRate / fixedDeltaTime;
+                        var maxPowerNeeded = currentInputConversionRate > 0 ? (spareRoom / currentInputConversionRate / fixedDeltaTime) : 0;
 
                         requestedPower = Math.Min(powerSurplus * 0.995, maxPowerNeeded);
                         consumedPower = consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
