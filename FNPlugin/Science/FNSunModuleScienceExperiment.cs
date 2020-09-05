@@ -29,12 +29,12 @@ namespace FNPlugin.Science
         {
             if (inStarOrbit == false)
             {
-                ScreenMessages.PostScreenMessage(new ScreenMessage("Not in orbit of a star", 4.0f, ScreenMessageStyle.UPPER_LEFT));
+                ScreenMessages.PostScreenMessage(new ScreenMessage("Not in orbit of a star", 4.0f, ScreenMessageStyle.UPPER_CENTER));
                 return;
             }
             else if (vesselAltitudeInKm > maximumDistanceInKm)
             {
-                ScreenMessages.PostScreenMessage(new ScreenMessage("Not at minimum distance from star", 4.0f, ScreenMessageStyle.UPPER_LEFT));
+                ScreenMessages.PostScreenMessage(new ScreenMessage("Needs to be lower than " + maximumDistanceInKm + " km from the star to perform the experiment", 4.0f, ScreenMessageStyle.UPPER_CENTER));
                 return;
             }
 

@@ -1,12 +1,18 @@
-﻿using FNPlugin.Wasteheat;
+﻿using FNPlugin.Extensions;
+using FNPlugin.Wasteheat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FNPlugin.Extensions;
 
 namespace FNPlugin.Reactors
 {
+    [KSPModule("Flat Thermal Power Generator")]
+    class FNFlatThermalPowerGenerator : FNThermalPowerGenerator
+    {
+    }
+
+
     [KSPModule("Thermal Power Generator")]
     class FNThermalPowerGenerator : ResourceSuppliableModule
     {
@@ -25,9 +31,9 @@ namespace FNPlugin.Reactors
         public double currentPowerSupplyInMegaWatt;
         [KSPField(guiActive = true, guiName = "Current Power Supply", guiFormat = "F3")]
         public string currentPowerSupply;
-        [KSPField(guiActive = true, guiName = "HotBath Temperature", guiFormat = "F3", guiUnits = " K")]
+        [KSPField(guiActive = true, guiName = "Hot Bath Temperature", guiFormat = "F3", guiUnits = " K")]
         public double hotBathTemperature;
-        [KSPField(guiActive = true, guiName = "ColdBath Temperature", guiFormat = "F3", guiUnits = " K")]
+        [KSPField(guiActive = true, guiName = "Cold Bath Temperature", guiFormat = "F3", guiUnits = " K")]
         public double radiatorTemperature;
 
         // reference types
@@ -48,14 +54,13 @@ namespace FNPlugin.Reactors
             base.OnStart(state);
 
             if (state == StartState.Editor)
-            {
                 return;
-            }
-
             // look for attached parts
             _stackAttachedParts = part.attachNodes
                 .Where(atn => atn.attachedPart != null && atn.nodeType == AttachNode.NodeType.Stack)
                 .Select(m => m.attachedPart).ToList();
+
+            part.force_activate();
         }
 
         public override void OnUpdate()
@@ -66,8 +71,6 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            base.OnFixedUpdate();
-
             var hasRadiators = FNRadiator.hasRadiatorsForVessel(vessel);
 
             // get radiator temperature
