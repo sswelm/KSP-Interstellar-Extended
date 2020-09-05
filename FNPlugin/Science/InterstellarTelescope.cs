@@ -98,7 +98,7 @@ namespace FNPlugin
 
         protected override bool generateScienceData()
         {
-            ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment("ExpInterstellarTelescope");
+            ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(experimentID);
             if (experiment == null) return false;
 
             if (science_awaiting_addition > 0)
@@ -168,40 +168,40 @@ namespace FNPlugin
         {
             if (vessel.IsInAtmosphere()) telescopeIsEnabled = false;
 
-            Events["beginOberservations"].active = !vessel.IsInAtmosphere() && !telescopeIsEnabled;
-            Events["stopOberservations"].active = telescopeIsEnabled;
-            Fields["sciencePerDay"].guiActive = telescopeIsEnabled;
+            Events[nameof(beginOberservations)].active = !vessel.IsInAtmosphere() && !telescopeIsEnabled;
+            Events[nameof(stopOberservations)].active = telescopeIsEnabled;
+            Fields[nameof(sciencePerDay)].guiActive = telescopeIsEnabled;
             performPcnt = (perform_factor_d * 100).ToString("0.0") + "%";
             sciencePerDay = (science_rate * 28800 * PluginHelper.getScienceMultiplier(vessel)).ToString("0.00") + " "+Localizer.Format("#LOC_KSPIE_Telescope_ScienceperDa");//Science/Day
 
-            double current_au = Vector3d.Distance(vessel.transform.position, LocalStar.position) / Vector3d.Distance(Homeworld.position, LocalStar.position);
-            
             List<ITelescopeController> telescope_controllers = vessel.FindPartModulesImplementing<ITelescopeController>();
 
             if (telescope_controllers.Any(tscp => tscp.CanProvideTelescopeControl))
             {
+                double current_au = Vector3d.Distance(vessel.transform.position, LocalStar.position) / Vector3d.Distance(Homeworld.position, LocalStar.position);
+
                 if (current_au >= 548 && !vessel.IsInAtmosphere())
                 {
                     if (vessel.orbit.eccentricity < 0.8)
                     {
-                        Events["beginOberservations2"].active = true;
+                        Events[nameof(beginOberservations2)].active = true;
                         gLensStr = (telescopeIsEnabled && dpo) ? Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu1") : Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu2");//"Ongoing.""Available"
                     }
                     else
                     {
-                        Events["beginOberservations2"].active = false;
+                        Events[nameof(beginOberservations2)].active = false;
                         gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu3", vessel.orbit.eccentricity.ToString("0.0"));//"Eccentricity: " +  + "; < 0.8 Required"
                     }
                 }
                 else
                 {
-                    Events["beginOberservations2"].active = false;
+                    Events[nameof(beginOberservations2)].active = false;
                     gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu4", current_au.ToString("0.0"));// + " AU; Required 548 AU"
                 }
             }
             else
             {
-                Events["beginOberservations2"].active = false;
+                Events[nameof(beginOberservations2)].active = false;
                 gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu5");//"Science Lab/Computer Core required"
             }
 

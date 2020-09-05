@@ -5,6 +5,7 @@ using KSP.UI.Screens.Flight.Dialogs;
 
 namespace FNPlugin
 {
+    
     class ModuleModableScienceGenerator : ResourceSuppliableModule, IScienceDataContainer
     {
         [KSPField(isPersistant = false)]
@@ -91,10 +92,10 @@ namespace FNPlugin
                         "", 
                         true, 
                         new ScienceLabSearch(this.vessel, this.science_data), 
-                        new Callback<ScienceData>(this.endExperiment), 
-                        new Callback<ScienceData>(this.keepData), 
-                        new Callback<ScienceData>(this.sendDataToComms), 
-                        new Callback<ScienceData>(this.sendDataToLab));
+                        this.endExperiment, 
+                        this.keepData, 
+                        this.sendDataToComms, 
+                        this.sendDataToLab);
 
                     //merdp = new ModableExperimentResultDialogPage(
                     //		base.part,
@@ -124,34 +125,32 @@ namespace FNPlugin
 
         public override void OnSave(ConfigNode node)
         {
-            if (science_data != null)
-            {
-                ConfigNode science_node = node.AddNode("ScienceData");
-                science_data.Save(science_node);
-            }
+            if (science_data == null) return;
+
+            ConfigNode science_node = node.AddNode("ScienceData");
+            science_data.Save(science_node);
         }
 
         public override void OnLoad(ConfigNode node)
         {
-            if (node.HasNode("ScienceData"))
-            {
-                ConfigNode science_node = node.GetNode("ScienceData");
-                science_data = new ScienceData(science_node);
-            }
+            if (!node.HasNode("ScienceData")) return;
+
+            ConfigNode science_node = node.GetNode("ScienceData");
+            science_data = new ScienceData(science_node);
         }
 
         public override void OnUpdate()
         {
-            Events["DeployExperiment"].guiName = deployEventName;
-            Events["ResetExperiment"].guiName = resetEventName;
-            Events["ReviewData"].guiName = reviewEventName;
+            Events[nameof(DeployExperiment)].guiName = deployEventName;
+            Events[nameof(ResetExperiment)].guiName = resetEventName;
+            Events[nameof(ReviewData)].guiName = reviewEventName;
 
-            Events["DeployExperiment"].active = canDeploy && !Deployed;
-            Events["ResetExperiment"].active = canDeploy && Deployed;
-            Events["ReviewData"].active = canDeploy && Deployed;
+            Events[nameof(DeployExperiment)].active = canDeploy && !Deployed;
+            Events[nameof(ResetExperiment)].active = canDeploy && Deployed;
+            Events[nameof(ReviewData)].active = canDeploy && Deployed;
 
-            Actions["DeployAction"].guiName = deployEventName;
-            Actions["DeployAction"].active = canDeploy;
+            Actions[nameof(DeployAction)].guiName = deployEventName;
+            Actions[nameof(DeployAction)].active = canDeploy;
 
             if (science_data == null)
                 Deployed = false;
@@ -186,16 +185,15 @@ namespace FNPlugin
 
         public void DumpData(ScienceData science_data)
         {
-            if (science_data == this.science_data)
-            {
-                this.science_data = null;
-                merdp = null;
-                result_string = ""; // null causes error in save process
-                result_title = ""; // null causes error in save proccess
-                transmit_value = 0;
-                recovery_value = 0;
-                Deployed = false;
-            }
+            if (science_data != this.science_data) return;
+
+            this.science_data = null;
+            merdp = null;
+            result_string = ""; // null causes error in save process
+            result_title = ""; // null causes error in save proccess
+            transmit_value = 0;
+            recovery_value = 0;
+            Deployed = false;
         }
 
         public void ReturnData(ScienceData data)
@@ -225,7 +223,7 @@ namespace FNPlugin
                 merdp = null;
                 List<ScienceData> list2 = new List<ScienceData>();
                 list2.Add(science_data);
-                list.OrderBy(new Func<IScienceDataTransmitter, float>(ScienceUtil.GetTransmitterScore)).First<IScienceDataTransmitter>().TransmitData(list2);
+                list.OrderBy(ScienceUtil.GetTransmitterScore).First<IScienceDataTransmitter>().TransmitData(list2);
                 endExperiment(science_data);
             }
         }
@@ -233,14 +231,12 @@ namespace FNPlugin
         protected void sendDataToLab(ScienceData science_data)
         {
             ModuleScienceLab moduleScienceLab = part.FindModuleImplementing<ModuleScienceLab>();
-            if (moduleScienceLab != null && science_data != null && data_gend)
-            {
-                if (moduleScienceLab.dataStored + science_data.dataAmount <= moduleScienceLab.dataStorage)
-                {
-                    moduleScienceLab.dataStored += science_data.labValue;
-                    endExperiment(science_data);
-                }
-            }
+            if (moduleScienceLab == null || science_data == null || !data_gend) return;
+
+            if (!(moduleScienceLab.dataStored + science_data.dataAmount <= moduleScienceLab.dataStorage)) return;
+
+            moduleScienceLab.dataStored += science_data.labValue;
+            endExperiment(science_data);
         }
 
         protected void keepData(ScienceData science_data)

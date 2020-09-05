@@ -140,7 +140,9 @@ namespace FNPlugin
                 currentBiome = biome;
                 crewCount = lcrewCount;
                 //reset collected data
-                part.RequestResource(resourceName, resourceAmount);
+
+                if (!string.IsNullOrWhiteSpace(resourceName))
+                    part.RequestResource(resourceName, resourceAmount);
 
             }
             if (loopingAnimation != "")
@@ -223,9 +225,11 @@ namespace FNPlugin
 
         bool vesselHasEnoughResource(string name, double rc)
         {
-            //   
-            if (this.vessel == FlightGlobals.ActiveVessel)
-            {
+            if (rc <= 0)
+                return true;
+
+            //if (this.vessel == FlightGlobals.ActiveVessel)
+            //{
                 //print("found vessel event!");
                 //var resources = vessel.GetActiveResources();
                 var resources = vessel.parts.SelectMany(p => p.Resources).ToList();
@@ -234,16 +238,16 @@ namespace FNPlugin
                     //print("vessel has resources!");
                     print(resources[i].info.name);
                     //print("im looking for " + resourceName);
-                    if (resources[i].info.name == resourceName)
+                    if (resources[i].info.name == name)
                     {
                         //print("Found the resouce!!");
-                        if (resources[i].amount >= resourceAmount)
+                        if (resources[i].amount >= rc)
                         {
                             return true;
                         }
                     }
                 }
-            }
+            //}
             return false;
         }
 
@@ -281,7 +285,6 @@ namespace FNPlugin
             //print("Clicked event! check data: " + resourceName + " " + resourceAmount.ToString() + " " + experimentID + " ");
             if (vesselHasEnoughResource(resourceName, resourceAmount))
             {
-
                 //print("Has the possibleAmount!!");
                 double res = part.RequestResource(resourceName, resourceAmount, ResourceFlowMode.ALL_VESSEL);
                 //print("got " + res.ToString() + "resources");
@@ -391,9 +394,5 @@ namespace FNPlugin
                 }
             }
         }
-
     }
-
-
-
 }

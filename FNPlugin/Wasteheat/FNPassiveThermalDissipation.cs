@@ -191,6 +191,14 @@ namespace FNPlugin.Wasteheat
                 //classicSolarFlux = solarRadiance * Math.PI * Math.Pow(starRadius / realDistanceToSun, 2);
 
                 var starRadiusToDistanceVessel = starRadius / (distanceFromStarCenterToVessel - (starRadius * 0.7581877534));
+
+                if (vessel.solarFlux <= 0)
+                {
+                    simulatedSolarFlux = 0;
+                    deltaEnergyIncreaseInMegajoules = 0;
+                    return;
+                }
+
                 simulatedSolarFlux = solarRadiance * Math.PI * starRadiusToDistanceVessel * starRadiusToDistanceVessel;
 
                 deltaEnergyIncreaseInMegajoules = cosAngle * simulatedSolarFlux * SurfaceArea * emissiveConstantFront * 1e-6;
