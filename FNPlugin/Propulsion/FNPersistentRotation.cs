@@ -24,7 +24,7 @@ namespace FNPlugin.Propulsion
             if (vessel == null)
                 return;
 
-            if (countdown > 0 && ratioHeadingVersusRequest > 0.995)
+            if (countdown > 0 && ratioHeadingVersusRequest > 0.999)
             {
                 countdown--;
 

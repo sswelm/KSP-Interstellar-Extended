@@ -1,4 +1,5 @@
 ﻿using System;
+using FNPlugin.Extensions;
 
 namespace FNPlugin.Wasteheat
 {
@@ -41,6 +42,8 @@ namespace FNPlugin.Wasteheat
         public double distanceFromStarCenterToVessel;
         [KSPField(guiActive = true, guiName = "Cosine Factor", guiFormat = "F4")] 
         public double cosAngle;
+        [KSPField(guiActive = false, guiName = "Temperature", guiFormat = "F3", guiUnits = " K")]
+        public double partTemperature;
 
         // session variables
         private int _countDown;
@@ -83,43 +86,48 @@ namespace FNPlugin.Wasteheat
 
             if (!(SurfaceArea > 0) || !(emissiveConstantFront > 0)) return;
 
-            _thermalMassPerKilogram = part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
+            var timeWarpModifer = PluginHelper.GetTimeWarpModifer();
 
-            ProcessHeatAbsorption();
+            _thermalMassPerKilogram = timeWarpModifer * part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
             ProcessHeatDissipation();
+
+            ProcessHeatAbsorption();
         }
 
         private void ProcessHeatDissipation()
         {
+            var spaceTemperature = FlightIntegrator.ActiveVesselFI == null ? 4 : FlightIntegrator.ActiveVesselFI.backgroundRadiationTemp;
+            partTemperature = Math.Max(storedPartTemperature, storedPartSkinTemperature);
+
             dissipationInMegaJoules = 0;
             // front
             {
                 var effectiveSurfaceArea = SurfaceArea * emissiveConstantFront;
-                var temperatureDelta = Math.Max(0, 0.5 * (storedPartTemperature + storedPartSkinTemperature) - 4);
+                var temperatureDelta = Math.Max(0, partTemperature - spaceTemperature);
                 var dissipationFront = PluginHelper.GetBlackBodyDissipation(effectiveSurfaceArea, temperatureDelta) * 1e-6;
                 dissipationInMegaJoules += dissipationFront;
                 var temperatureChange = 0.5 * TimeWarp.fixedDeltaTime * (dissipationFront / _thermalMassPerKilogram);
 
-                if (!double.IsNaN(temperatureChange))
+                if (!temperatureChange.IsInfinityOrNaN())
                 {
-                    part.temperature = Math.Max(4, part.temperature - temperatureChange);
-                    part.skinTemperature = Math.Max(4, part.skinTemperature - temperatureChange);
+                    part.temperature = Math.Max(spaceTemperature, part.temperature - temperatureChange);
+                    part.skinTemperature = Math.Max(spaceTemperature, part.skinTemperature - temperatureChange);
                 }
             }
 
             // back
             {
                 var effectiveSurfaceArea = SurfaceArea * emissiveConstantBack;
-                var temperatureDelta = Math.Max(0, 0.5 * (storedPartTemperature + storedPartSkinTemperature) - 4);
+                var temperatureDelta = Math.Max(0, partTemperature - spaceTemperature);
                 var dissipationBack =  PluginHelper.GetBlackBodyDissipation(effectiveSurfaceArea, temperatureDelta) * 1e-6;
                 dissipationInMegaJoules += dissipationBack;
                 var temperatureChange = 0.5 * TimeWarp.fixedDeltaTime * (dissipationBack / _thermalMassPerKilogram);
 
-                if (!double.IsNaN(temperatureChange))
+                if (!temperatureChange.IsInfinityOrNaN())
                 {
-                    part.temperature = Math.Max(4, part.temperature - temperatureChange);
-                    part.skinTemperature = Math.Max(4, part.skinTemperature - temperatureChange);
+                    part.temperature = Math.Max(spaceTemperature, part.temperature - temperatureChange);
+                    part.skinTemperature = Math.Max(spaceTemperature, part.skinTemperature - temperatureChange);
                 }
             }
         }

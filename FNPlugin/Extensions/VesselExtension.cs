@@ -5,8 +5,11 @@ namespace FNPlugin.Extensions
 {
     public static class VesselExtension
     {
-        public static double PersistHeading(this Vessel vessel, bool forceRotation = false, bool canDropOutOfTimeWarp = true, double tolerance = 0.995)
+        public static double PersistHeading(this Vessel vessel, bool forceRotation = false, bool canDropOutOfTimeWarp = true, double tolerance = 0)
         {
+            if (tolerance <= 0)
+                tolerance = 1 - TimeWarp.fixedDeltaTime * 0.1;
+
             var canPersistDirection = vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.ORBITING;
             var sasIsActive = vessel.ActionGroups[KSPActionGroup.SAS];
 

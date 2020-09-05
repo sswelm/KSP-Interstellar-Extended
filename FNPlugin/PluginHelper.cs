@@ -1,13 +1,12 @@
 ﻿using FNPlugin.Beamedpower;
 using FNPlugin.Constants;
 using FNPlugin.Wasteheat;
+using KSP.Localization;
 using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
-
 
 namespace FNPlugin
 {
@@ -729,6 +728,11 @@ namespace FNPlugin
                 UnityEngine.Debug.LogError("[KSPI]: exception in getKerbalRadiationDose " + ex.Message);
                 return null;
             }
+        }
+
+        public static double GetTimeWarpModifer()
+        {
+            return TimeWarp.fixedDeltaTime > 20 ? 1 + (TimeWarp.fixedDeltaTime - 20) : 1;
         }
 
         public static void saveKerbalRadiationdose(int kerbalidx, float rad)

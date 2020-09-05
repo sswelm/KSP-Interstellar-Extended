@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FNPlugin.Extensions;
 
 namespace FNPlugin.Reactors
 {
@@ -24,11 +25,15 @@ namespace FNPlugin.Reactors
         public double currentPowerSupplyInMegaWatt;
         [KSPField(guiActive = true, guiName = "Current Power Supply", guiFormat = "F3")]
         public string currentPowerSupply;
-        [KSPField(guiActive = true, guiName = "Radiator Temperature", guiFormat = "F3", guiUnits = " K")]
+        [KSPField(guiActive = true, guiName = "HotBath Temperature", guiFormat = "F3", guiUnits = " K")]
+        public double hotBathTemperature;
+        [KSPField(guiActive = true, guiName = "ColdBath Temperature", guiFormat = "F3", guiUnits = " K")]
         public double radiatorTemperature;
 
         // reference types
         private List<Part> _stackAttachedParts;
+        private double timeWarpModifer;
+        private double spaceTemperature;
 
         public Part Part
         {
@@ -76,7 +81,12 @@ namespace FNPlugin.Reactors
             if (double.IsNaN(radiatorTemperature))
                 return;
 
-            var hotColdBathRatio = 1 - Math.Min(1, (radiatorTemperature / part.temperature));
+            timeWarpModifer = PluginHelper.GetTimeWarpModifer();
+            spaceTemperature = FlightIntegrator.ActiveVesselFI == null ? 4 : FlightIntegrator.ActiveVesselFI.backgroundRadiationTemp;
+
+            hotBathTemperature = Math.Max(4, Math.Max(part.temperature, part.skinTemperature));
+
+            var hotColdBathRatio = 1 - Math.Min(1, radiatorTemperature / hotBathTemperature);
 
             var thermalConversionEfficiency = maxConversionEfficiency * hotColdBathRatio;
 
@@ -109,16 +119,15 @@ namespace FNPlugin.Reactors
 
         private void ExtractSystemHeat(double fixedDeltaTime)
         {
-            var thermalMassPerKilogram =
-                part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
+            var thermalMassPerKilogram = timeWarpModifer * part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
             var temperatureChange = 0.5 * fixedDeltaTime * (currentPowerSupplyInMegaWatt / thermalMassPerKilogram);
 
             // lower part temperature
-            if (!double.IsNaN(temperatureChange))
+            if (!temperatureChange.IsInfinityOrNaN())
             {
-                part.temperature = Math.Max(4, part.temperature - temperatureChange);
-                part.skinTemperature = Math.Max(4, part.skinTemperature - temperatureChange);
+                part.temperature = Math.Max(spaceTemperature, part.temperature - temperatureChange);
+                part.skinTemperature = Math.Max(spaceTemperature, part.skinTemperature - temperatureChange);
             }
         }
 
@@ -126,18 +135,16 @@ namespace FNPlugin.Reactors
         {
             var stackAttachedPart = _stackAttachedParts.First(m => m.temperature <= radiatorTemperature);
 
-            var stackThermalMassPerKilogram = stackAttachedPart.mass * stackAttachedPart.thermalMassModifier *
-                                              PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
+            var stackThermalMassPerKilogram = timeWarpModifer * stackAttachedPart.mass * stackAttachedPart.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
-            var stackWasteTemperatureChange = 0.5 * fixedDeltaTime *
-                                              (wasteheatInMegaJoules / _stackAttachedParts.Count /
-                                               stackThermalMassPerKilogram);
+            var stackWasteTemperatureChange = 
+                0.5 * fixedDeltaTime * (wasteheatInMegaJoules / _stackAttachedParts.Count / stackThermalMassPerKilogram);
 
             // increase stack part with waste temperature
-            if (!double.IsNaN(stackWasteTemperatureChange))
+            if (!stackWasteTemperatureChange.IsInfinityOrNaN())
             {
-                stackAttachedPart.temperature = Math.Max(4, stackAttachedPart.temperature + stackWasteTemperatureChange);
-                stackAttachedPart.skinTemperature = Math.Max(4, stackAttachedPart.skinTemperature + stackWasteTemperatureChange);
+                stackAttachedPart.temperature = Math.Max(spaceTemperature, stackAttachedPart.temperature + stackWasteTemperatureChange);
+                stackAttachedPart.skinTemperature = Math.Max(spaceTemperature, stackAttachedPart.skinTemperature + stackWasteTemperatureChange);
             }
         }
 
