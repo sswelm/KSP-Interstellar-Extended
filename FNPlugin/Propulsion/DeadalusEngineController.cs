@@ -11,6 +11,9 @@ using UnityEngine;
 
 namespace FNPlugin
 {
+    [KSPModule("Fission Engine")]
+    class FissionEngineController : DaedalusEngineController { }
+
     [KSPModule("Confinement Fusion Engine")]
     class FusionEngineController : DaedalusEngineController { }
 
@@ -26,9 +29,6 @@ namespace FNPlugin
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
         public bool rad_safety_features = true;
-
-
-
 
         [KSPField]
         public double massThrustExp = 0;
@@ -58,21 +58,28 @@ namespace FNPlugin
         [KSPField]
         public double finalRequestedPower;
 
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public string fusionFuel1 = string.Empty;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public string fusionFuel2 = string.Empty;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public string fusionFuel3 = string.Empty;
+
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_FusionEngine_fusionFuel")]
-        public string fusionFuel1 = "FusionPellets";
+        public string fuelName1 = "FusionPellets";
         [KSPField(guiActive = false, guiActiveEditor = false)]
-        public string fusionFuel2;
+        public string fuelName2 = string.Empty;
         [KSPField(guiActive = false, guiActiveEditor = false)]
-        public string fusionFuel3;
+        public string fuelName3 = string.Empty;
 
         [KSPField(guiActive = false, guiActiveEditor = false)]
-        public double fusionFuelRatio1 = 1;
+        public double fuelRatio1 = 1;
         [KSPField(guiActive = false, guiActiveEditor = false)]
-        public double fusionFuelRatio2 = 0;
+        public double fuelRatio2 = 0;
         [KSPField(guiActive = false, guiActiveEditor = false)]
-        public double fusionFuelRatio3 = 0;
+        public double fuelRatio3 = 0;
         [KSPField]
-        public string effectName = String.Empty;
+        public string effectName = string.Empty;
 
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_temperatureStr")]
         public string temperatureStr = "";
@@ -322,11 +329,11 @@ namespace FNPlugin
         double ratioHeadingVersusRequest;
 
         [KSPField]
-        public double fusionFuelFactor1;
+        public double fuelFactor1;
         [KSPField]
-        public double fusionFuelFactor2;
+        public double fuelFactor2;
         [KSPField]
-        public double fusionFuelFactor3;
+        public double fuelFactor3;
 
         [KSPField]
         public double fusionFuelRequestAmount1 = 0.0;
@@ -346,9 +353,9 @@ namespace FNPlugin
         BaseEvent retrofitEngineEvent;
         BaseField radhazardstrField;
 
-        PartResourceDefinition fusionFuelResourceDefinition1;
-        PartResourceDefinition fusionFuelResourceDefinition2;
-        PartResourceDefinition fusionFuelResourceDefinition3;
+        PartResourceDefinition fuelResourceDefinition1;
+        PartResourceDefinition fuelResourceDefinition2;
+        PartResourceDefinition fuelResourceDefinition3;
 
         const string LIGHTBLUE = "#7fdfffff";
         
@@ -652,37 +659,46 @@ namespace FNPlugin
 
         private void UpdateFuelFactors()
         {
-            if (!String.IsNullOrEmpty(fusionFuel1))
-                fusionFuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fusionFuel1);
-            if (!String.IsNullOrEmpty(fusionFuel2))
-                fusionFuelResourceDefinition2 = PartResourceLibrary.Instance.GetDefinition(fusionFuel2);
-            if (!String.IsNullOrEmpty(fusionFuel3))
-                fusionFuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fusionFuel3);
+            
+            if (!string.IsNullOrEmpty(fuelName1))
+                fuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fuelName1);
+            else if (!string.IsNullOrEmpty(fusionFuel1))
+                fuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fusionFuel1);
+
+            if (!string.IsNullOrEmpty(fuelName2))
+                fuelResourceDefinition2 = PartResourceLibrary.Instance.GetDefinition(fuelName2);
+            else if (!string.IsNullOrEmpty(fusionFuel2))
+                fuelResourceDefinition2 = PartResourceLibrary.Instance.GetDefinition(fusionFuel2);
+
+            if (!string.IsNullOrEmpty(fuelName3))
+                fuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fuelName3);
+            else if (!string.IsNullOrEmpty(fusionFuel3))
+                fuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fusionFuel3);
 
             var ratioSum = 0.0;
             var densitySum = 0.0;
 
-            if (fusionFuelResourceDefinition1 != null)
+            if (fuelResourceDefinition1 != null)
             {
-                ratioSum += fusionFuelRatio1;
-                densitySum += fusionFuelResourceDefinition1.density * fusionFuelRatio1; 
+                ratioSum += fuelRatio1;
+                densitySum += fuelResourceDefinition1.density * fuelRatio1; 
             }
-            if (fusionFuelResourceDefinition2 != null)
+            if (fuelResourceDefinition2 != null)
             {
-                ratioSum += fusionFuelRatio2;
-                densitySum += fusionFuelResourceDefinition2.density * fusionFuelRatio2; 
+                ratioSum += fuelRatio2;
+                densitySum += fuelResourceDefinition2.density * fuelRatio2; 
             }
-            if (fusionFuelResourceDefinition3 != null)
+            if (fuelResourceDefinition3 != null)
             {
-                ratioSum += fusionFuelRatio3;
-                densitySum += fusionFuelResourceDefinition3.density * fusionFuelRatio3; 
+                ratioSum += fuelRatio3;
+                densitySum += fuelResourceDefinition3.density * fuelRatio3; 
             }
 
             averageDensity = densitySum / ratioSum;
 
-            fusionFuelFactor1 = fusionFuelResourceDefinition1 != null ? fusionFuelRatio1/ratioSum : 0;
-            fusionFuelFactor2 = fusionFuelResourceDefinition2 != null ? fusionFuelRatio2/ratioSum : 0;
-            fusionFuelFactor3 = fusionFuelResourceDefinition3 != null ? fusionFuelRatio3/ratioSum : 0;
+            fuelFactor1 = fuelResourceDefinition1 != null ? fuelRatio1/ratioSum : 0;
+            fuelFactor2 = fuelResourceDefinition2 != null ? fuelRatio2/ratioSum : 0;
+            fuelFactor3 = fuelResourceDefinition3 != null ? fuelRatio3/ratioSum : 0;
         }
 
         private string DisplayTech(string techid)
@@ -757,7 +773,7 @@ namespace FNPlugin
                     return;
                 }
 
-                part.GetConnectedResourceTotals(fusionFuelResourceDefinition1.id, out fuelAmounts, out fuelAmountsMax);
+                part.GetConnectedResourceTotals(fuelResourceDefinition1.id, out fuelAmounts, out fuelAmountsMax);
 
                 percentageFuelRemaining = fuelAmountsMax > 0 ? fuelAmounts / fuelAmountsMax * 100 : 0;
                 fuelAmountsRatio = percentageFuelRemaining.ToString("0.000000") + "% ";
@@ -1155,39 +1171,39 @@ namespace FNPlugin
             var totalAmount = demandMass / averageDensity;
 
             double availableRatio = 1;
-            if (fusionFuelFactor1 > 0)
+            if (fuelFactor1 > 0)
             {
-                fusionFuelRequestAmount1 = fusionFuelFactor1 * totalAmount;
-                availableRatio = Math.Min(part.GetResourceAvailable(fusionFuelResourceDefinition1, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount1, availableRatio);
+                fusionFuelRequestAmount1 = fuelFactor1 * totalAmount;
+                availableRatio = Math.Min(part.GetResourceAvailable(fuelResourceDefinition1, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount1, availableRatio);
             }
-            if (fusionFuelFactor2 > 0)
+            if (fuelFactor2 > 0)
             {
-                fusionFuelRequestAmount2 = fusionFuelFactor2 * totalAmount;
-                availableRatio = Math.Min(part.GetResourceAvailable(fusionFuelResourceDefinition2, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount2, availableRatio);
+                fusionFuelRequestAmount2 = fuelFactor2 * totalAmount;
+                availableRatio = Math.Min(part.GetResourceAvailable(fuelResourceDefinition2, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount2, availableRatio);
             }
-            if (fusionFuelFactor3 > 0)
+            if (fuelFactor3 > 0)
             {
-                fusionFuelRequestAmount3 = fusionFuelFactor3 * totalAmount;
-                availableRatio = Math.Min(part.GetResourceAvailable(fusionFuelResourceDefinition3, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount3, availableRatio);
+                fusionFuelRequestAmount3 = fuelFactor3 * totalAmount;
+                availableRatio = Math.Min(part.GetResourceAvailable(fuelResourceDefinition3, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount3, availableRatio);
             }
 
             if (availableRatio <= float.Epsilon)
                 return 0;
 
             double recievedRatio = 1;
-            if (fusionFuelFactor1 > 0)
+            if (fuelFactor1 > 0)
             {
-                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition1.id, fusionFuelRequestAmount1 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var recievedFusionFuel = part.RequestResource(fuelResourceDefinition1.id, fusionFuelRequestAmount1 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount1 > 0 ? recievedFusionFuel / fusionFuelRequestAmount1 : 0);
             }
-            if (fusionFuelFactor2 > 0)
+            if (fuelFactor2 > 0)
             {
-                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition2.id, fusionFuelRequestAmount2 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var recievedFusionFuel = part.RequestResource(fuelResourceDefinition2.id, fusionFuelRequestAmount2 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount2 > 0 ? recievedFusionFuel / fusionFuelRequestAmount2 : 0);
             }
-            if (fusionFuelFactor3 > 0)
+            if (fuelFactor3 > 0)
             {
-                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition3.id, fusionFuelRequestAmount3 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var recievedFusionFuel = part.RequestResource(fuelResourceDefinition3.id, fusionFuelRequestAmount3 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount3 > 0 ? recievedFusionFuel / fusionFuelRequestAmount3 : 0);
             }
             return recievedRatio;
