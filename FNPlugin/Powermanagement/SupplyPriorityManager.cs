@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -26,9 +25,7 @@ namespace FNPlugin
             if (vessel == null)
                 return null;
 
-            SupplyPriorityManager manager;
-
-            if (!supply_priority_managers.TryGetValue(vessel, out manager))
+            if (!supply_priority_managers.TryGetValue(vessel, out var manager))
             {
                 Debug.Log("[KSPI]: Creating new supply priority manager for " + vessel.GetName());
                 manager = new SupplyPriorityManager(vessel);
@@ -38,16 +35,16 @@ namespace FNPlugin
             return manager;
         }
 
-        public void UpdatePartModule(PartModule partmodule)
+        public void UpdatePartModule(PartModule partModule)
         {
-            Vessel = partmodule.vessel;
-            ProcessingPart = partmodule;
+            Vessel = partModule.vessel;
+            ProcessingPart = partModule;
         }
 
         public SupplyPriorityManager(Vessel vessel)
         {
             Id = Guid.NewGuid();
-            this.Vessel = vessel;
+            Vessel = vessel;
         }
 
         public void Register(ResourceSuppliableModule suppliable)
