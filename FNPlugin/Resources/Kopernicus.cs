@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Resources
@@ -16,6 +15,23 @@ namespace FNPlugin.Resources
     {
         static List<StarLight> stars;
         static Dictionary<CelestialBody, StarLight> starsByBody;
+
+        public static CelestialBody GetLocalStar(CelestialBody body)
+        {
+            int depth = 0;
+            CelestialBody current = body;
+            while (depth < 10)
+            {
+                if (IsStar(current))
+                    return current;
+
+                current = current.referenceBody;
+                depth++;
+            }
+
+            return null;
+        }
+
 
         static private double astronomicalUnit;
         static public double AstronomicalUnit

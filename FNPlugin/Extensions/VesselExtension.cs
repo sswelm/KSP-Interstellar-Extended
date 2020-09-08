@@ -5,6 +5,10 @@ namespace FNPlugin.Extensions
 {
     public static class VesselExtension
     {
+        //var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
+        //vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);
+        //vesselRegitBody.AddForce(solarWindDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
+
         public static double PersistHeading(this Vessel vessel, bool forceRotation = false, bool canDropOutOfTimeWarp = true, double tolerance = 0)
         {
             if (tolerance <= 0)
