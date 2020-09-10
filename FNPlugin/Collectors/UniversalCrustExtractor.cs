@@ -1,9 +1,9 @@
 ﻿using FNPlugin.Resources;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Collectors
 {
@@ -53,11 +53,17 @@ namespace FNPlugin.Collectors
         public float animationState;
         [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ReasonNotCollecting")]//Reason Not Collecting
         public string reasonNotCollecting;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "HeatSink Status")] // Debugging information for the heatsink
+        public string heatsinkDebug;
+        [KSPField(isPersistant = true, guiActive = false)] // Debugging information for the heatsink
+        private bool pumpingHeat;
+
 
         // GUI elements declaration
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 5, 150);
         private int _window_ID;
         private bool _render_window;
+        
 
         private ModuleScienceExperiment _moduleScienceExperiment;
 
@@ -82,7 +88,7 @@ namespace FNPlugin.Collectors
             Latitude = 0, // this will need to be updated before 'sending the request'
             Longitude = 0, // this will need to be updated before 'sending the request'
             Altitude = 0, // this will need to be updated before 'sending the request'
-            CheckForLock = false, 
+            CheckForLock = false,
             ExcludeVariance = false,
         };
 
@@ -90,7 +96,7 @@ namespace FNPlugin.Collectors
 
 
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true,  guiName = "#LOC_KSPIE_UniversalCrustExtractor_DeployDrill", active = true)]//Deploy Drill
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DeployDrill", active = true)]//Deploy Drill
         public void DeployDrill()
         {
             isDeployed = true;
@@ -109,7 +115,8 @@ namespace FNPlugin.Collectors
             isDeployed = false;
 
             animationState = 0;
-            if (loopAnimation != null) {
+            if (loopAnimation != null)
+            {
                 loopAnimation[loopingAnimationName].speed = -1;
                 loopAnimation[loopingAnimationName].normalizedTime = 0;
                 loopAnimation.Blend(loopingAnimationName);
@@ -144,6 +151,12 @@ namespace FNPlugin.Collectors
         public void ToggleWindow()
         {
             _render_window = !_render_window;
+        }
+
+        [KSPAction("Toggle HeatPump")]//Toggle HeatPump
+        public void ToggleHeatPump(KSPActionParam param)
+        {
+            pumpingHeat = !pumpingHeat;
         }
 
         // *** END of KSP Events
@@ -306,21 +319,39 @@ namespace FNPlugin.Collectors
         {
             if (bIsEnabled)
             {
+                heatsinkDebug = string.Format("drilling, not pumping heat");
                 ToggleEmmitters(true);
                 UpdateLoopingAnimation();
 
                 //double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);                
-            
                 MineResources(false, fixedDeltaTime);
                 // Save time data for offline mining
                 dLastActiveTime = Planetarium.GetUniversalTime();
             }
             else
             {
-                ToggleEmmitters(false);
                 foreach (CrustalResource resource in localResources)
                 {
                     CalculateSpareRoom(resource);
+                }
+
+                if (pumpingHeat == true)
+                {
+                    ToggleEmmitters(true);
+
+                    var state = CheckIfCollectingPossible();
+                    if (String.IsNullOrEmpty(state) == false)
+                    {
+                        heatsinkDebug = state;
+                        return;
+                    }
+
+                    WasteHeat();
+                }
+                else
+                {
+                    heatsinkDebug = string.Format("heatpump disabled");
+                    ToggleEmmitters(false);
                 }
             }
         }
@@ -393,7 +424,7 @@ namespace FNPlugin.Collectors
 
             if (!CanReachTerrain())
             {
-                return " "+Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_msg3");//trouble reaching the terrain.
+                return " " + Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_msg3");//trouble reaching the terrain.
             }
 
             // cleared all the prerequisites
@@ -407,7 +438,7 @@ namespace FNPlugin.Collectors
         private bool IsDrillExtended()
         {
             return isDeployed && !deployAnimation.IsPlaying(deployAnimationName);
-                //return deployAnimation.GetScalar == 1; 
+            //return deployAnimation.GetScalar == 1; 
 
             //if (_moduleAnimationGroup != null)
             //    return _moduleAnimationGroup.isDeployed;
@@ -416,10 +447,10 @@ namespace FNPlugin.Collectors
         }
 
         /// <summary>
-        /// Helper function to calculate (and raycast) if the drill could potentially hit the terrain.
+        /// Helper function to raycast what the drill could hit.
         /// </summary>
-        /// <returns>True if the raycast hits the terrain layermask and it's close enough for the drill to reach (affected by the drillReach part property).</returns>
-        private bool CanReachTerrain()
+        /// <returns>The RaycastHit, which allows us to determine what is underneath us</returns>
+        private RaycastHit WhatsUnderneath()
         {
             Vector3d partPosition = this.part.transform.position; // find the position of the transform in 3d space
             var scaleFactor = this.part.rescaleFactor; // what is the rescale factor of the drill?
@@ -437,7 +468,119 @@ namespace FNPlugin.Collectors
             */
             Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
 
+            return hit;
+        }
+
+        /// <summary>
+        /// Helper function to calculate (and raycast) if the drill could potentially hit the terrain.
+        /// </summary>
+        /// <returns>True if the raycast hits the terrain layermask and it's close enough for the drill to reach (affected by the drillReach part property).</returns>
+        private bool CanReachTerrain()
+        {
+            RaycastHit hit = WhatsUnderneath();
             return hit.collider != null;
+        }
+
+        private bool DistanceToGround(out double groundDistance)
+        {
+            RaycastHit hit = WhatsUnderneath();
+
+            if (hit.collider == null)
+            {
+                groundDistance = double.NaN;
+                return false;
+            }
+
+            groundDistance = hit.distance;
+            heatsinkDebug = String.Format("distance to ground is {0}", groundDistance);
+
+            if (groundDistance <= 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool CalculateWasteHeatConsumable(double amountUnderground, double externalTemp, out double consume)
+        {
+            // https://www.researchgate.net/publication/329044575_Calculation_of_Underground_Soil_Temperature_for_the_Installation_of_Ground_Heat_Exchange_Systems_in_Baghdad
+            // Depending on ground thermal properties, the temperature becomes
+            // constant all year. 15 metres is where it becomes stable in the
+            // listed cities.
+
+            // To quote, "Average soil temperature is expected to be equal to the annual mean air temperature.".
+
+            // Moons are another beast. https://www.space.com/18175-moon-temperature.html
+
+            // Per AntaresMC, in #balance, 
+            // "In icy planets your heat storage will be effectively infinite and in salty ones it would grow quickly enough."
+            // "For rocky/metalic ones it will be slow enough to need a few just to dump enpugh shit"
+            // "We could just use an overall depth multiplier depending on the planet and ignore the specifics."
+            // "Also if its above a certain tem itwould start melting the rock, at this point we can assume that the stored heat can infinetly increase"
+            // "Or just cap the temp to 400K"
+
+            // TL;DR - https://discord.com/channels/586489099632902178/615531179503910942/753192660126269480 :)
+
+            double maxSize = 30; // 30 metres underground for 1TW of Cooling. Requires Tweakscale'd drills.
+            consume = 0;
+
+            if (Double.IsNaN(amountUnderground) || Double.IsNaN(externalTemp))
+            {
+                return false;
+            }
+
+            double percent = amountUnderground >= maxSize ? 1 : amountUnderground / maxSize;
+            // Perhaps if they have tweakscale'd their drill to reach maxSize metres underground,
+            // we should let them have more of a bonus?
+
+            // one large amount of of WasteHeat consumption.
+            consume = 1e6 * percent;
+
+            return true;
+        }
+
+        private bool WasteHeat()
+        {
+            double distance;
+            double underground;
+
+            // TODO: What should be the Megajoule cost of the drill dumping heat?
+            // Should WasteHeat consumption be based on Megajoules available?
+
+            if (DistanceToGround(out distance) == false)
+            {
+                return false;
+            }
+
+            // On a clamped to the ground base, the distance to the ground varies and oscillates.
+            // Round it off to keep things relatively consistent.
+            underground = Math.Round(this.drillSize - distance, 5);
+            heatsinkDebug = String.Format("T: {0}, U: {1}", vessel.externalTemperature, underground);
+
+            double avail = GetCurrentSurplus(ResourceManager.FNRESOURCE_WASTEHEAT);
+            if (double.IsNaN(avail))
+            {
+                heatsinkDebug += String.Format(" - avail NaN");
+                return false;
+            }
+
+            double consume;
+
+            if (CalculateWasteHeatConsumable(underground, vessel.externalTemperature, out consume) == false)
+            {
+                heatsinkDebug += String.Format(" - no draw");
+                return false;
+            }
+
+            if (avail > consume)
+            {
+                avail = consume;
+            }
+
+            consumeFNResourcePerSecond(avail, ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            return true;
         }
 
         /// <summary>
@@ -465,11 +608,11 @@ namespace FNPlugin.Collectors
             }
 
             // Workaround for some weird glitches where dNormalisedRecievedPowerMW gets slightly smaller than it should be during timewarping
-            double powerPercentage = dNormalisedRecievedPowerMW / dPowerRequirementsMW; 
-            if ( powerPercentage >= 0.99 )
-                return true; 
+            double powerPercentage = dNormalisedRecievedPowerMW / dPowerRequirementsMW;
+            if (powerPercentage >= 0.99)
+                return true;
             else
-                return false; 
+                return false;
         }
 
         /// <summary>
@@ -487,7 +630,7 @@ namespace FNPlugin.Collectors
             }
             catch (Exception e)
             {
-                Console.WriteLine("[KSPI] UniversalCrustExtractor - Error while getting the crustal composition for the current body. Msg: " + e.Message + ". StackTrace: " + e.StackTrace );
+                Console.WriteLine("[KSPI] UniversalCrustExtractor - Error while getting the crustal composition for the current body. Msg: " + e.Message + ". StackTrace: " + e.StackTrace);
                 return false;
             }
             if (localResources == null)
@@ -508,21 +651,21 @@ namespace FNPlugin.Collectors
         /// <returns></returns>
         private CrustalResourceAbundance GetResourceAbundance(CrustalResource currentResource)
         {
-            var abundance = new CrustalResourceAbundance(){ Resource = currentResource};
+            var abundance = new CrustalResourceAbundance() { Resource = currentResource };
 
             if (currentResource != null)
             {
                 try
                 {
                     abundance.Local = GetAbundance(new AbundanceRequest()
-                        {
-                            ResourceType = HarvestTypes.Planetary,
-                            ResourceName = currentResource.ResourceName,
-                            BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
-                            Latitude = FlightGlobals.ship_latitude,
-                            Longitude = FlightGlobals.ship_longitude,
-                            CheckForLock = false
-                        });
+                    {
+                        ResourceType = HarvestTypes.Planetary,
+                        ResourceName = currentResource.ResourceName,
+                        BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
+                        Latitude = FlightGlobals.ship_latitude,
+                        Longitude = FlightGlobals.ship_longitude,
+                        CheckForLock = false
+                    });
 
                 }
                 catch (Exception)
@@ -619,7 +762,7 @@ namespace FNPlugin.Collectors
         /// <param name="deltaTime">The time since last Fixed Update (Unity).</param>
         private double AddResource(double amount, string resourceName)
         {
-            return part.RequestResource(resourceName, -amount, ResourceFlowMode.ALL_VESSEL); 
+            return part.RequestResource(resourceName, -amount, ResourceFlowMode.ALL_VESSEL);
         }
 
         private void StoreDataForOfflineMining(double amount)
@@ -729,7 +872,7 @@ namespace FNPlugin.Collectors
 
                 }
                 // inform the player about the offline processing
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_PostMsg3", deltaTime.ToString("0"),totalAmount.ToString("0.000"),numberOfResources), 10.0f, ScreenMessageStyle.LOWER_CENTER);//"Universal drill mined offline for <<1>> seconds, drilling out <<2>> units of <<3>> resources."
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_PostMsg3", deltaTime.ToString("0"), totalAmount.ToString("0.000"), numberOfResources), 10.0f, ScreenMessageStyle.LOWER_CENTER);//"Universal drill mined offline for <<1>> seconds, drilling out <<2>> units of <<3>> resources."
             }
         }
 
@@ -752,17 +895,17 @@ namespace FNPlugin.Collectors
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Size") +": " + drillSize.ToString("#.#") + " m\xB3", _normal_label);//Size
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Size") + ": " + drillSize.ToString("#.#") + " m\xB3", _normal_label);//Size
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_MWRequirements") +": " + mwRequirements.ToString("0.000") + " MW", _normal_label);//MW Requirements
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_MWRequirements") + ": " + mwRequirements.ToString("0.000") + " MW", _normal_label);//MW Requirements
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_DrillEffectiveness") +": " + effectiveness.ToString("P1"), _normal_label);//Drill effectiveness
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_DrillEffectiveness") + ": " + effectiveness.ToString("P1"), _normal_label);//Drill effectiveness
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Resourcesabundances") +":", _bold_label, GUILayout.Width(labelWidth));//Resources abundances
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Resourcesabundances") + ":", _bold_label, GUILayout.Width(labelWidth));//Resources abundances
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -776,7 +919,7 @@ namespace FNPlugin.Collectors
             GUILayout.EndHorizontal();
 
             GetResourceData();
-            
+
             if (localResources != null)
             {
                 foreach (CrustalResource resource in localResources)
@@ -819,7 +962,7 @@ namespace FNPlugin.Collectors
                             GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_missing"), _normal_label, GUILayout.Width(valueWidth));//"missing"
                         }
                     }
-                    
+
                     GUILayout.EndHorizontal();
                 }
             }
