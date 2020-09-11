@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace FNPlugin 
 {
@@ -11,6 +8,6 @@ namespace FNPlugin
 
         string getResourceManagerDisplayName();
 
-        double supplyFNResourceFixed(double supply, String resourcename);
+        double supplyFNResourceFixed(double supply, String resourceName);
     }
 }

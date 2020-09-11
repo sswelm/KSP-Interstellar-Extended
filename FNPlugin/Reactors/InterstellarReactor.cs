@@ -34,7 +34,7 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_ForcedMinimumThrotle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]//Forced Minimum Throtle
         public float forcedMinimumThrottle = 0;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorControlWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_Reactor_reactorControlWindow_Hidden", enabledText = "#LOC_KSPIE_Reactor_reactorControlWindow_Shown", affectSymCounterparts = UI_Scene.None)]//Hidden-Shown
-        public bool render_window = false;
+        public bool render_window;
 
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -648,7 +648,7 @@ namespace FNPlugin.Reactors
         
         bool isFixedUpdatedCalled;
 
-        private void DetermineChargedParticleUtilisationRatio()
+        private void DetermineChargedParticleUtilizationRatio()
         {
             if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk2))
                 chargedParticleUtilisationLevel++;
@@ -973,15 +973,15 @@ namespace FNPlugin.Reactors
 
         public override void AttachThermalReciever(Guid key, double radius)
         {
-            if (!connectedRecievers.ContainsKey(key))
-                connectedRecievers.Add(key, radius);
+            if (!connectedReceivers.ContainsKey(key))
+                connectedReceivers.Add(key, radius);
             UpdateConnectedRecieversStr();
         }
 
         public override void DetachThermalReciever(Guid key)
         {
-            if (connectedRecievers.ContainsKey(key))
-                connectedRecievers.Remove(key);
+            if (connectedReceivers.ContainsKey(key))
+                connectedReceivers.Remove(key);
             UpdateConnectedRecieversStr();
         }
 
@@ -1014,13 +1014,13 @@ namespace FNPlugin.Reactors
 
         private void UpdateConnectedRecieversStr()
         {
-            if (connectedRecievers == null) return;
+            if (connectedReceivers == null) return;
 
-            connectedRecieversSum = connectedRecievers.Sum(r => r.Value * r.Value);
-            connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value * a.Value / connectedRecieversSum);
+            connectedRecieversSum = connectedReceivers.Sum(r => r.Value * r.Value);
+            connectedReceiversFraction = connectedReceivers.ToDictionary(a => a.Key, a => a.Value * a.Value / connectedRecieversSum);
 
             reactorSurface = Math.Pow(radius, 2);
-            connectedRecieversStr = connectedRecievers.Count() + " (" + connectedRecieversSum.ToString("0.000") + " m2)";
+            connectedRecieversStr = connectedReceivers.Count() + " (" + connectedRecieversSum.ToString("0.000") + " m2)";
         }
 
         public double ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
@@ -1497,9 +1497,9 @@ namespace FNPlugin.Reactors
 
                 var displayPartData = myGenerator == null && myGenerator == null;
 
-                Fields["radius"].guiActiveEditor = displayPartData;
-                Fields["connectedRecieversStr"].guiActiveEditor = displayPartData;
-                Fields["currentMass"].guiActiveEditor = displayPartData;
+                Fields[nameof(radius)].guiActiveEditor = displayPartData;
+                Fields[nameof(connectedRecieversStr)].guiActiveEditor = displayPartData;
+                Fields[nameof(currentMass)].guiActiveEditor = displayPartData;
 
                 return;
             }
@@ -1508,8 +1508,8 @@ namespace FNPlugin.Reactors
             {
                 if (startDisabled)
                 {
-                    Events["ActivateReactor"].guiActive = true;
-                    Events["ActivateReactor"].active = true;
+                    Events[nameof(ActivateReactor)].guiActive = true;
+                    Events[nameof(ActivateReactor)].active = true;
                     last_active_time = Planetarium.GetUniversalTime() - 4d * PluginHelper.SecondsInDay;
                     IsEnabled = false;
                     startDisabled = false;
@@ -1537,13 +1537,13 @@ namespace FNPlugin.Reactors
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
 
-            if (!String.IsNullOrEmpty(animName))
+            if (!string.IsNullOrEmpty(animName))
                 pulseAnimation = PluginHelper.SetUpAnimation(animName, this.part);
-            if (!String.IsNullOrEmpty(loopingAnimationName))
+            if (!string.IsNullOrEmpty(loopingAnimationName))
                 loopingAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == loopingAnimationName);
-            if (!String.IsNullOrEmpty(startupAnimationName))
+            if (!string.IsNullOrEmpty(startupAnimationName))
                 startupAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == startupAnimationName);
-            if (!String.IsNullOrEmpty(shutdownAnimationName))
+            if (!string.IsNullOrEmpty(shutdownAnimationName))
                 shutdownAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == shutdownAnimationName);
 
 
@@ -1576,7 +1576,7 @@ namespace FNPlugin.Reactors
 
             DeterminePowerOutput();
 
-            DetermineChargedParticleUtilisationRatio();
+            DetermineChargedParticleUtilizationRatio();
 
             DetermineFuelEfficency();
 
@@ -2084,7 +2084,7 @@ namespace FNPlugin.Reactors
             if (stored_fuel_ratio >= 0.99)
                 return;
 
-            if (String.IsNullOrEmpty(alternativeFuelTypeName))
+            if (string.IsNullOrEmpty(alternativeFuelTypeName))
                 return;
 
             // look for most advanced version
@@ -2148,22 +2148,22 @@ namespace FNPlugin.Reactors
             var plasmaDifference = Math.Abs(storedGeneratorPlasmaEnergyRequestRatio - currentGeneratorPlasmaEnergyRequestRatio);
             var chargedDifference = Math.Abs(storedGeneratorChargedEnergyRequestRatio - currentGeneratorChargedEnergyRequestRatio);
 
-            var thermalThrotleIsGrowing = currentGeneratorThermalEnergyRequestRatio > storedGeneratorThermalEnergyRequestRatio;
-            var plasmaThrotleIsGrowing = currentGeneratorPlasmaEnergyRequestRatio > storedGeneratorPlasmaEnergyRequestRatio;
-            var chargedThrotleIsGrowing = currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio;
+            var thermalThrottleIsGrowing = currentGeneratorThermalEnergyRequestRatio > storedGeneratorThermalEnergyRequestRatio;
+            var plasmaThrottleIsGrowing = currentGeneratorPlasmaEnergyRequestRatio > storedGeneratorPlasmaEnergyRequestRatio;
+            var chargedThrottleIsGrowing = currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio;
 
             var fixedReactorSpeedMult = ReactorSpeedMult * timeWarpFixedDeltaTime;
             var minimumAcceleration = timeWarpFixedDeltaTime * timeWarpFixedDeltaTime;
 
-            var thermalAccelerationReductionRatio = thermalThrotleIsGrowing
+            var thermalAccelerationReductionRatio = thermalThrottleIsGrowing
                 ? storedGeneratorThermalEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorThermalEnergyRequestRatio) / 0.5
                 : storedGeneratorThermalEnergyRequestRatio <= 0.5 ? minimumAcceleration + storedGeneratorThermalEnergyRequestRatio / 0.5 : 1;
 
-            var plasmaAccelerationReductionRatio = plasmaThrotleIsGrowing
+            var plasmaAccelerationReductionRatio = plasmaThrottleIsGrowing
                 ? storedGeneratorPlasmaEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorPlasmaEnergyRequestRatio) / 0.5
                 : storedGeneratorPlasmaEnergyRequestRatio <= 0.5 ? minimumAcceleration + storedGeneratorPlasmaEnergyRequestRatio / 0.5 : 1;
 
-            var chargedAccelerationReductionRatio = chargedThrotleIsGrowing
+            var chargedAccelerationReductionRatio = chargedThrottleIsGrowing
                 ? storedGeneratorChargedEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorChargedEnergyRequestRatio) / 0.5
                 : storedGeneratorChargedEnergyRequestRatio <= 0.5 ? minimumAcceleration + storedGeneratorChargedEnergyRequestRatio / 0.5 : 1;
 
@@ -2171,9 +2171,9 @@ namespace FNPlugin.Reactors
             var fixedPlasmaSpeed = fixedReactorSpeedMult > 0 ? Math.Min(plasmaDifference, fixedReactorSpeedMult) * plasmaAccelerationReductionRatio : plasmaDifference;
             var fixedChargedSpeed = fixedReactorSpeedMult > 0 ? Math.Min(chargedDifference, fixedReactorSpeedMult) * chargedAccelerationReductionRatio : chargedDifference;
 
-            var thermalChangeFraction = thermalThrotleIsGrowing ? fixedThermalSpeed : -fixedThermalSpeed;
-            var plasmaChangeFraction = plasmaThrotleIsGrowing ? fixedPlasmaSpeed : -fixedPlasmaSpeed;
-            var chargedChangeFraction = chargedThrotleIsGrowing ? fixedChargedSpeed : -fixedChargedSpeed;
+            var thermalChangeFraction = thermalThrottleIsGrowing ? fixedThermalSpeed : -fixedThermalSpeed;
+            var plasmaChangeFraction = plasmaThrottleIsGrowing ? fixedPlasmaSpeed : -fixedPlasmaSpeed;
+            var chargedChangeFraction = chargedThrottleIsGrowing ? fixedChargedSpeed : -fixedChargedSpeed;
 
             storedGeneratorThermalEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorThermalEnergyRequestRatio + thermalChangeFraction));
             storedGeneratorPlasmaEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorPlasmaEnergyRequestRatio + plasmaChangeFraction));
@@ -2229,7 +2229,7 @@ namespace FNPlugin.Reactors
             if ( lithiumNeutronAbsorbtion <= 0.01)
                 return;
 
-            // calculate current maximum litlium consumption
+            // calculate current maximum lithium consumption
             var breedRate = CurrentFuelMode.TritiumBreedModifier * CurrentFuelMode.NeutronsRatio * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * lithiumNeutronAbsorbtion;
             var lithRate = breedRate / lithium6_density;
 
@@ -2273,10 +2273,7 @@ namespace FNPlugin.Reactors
             return MaximumPower;
         }
 
-        public double Radius
-        {
-            get { return radius; }
-        }
+        public double Radius => radius;
 
         public virtual bool shouldScaleDownJetISP()
         {
@@ -2298,9 +2295,9 @@ namespace FNPlugin.Reactors
             if (showEngineConnectionInfo)
             {
                 sb.AppendLine("<size=11><color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Reactor_propulsion") + ":</color><size=10>");
-                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_thermalNozzle") + ": " + UtilisationInfo(thermalPropulsionEfficiency));
-                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_plasmaNozzle") + ": " + UtilisationInfo(plasmaPropulsionEfficiency));
-                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_magneticNozzle") + ": " + UtilisationInfo(chargedParticlePropulsionEfficiency));
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_thermalNozzle") + ": " + UtilizationInfo(thermalPropulsionEfficiency));
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_plasmaNozzle") + ": " + UtilizationInfo(plasmaPropulsionEfficiency));
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_magneticNozzle") + ": " + UtilizationInfo(chargedParticlePropulsionEfficiency));
                 sb.Append("</size>");
                 sb.AppendLine();
             }
@@ -2308,9 +2305,9 @@ namespace FNPlugin.Reactors
             if (showPowerGeneratorConnectionInfo)
             {
                 sb.AppendLine("<size=11><color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Reactor_powerGeneration") + ":</color><size=10>");
-                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_thermalGenerator") + ": " + UtilisationInfo(thermalEnergyEfficiency));
-                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_MHDGenerator") + ": " + UtilisationInfo(plasmaEnergyEfficiency));
-                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_chargedParticleGenerator") + ": " + UtilisationInfo(chargedParticleEnergyEfficiency));
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_thermalGenerator") + ": " + UtilizationInfo(thermalEnergyEfficiency));
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_MHDGenerator") + ": " + UtilizationInfo(plasmaEnergyEfficiency));
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_chargedParticleGenerator") + ": " + UtilizationInfo(chargedParticleEnergyEfficiency));
                 sb.Append("</size>");
                 sb.AppendLine();
             }
@@ -2421,14 +2418,14 @@ namespace FNPlugin.Reactors
 
         private int GetMaximumFuelTechLevel()
         {
-            int techlevels = 0;
-            if (!string.IsNullOrEmpty(fuelModeTechReqLevel2) && fuelModeTechReqLevel2 != "none") techlevels++;
-            if (!string.IsNullOrEmpty(fuelModeTechReqLevel3) && fuelModeTechReqLevel3 != "none") techlevels++;
-            if (!string.IsNullOrEmpty(fuelModeTechReqLevel4) && fuelModeTechReqLevel4 != "none") techlevels++;
-            if (!string.IsNullOrEmpty(fuelModeTechReqLevel5) && fuelModeTechReqLevel5 != "none") techlevels++;
-            if (!string.IsNullOrEmpty(fuelModeTechReqLevel6) && fuelModeTechReqLevel6 != "none") techlevels++;
-            if (!string.IsNullOrEmpty(fuelModeTechReqLevel7) && fuelModeTechReqLevel7 != "none") techlevels++;
-            var maximumFuelTechLevel = techlevels + reactorModeTechBonus;
+            int techLevels = 0;
+            if (!string.IsNullOrEmpty(fuelModeTechReqLevel2) && fuelModeTechReqLevel2 != "none") techLevels++;
+            if (!string.IsNullOrEmpty(fuelModeTechReqLevel3) && fuelModeTechReqLevel3 != "none") techLevels++;
+            if (!string.IsNullOrEmpty(fuelModeTechReqLevel4) && fuelModeTechReqLevel4 != "none") techLevels++;
+            if (!string.IsNullOrEmpty(fuelModeTechReqLevel5) && fuelModeTechReqLevel5 != "none") techLevels++;
+            if (!string.IsNullOrEmpty(fuelModeTechReqLevel6) && fuelModeTechReqLevel6 != "none") techLevels++;
+            if (!string.IsNullOrEmpty(fuelModeTechReqLevel7) && fuelModeTechReqLevel7 != "none") techLevels++;
+            var maximumFuelTechLevel = techLevels + reactorModeTechBonus;
             return maximumFuelTechLevel;
         }
 
@@ -2436,9 +2433,9 @@ namespace FNPlugin.Reactors
         {
             var isp = Math.Min(Math.Sqrt(temperature) * 21, maxThermalNozzleIsp);
 
-            var exhaustvelocity = isp * 9.80665;
+            var exhaustVelocity = isp * GameConstants.STANDARD_GRAVITY;
 
-            var thrust = powerInMJ * 2000 / exhaustvelocity / powerOutputMultiplier;
+            var thrust = powerInMJ * 2000 / exhaustVelocity / powerOutputMultiplier;
 
             return thrust.ToString("F1") + "kN @ " + isp.ToString("F0") + "s";
         }
@@ -2447,14 +2444,14 @@ namespace FNPlugin.Reactors
         {
             var isp = Math.Sqrt(temperature) * 21;
 
-            var exhaustvelocity = isp * 9.81;
+            var exhaustVelocity = isp * GameConstants.STANDARD_GRAVITY;
 
-            var thrust = powerInMJ * 2000 / exhaustvelocity / powerOutputMultiplier;
+            var thrust = powerInMJ * 2000 / exhaustVelocity / powerOutputMultiplier;
 
             return thrust.ToString("F1") + "kN @ " + isp.ToString("F0") + "s";
         }
 
-        private string UtilisationInfo(double value)
+        private string UtilizationInfo(double value)
         {
             if (value > 0)
             {
@@ -2476,16 +2473,16 @@ namespace FNPlugin.Reactors
             double deltaTimeDiff = Math.Max(Planetarium.GetUniversalTime() - last_active_time, 0);
 
             // determine avialable variants
-            var persistantFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, deltaTimeDiff * ongoing_total_power_generated, fuelUsePerMJMult);
+            var persistentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, deltaTimeDiff * ongoing_total_power_generated, fuelUsePerMJMult);
 
             // consume fuel
-            foreach (var fuel in persistantFuelVariantsSorted.First().ReactorFuels)
+            foreach (var fuel in persistentFuelVariantsSorted.First().ReactorFuels)
             {
                 ConsumeReactorFuel(fuel, deltaTimeDiff * ongoing_total_power_generated);
             }
 
             // produce reactor products
-            foreach (var product in persistantFuelVariantsSorted.First().ReactorProducts)
+            foreach (var product in persistentFuelVariantsSorted.First().ReactorProducts)
             {
                 ProduceReactorProduct(product, deltaTimeDiff * ongoing_total_power_generated);
             }
@@ -2826,9 +2823,7 @@ namespace FNPlugin.Reactors
                         var heliumKgDay = helium_produced_per_second * helium4_density * 1000 * PluginHelper.SecondsInDay;
                         PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_HeliumBreedRate"), heliumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", bold_style, text_style);//"Helium Breed Rate"kg/day
 
-                        double totalLithium6Amount;
-                        double totalLithium6MaxAmount;
-                        part.GetConnectedResourceTotals(lithium6_def.id, out totalLithium6Amount, out totalLithium6MaxAmount);
+                        part.GetConnectedResourceTotals(lithium6_def.id, out var totalLithium6Amount, out var totalLithium6MaxAmount);
 
                         PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumReserves"), totalLithium6Amount.ToString("0.000") + " L / " + totalLithium6MaxAmount.ToString("0.000") + " L", bold_style, text_style);//"Lithium Reserves"
 
@@ -2854,18 +2849,14 @@ namespace FNPlugin.Reactors
                                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumRemaining"), lithiumLifetimeYears + " "+Localizer.Format("#LOC_KSPIE_Reactor_years") +" " , bold_style, text_style);//"Lithium Remaining"years
                         }
 
-                        double totalTritiumAmount;
-                        double totalTritiumMaxAmount;
-                        part.GetConnectedResourceTotals(tritium_def.id, out totalTritiumAmount, out totalTritiumMaxAmount);
+                        part.GetConnectedResourceTotals(tritium_def.id, out var totalTritiumAmount, out var totalTritiumMaxAmount);
 
                         var massTritiumAmount = totalTritiumAmount * tritium_density * 1000;
                         var massTritiumMaxAmount = totalTritiumMaxAmount * tritium_density * 1000;
 
                         PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumStorage"), massTritiumAmount.ToString("0.000000") + " kg / " + massTritiumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);//"Tritium Storage"
 
-                        double totalHeliumAmount;
-                        double totalHeliumMaxAmount;
-                        part.GetConnectedResourceTotals(helium_def.id, out totalHeliumAmount, out totalHeliumMaxAmount);
+                        part.GetConnectedResourceTotals(helium_def.id, out var totalHeliumAmount, out var totalHeliumMaxAmount);
 
                         var massHeliumAmount = totalHeliumAmount * helium4_density * 1000;
                         var massHeliumMaxAmount = totalHeliumMaxAmount * helium4_density * 1000;

@@ -48,18 +48,17 @@ namespace FNPlugin.Collectors
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ActivateDrill", active = true)]//Activate Drill
         public void ActivateCollector()
         {
-            if (IsCollectLegal() == true) // will only be activated if the collecting of resource is legal
+            if (IsCollectLegal() != true) return;
+
+            bTouchDown = TryRaycastToHitTerrain(); // check if there's ground within reach and if the drill is deployed
+            if (bTouchDown == false) // if not, no collecting
             {
-                bTouchDown = TryRaycastToHitTerrain(); // check if there's ground within reach and if the drill is deployed
-                if (bTouchDown == false) // if not, no collecting
-                {
-                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg1"), 3, ScreenMessageStyle.LOWER_CENTER);//"Regolith drill not in contact with ground. Make sure drill is deployed and can reach the terrain."
-                    DisableCollector();
-                    return;
-                }
-                bIsEnabled = true;
-                OnUpdate();
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg1"), 3, ScreenMessageStyle.LOWER_CENTER);//"Regolith drill not in contact with ground. Make sure drill is deployed and can reach the terrain."
+                DisableCollector();
+                return;
             }
+            bIsEnabled = true;
+            OnUpdate();
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_DisableDrill", active = true)]//Disable Drill
@@ -98,13 +97,13 @@ namespace FNPlugin.Collectors
         protected double dRegolithDensity; // 'density' of regolith at the current spot
         protected double dTotalWasteHeatProduction = 0; // total waste heat produced in the cycle
         protected double dAltitude = 0; // current terrain altitude
-        protected bool bTouchDown = false; // helper bool, is the part touching the ground
+        protected bool bTouchDown; // helper bool, is the part touching the ground
 
-        uint counter = 0; // helper counter for update cycles, so that we can only do some calculations once in a while
-        uint anotherCounter = 0; // helper counter for fixedupdate cycles, so that we can only do some calculations once in a while (I don't want to add complexity by using the previous counter in two places - also update and fixedupdate cycles can be out of sync, apparently)
+        uint _counter = 0; // helper counter for update cycles, so that we can only do some calculations once in a while
+        uint _anotherCounter = 0; // helper counter for fixedupdate cycles, so that we can only do some calculations once in a while (I don't want to add complexity by using the previous counter in two places - also update and fixedupdate cycles can be out of sync, apparently)
         protected double dFinalConcentration;
 
-        AbundanceRequest regolithRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
+        AbundanceRequest _regolithRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
         {
             ResourceType = HarvestTypes.Planetary,
             ResourceName = InterstellarResourcesConfiguration.Instance.Regolith,
@@ -123,7 +122,7 @@ namespace FNPlugin.Collectors
             Debug.Log("[KSPI]: RegolithCollector on " + part.name + " was Force Activated");
             part.force_activate();
 
-            localStar = GetCurrentStar();
+            localStar = KopernicusHelper.GetLocalStar(vessel.mainBody);
 
             // gets density of the regolith resource
             strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
@@ -133,8 +132,8 @@ namespace FNPlugin.Collectors
             var MAGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
             foreach (ModuleAnimateGeneric MAG in MAGlist)
             {
-                MAG.Fields["status"].guiActive = false;
-                MAG.Fields["status"].guiActiveEditor = false;
+                MAG.Fields[nameof(MAG.status)].guiActive = false;
+                MAG.Fields[nameof(MAG.status)].guiActiveEditor = false;
             }
 
             // verify collector was enabled 
@@ -161,89 +160,68 @@ namespace FNPlugin.Collectors
 
         public override void OnUpdate()
         {
-            Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
-            Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
+            Events[nameof(ActivateCollector)].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
+            Events[nameof(DisableCollector)].active = bIsEnabled; // will show the button when the process IS enabled
 
-            Fields["strReceivedPower"].guiActive = bIsEnabled;
+            Fields[nameof(strReceivedPower)].guiActive = bIsEnabled;
 
             /* Regolith concentration doesn't really need to be calculated and updated in gui on every update. 
              * By hiding it behind a counter that only runs this code once per ten cycles, it should be more performance friendly.
             */
-            if (++counter % 10 == 0) // increment counter then check if it is the tenth update
-            {
-                //dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
-                dConcentrationRegolith = GetFinalConcentration();
+            if (++_counter % 10 != 0) return;
 
-                /* If collecting is legal, update the regolith concentration in GUI, otherwise pass a zero string. 
+            //dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
+            dConcentrationRegolith = GetFinalConcentration();
+
+            /* If collecting is legal, update the regolith concentration in GUI, otherwise pass a zero string. 
                  * This way we shouldn't get readings when the vessel is flying or splashed or on a planet with an atmosphere.
                  */
-                strRegolithConc = IsCollectLegal() ? dConcentrationRegolith.ToString("P0") : "0"; // F1 string format means fixed point number with one decimal place (i.e. number 1234.567 would be formatted as 1234.5). I might change this eventually to P1 or P0 (num multiplied by hundred and percentage sign with 1 or 0 dec. places).
-                // Also update the current altitude in GUI
-                strAltitude = (vessel.altitude < 15000) ? (vessel.altitude).ToString("F0") : Localizer.Format("#LOC_KSPIE_RegolithCollector_Altitudetoohigh");//"Too damn high"
-            }          
+            strRegolithConc = IsCollectLegal() ? dConcentrationRegolith.ToString("P0") : "0"; // F1 string format means fixed point number with one decimal place (i.e. number 1234.567 would be formatted as 1234.5). I might change this eventually to P1 or P0 (num multiplied by hundred and percentage sign with 1 or 0 dec. places).
+            // Also update the current altitude in GUI
+            strAltitude = (vessel.altitude < 15000) ? (vessel.altitude).ToString("F0") : Localizer.Format("#LOC_KSPIE_RegolithCollector_Altitudetoohigh");//"Too damn high"
         }
 
         public override void OnFixedUpdate()
         {
-            if (FlightGlobals.fetch != null)
+            if (FlightGlobals.fetch == null) return;
+
+            if (!bIsEnabled)
             {
-                if (!bIsEnabled)
-                {
-                    strCollectingStatus = Localizer.Format("#LOC_KSPIE_RegolithCollector_Disabled");//"Disabled"
-                    strStarDist = UpdateDistanceInGUI(); // passes the distance to the GUI
-                    return;
-                }
+                strCollectingStatus = Localizer.Format("#LOC_KSPIE_RegolithCollector_Disabled");//"Disabled"
+                strStarDist = UpdateDistanceInGUI(); // passes the distance to the GUI
+                return;
+            }
 
-                // won't collect in atmosphere, while splashed and while flying
-                if (IsCollectLegal() == false)
-                {
-                    DisableCollector();
-                    return;
-                }
+            // won't collect in atmosphere, while splashed and while flying
+            if (IsCollectLegal() == false)
+            {
+                DisableCollector();
+                return;
+            }
              
-                strStarDist = UpdateDistanceInGUI();
+            strStarDist = UpdateDistanceInGUI();
 
-                // collect solar wind for a single frame
-                CollectRegolith(TimeWarp.fixedDeltaTime, false);
+            // collect solar wind for a single frame
+            CollectRegolith(TimeWarp.fixedDeltaTime, false);
 
-                // store current time in case vesel is unloaded
-                dLastActiveTime = (float)Planetarium.GetUniversalTime();
+            // store current time in case vessel is unloaded
+            dLastActiveTime = (float)Planetarium.GetUniversalTime();
 
-                // store current solar wind concentration in case vessel is unloaded
-                //dLastRegolithConcentration = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
-                dLastRegolithConcentration = GetFinalConcentration();
+            // store current solar wind concentration in case vessel is unloaded
+            //dLastRegolithConcentration = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
+            dLastRegolithConcentration = GetFinalConcentration();
 
-                /* This bit will check if the regolith drill has not lost contact with ground. Raycasts are apparently not all that expensive, but still, 
+            /* This bit will check if the regolith drill has not lost contact with ground. Raycasts are apparently not all that expensive, but still, 
                  * the counter will delay the check so that it runs only once per hundred cycles. This should be enough and should make it more performance friendly and
                  * also less prone to kraken glitches. It also makes sure that this doesn't run before the vessel is fully loaded and shown to the player.
                  */
-                if (++anotherCounter % 100 == 0)
-                {
-                    bTouchDown = TryRaycastToHitTerrain();
-                    if (bTouchDown == false) // if not, disable collecting
-                    {
-                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg2"), 3, ScreenMessageStyle.LOWER_CENTER);//"Regolith drill not in contact with ground. Disabling drill."
-                        DisableCollector();
-                        return;
-                    }
-                }
-            }
-        }
+            if (++_anotherCounter % 100 != 0) return;
 
-        // find local star
-        protected CelestialBody GetCurrentStar()
-        {
-            int iDepth = 0;
-            var starsByBody = KopernicusHelper.StarsByBody;
-            var localStar = FlightGlobals.currentMainBody;
+            bTouchDown = TryRaycastToHitTerrain();
+            if (bTouchDown) return;
 
-            while ((iDepth < 10) && !starsByBody.ContainsKey(localStar))
-            {
-                localStar = localStar.referenceBody;
-                iDepth++;
-            }
-
-            return localStar;
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg2"), 3, ScreenMessageStyle.LOWER_CENTER);//"Regolith drill not in contact with ground. Disabling drill."
+            DisableCollector();
         }
 
         // checks if the vessel is not in atmosphere and if it can therefore collect regolith. Also checks if the vessel is landed and if it is not splashed (not sure if non atmospheric bodies can have oceans in KSP or modded galaxies, let's put this in to be sure)
@@ -268,17 +246,16 @@ namespace FNPlugin.Collectors
         // this snippet returns true if the part is extended
         private bool IsDrillExtended()
         {
-            ModuleAnimationGroup thisPartsAnimGroup = this.part.FindModuleImplementing<ModuleAnimationGroup>();
+            ModuleAnimationGroup thisPartsAnimGroup = part.FindModuleImplementing<ModuleAnimationGroup>();
             return thisPartsAnimGroup.isDeployed;
         }
 
         private bool TryRaycastToHitTerrain()
         {
-            Vector3d partPosition = this.part.transform.position; // find the position of the transform in 3d space
-            double scaleFactor = this.part.rescaleFactor; // what is the rescale factor of the drill?
+            Vector3d partPosition = part.transform.position; // find the position of the transform in 3d space
+            double scaleFactor = part.rescaleFactor; // what is the rescale factor of the drill?
             float drillDistance = (float)(5 * scaleFactor); // adjust the distance for the ray with the rescale factor, needs to be a float for raycast. The 5 is just about the reach of the drill.
 
-            RaycastHit hit = new RaycastHit(); // create a variable that stores info about hit colliders etc.
             LayerMask terrainMask = 32768; // layermask in unity, number 1 bitshifted to the left 15 times (1 << 15), (terrain = 15, the bitshift is there so that the mask bits are raised; this is a good reading about that: http://answers.unity3d.com/questions/8715/how-do-i-use-layermasks.html)
             Ray drillPartRay = new Ray(partPosition, -part.transform.up); // this ray will start at the part's center and go down in local space coordinates (Vector3d.down is in world space)
 
@@ -288,15 +265,10 @@ namespace FNPlugin.Collectors
              * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing 
              * this module in a difficult terrain, it just doesn't work properly. 
             */
-            Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
-            if (hit.collider != null)
-            {
-                if (IsDrillExtended() == true)
-                {
-                    return true;
-                }
-            }
-            return false;
+            Physics.Raycast(drillPartRay, out var hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
+            if (hit.collider == null) return false;
+
+            return IsDrillExtended();
         }
 
         private double GetFinalConcentration()
@@ -308,12 +280,11 @@ namespace FNPlugin.Collectors
 
         private double AdjustConcentrationForLocation()
         {
-            double concentration = 0;
-            regolithRequest.BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex;
-            regolithRequest.Latitude = vessel.latitude;
-            regolithRequest.Longitude = vessel.longitude;
-            regolithRequest.Altitude = vessel.altitude;
-            concentration = ResourceMap.Instance.GetAbundance(regolithRequest);
+            _regolithRequest.BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex;
+            _regolithRequest.Latitude = vessel.latitude;
+            _regolithRequest.Longitude = vessel.longitude;
+            _regolithRequest.Altitude = vessel.altitude;
+            double concentration = ResourceMap.Instance.GetAbundance(_regolithRequest);
             return concentration;
         }
 
@@ -321,7 +292,6 @@ namespace FNPlugin.Collectors
         private static double CalculateRegolithConcentration(Vector3d planetPosition, Vector3d sunPosition, double altitude)
         {
             double dAvgMunDistance = GameConstants.kerbin_sun_distance; // if my reasoning is correct, this is not only the average distance of Kerbin, but also for the Mun. Maybe this is obvious to everyone else or wrong, but I'm tired, so there.
-            
              
              /* I decided to incorporate an altitude modifier. According to https://curator.jsc.nasa.gov/lunar/letss/regolith.pdf, most regolith on Moon is deposited in
              * higher altitudes. This is great from a gameplay perspective, because it makes an incentive for players to collect regolith in more difficult circumstances 
@@ -367,7 +337,7 @@ namespace FNPlugin.Collectors
                 double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime), 0);
                 double dNormalisedRevievedPowerMW = dPowerReceivedMW / TimeWarp.fixedDeltaTime;
 
-                // if power requirement sufficiently low, retreive power from KW source
+                // if power requirement sufficiently low, retrieve power from KW source
                 if (dPowerRequirementsMW < 2 && dNormalisedRevievedPowerMW <= dPowerRequirementsMW)
                 {
                     double dRequiredKW = (dPowerRequirementsMW - dNormalisedRevievedPowerMW) * 1000;
@@ -418,12 +388,11 @@ namespace FNPlugin.Collectors
              * More power hungry drills will produce more heat. More effective drills will produce less heat. More effective power hungry drills should produce
              * less heat than less effective power hungry drills. This should allow us to bring some variety into parts, if we want to.
              */
-            
-            if (!CheatOptions.IgnoreMaxTemperature) // is this player not using no-heat cheat mode?
-            {
-                dTotalWasteHeatProduction = dPowerRequirementsMW * wasteHeatModifier; // calculate amount of heat to be produced
-                supplyFNResourcePerSecond(dTotalWasteHeatProduction, ResourceManager.FNRESOURCE_WASTEHEAT); // push the heat onto them
-            }            
+
+            if (CheatOptions.IgnoreMaxTemperature) return;
+
+            dTotalWasteHeatProduction = dPowerRequirementsMW * wasteHeatModifier; // calculate amount of heat to be produced
+            supplyFNResourcePerSecond(dTotalWasteHeatProduction, ResourceManager.FNRESOURCE_WASTEHEAT); // push the heat onto them
         }
     }
 }
