@@ -153,8 +153,8 @@ namespace FNPlugin.Collectors
             _render_window = !_render_window;
         }
 
-        [KSPAction("Toggle HeatPump")]//Toggle HeatPump
-        public void ToggleHeatPump(KSPActionParam param)
+        [KSPEvent(guiActive = true, guiName = "Toggle HeatPump", active = true)]//Toggle HeatPump
+        public void ToggleHeatPump()
         {
             pumpingHeat = !pumpingHeat;
         }
@@ -343,16 +343,25 @@ namespace FNPlugin.Collectors
                     if (String.IsNullOrEmpty(state) == false)
                     {
                         heatsinkDebug = state;
+                        pumpingHeat = false;
                         return;
                     }
 
-                    WasteHeat();
+                    
                 }
                 else
                 {
                     heatsinkDebug = string.Format("heatpump disabled");
                     ToggleEmmitters(false);
                 }
+            }
+        }
+
+        public override void OnPostResourceSuppliable(double fixedDeltaTime)
+        {
+            if (pumpingHeat)
+            {
+                WasteHeat();
             }
         }
 
@@ -550,6 +559,7 @@ namespace FNPlugin.Collectors
 
             if (DistanceToGround(out distance) == false)
             {
+                pumpingHeat = false;
                 return false;
             }
 
@@ -558,10 +568,16 @@ namespace FNPlugin.Collectors
             underground = Math.Round(this.drillSize - distance, 5);
             heatsinkDebug = String.Format("T: {0}, U: {1}", vessel.externalTemperature, underground);
 
-            double avail = GetCurrentSurplus(ResourceManager.FNRESOURCE_WASTEHEAT);
+            double avail = getResourceAvailability(ResourceManager.FNRESOURCE_WASTEHEAT);
             if (double.IsNaN(avail))
             {
                 heatsinkDebug += String.Format(" - avail NaN");
+                return false;
+            }
+
+            if(avail <= 0)
+            {
+                heatsinkDebug += String.Format(" - no available heat");
                 return false;
             }
 
@@ -573,13 +589,14 @@ namespace FNPlugin.Collectors
                 return false;
             }
 
-            if (avail > consume)
+            if (consume > avail)
             {
-                avail = consume;
+                heatsinkDebug += String.Format(" - reducing consumption");
+                consume = avail;
             }
 
-            consumeFNResourcePerSecond(avail, ResourceManager.FNRESOURCE_WASTEHEAT);
-
+            consumeFNResourcePerSecond(consume, ResourceManager.FNRESOURCE_WASTEHEAT);
+ 
             return true;
         }
 
