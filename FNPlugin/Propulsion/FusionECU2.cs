@@ -1,18 +1,18 @@
-﻿using FNPlugin.Power;
-using FNPlugin.Constants;
-using FNPlugin.Wasteheat;
+﻿using FNPlugin.Constants;
 using FNPlugin.External;
+using FNPlugin.Power;
+using FNPlugin.Wasteheat;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin
 {
     abstract class FusionECU2 : EngineECU2
     {
-        // Persistant
+        // Persistent
         [KSPField(isPersistant = true)]
         bool rad_safety_features = true;
 
@@ -161,7 +161,7 @@ namespace FNPlugin
 
         #region IUpgradeableModule
 
-        public String UpgradeTechnology { get { return upgradeTechReq1; } }
+        public string UpgradeTechnology => upgradeTechReq1;
 
         public void upgradePartModule() { }
 
@@ -188,13 +188,7 @@ namespace FNPlugin
             emitterController.fuelNeutronsFraction = CurrentActiveConfiguration.neutronRatio;
         }
 
-        public double MaximumThrust
-        {
-            get
-            {
-                return FullTrustMaximum * Math.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / curveMaxISP;               
-            }
-        }
+        public double MaximumThrust => FullTrustMaximum * Math.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / curveMaxISP;
 
         public double FusionWasteHeat
         {
@@ -298,7 +292,7 @@ namespace FNPlugin
 
         public bool HasIspThrottling()
         {
-            return FuelConfigurations.Count > 0 ? CurrentActiveConfiguration.hasIspThrottling : true;
+            return FuelConfigurations.Count <= 0 || CurrentActiveConfiguration.hasIspThrottling;
         }
 
         private double WasteheatMult()
@@ -376,8 +370,6 @@ namespace FNPlugin
         public override void UpdateFuel(bool isEditor = false)
         {
             base.UpdateFuel(isEditor);
-
-            //if (isEditor) return;
 
             Debug.Log("[KSPI]: Fusion Gui Updated");
             BaseFloatCurve = CurrentActiveConfiguration.atmosphereCurve;
@@ -471,8 +463,8 @@ namespace FNPlugin
         {
             if (curEngineT == null) return;
 
-            Events["DeactivateRadSafety"].active = rad_safety_features;
-            Events["ActivateRadSafety"].active = !rad_safety_features;
+            Events[nameof(DeactivateRadSafety)].active = rad_safety_features;
+            Events[nameof(ActivateRadSafety)].active = !rad_safety_features;
 
             if (curEngineT.isOperational && !IsEnabled)
             {
@@ -482,11 +474,11 @@ namespace FNPlugin
             }
 
             var kerbalHazardCount = 0;
-            foreach (var vess in FlightGlobals.Vessels)
+            foreach (var currentVessel in FlightGlobals.Vessels)
             {
-                var distance = (float)Vector3d.Distance(vessel.transform.position, vess.transform.position);
-                if (distance < leathalDistance && vess != this.vessel)
-                    kerbalHazardCount += vess.GetCrewCount();
+                var distance = (float)Vector3d.Distance(vessel.transform.position, currentVessel.transform.position);
+                if (distance < leathalDistance && currentVessel != vessel)
+                    kerbalHazardCount += currentVessel.GetCrewCount();
             }
 
             if (kerbalHazardCount > 0)
@@ -497,11 +489,11 @@ namespace FNPlugin
                 else
                     radhazardstr = kerbalHazardCount + " Kerbal.";
 
-                Fields["radhazardstr"].guiActive = true;
+                Fields[nameof(radhazardstr)].guiActive = true;
             }
             else
             {
-                Fields["radhazardstr"].guiActive = false;
+                Fields[nameof(radhazardstr)].guiActive = false;
                 radhazard = false;
                 radhazardstr = "None.";
             }
@@ -519,7 +511,7 @@ namespace FNPlugin
 
         private void ShutDown(string reason)
         {
-            curEngineT.Events["Shutdown"].Invoke();
+            curEngineT.Events[nameof(curEngineT.Shutdown)].Invoke();
             curEngineT.currentThrottle = 0;
             curEngineT.requestedThrottle = 0;
 
@@ -657,7 +649,7 @@ namespace FNPlugin
                 if (!CheatOptions.IgnoreMaxTemperature && laserWasteheat > 0)
                     supplyFNResourcePerSecondWithMax(laserWasteheat, currentMaximumPowerRequirement * inefficiency, ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                // The Aborbed wasteheat from Fusion
+                // The Absorbed wasteheat from Fusion
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
                 neutronbsorbionBonus = hasIspThrottling ? 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp))) : 0.5;
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * curEngineT.currentThrottle * neutronbsorbionBonus;
@@ -740,7 +732,6 @@ namespace FNPlugin
             maxTempatureRadiators = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
             radiatorPerformance = Math.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001);
             partEmissiveConstant = part.emissiveConstant;
-            //base.OnFixedUpdate();
         }
 
         private void SetRatios()
@@ -769,20 +760,20 @@ namespace FNPlugin
             var crewToRemove = new List<ProtoCrewMember>();
             double deathProb = TimeWarp.fixedDeltaTime;
 
-            foreach (var vess in FlightGlobals.Vessels)
+            foreach (var currentVessel in FlightGlobals.Vessels)
             {
-                var distance = Vector3d.Distance(vessel.transform.position, vess.transform.position);
+                var distance = Vector3d.Distance(vessel.transform.position, currentVessel.transform.position);
 
-                if (distance >= leathalDistance || vess == this.vessel || vess.GetCrewCount() <= 0) continue;
+                if (distance >= leathalDistance || currentVessel == this.vessel || currentVessel.GetCrewCount() <= 0) continue;
 
-                var invSqDist = distance / killDivider;
-                var invSqMult = 1.0 / invSqDist / invSqDist;
+                var invSqDistance = distance / killDivider;
+                var invSqMultiplier = 1.0 / invSqDistance / invSqDistance;
 
-                foreach (var crewMember in vess.GetVesselCrew())
+                foreach (var crewMember in currentVessel.GetVesselCrew())
                 {
-                    if (UnityEngine.Random.value < (1.0 - deathProb * invSqMult)) continue;
+                    if (UnityEngine.Random.value < (1.0 - deathProb * invSqMultiplier)) continue;
 
-                    if (!vess.isEVA)
+                    if (!currentVessel.isEVA)
                     {
                         ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg4", crewMember.name), 5.0f, ScreenMessageStyle.UPPER_CENTER);// + " was killed by Neutron Radiation!"
                         crewToRemove.Add(crewMember);
@@ -790,21 +781,21 @@ namespace FNPlugin
                     else
                     {
                         ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_FusionECU2_PostMsg5", crewMember.name), 5.0f, ScreenMessageStyle.UPPER_CENTER);// + " was killed by Neutron Radiation!"
-                        vesselsToRemove.Add(vess);
+                        vesselsToRemove.Add(currentVessel);
                     }
                 }
             }
 
-            foreach (var vess in vesselsToRemove)
+            foreach (var currentVessel in vesselsToRemove)
             {
-                vess.rootPart.Die();
+                currentVessel.rootPart.Die();
             }
 
             foreach (var crewMember in crewToRemove)
             {
-                var vess = FlightGlobals.Vessels.Find(p => p.GetVesselCrew().Contains(crewMember));
-                var crewpart = vess.Parts.Find(p => p.protoModuleCrew.Contains(crewMember));
-                crewpart.RemoveCrewmember(crewMember);
+                var foundVessel = FlightGlobals.Vessels.Find(p => p.GetVesselCrew().Contains(crewMember));
+                var crewPart = foundVessel.Parts.Find(p => p.protoModuleCrew.Contains(crewMember));
+                crewPart.RemoveCrewmember(crewMember);
                 crewMember.Die();
             }
         }
@@ -816,7 +807,7 @@ namespace FNPlugin
 
         public override int getPowerPriority()
         {
-            // when providing surplus power, we want to be one of the first to consume and thermfore provide power
+            // when providing surplus power, we want to be one of the first to consume and therefore provide power
             return PowerProductionMaximum > PowerRequirementMaximum ? 1 : powerPriority;
         }
 

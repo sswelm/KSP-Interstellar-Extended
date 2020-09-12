@@ -560,19 +560,19 @@ namespace FNPlugin
                 Events["ShowFuels"].active = hideEmpty;
                 Events["HideFuels"].active = !hideEmpty;
 
-                Fields["upgradeTechReq1"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq1);
-                Fields["upgradeTechReq2"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq2);
-                Fields["upgradeTechReq3"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq3);
-                Fields["upgradeTechReq4"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq4);
+                Fields["upgradeTechReq1"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq1);
+                Fields["upgradeTechReq2"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq2);
+                Fields["upgradeTechReq3"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq3);
+                Fields["upgradeTechReq4"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq4);
 
-                Fields["maxThrustUpgraded1"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq1);
-                Fields["maxThrustUpgraded2"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq2);
-                Fields["maxThrustUpgraded3"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq3);
-                Fields["maxThrustUpgraded4"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq4);
+                Fields["maxThrustUpgraded1"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq1);
+                Fields["maxThrustUpgraded2"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq2);
+                Fields["maxThrustUpgraded3"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq3);
+                Fields["maxThrustUpgraded4"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq4);
             }
             catch (Exception e)
             {
-                Debug.LogError("EngineECU2 OnStart eception: " + e.Message);
+                Debug.LogError("EngineECU2 OnStart exception: " + e.Message);
             }
             
             base.OnStart(state);
@@ -798,7 +798,7 @@ namespace FNPlugin
             }
         }
 
-        private Int32[] StringToIntArray(string akString)
+        private int[] StringToIntArray(string akString)
         {
             if (string.IsNullOrEmpty(akString))
             {
@@ -820,8 +820,8 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: Exception durring StringToIntArray: " + akString);
-                throw (e);
+                Debug.LogError("[KSPI]: Exception during StringToIntArray: " + akString);
+                throw;
             }
         }
 

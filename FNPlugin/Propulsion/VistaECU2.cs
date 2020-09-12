@@ -1,6 +1,4 @@
-﻿using LibNoise;
-
-namespace FNPlugin
+﻿namespace FNPlugin
 {
     class ChemicalEngineTag : PartModule { }
 
@@ -49,15 +47,13 @@ namespace FNPlugin
             set { Fields["localIsp"].guiActive = value; } 
         } 
 
-        protected override float InitialGearRatio {get { return initialGearRatio; }}
-        protected override float SelectedIsp { get { return localIsp; } set { if (value > 0) { localIsp = value; } } }
-        protected override float MinIsp { get { return minIsp; } set { if (value <= 10) { minIsp = value + .01f; } else { minIsp = value; } } }
-        protected override float MaxIsp { get { return minIsp / maxMin; } }
-        protected override float GearDivider { get { return gearDivider >= 0 ? gearDivider : maxMin; } }
-        protected override float MaxSteps { get { return defaultMaxSteps; } }
-        protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
-        protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
-
-
+        protected override float InitialGearRatio => initialGearRatio;
+        protected override float SelectedIsp { get => localIsp; set { if (value > 0) { localIsp = value; } } }
+        protected override float MinIsp { get => minIsp; set { if (value <= 10) { minIsp = value + .01f; } else { minIsp = value; } } }
+        protected override float MaxIsp => minIsp / maxMin;
+        protected override float GearDivider => gearDivider >= 0 ? gearDivider : maxMin;
+        protected override float MaxSteps => defaultMaxSteps;
+        protected override float MaxThrustEfficiencyByIspPower => maxThrustEfficiencyByIspPower;
+        protected override float NeutronAbsorptionFractionAtMinIsp => neutronAbsorptionFractionAtMinIsp;
     }
 }
