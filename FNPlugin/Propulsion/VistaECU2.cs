@@ -19,7 +19,7 @@ namespace FNPlugin
         const float defaultSteps = (defaultMaxIsp - defaultMinIsp) / defaultMaxSteps;
         const float stepNumb = 0;
 
-        // Persistant setting
+        // Persistent setting
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_VistaECU2_SelectedIsp"), UI_FloatRange(stepIncrement = defaultSteps, maxValue = defaultMaxIsp, minValue = defaultMinIsp)]//Selected Isp
         public float localIsp = defaultMinIsp + (stepNumb * defaultSteps);
        
@@ -35,12 +35,12 @@ namespace FNPlugin
         [KSPField]
         public float initialGearRatio = 0;
 
-        private FloatCurve atmophereCurve;
+        private FloatCurve _atmosphereCurve;
 
         protected override FloatCurve BaseFloatCurve
         {
-            get { return atmophereCurve ?? curEngineT.atmosphereCurve; }
-            set { atmophereCurve = value; }
+            get { return _atmosphereCurve ?? curEngineT.atmosphereCurve; }
+            set { _atmosphereCurve = value; }
         }
 
         protected override bool ShowIspThrottle 

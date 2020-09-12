@@ -153,7 +153,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool hasGUI = true;
         [KSPField]
-        public bool availableInFlight = false;
+        public bool availableInFlight;
         [KSPField]
         public bool availableInEditor = true;
         [KSPField]
@@ -163,7 +163,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string inFlightSwitchingTechReq;
         [KSPField]
-        public bool useTextureSwitchModule = false;
+        public bool useTextureSwitchModule;
         [KSPField]
         public bool showTankName = true;
         [KSPField]
@@ -193,7 +193,7 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_crewCapacityStr")] // Crew Capacity
         public string crewCapacityStr = "";
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"), UI_Toggle(disabledText = "#LOC_IFS_FuelSwitch_WindowHidden", enabledText = "#LOC_IFS_FuelSwitch_WindowShown", affectSymCounterparts = UI_Scene.None)] // Mass Ratio  Hidden  Shown
-        public bool render_window = false;
+        public bool render_window;
 
         // Debug
         [KSPField]
@@ -380,15 +380,15 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                _crewCapacityField = Fields["crewCapacityStr"];
+                _crewCapacityField = Fields[nameof(crewCapacityStr)];
                 _crewCapacityField.guiActive = controlCrewCapacity;
                 _crewCapacityField.guiActiveEditor = controlCrewCapacity;
 
-                _massRatioStrField = Fields["massRatioStr"];
+                _massRatioStrField = Fields[nameof(massRatioStr)];
                 _massRatioStrField.guiActive = displayWetDryMass;
                 _massRatioStrField.guiActiveEditor = displayWetDryMass;
 
-                _maxWetDryMassField = Fields["maxWetDryMass"];
+                _maxWetDryMassField = Fields[nameof(maxWetDryMass)];
                 _maxWetDryMassField.guiActive = displayWetDryMass;
                 _maxWetDryMassField.guiActiveEditor = displayWetDryMass;
 
@@ -1153,14 +1153,14 @@ namespace InterstellarFuelSwitch
 
             if (_massRatioStrField != null)
             {
-                _massRatioStrField.guiActive = !missing0;
-                _massRatioStrField.guiActiveEditor = !missing0;
+                _massRatioStrField.guiActive = displayWetDryMass && !missing0;
+                _massRatioStrField.guiActiveEditor = displayWetDryMass && !missing0;
             }
 
             if (_maxWetDryMassField != null)
             {
-                _maxWetDryMassField.guiActive = !missing0;
-                _maxWetDryMassField.guiActiveEditor = !missing0;
+                _maxWetDryMassField.guiActive = displayWetDryMass && !missing0;
+                _maxWetDryMassField.guiActiveEditor = displayWetDryMass && !missing0;
             }
 
             var currentResourceMassAmount0 = missing0 ? 0 : (double)(decimal)_partRresourceDefinition0.density * _partResource0.amount;

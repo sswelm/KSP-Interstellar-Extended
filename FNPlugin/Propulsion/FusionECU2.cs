@@ -63,15 +63,15 @@ namespace FNPlugin
         [KSPField]
         public int powerPriority = 4;
 
-        [KSPField]
+        [KSPField(guiName = "Wasteheat Mk1", guiFormat = "F3", guiUnits = " MW")]
         public double fusionWasteHeat = 625;
-        [KSPField]
+        [KSPField(guiName = "Wasteheat Mk2", guiFormat = "F3", guiUnits = " MW")]
         public double fusionWasteHeatUpgraded1 = 2500;
-        [KSPField]
+        [KSPField(guiName = "Wasteheat Mk3", guiFormat = "F3", guiUnits = " MW")]
         public double fusionWasteHeatUpgraded2 = 5000;
-        [KSPField]
+        [KSPField(guiName = "Wasteheat Mk4", guiFormat = "F3", guiUnits = " MW")]
         public double fusionWasteHeatUpgraded3 = 7500;
-        [KSPField]
+        [KSPField(guiName = "Wasteheat Mk5", guiFormat = "F3", guiUnits = " MW")]
         public double fusionWasteHeatUpgraded4 = 10000;
 
         // Use for SETI Mode
@@ -396,30 +396,30 @@ namespace FNPlugin
                     SelectedIsp = ((MaxIsp - MinIsp) * Math.Max(0, Math.Min(1, InitialGearRatio))) + MinIsp;
                 }
 
-                Fields["selectedFuel"].guiName = fuelSwitchName;
+                Fields[nameof(selectedFuel)].guiName = fuelSwitchName;
 
-                Fields["currentMaximumPowerRequirement"].guiActive = powerRequirement > 0;
-                Fields["laserWasteheat"].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
-                Fields["absorbedWasteheat"].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
-                Fields["fusionRatio"].guiActive = powerRequirement > 0;
+                Fields[nameof(currentMaximumPowerRequirement)].guiActive = powerRequirement > 0;
+                Fields[nameof(laserWasteheat)].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
+                Fields[nameof(absorbedWasteheat)].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
+                Fields[nameof(fusionRatio)].guiActive = powerRequirement > 0;
 
-                Fields["powerRequirement"].guiActiveEditor = powerRequirement > 0;
-                Fields["powerRequirementUpgraded1"].guiActiveEditor = powerRequirementUpgraded1 > 0;
-                Fields["powerRequirementUpgraded2"].guiActiveEditor = powerRequirementUpgraded2 > 0;
-                Fields["powerRequirementUpgraded3"].guiActiveEditor = powerRequirementUpgraded3 > 0;
-                Fields["powerRequirementUpgraded4"].guiActiveEditor = powerRequirementUpgraded4 > 0;
+                Fields[nameof(powerRequirement)].guiActiveEditor = powerRequirement > 0;
+                Fields[nameof(powerRequirementUpgraded1)].guiActiveEditor = powerRequirementUpgraded1 > 0 && !string.IsNullOrEmpty(upgradeTechReq1);
+                Fields[nameof(powerRequirementUpgraded2)].guiActiveEditor = powerRequirementUpgraded2 > 0 && !string.IsNullOrEmpty(upgradeTechReq2);
+                Fields[nameof(powerRequirementUpgraded3)].guiActiveEditor = powerRequirementUpgraded3 > 0 && !string.IsNullOrEmpty(upgradeTechReq3);
+                Fields[nameof(powerRequirementUpgraded4)].guiActiveEditor = powerRequirementUpgraded4 > 0 && !string.IsNullOrEmpty(upgradeTechReq4);
 
-                Fields["fusionWasteHeat"].guiActiveEditor = fusionWasteHeat > 0;
-                Fields["fusionWasteHeatUpgraded1"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq1);
-                Fields["fusionWasteHeatUpgraded2"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq2);
-                Fields["fusionWasteHeatUpgraded3"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq3);
-                Fields["fusionWasteHeatUpgraded4"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq4);
+                Fields[nameof(fusionWasteHeat)].guiActiveEditor = fusionWasteHeat > 0;
+                Fields[nameof(fusionWasteHeatUpgraded1)].guiActiveEditor = fusionWasteHeatUpgraded1 > 0 && !string.IsNullOrEmpty(upgradeTechReq1);
+                Fields[nameof(fusionWasteHeatUpgraded2)].guiActiveEditor = fusionWasteHeatUpgraded2 > 0 && !string.IsNullOrEmpty(upgradeTechReq2);
+                Fields[nameof(fusionWasteHeatUpgraded3)].guiActiveEditor = fusionWasteHeatUpgraded3 > 0 && !string.IsNullOrEmpty(upgradeTechReq3);
+                Fields[nameof(fusionWasteHeatUpgraded4)].guiActiveEditor = fusionWasteHeatUpgraded4 > 0 && !string.IsNullOrEmpty(upgradeTechReq4);
                
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;
                 part.thermalMassModifier = 1;
 
-                curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
+                curEngineT = part.FindModuleImplementing<ModuleEngines>();
                 if (curEngineT == null)
                 {
                     Debug.LogError("[KSPI]: FusionEngine OnStart Engine not found");
@@ -449,7 +449,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: FusionEngine OnStart eception: " + e.Message);
+                Debug.LogError("[KSPI]: FusionEngine OnStart Exception: " + e.Message);
             }
         }
 
@@ -457,7 +457,7 @@ namespace FNPlugin
         {
             var firstOrDefault = curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName);
 
-            return firstOrDefault != null ? firstOrDefault.ratio : 0;
+            return firstOrDefault?.ratio ?? 0;
         }
 
         private void SetRatio(string akPropName, float akRatio)
@@ -564,7 +564,7 @@ namespace FNPlugin
         {
             FcUpdate();
             curEngineT.atmosphereCurve = BaseFloatCurve;
-            MinIsp = currentIsp;
+            //MinIsp = currentIsp;
         }
 
         private void UpdateAtmosphereCurve(float currentIsp)

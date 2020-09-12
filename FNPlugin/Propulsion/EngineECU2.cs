@@ -17,7 +17,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_FuelConfig")]//Fuel Config
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]
-        public int selectedFuel = 0;
+        public int selectedFuel;
 
         // Persistant
         [KSPField(isPersistant = true)]
@@ -25,13 +25,13 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         bool Launched = false;
         [KSPField(isPersistant = true)]
-        public bool hideEmpty = false;
+        public bool hideEmpty;
         [KSPField(isPersistant = true)]
-        public int selectedTank = 0;
+        public int selectedTank;
         [KSPField(isPersistant = true)]
         public string selectedTankName = "";
 
-        // None Persistant VAB
+        // None Persistent VAB
         [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_upgradetech1")]//upgrade tech 1
         public string upgradeTechReq1;
         [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_upgradetech2")]//upgrade tech 2
@@ -51,15 +51,16 @@ namespace FNPlugin
         public string intakeResource = "IntakeAtm";
         [KSPField]
         public double thrustmultiplier = 1;
-        [KSPField]
+
+        [KSPField(guiName = "Max Thrust Mk1", guiUnits = " kN", guiActiveEditor = true)]
         public float maxThrust = 150;
-        [KSPField]
+        [KSPField(guiName = "Max Thrust Mk2", guiUnits = " kN")]
         public float maxThrustUpgraded1 = 300;
-        [KSPField]
+        [KSPField(guiName = "Max Thrust Mk3", guiUnits = " kN")]
         public float maxThrustUpgraded2 = 500;
-        [KSPField]
+        [KSPField(guiName = "Max Thrust Mk4", guiUnits = " kN")]
         public float maxThrustUpgraded3 = 800;
-        [KSPField]
+        [KSPField(guiName = "Max Thrust Mk5", guiUnits = " kN")]
         public float maxThrustUpgraded4 = 1200;
 
         [KSPField]
@@ -84,7 +85,7 @@ namespace FNPlugin
         public ModuleEngines curEngineT;
         public ModuleEnginesWarp curEngineWarp;
 
-        public bool hasMultipleConfigurations = false;
+        public bool hasMultipleConfigurations;
 
         protected IList<FuelConfiguration> _activeConfigurations;
         protected FuelConfiguration _currentActiveConfiguration;
@@ -95,11 +96,11 @@ namespace FNPlugin
  
         public GenerationType EngineGenerationType { get; private set; }
 
-        public double MaxThrust {  get { return maxThrust * ThrustMult(); } }
-        public double MaxThrustUpgraded1 { get { return maxThrustUpgraded1 * ThrustMult(); } }
-        public double MaxThrustUpgraded2 { get { return maxThrustUpgraded2 * ThrustMult(); } }
-        public double MaxThrustUpgraded3 { get { return maxThrustUpgraded3 * ThrustMult(); } }
-        public double MaxThrustUpgraded4 { get { return maxThrustUpgraded4 * ThrustMult(); } }
+        public double MaxThrust => maxThrust * ThrustMult();
+        public double MaxThrustUpgraded1 => maxThrustUpgraded1 * ThrustMult();
+        public double MaxThrustUpgraded2 => maxThrustUpgraded2 * ThrustMult();
+        public double MaxThrustUpgraded3 => maxThrustUpgraded3 * ThrustMult();
+        public double MaxThrustUpgraded4 => maxThrustUpgraded4 * ThrustMult();
 
         protected void DetermineTechLevel()
         {
@@ -262,13 +263,7 @@ namespace FNPlugin
             }
         }
 
-        public FuelConfiguration CurrentActiveConfiguration
-        {
-            get 
-            {
-                return _currentActiveConfiguration ?? (_currentActiveConfiguration = ActiveConfigurations[selectedFuel]);
-            }
-        }
+        public FuelConfiguration CurrentActiveConfiguration => _currentActiveConfiguration ?? (_currentActiveConfiguration = ActiveConfigurations[selectedFuel]);
 
         private List<FuelConfiguration> _fuelConfigurations;
 
@@ -360,7 +355,7 @@ namespace FNPlugin
             {
                 curEngineT.Load(akPropellants);
 
-                //bools
+                //booleans
                 curEngineT.atmChangeFlow = CurrentActiveConfiguration.atmChangeFlow;                
                 curEngineT.clampPropReceived = CurrentActiveConfiguration.clampPropReceived;
                 curEngineT.useEngineResponseTime = CurrentActiveConfiguration.useEngineResponseTime;
@@ -608,13 +603,7 @@ namespace FNPlugin
         }
 
         
-        public IList<FuelConfiguration> ActiveConfigurations
-        {
-            get
-            {
-                return hideEmpty ? UsefulConfigurations : FuelConfigurations;
-            }
-        }
+        public IList<FuelConfiguration> ActiveConfigurations => hideEmpty ? UsefulConfigurations : FuelConfigurations;
 
         private IList<FuelConfiguration> GetUsableConfigurations(IList<FuelConfiguration> akConfigs)
         {
@@ -687,14 +676,13 @@ namespace FNPlugin
         private void UpdatePartActionWindow()
         {
             var window = FindObjectsOfType<UIPartActionWindow>().FirstOrDefault(w => w.part == part);
-            if (window != null)
+            if (window == null) return;
+
+            foreach (UIPartActionWindow actionWindow in FindObjectsOfType<UIPartActionWindow>())
             {
-                foreach (UIPartActionWindow actionwindow in FindObjectsOfType<UIPartActionWindow>())
-                {
-                    if (window.part != part) continue;
-                    actionwindow.ClearList();
-                    actionwindow.displayDirty = true;
-                }
+                if (window.part != part) continue;
+                actionWindow.ClearList();
+                actionWindow.displayDirty = true;
             }
         }
     }
