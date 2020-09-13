@@ -1342,7 +1342,7 @@ namespace FNPlugin
 
                     foreach (var prop in list_of_propellants)
                     {
-                        var flowMode = prop.GetFlowMode();
+                        ResourceFlowMode flowMode = prop.GetFlowMode();
                         Debug.Log("[KSPI]: ThermalNozzleController set propellant name: " + prop.name + " ratio: " + prop.ratio + " resourceFlowMode: " + flowMode.ToString());
 
                         var propellantConfigNode = newPropNode.AddNode("PROPELLANT");
