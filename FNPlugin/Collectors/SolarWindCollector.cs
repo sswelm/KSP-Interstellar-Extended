@@ -288,7 +288,7 @@ namespace FNPlugin.Collectors
             // calculate time difference since last time the vessel was active
             var dTimeDifference =  Math.Abs(Planetarium.GetUniversalTime() - dLastActiveTime);
 
-            // increase bugger to allow processing
+            // increase buffer to allow processing
             var solarWindBuffer = part.Resources[_solarWindResourceDefinition.name];
             solarWindBuffer.maxAmount = 100 * part.mass * dTimeDifference;
 
