@@ -511,7 +511,7 @@ namespace FNPlugin.Collectors
             return true;
         }
 
-        private bool CalculateWasteHeatConsumable(double amountUnderground, double externalTemp, out double consume)
+        private bool CalculateWasteHeatConsumable(double amountUnderground, double externalTemp, out double consume, out double newTemp)
         {
             // https://www.researchgate.net/publication/329044575_Calculation_of_Underground_Soil_Temperature_for_the_Installation_of_Ground_Heat_Exchange_Systems_in_Baghdad
             // Depending on ground thermal properties, the temperature becomes
@@ -532,7 +532,7 @@ namespace FNPlugin.Collectors
             // TL;DR - https://discord.com/channels/586489099632902178/615531179503910942/753192660126269480 :)
 
             double maxSize = 30; // 30 metres underground for 1TW of Cooling. Requires Tweakscale'd drills.
-            consume = 0;
+            consume = newTemp = 0;
 
             if (Double.IsNaN(amountUnderground) || Double.IsNaN(externalTemp))
             {
@@ -545,6 +545,9 @@ namespace FNPlugin.Collectors
 
             // one large amount of of WasteHeat consumption.
             consume = 1e6 * percent;
+
+            // Please improve me. :)
+            newTemp = Math.Max(4, Math.Min(externalTemp, part.temperature) / 2);
 
             return true;
         }
@@ -581,9 +584,10 @@ namespace FNPlugin.Collectors
                 return false;
             }
 
+            double newTemp;
             double consume;
 
-            if (CalculateWasteHeatConsumable(underground, vessel.externalTemperature, out consume) == false)
+            if (CalculateWasteHeatConsumable(underground, vessel.externalTemperature, out consume, out newTemp) == false)
             {
                 heatsinkDebug += String.Format(" - no draw");
                 return false;
@@ -596,7 +600,11 @@ namespace FNPlugin.Collectors
             }
 
             consumeFNResourcePerSecond(consume, ResourceManager.FNRESOURCE_WASTEHEAT);
- 
+
+            // do we need to do something here about thermal flux / how easy it is for the drill to cool other parts?
+            part.temperature = newTemp;
+            part.skinTemperature = newTemp;
+
             return true;
         }
 
