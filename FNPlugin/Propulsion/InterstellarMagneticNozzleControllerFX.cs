@@ -571,6 +571,9 @@ namespace FNPlugin
 
         private bool AllowedExhaust()
         {
+            if (CheatOptions.IgnoreAgencyMindsetOnContracts)
+                return true;
+
             var homeworld = FlightGlobals.GetHomeBody();
             var toHomeworld = vessel.CoMD - homeworld.position;
             var distanceToSurfaceHomeworld = toHomeworld.magnitude - homeworld.Radius;
