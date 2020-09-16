@@ -687,8 +687,8 @@ namespace FNPlugin.Collectors
                         ResourceType = HarvestTypes.Planetary,
                         ResourceName = currentResource.ResourceName,
                         BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
-                        Latitude = FlightGlobals.ship_latitude,
-                        Longitude = FlightGlobals.ship_longitude,
+                        Latitude = this.vessel.latitude,
+                        Longitude = this.vessel.longitude,
                         CheckForLock = false
                     });
 
