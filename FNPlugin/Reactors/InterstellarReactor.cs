@@ -475,6 +475,15 @@ namespace FNPlugin.Reactors
         public double soundRunningVolumeExp = 0;
 
         [KSPField]
+        public string soundTerminateFilePath = "";
+        [KSPField]
+        public double soundTerminatePitchExp = 0;
+        [KSPField]
+        public double soundTerminateVolumeExp = 0;
+
+        public double previous_reactor_power_ratio;
+
+        [KSPField]
         public double neutronEmbrittlementLifepointsMax = 100;
         [KSPField]
         public double neutronEmbrittlementDivider = 1e+9;
@@ -619,6 +628,7 @@ namespace FNPlugin.Reactors
         Queue<double> averageGeeforce = new Queue<double>();
         Queue<double> averageOverheat = new Queue<double>();
 
+        AudioSource terminate_sound;
         AudioSource running_sound;
 
         double tritium_density;
@@ -1446,6 +1456,18 @@ namespace FNPlugin.Reactors
                 running_sound.Stop();
             }
 
+            //soundTerminateFilePath
+            if (!string.IsNullOrWhiteSpace(soundTerminateFilePath))
+            {
+                terminate_sound = gameObject.AddComponent<AudioSource>();
+                terminate_sound.clip = GameDatabase.Instance.GetAudioClip(soundTerminateFilePath);
+                terminate_sound.volume = GameSettings.SHIP_VOLUME;
+                terminate_sound.panStereo = 0;
+                terminate_sound.rolloffMode = AudioRolloffMode.Linear;
+                terminate_sound.loop = false;
+                terminate_sound.Stop();
+            }
+
             hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("LqdHydrogen");
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
@@ -2034,6 +2056,30 @@ namespace FNPlugin.Reactors
                 running_sound.pitch = (float)Math.Pow(reactor_power_ratio, soundRunningPitchExp);
                 running_sound.volume = reactor_power_ratio <= 0 ? 0 :GameSettings.SHIP_VOLUME * (float)Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
             }
+
+            if (terminate_sound != null)
+            {
+                terminate_sound.pitch = 1;
+                terminate_sound.volume = 1;
+            }
+
+            if (previous_reactor_power_ratio > 0 && reactor_power_ratio <= 0)
+            {
+                if (running_sound != null)
+                    running_sound.Stop();
+                if (terminate_sound != null)
+                    terminate_sound.Play();
+            }
+            else if (previous_reactor_power_ratio <= 0 && reactor_power_ratio > 0)
+            {
+                if (running_sound != null)
+                    running_sound.Play();
+
+                if (terminate_sound != null)
+                    terminate_sound.Stop();
+            }
+
+            previous_reactor_power_ratio = reactor_power_ratio;
 
             if (IsEnabled) return;
 
