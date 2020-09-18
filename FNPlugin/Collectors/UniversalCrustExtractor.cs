@@ -818,9 +818,12 @@ namespace FNPlugin.Collectors
                     if (!ok)
                     {
                         powerCountdown -= 1;
-                        return;
                     }
-                    powerCountdown = 0;                   
+                    else
+                    {
+                        powerCountdown = 0;
+                    }
+                    return;
                 }
 
                 if (!HasEnoughPower(deltaTime)) // if there was not enough power, no mining
