@@ -467,6 +467,12 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double minOverheatModifier = 0.01;
 
+        [KSPField]
+        public string soundRunningFilePath = "";
+        [KSPField]
+        public double soundRunningPitchExp = 0;
+        [KSPField]
+        public double soundRunningVolumeExp = 0;
 
         [KSPField]
         public double neutronEmbrittlementLifepointsMax = 100;
@@ -612,6 +618,8 @@ namespace FNPlugin.Reactors
         List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
         Queue<double> averageGeeforce = new Queue<double>();
         Queue<double> averageOverheat = new Queue<double>();
+
+        AudioSource running_sound;
 
         double tritium_density;
         double helium4_density;
@@ -1045,17 +1053,17 @@ namespace FNPlugin.Reactors
 
         public double PlasmaEnergyEfficiency { get { return plasmaEnergyEfficiency; } }
 
-        public double ChargedParticleEnergyEfficiency { get { return chargedParticleEnergyEfficiency; } }
+        public double ChargedParticleEnergyEfficiency => chargedParticleEnergyEfficiency;
 
-        public bool IsSelfContained { get { return containsPowerGenerator; } }
+        public bool IsSelfContained => containsPowerGenerator;
 
-        public String UpgradeTechnology { get { return upgradeTechReq; } }
+        public String UpgradeTechnology => upgradeTechReq;
 
-        public double PowerBufferBonus { get { return this.bonusBufferFactor; } }
+        public double PowerBufferBonus => this.bonusBufferFactor;
 
-        public double RawMaximumPowerForPowerGeneration { get { return RawPowerOutput; } }
+        public double RawMaximumPowerForPowerGeneration => RawPowerOutput;
 
-        public double RawMaximumPower { get { return RawPowerOutput; } }
+        public double RawMaximumPower => RawPowerOutput;
 
         public virtual double FuelEfficiency
         {
@@ -1091,24 +1099,13 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public int ReactorType { get { return reactorType; } }
+        public int ReactorType => reactorType;
 
-        public virtual string TypeName { get { return part.partInfo.title; } }
+        public virtual string TypeName => part.partInfo.title;
 
-        public virtual double ChargedPowerRatio
-        {
-            get
-            {
-                return CurrentFuelMode != null
-                    ? CurrentFuelMode.ChargedPowerRatio
-                    : 0;
-            }
-        }
+        public virtual double ChargedPowerRatio => CurrentFuelMode?.ChargedPowerRatio ?? 0;
 
-        public double ThermalPowerRatio
-        {
-            get { return 1 - ChargedPowerRatio; }
-        }
+        public double ThermalPowerRatio => 1 - ChargedPowerRatio;
 
         public virtual double CoreTemperature
         {
@@ -1144,10 +1141,7 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public virtual double MaxCoreTemperature
-        {
-            get { return CoreTemperature; }
-        }
+        public virtual double MaxCoreTemperature => CoreTemperature;
 
         public double HotBathTemperature
         {
@@ -1192,22 +1186,16 @@ namespace FNPlugin.Reactors
         {
             get 
             {
-                embrittlementModifier = CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlemenConditionRatio * Math.PI * 0.5);
+                embrittlementModifier = CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlementConditionRatio * Math.PI * 0.5);
                 return embrittlementModifier;
             }
         }
 
-        public virtual double ReactorEmbrittlemenConditionRatio
-        {
-            get { return Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1); }      
-        }
+        public virtual double ReactorEmbrittlementConditionRatio => Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
 
-        public virtual double NormalisedMaximumPower
-        {
-            get { return RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode == null ? 1 : CurrentFuelMode.NormalisedReactionRate); }        
-        }
+        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode == null ? 1 : CurrentFuelMode.NormalisedReactionRate);
 
-        public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
+        public virtual double MinimumPower => MaximumPower * MinimumThrottle;
 
         public virtual double MaximumThermalPower 
         { 
@@ -1294,6 +1282,8 @@ namespace FNPlugin.Reactors
 
                 stored_fuel_ratio = 1;
                 IsEnabled = true;
+                if (running_sound != null)
+                    running_sound.Play();
             }
         }
 
@@ -1301,14 +1291,14 @@ namespace FNPlugin.Reactors
         public void ActivateReactor()
         {
             Debug.Log("[KSPI]: InterstellarReactor on " + part.name + " was Force Activated");
-            this.part.force_activate();
-            
-            Events["ActivateReactor"].guiActive = false;
-            Events["ActivateReactor"].active = false;
+            part.force_activate();
+
+            Events[nameof(ActivateReactor)].guiActive = false;
+            Events[nameof(ActivateReactor)].active = false;
 
             if (centrifugeHabitat != null && !centrifugeHabitat.isDeployed)
             {
-                string message = Localizer.Format("#LOC_KSPIE_Reactor_PostMsg1", part.name);//"Activation was canceled because " +  + " is not deployed"
+                var message = Localizer.Format("#LOC_KSPIE_Reactor_PostMsg1", part.name);//"Activation was canceled because " +  + " is not deployed"
                 ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
                 Debug.LogWarning("[KSPI]: " + message);
                 return;
@@ -1328,6 +1318,9 @@ namespace FNPlugin.Reactors
                 if (IsNuclear) return;
 
                 IsEnabled = false;
+
+                if (running_sound != null)
+                    running_sound.Stop();
             }
         }
 
@@ -1441,6 +1434,18 @@ namespace FNPlugin.Reactors
 
             InitializeKerbalismEmitter();
 
+
+            if (!string.IsNullOrWhiteSpace(soundRunningFilePath))
+            {
+                running_sound = gameObject.AddComponent<AudioSource>();
+                running_sound.clip = GameDatabase.Instance.GetAudioClip(soundRunningFilePath);
+                running_sound.volume = GameSettings.SHIP_VOLUME;
+                running_sound.panStereo = 0;
+                running_sound.rolloffMode = AudioRolloffMode.Linear;
+                running_sound.loop = true;
+                running_sound.Stop();
+            }
+
             hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("LqdHydrogen");
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
@@ -1521,6 +1526,14 @@ namespace FNPlugin.Reactors
                     breedtritium = true;
                 }
                 reactorInit = true;
+            }
+
+
+
+            if (IsEnabled && running_sound != null)
+            {
+                running_sound.Play();
+                running_sound.loop = true;
             }
 
             tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.TritiumGas);
@@ -1824,6 +1837,9 @@ namespace FNPlugin.Reactors
             {
                 IsStarted = true;
                 IsEnabled = true;
+
+                if (running_sound != null)
+                    running_sound.Play();
             }
 
             base.OnFixedUpdate();
@@ -2011,6 +2027,12 @@ namespace FNPlugin.Reactors
                 reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 powerPcnt = 0;
+            }
+
+            if (running_sound != null)
+            {
+                running_sound.pitch = (float)Math.Pow(reactor_power_ratio, soundRunningPitchExp);
+                running_sound.volume = reactor_power_ratio <= 0 ? 0 :GameSettings.SHIP_VOLUME * (float)Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
             }
 
             if (IsEnabled) return;
@@ -2786,7 +2808,7 @@ namespace FNPlugin.Reactors
                 GUILayout.EndHorizontal();
 
                 if (IsFuelNeutronRich)
-                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_ReactorEmbrittlement"), (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);//"Reactor Embrittlement"
+                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_ReactorEmbrittlement"), (100 * (1 - ReactorEmbrittlementConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);//"Reactor Embrittlement"
 
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_Geeforceoverload") +" ", (100 * (1 - geeForceModifier)).ToString("0.000000") + "%", bold_style, text_style);//Geeforce overload
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_Overheating") +" ", (100 * (1 - overheatModifier)).ToString("0.000000") + "%", bold_style, text_style);//Overheating

@@ -1280,6 +1280,7 @@ namespace FNPlugin
             warpEngineThrottle = _engineThrottle[selected_factor];
 
             warp_sound.pitch = (float)Math.Pow(warpEngineThrottle, warpSoundPitchExp);
+            warp_sound.volume = GameSettings.SHIP_VOLUME;
 
             tex_count += warpEngineThrottle;
 
@@ -1311,7 +1312,7 @@ namespace FNPlugin
                 }
             }
 
-            warp_sound.volume = GameSettings.SHIP_VOLUME;
+
 
             if (activeTrail && !hideTrail && warpTrailTimeout == 0)
             {
