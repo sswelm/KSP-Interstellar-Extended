@@ -57,6 +57,7 @@ namespace FNPlugin.Collectors
         public string heatsinkDebug;
         [KSPField(isPersistant = true, guiActive = false)] // Debugging information for the heatsink
         private bool pumpingHeat;
+        private int powerCountdown;
 
 
         // GUI elements declaration
@@ -135,6 +136,8 @@ namespace FNPlugin.Collectors
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ActivateDrill", active = true)]//Activate Drill
         public void ActivateCollector()
         {
+            powerCountdown = 10;
+
             isDeployed = true;
             bIsEnabled = true;
             OnFixedUpdate();
@@ -808,6 +811,18 @@ namespace FNPlugin.Collectors
         {
             if (!offlineCollecting)
             {
+                if(powerCountdown > 0)
+                {
+                    // Warm up the electrical system to ensure we have enough power to drill.
+                    var ok = HasEnoughPower(deltaTime);
+                    if (!ok)
+                    {
+                        powerCountdown -= 1;
+                        return;
+                    }
+                    powerCountdown = 0;                   
+                }
+
                 if (!HasEnoughPower(deltaTime)) // if there was not enough power, no mining
                 {
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_PostMsg1"), 3.0f, ScreenMessageStyle.LOWER_CENTER);//"Not enough power to run the universal drill."
