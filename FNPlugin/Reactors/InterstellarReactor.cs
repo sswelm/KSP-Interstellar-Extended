@@ -476,10 +476,9 @@ namespace FNPlugin.Reactors
 
         [KSPField]
         public string soundTerminateFilePath = "";
+
         [KSPField]
-        public double soundTerminatePitchExp = 0;
-        [KSPField]
-        public double soundTerminateVolumeExp = 0;
+        public string soundInitiateFilePath = "";
 
         public double previous_reactor_power_ratio;
 
@@ -628,6 +627,7 @@ namespace FNPlugin.Reactors
         Queue<double> averageGeeforce = new Queue<double>();
         Queue<double> averageOverheat = new Queue<double>();
 
+        AudioSource initiate_sound;
         AudioSource terminate_sound;
         AudioSource running_sound;
 
@@ -1468,6 +1468,18 @@ namespace FNPlugin.Reactors
                 terminate_sound.Stop();
             }
 
+            if (!string.IsNullOrWhiteSpace(soundTerminateFilePath))
+            {
+                initiate_sound = gameObject.AddComponent<AudioSource>();
+                initiate_sound.clip = GameDatabase.Instance.GetAudioClip(soundInitiateFilePath);
+                initiate_sound.volume = GameSettings.SHIP_VOLUME;
+                initiate_sound.panStereo = 0;
+                initiate_sound.rolloffMode = AudioRolloffMode.Linear;
+                initiate_sound.loop = false;
+                initiate_sound.Stop();
+            }
+            
+
             hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("LqdHydrogen");
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
@@ -1554,17 +1566,17 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled && running_sound != null)
             {
+                previous_reactor_power_ratio = reactor_power_ratio;
                 running_sound.Play();
-                running_sound.loop = true;
             }
 
             tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.TritiumGas);
             helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
             lithium6_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
 
-            tritium_density = (double)(decimal)tritium_def.density;
-            helium4_density = (double)(decimal)helium_def.density;
-            lithium6_density = (double)(decimal)lithium6_def.density;
+            tritium_density = tritium_def.density;
+            helium4_density = helium_def.density;
+            lithium6_density = lithium6_def.density;
 
             tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * lithium6_density/ tritium_density;
             heliumBreedingMassAdjustment = helium_molar_mass_ratio * lithium6_density / helium4_density;
@@ -2057,26 +2069,36 @@ namespace FNPlugin.Reactors
                 running_sound.volume = reactor_power_ratio <= 0 ? 0 :GameSettings.SHIP_VOLUME * (float)Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
             }
 
-            if (terminate_sound != null)
-            {
-                terminate_sound.pitch = 1;
-                terminate_sound.volume = 1;
-            }
-
             if (previous_reactor_power_ratio > 0 && reactor_power_ratio <= 0)
             {
-                if (running_sound != null)
+                if (initiate_sound != null && initiate_sound.isPlaying)
+                    initiate_sound.Stop();
+                if (running_sound != null && running_sound.isPlaying)
                     running_sound.Stop();
-                if (terminate_sound != null)
-                    terminate_sound.Play();
+
+                if (terminate_sound != null && !terminate_sound.isPlaying)
+                    terminate_sound.PlayOneShot(terminate_sound.clip, GameSettings.SHIP_VOLUME * (float)Math.Pow(previous_reactor_power_ratio, soundRunningVolumeExp));
             }
             else if (previous_reactor_power_ratio <= 0 && reactor_power_ratio > 0)
             {
-                if (running_sound != null)
-                    running_sound.Play();
-
-                if (terminate_sound != null)
+                if (running_sound != null && running_sound.isPlaying)
+                    running_sound.Stop();
+                if (terminate_sound != null && terminate_sound.isPlaying)
                     terminate_sound.Stop();
+
+                if (initiate_sound != null && !initiate_sound.isPlaying)
+                    initiate_sound.PlayOneShot(initiate_sound.clip, 1);
+                else if (running_sound != null)
+                    running_sound.Play();
+            }
+            else if (previous_reactor_power_ratio > 0 && reactor_power_ratio > 0)
+            {
+                if (running_sound != null && !running_sound.isPlaying)
+                {
+                    if ((initiate_sound == null || (initiate_sound != null && !initiate_sound.isPlaying)) && 
+                        (terminate_sound == null || (terminate_sound != null && !terminate_sound.isPlaying)))
+                        running_sound.Play();
+                }
             }
 
             previous_reactor_power_ratio = reactor_power_ratio;
