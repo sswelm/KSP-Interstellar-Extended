@@ -470,6 +470,8 @@ namespace FNPlugin.Reactors
         [KSPField]
         public string soundRunningFilePath = "";
         [KSPField]
+        public double soundRunningPitchMin = 0.4;
+        [KSPField]
         public double soundRunningPitchExp = 0;
         [KSPField]
         public double soundRunningVolumeExp = 0;
@@ -1444,42 +1446,6 @@ namespace FNPlugin.Reactors
 
             InitializeKerbalismEmitter();
 
-
-            if (!string.IsNullOrWhiteSpace(soundRunningFilePath))
-            {
-                running_sound = gameObject.AddComponent<AudioSource>();
-                running_sound.clip = GameDatabase.Instance.GetAudioClip(soundRunningFilePath);
-                running_sound.volume = GameSettings.SHIP_VOLUME;
-                running_sound.panStereo = 0;
-                running_sound.rolloffMode = AudioRolloffMode.Linear;
-                running_sound.loop = true;
-                running_sound.Stop();
-            }
-
-            //soundTerminateFilePath
-            if (!string.IsNullOrWhiteSpace(soundTerminateFilePath))
-            {
-                terminate_sound = gameObject.AddComponent<AudioSource>();
-                terminate_sound.clip = GameDatabase.Instance.GetAudioClip(soundTerminateFilePath);
-                terminate_sound.volume = GameSettings.SHIP_VOLUME;
-                terminate_sound.panStereo = 0;
-                terminate_sound.rolloffMode = AudioRolloffMode.Linear;
-                terminate_sound.loop = false;
-                terminate_sound.Stop();
-            }
-
-            if (!string.IsNullOrWhiteSpace(soundTerminateFilePath))
-            {
-                initiate_sound = gameObject.AddComponent<AudioSource>();
-                initiate_sound.clip = GameDatabase.Instance.GetAudioClip(soundInitiateFilePath);
-                initiate_sound.volume = GameSettings.SHIP_VOLUME;
-                initiate_sound.panStereo = 0;
-                initiate_sound.rolloffMode = AudioRolloffMode.Linear;
-                initiate_sound.loop = false;
-                initiate_sound.Stop();
-            }
-            
-
             hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("LqdHydrogen");
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
@@ -1543,6 +1509,8 @@ namespace FNPlugin.Reactors
                 return;
             }
 
+            InitializeSounds();
+
             if (!reactorInit)
             {
                 if (startDisabled)
@@ -1562,12 +1530,12 @@ namespace FNPlugin.Reactors
                 reactorInit = true;
             }
 
-
-
             if (IsEnabled && running_sound != null)
             {
                 previous_reactor_power_ratio = reactor_power_ratio;
-                running_sound.Play();
+
+                if (vessel.isActiveVessel)
+                    running_sound.Play();
             }
 
             tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.TritiumGas);
@@ -1613,6 +1581,43 @@ namespace FNPlugin.Reactors
             Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
             Fields["forcedMinimumThrottle"].guiActive = showForcedMinimumThrottle;
             Fields["forcedMinimumThrottle"].guiActiveEditor = showForcedMinimumThrottle;
+        }
+
+        private void InitializeSounds()
+        {
+            if (!string.IsNullOrWhiteSpace(soundRunningFilePath))
+            {
+                running_sound = gameObject.AddComponent<AudioSource>();
+                running_sound.clip = GameDatabase.Instance.GetAudioClip(soundRunningFilePath);
+                running_sound.volume = 0;
+                running_sound.panStereo = 0;
+                running_sound.rolloffMode = AudioRolloffMode.Linear;
+                running_sound.loop = true;
+                running_sound.Stop();
+            }
+
+            //soundTerminateFilePath
+            if (!string.IsNullOrWhiteSpace(soundTerminateFilePath))
+            {
+                terminate_sound = gameObject.AddComponent<AudioSource>();
+                terminate_sound.clip = GameDatabase.Instance.GetAudioClip(soundTerminateFilePath);
+                terminate_sound.volume = 0;
+                terminate_sound.panStereo = 0;
+                terminate_sound.rolloffMode = AudioRolloffMode.Linear;
+                terminate_sound.loop = false;
+                terminate_sound.Stop();
+            }
+
+            if (!string.IsNullOrWhiteSpace(soundTerminateFilePath))
+            {
+                initiate_sound = gameObject.AddComponent<AudioSource>();
+                initiate_sound.clip = GameDatabase.Instance.GetAudioClip(soundInitiateFilePath);
+                initiate_sound.volume = 0;
+                initiate_sound.panStereo = 0;
+                initiate_sound.rolloffMode = AudioRolloffMode.Linear;
+                initiate_sound.loop = false;
+                initiate_sound.Stop();
+            }
         }
 
         private void UpdateReactorCharacteristics()
@@ -1871,9 +1876,6 @@ namespace FNPlugin.Reactors
             {
                 IsStarted = true;
                 IsEnabled = true;
-
-                if (running_sound != null)
-                    running_sound.Play();
             }
 
             base.OnFixedUpdate();
@@ -2063,43 +2065,7 @@ namespace FNPlugin.Reactors
                 powerPcnt = 0;
             }
 
-            if (running_sound != null)
-            {
-                running_sound.pitch = (float)Math.Pow(reactor_power_ratio, soundRunningPitchExp);
-                running_sound.volume = reactor_power_ratio <= 0 ? 0 :GameSettings.SHIP_VOLUME * (float)Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
-            }
-
-            if (previous_reactor_power_ratio > 0 && reactor_power_ratio <= 0)
-            {
-                if (initiate_sound != null && initiate_sound.isPlaying)
-                    initiate_sound.Stop();
-                if (running_sound != null && running_sound.isPlaying)
-                    running_sound.Stop();
-
-                if (terminate_sound != null && !terminate_sound.isPlaying)
-                    terminate_sound.PlayOneShot(terminate_sound.clip, GameSettings.SHIP_VOLUME * (float)Math.Pow(previous_reactor_power_ratio, soundRunningVolumeExp));
-            }
-            else if (previous_reactor_power_ratio <= 0 && reactor_power_ratio > 0)
-            {
-                if (running_sound != null && running_sound.isPlaying)
-                    running_sound.Stop();
-                if (terminate_sound != null && terminate_sound.isPlaying)
-                    terminate_sound.Stop();
-
-                if (initiate_sound != null && !initiate_sound.isPlaying)
-                    initiate_sound.PlayOneShot(initiate_sound.clip, 1);
-                else if (running_sound != null)
-                    running_sound.Play();
-            }
-            else if (previous_reactor_power_ratio > 0 && reactor_power_ratio > 0)
-            {
-                if (running_sound != null && !running_sound.isPlaying)
-                {
-                    if ((initiate_sound == null || (initiate_sound != null && !initiate_sound.isPlaying)) && 
-                        (terminate_sound == null || (terminate_sound != null && !terminate_sound.isPlaying)))
-                        running_sound.Play();
-                }
-            }
+            UpdatePlayedSound();
 
             previous_reactor_power_ratio = reactor_power_ratio;
 
@@ -2109,6 +2075,65 @@ namespace FNPlugin.Reactors
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, 0);
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 0);
             _resourceBuffers.UpdateBuffers();
+        }
+
+        private void UpdatePlayedSound()
+        {
+            if (running_sound != null)
+            {
+                var scaledRatio = Math.Pow(reactor_power_ratio, soundRunningPitchExp);
+                running_sound.pitch = (float) (soundRunningPitchMin * (1 - scaledRatio) + scaledRatio);
+                running_sound.volume = reactor_power_ratio <= 0
+                    ? 0
+                    : GameSettings.SHIP_VOLUME * (float) Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
+            }
+
+            if (previous_reactor_power_ratio > 0 && reactor_power_ratio <= 0)
+            {
+                if (initiate_sound != null && initiate_sound.isPlaying)
+                    initiate_sound.Stop();
+                if (running_sound != null && running_sound.isPlaying)
+                    running_sound.Stop();
+
+                if (vessel.isActiveVessel)
+                {
+                    if (terminate_sound != null && !terminate_sound.isPlaying)
+                        terminate_sound.PlayOneShot(terminate_sound.clip,
+                            GameSettings.SHIP_VOLUME *
+                            (float) Math.Pow(previous_reactor_power_ratio, soundRunningVolumeExp));
+                }
+            }
+            else if (previous_reactor_power_ratio <= 0 && reactor_power_ratio > 0)
+            {
+                if (running_sound != null && running_sound.isPlaying)
+                    running_sound.Stop();
+                if (terminate_sound != null && terminate_sound.isPlaying)
+                    terminate_sound.Stop();
+
+                if (vessel.isActiveVessel)
+                {
+                    if (initiate_sound != null && !initiate_sound.isPlaying)
+                        initiate_sound.PlayOneShot(initiate_sound.clip, 1);
+                    else if (running_sound != null)
+                        running_sound.Play();
+                }
+            }
+            else if (previous_reactor_power_ratio > 0 && reactor_power_ratio > 0)
+            {
+                if (running_sound != null)
+                {
+                    if (vessel.isActiveVessel && !running_sound.isPlaying)
+                    {
+                        if ((initiate_sound == null || (initiate_sound != null && !initiate_sound.isPlaying)) &&
+                            (terminate_sound == null || (terminate_sound != null && !terminate_sound.isPlaying)))
+                            running_sound.Play();
+                    }
+                    else if (!vessel.isActiveVessel && running_sound.isPlaying)
+                    {
+                        running_sound.Stop();
+                    }
+                }
+            }
         }
 
         private void UpdateGeeforceModfier()
