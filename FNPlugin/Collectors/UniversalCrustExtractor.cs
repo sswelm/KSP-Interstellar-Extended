@@ -58,6 +58,9 @@ namespace FNPlugin.Collectors
         [KSPField(isPersistant = true, guiActive = false)] // Debugging information for the heatsink
         private bool pumpingHeat;
 
+        private int powerCountdown;
+        private int powerCountdownMax = 90;
+        private double minimumPowerNeeded = 15;
 
         // GUI elements declaration
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 5, 150);
@@ -135,6 +138,7 @@ namespace FNPlugin.Collectors
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ActivateDrill", active = true)]//Activate Drill
         public void ActivateCollector()
         {
+            powerCountdown = powerCountdownMax;
             isDeployed = true;
             bIsEnabled = true;
             OnFixedUpdate();
@@ -613,11 +617,11 @@ namespace FNPlugin.Collectors
         /// It also takes care of the power consumption.
         /// Returns true if there's enough power (or the Cheat Option Inifinite Electricity is ON).
         /// </summary>
-        /// <returns>Bool signifying if there is enough power for the extractor to operate.</returns>
-        private bool HasEnoughPower(double deltaTime)
+        /// <returns>Double indicating how much power is available to the drill</returns>
+        private double HasEnoughPower(double deltaTime)
         {
             if (CheatOptions.InfiniteElectricity || mwRequirements == 0) // is the cheat option of infinite electricity ON? Then skip all these checks.
-                return true;
+                return 100;
 
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements;
 
@@ -634,10 +638,7 @@ namespace FNPlugin.Collectors
 
             // Workaround for some weird glitches where dNormalisedRecievedPowerMW gets slightly smaller than it should be during timewarping
             double powerPercentage = dNormalisedRecievedPowerMW / dPowerRequirementsMW;
-            if (powerPercentage >= 0.99)
-                return true;
-            else
-                return false;
+            return powerPercentage;
         }
 
         /// <summary>
@@ -808,8 +809,16 @@ namespace FNPlugin.Collectors
         {
             if (!offlineCollecting)
             {
-                if (!HasEnoughPower(deltaTime)) // if there was not enough power, no mining
+                double percentPower = HasEnoughPower(deltaTime);
+                
+                if(percentPower < minimumPowerNeeded)  
                 {
+                    if(powerCountdown > 0)
+                    {
+                        powerCountdown -= 1;
+                        return;
+                    }
+
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_PostMsg1"), 3.0f, ScreenMessageStyle.LOWER_CENTER);//"Not enough power to run the universal drill."
                     DisableCollector();
                     return;
@@ -839,8 +848,8 @@ namespace FNPlugin.Collectors
                     return;
                 }
 
-                double minedAmount = crustThickness * drillSize * effectiveness;
-                double minedAmountStock = 0.0005 * drillSize * effectiveness;
+                double minedAmount = crustThickness * drillSize * effectiveness * percentPower;
+                double minedAmountStock = 0.0005 * drillSize * effectiveness * percentPower;
 
                 StoreDataForOfflineMining(minedAmount);
 
@@ -865,6 +874,9 @@ namespace FNPlugin.Collectors
             }
             else // this is offline collecting, so use the simplified version
             {
+                // ensure the drill doesn't turn itself off too quickly
+                powerCountdown = powerCountdownMax;
+
                 // these are helper variables for the message
                 double totalAmount = 0;
                 int numberOfResources = 0;
