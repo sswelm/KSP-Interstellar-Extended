@@ -2079,13 +2079,20 @@ namespace FNPlugin.Reactors
 
         private void UpdatePlayedSound()
         {
+            var scaledRatio = Math.Pow(reactor_power_ratio, soundRunningPitchExp);
+            var pitch = (float) (soundRunningPitchMin * (1 - scaledRatio) + scaledRatio);
+            var volume = reactor_power_ratio <= 0 ? 0 : GameSettings.SHIP_VOLUME * (float)Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
+
             if (running_sound != null)
             {
-                var scaledRatio = Math.Pow(reactor_power_ratio, soundRunningPitchExp);
-                running_sound.pitch = (float) (soundRunningPitchMin * (1 - scaledRatio) + scaledRatio);
-                running_sound.volume = reactor_power_ratio <= 0
-                    ? 0
-                    : GameSettings.SHIP_VOLUME * (float) Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
+                running_sound.pitch = pitch;
+                running_sound.volume = volume;
+            }
+
+            if (initiate_sound != null)
+            {
+                initiate_sound.pitch = pitch;
+                initiate_sound.volume = GameSettings.SHIP_VOLUME;
             }
 
             if (previous_reactor_power_ratio > 0 && reactor_power_ratio <= 0)
@@ -2098,9 +2105,10 @@ namespace FNPlugin.Reactors
                 if (vessel.isActiveVessel)
                 {
                     if (terminate_sound != null && !terminate_sound.isPlaying)
-                        terminate_sound.PlayOneShot(terminate_sound.clip,
-                            GameSettings.SHIP_VOLUME *
-                            (float) Math.Pow(previous_reactor_power_ratio, soundRunningVolumeExp));
+                    {
+                        terminate_sound.PlayOneShot(terminate_sound.clip);
+                        terminate_sound.volume = GameSettings.SHIP_VOLUME;
+                    }
                 }
             }
             else if (previous_reactor_power_ratio <= 0 && reactor_power_ratio > 0)
@@ -2113,7 +2121,10 @@ namespace FNPlugin.Reactors
                 if (vessel.isActiveVessel)
                 {
                     if (initiate_sound != null && !initiate_sound.isPlaying)
-                        initiate_sound.PlayOneShot(initiate_sound.clip, 1);
+                    {
+                        initiate_sound.PlayOneShot(initiate_sound.clip);
+                        initiate_sound.volume = GameSettings.SHIP_VOLUME;
+                    }
                     else if (running_sound != null)
                         running_sound.Play();
                 }
