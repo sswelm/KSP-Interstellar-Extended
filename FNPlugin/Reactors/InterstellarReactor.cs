@@ -475,6 +475,8 @@ namespace FNPlugin.Reactors
         public double soundRunningPitchExp = 0;
         [KSPField]
         public double soundRunningVolumeExp = 0;
+        [KSPField]
+        public double soundRunningVolumeMin = 0;
 
         [KSPField]
         public string soundTerminateFilePath = "";
@@ -514,9 +516,9 @@ namespace FNPlugin.Reactors
         [KSPField]
         public int fuelModeTechLevel;
         [KSPField]
-        public string bimodelUpgradeTechReq = String.Empty;
+        public string bimodelUpgradeTechReq = string.Empty;
         [KSPField]
-        public string powerUpgradeTechReq = String.Empty;
+        public string powerUpgradeTechReq = string.Empty;
         [KSPField]
         public double powerUpgradeCoreTempMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_rawPowerOutput", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F4")]
@@ -527,7 +529,7 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double upgradedPowerOutput = 0;
         [KSPField]
-        public string upgradeTechReq = String.Empty;
+        public string upgradeTechReq = string.Empty;
         [KSPField]
         public bool shouldApplyBalance;
         [KSPField]
@@ -537,18 +539,18 @@ namespace FNPlugin.Reactors
 
         // GUI strings
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_coreTemperature")]
-        public string coretempStr = String.Empty;
+        public string coretempStr = string.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_reactorStatus")]
-        public string statusStr = String.Empty;
+        public string statusStr = string.Empty;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorFuelMode")]
-        public string fuelModeStr = String.Empty;
+        public string fuelModeStr = string.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_connectedRecievers")]
-        public string connectedRecieversStr = String.Empty;
+        public string connectedRecieversStr = string.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorSurface", guiUnits = " m\xB3")]
         public double reactorSurface;
 
         [KSPField]
-        protected double max_power_to_supply = 0;
+        protected double max_power_to_supply;
         [KSPField]
         protected double requested_thermal_to_supply_per_second;
         [KSPField]
@@ -750,45 +752,67 @@ namespace FNPlugin.Reactors
         }
 
         // properties
-        public double FuelRato { get { return fuel_ratio; } }
+        public double ForcedMinimumThrottleRatio => ((double)(decimal)forcedMinimumThrottle) / 100;
 
-        public virtual double MagneticNozzlePowerMult { get { return 1; } }
+        public int SupportedPropellantAtoms => supportedPropellantAtoms;
 
-        public bool MayExhaustInAtmosphereHomeworld { get { return mayExhaustInAtmosphereHomeworld; } }
+        public int SupportedPropellantTypes => supportedPropellantTypes;
 
-        public bool MayExhaustInLowSpaceHomeworld { get { return mayExhaustInLowSpaceHomeworld; } }
+        public bool FullPowerForNonNeutronAbsorbants => fullPowerForNonNeutronAbsorbants;
 
-        public double MinThermalNozzleTempRequired { get { return minThermalNozzleTempRequired; } }
+        public double EfficencyConnectedThermalEnergyGenerator => storedIsThermalEnergyGeneratorEfficiency;
 
-        public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
+        public double EfficencyConnectedChargedEnergyGenerator => storedIsChargedEnergyGeneratorEfficiency;
 
-        public bool UsePropellantBaseIsp { get { return usePropellantBaseIsp; } }
+        public double FuelRato => fuel_ratio;
 
-        public bool CanUseAllPowerForPlasma { get { return canUseAllPowerForPlasma;} }
+        public virtual double MagneticNozzlePowerMult => 1;
 
-        public double MinCoolingFactor { get { return minCoolingFactor; } }
+        public bool MayExhaustInAtmosphereHomeworld => mayExhaustInAtmosphereHomeworld;
 
-        public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
+        public bool MayExhaustInLowSpaceHomeworld => mayExhaustInLowSpaceHomeworld;
 
-        public double PlasmaHeatProductionMult { get { return plasmaHeatProductionMult; } }
+        public double MinThermalNozzleTempRequired => minThermalNozzleTempRequired;
 
-        public double EngineWasteheatProductionMult { get { return engineWasteheatProductionMult; } }
+        public virtual double CurrentMeVPerChargedProduct => current_fuel_mode?.MeVPerChargedProduct ?? 0;
 
-        public double PlasmaWasteheatProductionMult { get { return plasmaWasteheatProductionMult; } }
+        public bool UsePropellantBaseIsp => usePropellantBaseIsp;
 
-        public double ThermalPropulsionWasteheatModifier { get { return 1; } }
+        public bool CanUseAllPowerForPlasma => canUseAllPowerForPlasma;
 
-        public double ConsumedFuelFixed { get { return consumedFuelTotalFixed; } }
+        public double MinCoolingFactor => minCoolingFactor;
 
-        public bool SupportMHD { get { return supportMHD; } }
+        public double EngineHeatProductionMult => engineHeatProductionMult;
 
-        public double ProducedThermalHeat { get { return ongoing_thermal_power_generated; } }
+        public double PlasmaHeatProductionMult => plasmaHeatProductionMult;
 
-        public double ProducedChargedPower { get { return ongoing_charged_power_generated; } }
+        public double EngineWasteheatProductionMult => engineWasteheatProductionMult;
 
-        public int ProviderPowerPriority { get { return (int)electricPowerPriority; } }
+        public double PlasmaWasteheatProductionMult => plasmaWasteheatProductionMult;
 
-        public double RawTotalPowerProduced  { get { return ongoing_total_power_generated; } }
+        public double ThermalPropulsionWasteheatModifier => 1;
+
+        public double ConsumedFuelFixed => consumedFuelTotalFixed;
+
+        public bool SupportMHD => supportMHD;
+
+        public double Radius => radius;
+
+        public bool IsThermalSource => true;
+
+        public double ThermalProcessingModifier => thermalProcessingModifier;
+
+        public Part Part => part;
+
+        public double ProducedWasteHeat => ongoing_total_power_generated;
+
+        public double ProducedThermalHeat => ongoing_thermal_power_generated;
+
+        public double ProducedChargedPower => ongoing_charged_power_generated;
+
+        public int ProviderPowerPriority => (int)electricPowerPriority;
+
+        public double RawTotalPowerProduced => ongoing_total_power_generated;
 
         public void UseProductForPropulsion(double ratio, double propellantMassPerSecond)
         {
@@ -847,20 +871,14 @@ namespace FNPlugin.Reactors
 
         public GenerationType CurrentGenerationType
         {
-            get
-            {
-                return (GenerationType)currentGenerationType;
-            }
-            private set
-            {
-                currentGenerationType = (int)value;
-            }
+            get => (GenerationType)currentGenerationType;
+            private set => currentGenerationType = (int)value;
         }
 
         public GenerationType FuelModeTechLevel
         {
-            get { return (GenerationType)fuelModeTechLevel; }
-            private set { fuelModeTechLevel = (int)value; }
+            get => (GenerationType)fuelModeTechLevel;
+            private set => fuelModeTechLevel = (int)value;
         }
 
         public double FusionEnergyGainFactor
@@ -925,18 +943,6 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public double ForcedMinimumThrottleRatio { get {  return ((double)(decimal)forcedMinimumThrottle) / 100; } }
-
-        public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
-
-        public int SupportedPropellantTypes { get { return supportedPropellantTypes; } }
-
-        public bool FullPowerForNonNeutronAbsorbants { get { return fullPowerForNonNeutronAbsorbants; } }
-
-        public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGeneratorEfficiency; } }
-
-        public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGeneratorEfficiency; } }
-
 
         public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD, double mass)
         {
@@ -983,14 +989,6 @@ namespace FNPlugin.Reactors
             return shouldApplyBalance;
         }
 
-        public bool IsThermalSource { get { return true; } }
-
-        public double ThermalProcessingModifier { get { return thermalProcessingModifier; } }
-
-        public Part Part { get { return this.part; } }
-
-        public double ProducedWasteHeat { get { return ongoing_total_power_generated; } }
-
         public override void AttachThermalReciever(Guid key, double radius)
         {
             if (!connectedReceivers.ContainsKey(key))
@@ -1021,10 +1019,8 @@ namespace FNPlugin.Reactors
                 DeterminePowerOutput();
 
                 // refresh generators mass
-                if (ConnectedThermalElectricGenerator != null)
-                    ConnectedThermalElectricGenerator.Refresh();
-                if (ConnectedChargedParticleElectricGenerator != null)
-                    ConnectedChargedParticleElectricGenerator.Refresh();
+                ConnectedThermalElectricGenerator?.Refresh();
+                ConnectedChargedParticleElectricGenerator?.Refresh();
             }
             catch (Exception e)
             {
@@ -1055,15 +1051,15 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public double ChargedParticlePropulsionEfficiency { get { return chargedParticlePropulsionEfficiency * maxChargedParticleUtilisationRatio; } }
+        public double ChargedParticlePropulsionEfficiency => chargedParticlePropulsionEfficiency * maxChargedParticleUtilisationRatio;
 
-        public double PlasmaPropulsionEfficiency { get { return plasmaPropulsionEfficiency * maxChargedParticleUtilisationRatio; } }
+        public double PlasmaPropulsionEfficiency => plasmaPropulsionEfficiency * maxChargedParticleUtilisationRatio;
 
-        public double ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
+        public double ThermalPropulsionEfficiency => thermalPropulsionEfficiency;
 
-        public double ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
+        public double ThermalEnergyEfficiency => thermalEnergyEfficiency;
 
-        public double PlasmaEnergyEfficiency { get { return plasmaEnergyEfficiency; } }
+        public double PlasmaEnergyEfficiency => plasmaEnergyEfficiency;
 
         public double ChargedParticleEnergyEfficiency => chargedParticleEnergyEfficiency;
 
@@ -1077,39 +1073,33 @@ namespace FNPlugin.Reactors
 
         public double RawMaximumPower => RawPowerOutput;
 
-        public virtual double FuelEfficiency
-        {
-            get
-            {
-                double baseEfficency;
-                switch (CurrentGenerationType)
-                {
-                    case GenerationType.Mk7:
-                        baseEfficency = fuelEfficencyMk7;
-                        break;
-                    case GenerationType.Mk6:
-                        baseEfficency = fuelEfficencyMk6;
-                        break;
-                    case GenerationType.Mk5:
-                        baseEfficency = fuelEfficencyMk5;
-                        break;
-                    case GenerationType.Mk4:
-                        baseEfficency = fuelEfficencyMk4;
-                        break;
-                    case GenerationType.Mk3:
-                        baseEfficency = fuelEfficencyMk3;
-                        break;
-                    case GenerationType.Mk2:
-                        baseEfficency = fuelEfficencyMk2;
-                        break;
-                    default:
-                        baseEfficency = fuelEfficencyMk1;
-                        break;
-                }
+        public virtual double ReactorEmbrittlementConditionRatio => Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
 
-                return baseEfficency * CurrentFuelMode.FuelEfficencyMultiplier;
-            }
-        }
+        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode?.NormalisedReactionRate ?? 1);
+
+        public virtual double MinimumPower => MaximumPower * MinimumThrottle;
+
+        public virtual double MaximumThermalPower => PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier;
+
+        public virtual double MaximumChargedPower => PowerRatio * NormalisedMaximumPower * ChargedPowerRatio * geeForceModifier * overheatModifier;
+
+        public double ReactorSpeedMult => reactorSpeedMult;
+
+        public virtual bool CanProducePower => stored_fuel_ratio > 0;
+
+        public virtual bool IsNuclear => false;
+
+        public virtual bool IsActive => IsEnabled;
+
+        public virtual bool IsVolatileSource => false;
+
+        public virtual bool IsFuelNeutronRich => false;
+
+        public virtual double MaximumPower => MaximumThermalPower + MaximumChargedPower;
+
+        public virtual double StableMaximumReactorPower => IsEnabled ? NormalisedMaximumPower : 0;
+
+        public int ReactorFuelModeTechLevel => fuelModeTechLevel + reactorModeTechBonus;
 
         public int ReactorType => reactorType;
 
@@ -1118,6 +1108,44 @@ namespace FNPlugin.Reactors
         public virtual double ChargedPowerRatio => CurrentFuelMode?.ChargedPowerRatio ?? 0;
 
         public double ThermalPowerRatio => 1 - ChargedPowerRatio;
+
+        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
+
+        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
+
+        public virtual double FuelEfficiency
+        {
+            get
+            {
+                double baseEfficiency;
+                switch (CurrentGenerationType)
+                {
+                    case GenerationType.Mk7:
+                        baseEfficiency = fuelEfficencyMk7;
+                        break;
+                    case GenerationType.Mk6:
+                        baseEfficiency = fuelEfficencyMk6;
+                        break;
+                    case GenerationType.Mk5:
+                        baseEfficiency = fuelEfficencyMk5;
+                        break;
+                    case GenerationType.Mk4:
+                        baseEfficiency = fuelEfficencyMk4;
+                        break;
+                    case GenerationType.Mk3:
+                        baseEfficiency = fuelEfficencyMk3;
+                        break;
+                    case GenerationType.Mk2:
+                        baseEfficiency = fuelEfficencyMk2;
+                        break;
+                    default:
+                        baseEfficiency = fuelEfficencyMk1;
+                        break;
+                }
+
+                return baseEfficiency * CurrentFuelMode.FuelEfficencyMultiplier;
+            }
+        }
 
         public virtual double CoreTemperature
         {
@@ -1159,7 +1187,7 @@ namespace FNPlugin.Reactors
         {
             get
             {
-                if (hotBathTemperature == 0)
+                if (hotBathTemperature <= 0)
                 {
                     switch (CurrentGenerationType)
                     {
@@ -1187,7 +1215,7 @@ namespace FNPlugin.Reactors
                     }
                 }
 
-                if (hotBathTemperature == 0)
+                if (hotBathTemperature <= 0)
                     return CoreTemperature * hotBathModifier;
                 else
                     return hotBathTemperature;
@@ -1202,42 +1230,6 @@ namespace FNPlugin.Reactors
                 return embrittlementModifier;
             }
         }
-
-        public virtual double ReactorEmbrittlementConditionRatio => Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
-
-        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode == null ? 1 : CurrentFuelMode.NormalisedReactionRate);
-
-        public virtual double MinimumPower => MaximumPower * MinimumThrottle;
-
-        public virtual double MaximumThermalPower 
-        { 
-            get { return PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier; } 
-        }
-
-        public virtual double MaximumChargedPower 
-        {
-            get { return PowerRatio * NormalisedMaximumPower * ChargedPowerRatio * geeForceModifier * overheatModifier; }
-        }
-
-        public double ReactorSpeedMult { get { return reactorSpeedMult; } }
-
-        public virtual bool CanProducePower { get { return stored_fuel_ratio > 0; } }
-
-        public virtual bool IsNuclear { get { return false; } }
-
-        public virtual bool IsActive { get { return IsEnabled; } }
-
-        public virtual bool IsVolatileSource { get { return false; } }
-
-        public virtual bool IsFuelNeutronRich { get { return false; } }
-
-        public virtual double MaximumPower { get { return MaximumThermalPower + MaximumChargedPower; } }
-
-        public virtual double StableMaximumReactorPower { get { return IsEnabled ? NormalisedMaximumPower : 0; } }
-
-        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
-
-        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
         public double RawPowerOutput
         {
@@ -1274,13 +1266,6 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public int ReactorFuelModeTechLevel
-        {
-            get
-            {
-                return fuelModeTechLevel + reactorModeTechBonus;
-            }
-        }
 
         public virtual void StartReactor()
         {
@@ -1384,14 +1369,13 @@ namespace FNPlugin.Reactors
                 return false;
             }
 
-            string upgradetechName;
-            if (!PluginHelper.PartTechUpgrades.TryGetValue(part.name, out upgradetechName))
+            if (!PluginHelper.PartTechUpgrades.TryGetValue(part.name, out var upgradetechName))
             {
                 print("[KSPI]: PartTechUpgrade entry is not found for part '" + part.name + "'");
                 return false;
             }
 
-            print("[KSPI]: Found matching Interstellar upgradetech for part '" + part.name + "' with technode " + upgradetechName);
+            print("[KSPI]: Found matching Interstellar upgradeTech for part '" + part.name + "' with techNode " + upgradetechName);
 
             return PluginHelper.UpgradeAvailable(upgradetechName);
         }
@@ -1411,32 +1395,32 @@ namespace FNPlugin.Reactors
             powerOutputMk7 = basePowerOutputMk7 * effectivePowerMultiplier;
 
             // initialise power output when missing
-            if (powerOutputMk2 == 0)
+            if (powerOutputMk2 <= 0)
                 powerOutputMk2 = powerOutputMk1 * 1.5;
-            if (powerOutputMk3 == 0)
+            if (powerOutputMk3 <= 0)
                 powerOutputMk3 = powerOutputMk2 * 1.5;
-            if (powerOutputMk4 == 0)
+            if (powerOutputMk4 <= 0)
                 powerOutputMk4 = powerOutputMk3 * 1.5;
-            if (powerOutputMk5 == 0)
+            if (powerOutputMk5 <= 0)
                 powerOutputMk5 = powerOutputMk4 * 1.5;
-            if (powerOutputMk6 == 0)
+            if (powerOutputMk6 <= 0)
                 powerOutputMk6 = powerOutputMk5 * 1.5;
-            if (powerOutputMk7 == 0)
+            if (powerOutputMk7 <= 0)
                 powerOutputMk7 = powerOutputMk6 * 1.5;
 
-            if (minimumThrottleMk1 == 0)
+            if (minimumThrottleMk1 <= 0)
                 minimumThrottleMk1 = minimumThrottle;
-            if (minimumThrottleMk2 == 0)
+            if (minimumThrottleMk2 <= 0)
                 minimumThrottleMk2 = minimumThrottleMk1;
-            if (minimumThrottleMk3 == 0)
+            if (minimumThrottleMk3 <= 0)
                 minimumThrottleMk3 = minimumThrottleMk2;
-            if (minimumThrottleMk4 == 0)
+            if (minimumThrottleMk4 <= 0)
                 minimumThrottleMk4 = minimumThrottleMk3;
-            if (minimumThrottleMk5 == 0)
+            if (minimumThrottleMk5 <= 0)
                 minimumThrottleMk5 = minimumThrottleMk4;
-            if (minimumThrottleMk6 == 0)
+            if (minimumThrottleMk6 <= 0)
                 minimumThrottleMk6 = minimumThrottleMk5;
-            if (minimumThrottleMk7 == 0)
+            if (minimumThrottleMk7 <= 0)
                 minimumThrottleMk7 = minimumThrottleMk6;
         }
 
@@ -1446,13 +1430,13 @@ namespace FNPlugin.Reactors
 
             InitializeKerbalismEmitter();
 
-            hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("LqdHydrogen");
+            hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration._HYDROGEN_LIQUID);
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
             staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
 
-            var powerPercentageField = Fields["powerPercentage"];
+            var powerPercentageField = Fields[nameof(powerPercentage)];
             powerPercentageField.guiActive = showPowerPercentage;
             UI_FloatRange[] powerPercentageFloatRange = { powerPercentageField.uiControlFlight as UI_FloatRange, powerPercentageField.uiControlEditor as UI_FloatRange };
             powerPercentageFloatRange[0].minValue = minimumPowerPercentage;
@@ -1482,7 +1466,7 @@ namespace FNPlugin.Reactors
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedPowerBufferMult));
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            _resourceBuffers.Init(this.part);
+            _resourceBuffers.Init(part);
 
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
             base.OnStart(state);
@@ -1492,15 +1476,15 @@ namespace FNPlugin.Reactors
             SetDefaultFuelMode();
             UpdateFuelMode();
 
-            var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
-            var myGenerator = this.part.FindModuleImplementing<FNGenerator>();
+            var myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
+            var myGenerator = part.FindModuleImplementing<FNGenerator>();
 
             if (state == StartState.Editor)
             {
                 maximumThermalPowerEffective = MaximumThermalPower;
                 coretempStr = CoreTemperature.ToString("0") + " K";
 
-                var displayPartData = myGenerator == null && myGenerator == null;
+                var displayPartData = myGenerator == null;
 
                 Fields[nameof(radius)].guiActiveEditor = displayPartData;
                 Fields[nameof(connectedRecieversStr)].guiActiveEditor = displayPartData;
@@ -1565,22 +1549,20 @@ namespace FNPlugin.Reactors
             centrifugeHabitat = part.FindModuleImplementing<FNHabitat>();
 
             // only force activate if Enabled and not with a engine model
-
-
             if (IsEnabled && myAttachedEngine == null)
             {
                 Debug.Log("[KSPI]: InterstellarReactor on " + part.name + " was Force Activated");
-                this.part.force_activate();
+                part.force_activate();
                 
-                Fields["heatTransportationEfficiency"].guiActiveEditor = true;
+                Fields[nameof(heatTransportationEfficiency)].guiActiveEditor = true;
             }
             else
                 Debug.Log("[KSPI]: skipped calling Force on " + part.name);
 
-            Fields["electricPowerPriority"].guiActive = showPowerPriority;
-            Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
-            Fields["forcedMinimumThrottle"].guiActive = showForcedMinimumThrottle;
-            Fields["forcedMinimumThrottle"].guiActiveEditor = showForcedMinimumThrottle;
+            Fields[nameof(electricPowerPriority)].guiActive = showPowerPriority;
+            Fields[nameof(reactorSurface)].guiActiveEditor = showSpecialisedUI;
+            Fields[nameof(forcedMinimumThrottle)].guiActive = showForcedMinimumThrottle;
+            Fields[nameof(forcedMinimumThrottle)].guiActiveEditor = showForcedMinimumThrottle;
         }
 
         private void InitializeSounds()
@@ -1630,7 +1612,7 @@ namespace FNPlugin.Reactors
 
             DetermineChargedParticleUtilizationRatio();
 
-            DetermineFuelEfficency();
+            DetermineFuelEfficiency();
 
             DetermineCoreTemperature();
         }
@@ -1675,57 +1657,57 @@ namespace FNPlugin.Reactors
 
         private void DetermineCoreTemperature()
         {
-            // if coretemperature is missing, first look at lagacy value
-            if (coreTemperatureMk1 == 0)
+            // if coreTemperature is missing, first look at lagacy value
+            if (coreTemperatureMk1 <= 0)
                 coreTemperatureMk1 = ReactorTemp;
-            if (coreTemperatureMk2 == 0)
+            if (coreTemperatureMk2 <= 0)
                 coreTemperatureMk2 = upgradedReactorTemp;
-            if (coreTemperatureMk3 == 0)
+            if (coreTemperatureMk3 <= 0)
                 coreTemperatureMk3 = upgradedReactorTemp * powerUpgradeCoreTempMult;
 
             // prevent initial values
-            if (coreTemperatureMk1 == 0)
+            if (coreTemperatureMk1 <= 0)
                 coreTemperatureMk1 = 2500;
-            if (coreTemperatureMk2 == 0)
+            if (coreTemperatureMk2 <= 0)
                 coreTemperatureMk2 = coreTemperatureMk1;
-            if (coreTemperatureMk3 == 0)
+            if (coreTemperatureMk3 <= 0)
                 coreTemperatureMk3 = coreTemperatureMk2;
-            if (coreTemperatureMk4 == 0)
+            if (coreTemperatureMk4 <= 0)
                 coreTemperatureMk4 = coreTemperatureMk3;
-            if (coreTemperatureMk5 == 0)
+            if (coreTemperatureMk5 <= 0)
                 coreTemperatureMk5 = coreTemperatureMk4;
-            if (coreTemperatureMk6 == 0)
+            if (coreTemperatureMk6 <= 0)
                 coreTemperatureMk6 = coreTemperatureMk5;
-            if (coreTemperatureMk7 == 0)
+            if (coreTemperatureMk7 <= 0)
                 coreTemperatureMk7 = coreTemperatureMk6;
         }
 
-        private void DetermineFuelEfficency()
+        private void DetermineFuelEfficiency()
         {
-            // if fuel efficency is missing, try to use lagacy value
-            if (fuelEfficencyMk1 == 0)
+            // if fuel efficiency is missing, try to use lagacy value
+            if (fuelEfficencyMk1 <= 0)
                 fuelEfficencyMk1 = fuelEfficiency;
 
             // prevent any initial values
-            if (fuelEfficencyMk1 == 0)
+            if (fuelEfficencyMk1 <= 0)
                 fuelEfficencyMk1 = 1;
-            if (fuelEfficencyMk2 == 0)
+            if (fuelEfficencyMk2 <= 0)
                 fuelEfficencyMk2 = fuelEfficencyMk1;
-            if (fuelEfficencyMk3 == 0)
+            if (fuelEfficencyMk3 <= 0)
                 fuelEfficencyMk3 = fuelEfficencyMk2;
-            if (fuelEfficencyMk4 == 0)
+            if (fuelEfficencyMk4 <= 0)
                 fuelEfficencyMk4 = fuelEfficencyMk3;
-            if (fuelEfficencyMk5 == 0)
+            if (fuelEfficencyMk5 <= 0)
                 fuelEfficencyMk5 = fuelEfficencyMk4;
-            if (fuelEfficencyMk6 == 0)
+            if (fuelEfficencyMk6 <= 0)
                 fuelEfficencyMk6 = fuelEfficencyMk5;
-            if (fuelEfficencyMk7 == 0)
+            if (fuelEfficencyMk7 <= 0)
                 fuelEfficencyMk7 = fuelEfficencyMk6;
         }
 
         private void DeterminePowerGenerationType()
         {
-            // initialse tech requirment if missing 
+            // initialize tech requirement if missing 
             if (string.IsNullOrEmpty(upgradeTechReqMk2))
                 upgradeTechReqMk2 = upgradeTechReq;
             if (string.IsNullOrEmpty(upgradeTechReqMk3))
@@ -1791,11 +1773,9 @@ namespace FNPlugin.Reactors
             try
             {
                 Debug.Log("[KSPI]: detach " + part.partInfo.title);
-                if (ConnectedChargedParticleElectricGenerator != null)
-                    ConnectedChargedParticleElectricGenerator.FindAndAttachToPowerSource();
 
-                if (ConnectedThermalElectricGenerator != null)
-                    ConnectedThermalElectricGenerator.FindAndAttachToPowerSource();
+                ConnectedChargedParticleElectricGenerator?.FindAndAttachToPowerSource();
+                ConnectedThermalElectricGenerator?.FindAndAttachToPowerSource();
             }
             catch (Exception e)
             {
@@ -1829,8 +1809,8 @@ namespace FNPlugin.Reactors
 
         public override void OnUpdate()
         {
-            Events["StartBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && !breedtritium && IsFuelNeutronRich && IsEnabled;
-            Events["StopBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && breedtritium && IsFuelNeutronRich && IsEnabled;
+            Events[nameof(StartBreedTritiumEvent)].active = canDisableTritiumBreeding && canBreedTritium && !breedtritium && IsFuelNeutronRich && IsEnabled;
+            Events[nameof(StopBreedTritiumEvent)].active = canDisableTritiumBreeding && canBreedTritium && breedtritium && IsFuelNeutronRich && IsEnabled;
             UpdateFuelMode();
 
             if (IsEnabled && CurrentFuelMode != null)
@@ -1838,14 +1818,13 @@ namespace FNPlugin.Reactors
                 if (CheatOptions.InfinitePropellant || stored_fuel_ratio > 0.99)
                     statusStr = Localizer.Format("#LOC_KSPIE_Reactor_status1", powerPcnt.ToString("0.0000"));//"Active (" +  + "%)"
                 else if (current_fuel_variant != null)
-                    statusStr = current_fuel_variant.ReactorFuels.OrderBy(fuel => GetFuelAvailability(fuel)).First().ResourceName + " " + Localizer.Format("#LOC_KSPIE_Reactor_status2");//"Deprived"
+                    statusStr = current_fuel_variant.ReactorFuels.OrderBy(GetFuelAvailability).First().ResourceName + " " + Localizer.Format("#LOC_KSPIE_Reactor_status2");//"Deprived"
             }
             else
             {
-                if (powerPcnt > 0)
-                    statusStr = Localizer.Format("#LOC_KSPIE_Reactor_status3", powerPcnt.ToString("0.0000"));//"Decay Heating (" +  + "%)"
-                else
-                    statusStr = Localizer.Format("#LOC_KSPIE_Reactor_status4");//"Offline"
+                statusStr = powerPcnt > 0 
+                    ? Localizer.Format("#LOC_KSPIE_Reactor_status3", powerPcnt.ToString("0.0000")) 
+                    : Localizer.Format("#LOC_KSPIE_Reactor_status4");
             }
         }
 
@@ -1890,7 +1869,7 @@ namespace FNPlugin.Reactors
             {
                 max_power_to_supply = Math.Max(maximumPower * timeWarpFixedDeltaTime, 0);
 
-                UpdateGeeforceModfier();
+                UpdateGeeforceModifier();
 
                 if (hasOverheatEffects && !CheatOptions.IgnoreMaxTemperature)
                 {
@@ -2019,8 +1998,6 @@ namespace FNPlugin.Reactors
                         consumedFuelTotalFixed += ConsumeReactorFuel(current_fuel_variant.ReactorFuels[i], totalPowerReceivedFixed / geeForceModifier);
                     }
 
-                    var consumedFuelTotalPerSecond = consumedFuelTotalFixed / timeWarpFixedDeltaTime;
-
                     // refresh production list
                     reactorProduction.Clear();
 
@@ -2054,7 +2031,7 @@ namespace FNPlugin.Reactors
             }
             else
             {
-                current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, NormalisedMaximumPower, fuelUsePerMJMult);
+                current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, NormalisedMaximumPower, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
                 fuel_mode_variant = current_fuel_variant.Name;
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
@@ -2071,7 +2048,7 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled) return;
 
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, 0);
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 0);
             _resourceBuffers.UpdateBuffers();
@@ -2079,20 +2056,22 @@ namespace FNPlugin.Reactors
 
         private void UpdatePlayedSound()
         {
-            var scaledRatio = Math.Pow(reactor_power_ratio, soundRunningPitchExp);
-            var pitch = (float) (soundRunningPitchMin * (1 - scaledRatio) + scaledRatio);
-            var volume = reactor_power_ratio <= 0 ? 0 : GameSettings.SHIP_VOLUME * (float)Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
+            var scaledPitchRatio = Math.Pow(reactor_power_ratio, soundRunningPitchExp);
+            var scaledVolumeRatio = Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
+
+            var pitch = soundRunningPitchMin * (1 - scaledPitchRatio) + scaledPitchRatio;
+            var volume = reactor_power_ratio <= 0 ? 0 : GameSettings.SHIP_VOLUME * ( soundRunningVolumeMin * (1 - scaledVolumeRatio) + scaledVolumeRatio);
 
             if (running_sound != null)
             {
-                running_sound.pitch = pitch;
-                running_sound.volume = volume;
+                running_sound.pitch = (float)pitch;
+                running_sound.volume = (float)volume;
             }
 
             if (initiate_sound != null)
             {
-                initiate_sound.pitch = pitch;
-                initiate_sound.volume = GameSettings.SHIP_VOLUME;
+                initiate_sound.pitch = (float)pitch;
+                initiate_sound.volume = (float)volume;
             }
 
             if (previous_reactor_power_ratio > 0 && reactor_power_ratio <= 0)
@@ -2102,13 +2081,10 @@ namespace FNPlugin.Reactors
                 if (running_sound != null && running_sound.isPlaying)
                     running_sound.Stop();
 
-                if (vessel.isActiveVessel)
+                if (vessel.isActiveVessel && terminate_sound != null && !terminate_sound.isPlaying)
                 {
-                    if (terminate_sound != null && !terminate_sound.isPlaying)
-                    {
-                        terminate_sound.PlayOneShot(terminate_sound.clip);
-                        terminate_sound.volume = GameSettings.SHIP_VOLUME;
-                    }
+                    terminate_sound.PlayOneShot(terminate_sound.clip);
+                    terminate_sound.volume = GameSettings.SHIP_VOLUME;
                 }
             }
             else if (previous_reactor_power_ratio <= 0 && reactor_power_ratio > 0)
@@ -2129,25 +2105,22 @@ namespace FNPlugin.Reactors
                         running_sound.Play();
                 }
             }
-            else if (previous_reactor_power_ratio > 0 && reactor_power_ratio > 0)
+            else if (previous_reactor_power_ratio > 0 && reactor_power_ratio > 0 && running_sound != null)
             {
-                if (running_sound != null)
+                if (vessel.isActiveVessel && !running_sound.isPlaying)
                 {
-                    if (vessel.isActiveVessel && !running_sound.isPlaying)
-                    {
-                        if ((initiate_sound == null || (initiate_sound != null && !initiate_sound.isPlaying)) &&
-                            (terminate_sound == null || (terminate_sound != null && !terminate_sound.isPlaying)))
-                            running_sound.Play();
-                    }
-                    else if (!vessel.isActiveVessel && running_sound.isPlaying)
-                    {
-                        running_sound.Stop();
-                    }
+                    if ((initiate_sound == null || (initiate_sound != null && !initiate_sound.isPlaying)) &&
+                        (terminate_sound == null || (terminate_sound != null && !terminate_sound.isPlaying)))
+                        running_sound.Play();
+                }
+                else if (!vessel.isActiveVessel && running_sound.isPlaying)
+                {
+                    running_sound.Stop();
                 }
             }
         }
 
-        private void UpdateGeeforceModfier()
+        private void UpdateGeeforceModifier()
         {
             if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
             {
@@ -2162,7 +2135,7 @@ namespace FNPlugin.Reactors
                     var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
                     if (engines.Any())
                     {
-                        var totalThrust = engines.Sum(m => ((double)(decimal)m.realIsp) * ((double)(decimal)m.requestedMassFlow) * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
+                        var totalThrust = engines.Sum(m => m.realIsp * m.requestedMassFlow * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
                         currentGeeForce = Math.Max(currentGeeForce, totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY);
                     }
                 }
@@ -2177,13 +2150,13 @@ namespace FNPlugin.Reactors
                 geeForceModifier = 1;
         }
 
-        private void UpdateEmbrittlement(double thermal_plasma_ratio)
+        private void UpdateEmbrittlement(double thermalPlasmaRatio)
         {
-            var hasActiveNeutronAborbtion = connectedEngines.All(m => m.PropellantAbsorbsNeutrons) && thermal_plasma_ratio > 0;
-            var lithium_embrittlement_modifer = 1 - Math.Max(lithium_modifier * 0.9, hasActiveNeutronAborbtion ? 0.9 : 0);
+            var hasActiveNeutronAbsorption = connectedEngines.All(m => m.PropellantAbsorbsNeutrons) && thermalPlasmaRatio > 0;
+            var lithiumEmbrittlementModifer = 1 - Math.Max(lithium_modifier * 0.9, hasActiveNeutronAbsorption ? 0.9 : 0);
 
             if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0)
-                neutronEmbrittlementDamage += 5 * lithium_embrittlement_modifer * ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
+                neutronEmbrittlementDamage += 5 * lithiumEmbrittlementModifer * ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
         }
 
         private void LookForAlternativeFuelTypes()
@@ -2199,7 +2172,6 @@ namespace FNPlugin.Reactors
 
             if (stored_fuel_ratio < 0.99)
             {
-                //Debug.Log("[KSPI]: " + "restored fuelmode to " + originalFuelMode.ModeGUIName);
                 CurrentFuelMode = originalFuelMode;
                 stored_fuel_ratio = originalFuelRatio;
             }
@@ -2222,7 +2194,7 @@ namespace FNPlugin.Reactors
             }
 
             Debug.Log("[KSPI]: searching fuelmodes for alternative for fuel type " + alternativeFuelTypeName);
-            var alternativeFuelVariantsSorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
+            var alternativeFuelVariantsSorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
 
             if (alternativeFuelVariantsSorted == null)
                 return;
@@ -2312,18 +2284,18 @@ namespace FNPlugin.Reactors
 
         private void UpdateCapacities()
         {
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, MaximumThermalPower);
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, MaximumChargedPower);
             _resourceBuffers.UpdateBuffers();
         }
 
-        protected double GetFuelRatio(ReactorFuel reactorFuel, double fuelEfficency, double megajoules)
+        protected double GetFuelRatio(ReactorFuel reactorFuel, double efficiency, double megajoules)
         {
             if (CheatOptions.InfinitePropellant)
                 return 1;
 
-            var fuelUseForPower = reactorFuel.GetFuelUseForPower(fuelEfficency, megajoules, fuelUsePerMJMult);
+            var fuelUseForPower = reactorFuel.GetFuelUseForPower(efficiency, megajoules, fuelUsePerMJMult);
 
             return fuelUseForPower > 0 ? GetFuelAvailability(reactorFuel) / fuelUseForPower : 0;
         }
@@ -2352,32 +2324,32 @@ namespace FNPlugin.Reactors
 
             lithiumNeutronAbsorbtion = CheatOptions.UnbreakableJoints ? 1 : Math.Max(0.01, Math.Sqrt(totalAmountLithium / totalMaxAmountLithium) - 0.0001);
 
-            if ( lithiumNeutronAbsorbtion <= 0.01)
+            if (lithiumNeutronAbsorbtion <= 0.01)
                 return;
 
             // calculate current maximum lithium consumption
             var breedRate = CurrentFuelMode.TritiumBreedModifier * CurrentFuelMode.NeutronsRatio * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * lithiumNeutronAbsorbtion;
-            var lithRate = breedRate / lithium6_density;
+            var lithiumRate = breedRate / lithium6_density;
 
             // get spare room tritium
             var spareRoomTritiumAmount = part.GetResourceSpareCapacity(tritium_def);
 
             // limit lithium consumption to maximum tritium storage
-            var maximumTritiumProduction = lithRate * tritiumBreedingMassAdjustment;
-            var maximumLitiumConsumtionRatio = maximumTritiumProduction > 0 ? Math.Min(maximumTritiumProduction, spareRoomTritiumAmount) / maximumTritiumProduction : 0;
-            var lithiumRequest = lithRate * maximumLitiumConsumtionRatio;
+            var maximumTritiumProduction = lithiumRate * tritiumBreedingMassAdjustment;
+            var maximumLithiumConsumptionRatio = maximumTritiumProduction > 0 ? Math.Min(maximumTritiumProduction, spareRoomTritiumAmount) / maximumTritiumProduction : 0;
+            var lithiumRequest = lithiumRate * maximumLithiumConsumptionRatio;
 
             // consume the lithium
-            var lithUsed = CheatOptions.InfinitePropellant
+            var lithiumUsed = CheatOptions.InfinitePropellant
                 ? lithiumRequest
                 : part.RequestResource(lithium6_def.id, lithiumRequest, ResourceFlowMode.STACK_PRIORITY_SEARCH);
 
             // calculate effective lithium used for tritium breeding
-            lithium_consumed_per_second = lithUsed / fixedDeltaTime;
+            lithium_consumed_per_second = lithiumUsed / fixedDeltaTime;
 
             // calculate products
-            var tritiumProduction = lithUsed * tritiumBreedingMassAdjustment;
-            var heliumProduction = lithUsed * heliumBreedingMassAdjustment;
+            var tritiumProduction = lithiumUsed * tritiumBreedingMassAdjustment;
+            var heliumProduction = lithiumUsed * heliumBreedingMassAdjustment;
 
             // produce tritium and helium
             tritium_produced_per_second = CheatOptions.InfinitePropellant
@@ -2398,8 +2370,6 @@ namespace FNPlugin.Reactors
         {
             return MaximumPower;
         }
-
-        public double Radius => radius;
 
         public virtual bool shouldScaleDownJetISP()
         {
@@ -2598,7 +2568,7 @@ namespace FNPlugin.Reactors
             // calculate delta time since last processing
             double deltaTimeDiff = Math.Max(Planetarium.GetUniversalTime() - last_active_time, 0);
 
-            // determine avialable variants
+            // determine available variants
             var persistentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, deltaTimeDiff * ongoing_total_power_generated, fuelUsePerMJMult);
 
             // consume fuel
@@ -2656,7 +2626,6 @@ namespace FNPlugin.Reactors
 
             Debug.Log("[KSPI]: found " + filteredFuelModes.Count + " valid fuel types");
 
-            //return filteredFuelModes;
             var groups = filteredFuelModes.GroupBy(mode => mode.ModeGUIName).Select(group => new ReactorFuelType(group)).ToList();
 
             Debug.Log("[KSPI]: grouped them into " + groups.Count + " valid fuel modes");
@@ -2736,7 +2705,6 @@ namespace FNPlugin.Reactors
                     return 0;
             }
 
-            //part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW, product.Simulate);
             if (!product.Simulate)
                 part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW);
             return productSupply * product.DensityInTon;
@@ -2923,7 +2891,7 @@ namespace FNPlugin.Reactors
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CoreTemperature"), coretempStr, bold_style, text_style);//"Core Temperature"
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_StatusLabel"), statusStr, bold_style, text_style);//"Status"
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelMode"), fuelModeStr, bold_style, text_style);//"Fuel Mode"
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelEfficiencyLabel"), (FuelEfficiency * 100).ToString(), bold_style, text_style);//"Fuel Efficiency"
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelEfficiencyLabel"), (FuelEfficiency * 100).ToString(), bold_style, text_style);//"Fuel efficiency"
 
                 WindowReactorControlSpecificOverride();
 
@@ -3050,7 +3018,7 @@ namespace FNPlugin.Reactors
                                     PrintToGUILayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), (double.IsNaN(fuelLifetimeD) ? "-" : (fuelLifetimeD).ToString("0.00")) + " " + Localizer.Format("#LOC_KSPIE_Reactor_days"), bold_style, text_style);//Lifetime--days
                             }
                             else
-                                PrintToGUILayout(fuel.FuelName + " "+Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), "", bold_style, text_style);//Lifetime
+                                PrintToGUILayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), "", bold_style, text_style);//Lifetime
                         }
                         else
                             PrintToGUILayout(fuel.FuelName + " "+Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), "", bold_style, text_style);//Lifetime
