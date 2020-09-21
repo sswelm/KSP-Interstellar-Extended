@@ -1,16 +1,15 @@
 using FNPlugin.Constants;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using CommNet;
-using KSP.Localization;
 
 
 namespace FNPlugin
 {
     class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule
     {
-        // Persistant
+        // Persistent
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Name")]//Name
         public string nameStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_DataCollectionRate")]//Data Collection Rate
@@ -18,9 +17,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_ComputerCore_AIOnline", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "#LOC_KSPIE_ComputerCore_AIOnline_Off", enabledText = "#LOC_KSPIE_ComputerCore_AIOnline_On", scene = UI_Scene.All)]//AI Online--Off--On
         public bool IsEnabled = false;
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_ComputerCore_IsPowered", guiActive = true, guiActiveEditor = false)]//Powered
-        public bool IsPowered = false;
+        public bool IsPowered;
         [KSPField(isPersistant = true, guiActiveEditor = true)]
-        public bool isupgraded = false;
+        public bool isupgraded;
         [KSPField(isPersistant = true)]
         public double electrical_power_ratio;
         [KSPField(isPersistant = true)]
@@ -57,10 +56,10 @@ namespace FNPlugin
         public string upgradeCostStr;        
 
         // Privates
-        double science_rate_f;
-        double effectivePowerRequirement;
+        double _scienceRateF;
+        double _effectivePowerRequirement;
 
-        ConfigNode _experiment_node;
+        ConfigNode _experimentNode;
         BaseField _nameStrField;
         BaseField _isEnabledField;
         BaseField _isPoweredField;
@@ -68,51 +67,50 @@ namespace FNPlugin
         BaseField _scienceRateField;
         BaseEvent _retrofitCoreEvent;
         ModuleDataTransmitter _moduleDataTransmitter;
-        ModuleCommand moduleCommand;
+        ModuleCommand _moduleCommand;
 
         //Properties
-        public String UpgradeTechnology { get { return upgradeTechReq; } }
-        public bool CanProvideTelescopeControl {  get { return isupgraded && IsEnabled && IsPowered; }  }
+        public string UpgradeTechnology => upgradeTechReq;
+        public bool CanProvideTelescopeControl => isupgraded && IsEnabled && IsPowered;
 
         // Events
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Retrofit", active = true)]//Retrofit
         public void RetrofitCore()
         {
-            if (ResearchAndDevelopment.Instance == null) { return; }
-            if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
+            if (ResearchAndDevelopment.Instance == null) return;
+            if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
 
             upgradePartModule();
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
 
         // Public Overrides
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
-            String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, };
-            this.resources_to_supply = resources_to_supply;
+            string[] resourcesToSupply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, };
+            this.resources_to_supply = resourcesToSupply;
 
-            _isEnabledField = Fields["IsEnabled"];
-            _isPoweredField = Fields["IsPowered"];
-            _upgradeCostStrField = Fields["upgradeCostStr"];
-            _retrofitCoreEvent = Events["RetrofitCore"];
-            _nameStrField = Fields["nameStr"];
-            _scienceRateField = Fields["scienceRate"];
+            _isEnabledField = Fields[nameof(IsEnabled)];
+            _isPoweredField = Fields[nameof(IsPowered)];
+            _upgradeCostStrField = Fields[nameof(upgradeCostStr)];
+            _retrofitCoreEvent = Events[nameof(RetrofitCore)];
+            _nameStrField = Fields[nameof(nameStr)];
+            _scienceRateField = Fields[nameof(scienceRate)];
 
             if (state == StartState.Editor)
             {
-                if (this.HasTechsRequiredToUpgrade())
-                {
-                    isupgraded = true;
-                    upgradePartModule();
-                }
+                if (!this.HasTechsRequiredToUpgrade()) return;
+
+                isupgraded = true;
+                upgradePartModule();
                 return;
             }
 
-            UnityEngine.Debug.Log("[KSPI]: ComputerCore on " + part.name + " was Force Activated");
-            this.part.force_activate();
+            Debug.Log("[KSPI]: ComputerCore on " + part.name + " was Force Activated");
+            part.force_activate();
 
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
-            moduleCommand = part.FindModuleImplementing<ModuleCommand>();
+            _moduleCommand = part.FindModuleImplementing<ModuleCommand>();
 
             if (isupgraded || !PluginHelper.TechnologyIsInUse)
                 upgradePartModule();
@@ -121,18 +119,18 @@ namespace FNPlugin
 
             if (IsEnabled)
             {
-                double time_diff = Planetarium.GetUniversalTime() - last_active_time;
-                double altitude_multiplier = vessel.altitude / vessel.mainBody.Radius;
-                altitude_multiplier = Math.Max(altitude_multiplier, 1);
+                var timeDifference = Planetarium.GetUniversalTime() - last_active_time;
+                var altitudeMultiplier = vessel.altitude / vessel.mainBody.Radius;
+                altitudeMultiplier = Math.Max(altitudeMultiplier, 1);
 
                 var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
 
-                double science_to_increment = baseScienceRate * time_diff / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * scienceMultiplier / (Math.Sqrt(altitude_multiplier));
-                science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
-                science_to_add += science_to_increment;
+                var scienceToIncrement = baseScienceRate * timeDifference / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * scienceMultiplier / (Math.Sqrt(altitudeMultiplier));
+                scienceToIncrement = (double.IsNaN(scienceToIncrement) || double.IsInfinity(scienceToIncrement)) ? 0 : scienceToIncrement;
+                science_to_add += scienceToIncrement;
             } 
 
-            effectivePowerRequirement = (isupgraded ? upgradedMegajouleRate : megajouleRate) * powerReqMult;
+            _effectivePowerRequirement = (isupgraded ? upgradedMegajouleRate : megajouleRate) * powerReqMult;
         }
 
         public override void OnUpdate()
@@ -155,8 +153,8 @@ namespace FNPlugin
             _scienceRateField.guiActive = isUpgradedOrNoActiveScience;
             _isPoweredField.guiActive = isUpgradedOrNoActiveScience;
 
-            double scienceratetmp =  science_rate_f * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.getScienceMultiplier(vessel);
-            scienceRate = scienceratetmp.ToString("0.000") + "/ Day";
+            var science =  _scienceRateF * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.getScienceMultiplier(vessel);
+            scienceRate = science.ToString("0.000") + "/ Day";
 
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";//
@@ -168,17 +166,17 @@ namespace FNPlugin
 
             if (isupgraded && IsEnabled)
             {
-                var power_returned = CheatOptions.InfiniteElectricity
-                    ? effectivePowerRequirement
-                    : consumeFNResourcePerSecond(effectivePowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var powerReturned = CheatOptions.InfiniteElectricity
+                    ? _effectivePowerRequirement
+                    : consumeFNResourcePerSecond(_effectivePowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                electrical_power_ratio = power_returned / effectivePowerRequirement;
+                electrical_power_ratio = powerReturned / _effectivePowerRequirement;
                 IsPowered = electrical_power_ratio > 0.99;
 
                 if (IsPowered)
                 {
-                    if(moduleCommand != null)
-                        moduleCommand.requiresTelemetry = false;
+                    if(_moduleCommand != null)
+                        _moduleCommand.requiresTelemetry = false;
 
                     if (part.vessel != null && part.vessel.connection != null && part.vessel.connection.Comm != null)
                     {
@@ -186,19 +184,19 @@ namespace FNPlugin
                         part.vessel.connection.Comm.isControlSource = true;
                     }
 
-                    double altitude_multiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
+                    var altitudeMultiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
                     var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
 
-                    science_rate_f = baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / effectivePowerRequirement / Math.Sqrt(altitude_multiplier);
+                    _scienceRateF = baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * powerReturned / _effectivePowerRequirement / Math.Sqrt(altitudeMultiplier);
 
-                    if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
-                        science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
+                    if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(_scienceRateF) && !double.IsNaN(_scienceRateF))
+                        science_to_add += _scienceRateF * TimeWarp.fixedDeltaTime;
                 }
                 else
                 {
-                    if(moduleCommand != null)
-                        moduleCommand.requiresTelemetry = true;
+                    if(_moduleCommand != null)
+                        _moduleCommand.requiresTelemetry = true;
 
                     if (part.vessel != null && part.vessel.connection != null && part.vessel.connection.Comm != null)
                     {
@@ -206,13 +204,13 @@ namespace FNPlugin
                         part.vessel.connection.Comm.isControlSource = false;
                     }
 
-                    part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -power_returned * TimeWarp.fixedDeltaTime);
+                    part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -powerReturned * TimeWarp.fixedDeltaTime);
                 }
             }
             else
             {
                 IsPowered = false;
-                science_rate_f = 0;
+                _scienceRateF = 0;
                 electrical_power_ratio = 0;
                 science_to_add = 0;
             }
@@ -239,15 +237,14 @@ namespace FNPlugin
                 subject.scienceCap = 167 * subject.subjectValue; 
                 subject.dataScale = 1.25f;
 
-                double remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
-                science_to_add = Math.Min(science_to_add, remaining_base_science);
+                science_to_add = Math.Min(science_to_add, (subject.scienceCap - subject.science) / subject.subjectValue);
 
                 // transmission of zero data breaks the experiment result dialog box
                 data_size = Math.Max(float.Epsilon, science_to_add * subject.dataScale);
                 science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Science Lab Data");
 
                 result_title = experiment.experimentTitle;
-                result_string = this.nameStr + " " + getRandomExperimentResult();
+                result_string = nameStr + " " + GetRandomExperimentResult();
 
                 recovery_value = science_to_add;
                 transmit_value = recovery_value;
@@ -276,9 +273,8 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            string desc = Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo1") + " " + megajouleRate.ToString("0.0") + " MW\n";//"Power Requirements: "
+            var desc = Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo1") + " " + megajouleRate.ToString("0.0") + " MW\n";//"Power Requirements: "
             return desc + Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo2") + upgradedMegajouleRate.ToString("0.0") + " MW\n";//"Upgraded Power Requirements: "
-
         }
 
         // IUpgradeableModule
@@ -287,27 +283,24 @@ namespace FNPlugin
             computercoreType = upgradedName;
             if (nameStr == "")
             {
-                ConfigNode[] namelist = GameDatabase.Instance.GetConfigNodes("AI_CORE_NAME");
-                System.Random rands = new System.Random();
-                ConfigNode myName = namelist[rands.Next(0, namelist.Length)];
+                ConfigNode[] nameList = GameDatabase.Instance.GetConfigNodes("AI_CORE_NAME");
+                ConfigNode myName = nameList[new System.Random().Next(0, nameList.Length)];
                 nameStr = myName.GetValue("name");
             }
 
             isupgraded = true;
             canDeploy = true;
 
-            _experiment_node = GameDatabase.Instance.GetConfigNodes("EXPERIMENT_DEFINITION").FirstOrDefault(nd => nd.GetValue("id") == experimentID);
+            _experimentNode = GameDatabase.Instance.GetConfigNodes("EXPERIMENT_DEFINITION").FirstOrDefault(nd => nd.GetValue("id") == experimentID);
         }
 
         // Privates
-        private string getRandomExperimentResult()
+        private string GetRandomExperimentResult()
         {
             try
             {
-                System.Random rnd = new System.Random();
-                String[] result_strs = _experiment_node.GetNode("RESULTS").GetValuesStartsWith("default");
-                int indx = rnd.Next(result_strs.Length);
-                return result_strs[indx];
+                string[] resultStrings = _experimentNode.GetNode("RESULTS").GetValuesStartsWith("default");
+                return resultStrings[new System.Random().Next(resultStrings.Length)];
             } 
             catch (Exception ex)
             {
