@@ -29,8 +29,6 @@ namespace FNPlugin
         public double science_to_add;
         [KSPField(isPersistant = true)]
         public bool coreInit = false;
-        //[KSPField]
-        //public double alternatorPower = 0.001;
         [KSPField]
         public string upgradeTechReq = null;
         [KSPField]
@@ -168,8 +166,6 @@ namespace FNPlugin
         {
             base.OnFixedUpdate();
 
-            //
-
             if (isupgraded && IsEnabled)
             {
                 var power_returned = CheatOptions.InfiniteElectricity
@@ -181,7 +177,14 @@ namespace FNPlugin
 
                 if (IsPowered)
                 {
-                    HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().requireSignalForControl = false;
+                    if(moduleCommand != null)
+                        moduleCommand.requiresTelemetry = false;
+
+                    if (part.vessel != null && part.vessel.connection != null && part.vessel.connection.Comm != null)
+                    {
+                        part.vessel.connection.Comm.isHome = true;
+                        part.vessel.connection.Comm.isControlSource = true;
+                    }
 
                     double altitude_multiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
@@ -194,9 +197,15 @@ namespace FNPlugin
                 }
                 else
                 {
-                    HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().requireSignalForControl = true;
+                    if(moduleCommand != null)
+                        moduleCommand.requiresTelemetry = true;
 
-                    // return any unused power
+                    if (part.vessel != null && part.vessel.connection != null && part.vessel.connection.Comm != null)
+                    {
+                        part.vessel.connection.Comm.isHome = false;
+                        part.vessel.connection.Comm.isControlSource = false;
+                    }
+
                     part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -power_returned * TimeWarp.fixedDeltaTime);
                 }
             }
@@ -213,9 +222,6 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            //supplyFNResourcePerSecondWithMax(alternatorPower, alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
-
-            //part.temperature = part.temperature + (TimeWarp.fixedDeltaTime * 1000 * alternatorPower / (part.thermalMass * 0.8));
         }
 
         protected override bool generateScienceData()
