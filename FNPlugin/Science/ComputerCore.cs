@@ -177,7 +177,14 @@ namespace FNPlugin
 
                 if (IsPowered)
                 {
-                    moduleCommand.requiresTelemetry = false;
+                    if(moduleCommand != null)
+                        moduleCommand.requiresTelemetry = false;
+
+                    if (part.vessel != null && part.vessel.connection != null && part.vessel.connection.Comm != null)
+                    {
+                        part.vessel.connection.Comm.isHome = true;
+                        part.vessel.connection.Comm.isControlSource = true;
+                    }
 
                     double altitude_multiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
@@ -190,7 +197,14 @@ namespace FNPlugin
                 }
                 else
                 {
-                    moduleCommand.requiresTelemetry = true;
+                    if(moduleCommand != null)
+                        moduleCommand.requiresTelemetry = true;
+
+                    if (part.vessel != null && part.vessel.connection != null && part.vessel.connection.Comm != null)
+                    {
+                        part.vessel.connection.Comm.isHome = false;
+                        part.vessel.connection.Comm.isControlSource = false;
+                    }
 
                     part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -power_returned * TimeWarp.fixedDeltaTime);
                 }
