@@ -29,8 +29,6 @@ namespace FNPlugin
         public double science_to_add;
         [KSPField(isPersistant = true)]
         public bool coreInit = false;
-        //[KSPField]
-        //public double alternatorPower = 0.001;
         [KSPField]
         public string upgradeTechReq = null;
         [KSPField]
@@ -168,8 +166,6 @@ namespace FNPlugin
         {
             base.OnFixedUpdate();
 
-            //
-
             if (isupgraded && IsEnabled)
             {
                 var power_returned = CheatOptions.InfiniteElectricity
@@ -181,7 +177,7 @@ namespace FNPlugin
 
                 if (IsPowered)
                 {
-                    HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().requireSignalForControl = false;
+                    moduleCommand.requiresTelemetry = false;
 
                     double altitude_multiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
@@ -194,9 +190,8 @@ namespace FNPlugin
                 }
                 else
                 {
-                    HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().requireSignalForControl = true;
+                    moduleCommand.requiresTelemetry = true;
 
-                    // return any unused power
                     part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -power_returned * TimeWarp.fixedDeltaTime);
                 }
             }
@@ -213,9 +208,6 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            //supplyFNResourcePerSecondWithMax(alternatorPower, alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
-
-            //part.temperature = part.temperature + (TimeWarp.fixedDeltaTime * 1000 * alternatorPower / (part.thermalMass * 0.8));
         }
 
         protected override bool generateScienceData()
