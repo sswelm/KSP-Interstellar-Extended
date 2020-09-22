@@ -231,8 +231,7 @@ namespace FNPlugin
         protected double effectPower = 0;
         [KSPField]
         public string EffectName = String.Empty;
-        [KSPField]
-        protected string _particleFXName;
+
         [KSPField]
         public double massTweakscaleExponent = 3;
         [KSPField]
@@ -256,7 +255,7 @@ namespace FNPlugin
         bool _warpToReal;
         bool _isFullyStarted;
 
-        double _speedOfLight;
+        double _effectiveSpeedOfLight;
         double _modifiedEngineBaseIsp;
         double _electrical_share_f;
         double _electrical_consumption_f;
@@ -266,16 +265,20 @@ namespace FNPlugin
         double _effectiveIsp;
         double _ispPersistent;
 
+        string _particleFxName;
+
         ResourceBuffers _resourceBuffers;
         FloatCurve _ispFloatCurve;
-        List<ElectricEnginePropellant> _propellants;
         ModuleEngines _attachedEngine;
 
+        List<ElectricEnginePropellant> _vesselPropellants;
+        List<string> _allPropellantsFX;
+
         // Properties
-        public string UpgradeTechnology { get { return upgradeTechReq; } }
-        public double MaxPower { get { return scaledMaxPower * powerReqMult * powerCapacityModifier; } }
-        public double MaxEffectivePower { get { return ignoreWasteheat ? MaxPower : MaxPower * CurrentPropellantEfficiency * ThermalEfficiency; } }
-        public bool IsOperational { get { return _attachedEngine != null ? _attachedEngine.isOperational : false; } }
+        public string UpgradeTechnology => upgradeTechReq;
+        public double MaxPower => scaledMaxPower * powerReqMult * powerCapacityModifier;
+        public double MaxEffectivePower => ignoreWasteheat ? MaxPower : MaxPower * CurrentPropellantEfficiency * ThermalEfficiency;
+        public bool IsOperational => _attachedEngine != null && _attachedEngine.isOperational;
 
         public double PowerCapacityModifier
         {
@@ -323,7 +326,7 @@ namespace FNPlugin
         private ElectricEnginePropellant _currentPropellant = null;
         public ElectricEnginePropellant CurrentPropellant
         {
-            get { return _currentPropellant; }
+            get => _currentPropellant;
             set
             {
                 if (value == null)
@@ -331,22 +334,17 @@ namespace FNPlugin
 
                 _currentPropellant = value;
                 propellantIsSaved = true;
-                fuel_mode = _propellants.IndexOf(_currentPropellant);
+                fuel_mode = _vesselPropellants.IndexOf(_currentPropellant);
                 propellantName = _currentPropellant.PropellantName;
                 propellantGUIName = _currentPropellant.PropellantGUIName;
                 _modifiedCurrentPropellantIspMultiplier = CurrentIspMultiplier;
             }
         }
 
-        public double CurrentIspMultiplier
-        {
-            get
-            {
-                return type == (int)ElectricEngineType.VASIMR || type == (int)ElectricEngineType.ARCJET
+        public double CurrentIspMultiplier =>
+            type == (int)ElectricEngineType.VASIMR || type == (int)ElectricEngineType.ARCJET
                 ? CurrentPropellant.DecomposedIspMult
                 : CurrentPropellant.IspMultiplier;
-            }
-        }
 
         public double ThermalEfficiency
         {
@@ -361,10 +359,7 @@ namespace FNPlugin
             }
         }
 
-        public double CurrentPropellantThrustMultiplier
-        {
-            get { return type == (int)ElectricEngineType.ARCJET ? CurrentPropellant.ThrustMultiplier : 1; }
-        }
+        public double CurrentPropellantThrustMultiplier => type == (int)ElectricEngineType.ARCJET ? CurrentPropellant.ThrustMultiplier : 1;
 
         public double CurrentPropellantEfficiency
         {
@@ -379,13 +374,13 @@ namespace FNPlugin
                 }
                 else if (type == (int)ElectricEngineType.VASIMR)
                 {
-                    var ionisation_energy_ratio = _attachedEngine.currentThrottle > 0 
+                    var ionizationEnergyRatio = _attachedEngine.currentThrottle > 0 
                         ? minimumIonisationRatio + (_attachedEngine.currentThrottle * ionisationMultiplier) 
                         : minimumIonisationRatio;
 
-                    ionisation_energy_ratio = Math.Min(1, ionisation_energy_ratio);
+                    ionizationEnergyRatio = Math.Min(1, ionizationEnergyRatio);
 
-                    efficiency = (ionisation_energy_ratio * CurrentPropellant.Efficiency) + ((1 - ionisation_energy_ratio) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency)));
+                    efficiency = (ionizationEnergyRatio * CurrentPropellant.Efficiency) + ((1 - ionizationEnergyRatio) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency)));
                 }
                 else if (type == (int)ElectricEngineType.VACUUMTHRUSTER)
                 {
@@ -394,10 +389,10 @@ namespace FNPlugin
                 }
                 else
                 {
-                    var ionisation_energy_ratio = Math.Min(1,  1 / (baseISP / baseIspIonisationDivider));
+                    var ionizationEnergyRatio = Math.Min(1,  1 / (baseISP / baseIspIonisationDivider));
 
                     // achieve higher efficiencies at higher base isp
-                    efficiency = (ionisation_energy_ratio * CurrentPropellant.Efficiency) + ((1 - ionisation_energy_ratio) * baseEfficency);
+                    efficiency = (ionizationEnergyRatio * CurrentPropellant.Efficiency) + ((1 - ionizationEnergyRatio) * baseEfficency);
                 }
 
                 return efficiency;
@@ -493,9 +488,11 @@ namespace FNPlugin
                 {
                     if (vessel.FindPartModulesImplementing<FNGenerator>().Any(m => m.isHighPower) == false)
                     {
+                        // ReSharper disable once CompareOfFloatsByEqualityOperator
                         if (powerThrustMultiplier == 1 && powerThrustMultiplierWithoutReactors > 0)
                             powerThrustMultiplier = powerThrustMultiplierWithoutReactors;
 
+                        // ReSharper disable once CompareOfFloatsByEqualityOperator
                         if (powerReqMult == 1 && powerReqMultWithoutReactor > 0)
                             powerReqMult = powerReqMultWithoutReactor;
                     }
@@ -514,7 +511,7 @@ namespace FNPlugin
                 _initializationCountdown = 10;
                 _ispFloatCurve = new FloatCurve();
                 _ispFloatCurve.Add(0, (float)baseISP);
-                _speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
+                _effectiveSpeedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
                 _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
                 _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
                 _hasrequiredupgrade = this.HasTechsRequiredToUpgrade();
@@ -526,14 +523,14 @@ namespace FNPlugin
 
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, (double)(decimal)this.part.mass);
-                _resourceBuffers.Init(this.part);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+                _resourceBuffers.Init(part);
 
                 InitializePropellantMode();
 
                 SetupPropellants(true);
 
-                UpdateIsp(1);
+                UpdateIsp();
 
                 _attachedEngine.maxThrust = (float)maximumThrustFromPower;
             }
@@ -547,34 +544,39 @@ namespace FNPlugin
         private void InitializePropellantMode()
         {
             // initialize propellant
-            _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
+            _allPropellantsFX = GetAllPropellants().Select(m => m.ParticleFXName ).Distinct().ToList();
+            _vesselPropellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
 
             if (propellantIsSaved || HighLogic.LoadedSceneIsEditor)
             {
                 if (!string.IsNullOrEmpty(propellantName))
                 {
-                    CurrentPropellant = _propellants.FirstOrDefault(m => m.PropellantName == propellantName) ??
-                                        _propellants.FirstOrDefault(m => m.PropellantGUIName == propellantName);
+                    CurrentPropellant = _vesselPropellants.FirstOrDefault(m => m.PropellantName == propellantName) ??
+                                        _vesselPropellants.FirstOrDefault(m => m.PropellantGUIName == propellantName);
                 }
 
                 if (CurrentPropellant == null && !string.IsNullOrEmpty(propellantGUIName))
                 {
-                    CurrentPropellant = _propellants.FirstOrDefault(m => m.PropellantName == propellantGUIName);
+                    CurrentPropellant = _vesselPropellants.FirstOrDefault(m => m.PropellantName == propellantGUIName);
 
                     if (CurrentPropellant == null)
-                        CurrentPropellant = _propellants.FirstOrDefault(m => m.PropellantGUIName == propellantGUIName);
+                        CurrentPropellant = _vesselPropellants.FirstOrDefault(m => m.PropellantGUIName == propellantGUIName);
                 }
             }
-            if (_propellants == null)
-                Debug.LogWarning("[KSPI]: SetupPropellants _propellants is still null");
+
+            if (_vesselPropellants == null)
+            {
+                Debug.LogWarning("[KSPI]: SetupPropellants _vesselPropellants is still null");
+                return;
+            }
 
             if (CurrentPropellant == null)
-                CurrentPropellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.First();
+                CurrentPropellant = fuel_mode < _vesselPropellants.Count ? _vesselPropellants[fuel_mode] : _vesselPropellants.First();
         }
 
         private void AttachToEngine()
         {
-            _attachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
+            _attachedEngine = part.FindModuleImplementing<ModuleEngines>();
             if (_attachedEngine == null) return;
 
             var finalTrustField = _attachedEngine.Fields["finalThrust"];
@@ -588,7 +590,7 @@ namespace FNPlugin
         {
             try
             {
-                CurrentPropellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.First();
+                CurrentPropellant = fuel_mode < _vesselPropellants.Count ? _vesselPropellants[fuel_mode] : _vesselPropellants.First();
 
                 if ((CurrentPropellant.SupportedEngines & type) != type)
                 {
@@ -624,7 +626,7 @@ namespace FNPlugin
                     if (engineState == true)
                         _attachedEngine.Activate();
                 }
-                else if (_rep < _propellants.Count)
+                else if (_rep < _vesselPropellants.Count)
                 {
                     _rep++;
                     TogglePropellant(moveNext);
@@ -635,7 +637,7 @@ namespace FNPlugin
                 {
                     // you can have any fuel you want in the editor but not in flight
                     var allVesselResourcesNames = part.vessel.parts.SelectMany(m => m.Resources).Select(m => m.resourceName).Distinct();
-                    if (!listOfPropellants.All(prop => allVesselResourcesNames.Contains(prop.name)) && _rep < _propellants.Count)
+                    if (!listOfPropellants.All(prop => allVesselResourcesNames.Contains(prop.name)) && _rep < _vesselPropellants.Count)
                     {
                         _rep++;
                         TogglePropellant(moveNext);
@@ -675,28 +677,28 @@ namespace FNPlugin
 
             if (ResearchAndDevelopment.Instance != null)
             {
-                Events["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && _hasrequiredupgrade;
-                Fields["upgradeCostStr"].guiActive = !isupgraded && _hasrequiredupgrade;
+                Events[nameof(RetrofitEngine)].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && _hasrequiredupgrade;
+                Fields[nameof(upgradeCostStr)].guiActive = !isupgraded && _hasrequiredupgrade;
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " " + Localizer.Format("#LOC_KSPIE_ElectricEngine_science");
             }
             else
             {
-                Events["RetrofitEngine"].active = false;
-                Fields["upgradeCostStr"].guiActive = false;
+                Events[nameof(RetrofitEngine)].active = false;
+                Fields[nameof(upgradeCostStr)].guiActive = false;
             }
 
             var isInfinite = _currentPropellant.IsInfinite;
 
-            Fields["engineIsp"].guiActive = !isInfinite;
-            Fields["propNameStr"].guiActive = !isInfinite;
-            Fields["efficiencyStr"].guiActive = !isInfinite;
-            Fields["thermalEfficiency"].guiActive = !ignoreWasteheat;
+            Fields[nameof(engineIsp)].guiActive = !isInfinite;
+            Fields[nameof(propNameStr)].guiActive = !isInfinite;
+            Fields[nameof(efficiencyStr)].guiActive = !isInfinite;
+            Fields[nameof(thermalEfficiency)].guiActive = !ignoreWasteheat;
 
-            if (this.IsOperational)
+            if (IsOperational)
             {
-                Fields["electricalPowerShareStr"].guiActive = true;
-                Fields["heatProductionStr"].guiActive = true;
-                Fields["efficiencyStr"].guiActive = true;
+                Fields[nameof(electricalPowerShareStr)].guiActive = true;
+                Fields[nameof(heatProductionStr)].guiActive = true;
+                Fields[nameof(efficiencyStr)].guiActive = true;
                 electricalPowerShareStr = (100.0 * _electrical_share_f).ToString("0.00") + "%";
                 heatProductionStr = _heat_production_f.ToString("0.000") + " MW";
 
@@ -710,9 +712,9 @@ namespace FNPlugin
             }
             else
             {
-                Fields["electricalPowerShareStr"].guiActive = false;
-                Fields["heatProductionStr"].guiActive = false;
-                Fields["efficiencyStr"].guiActive = false;
+                Fields[nameof(electricalPowerShareStr)].guiActive = false;
+                Fields[nameof(heatProductionStr)].guiActive = false;
+                Fields[nameof(efficiencyStr)].guiActive = false;
             }
         }
 
@@ -724,20 +726,12 @@ namespace FNPlugin
             propNameStr = CurrentPropellant != null ? CurrentPropellant.PropellantGUIName : "";
         }
 
-        private double IspGears
-        {
-            get { return _hasGearTechnology ? ispGears : 1; }
-        }
+        private double IspGears => _hasGearTechnology ? ispGears : 1;
 
-        private double ModifiedThrotte
-        {
-            get
-            {
-                return CurrentPropellant.SupportedEngines == 8
-                    ? _attachedEngine.currentThrottle
-                    : Math.Min((double)(decimal)_attachedEngine.currentThrottle * IspGears, 1);
-            }
-        }
+        private double ModifiedThrottle =>
+            CurrentPropellant.SupportedEngines == 8
+                ? _attachedEngine.currentThrottle
+                : Math.Min((double)(decimal)_attachedEngine.currentThrottle * IspGears, 1);
 
         private double ThrottleModifiedIsp()
         {
@@ -753,9 +747,15 @@ namespace FNPlugin
         // ReSharper disable once UnusedMember.Global
         public void FixedUpdate()
         {
+            // disable exhaust effects
+            if (!string.IsNullOrEmpty(EffectName))
+                part.Effect(EffectName, 0, -1);
+
+            _allPropellantsFX?.ForEach(prop => part.Effect(prop, 0, -1)); // set all FX to zero
+
             // if not force activated or staged, still call OnFixedUpdateResourceSuppliable
-            if (!this.isEnabled)
-                OnFixedUpdateResourceSuppliable((double)(decimal)TimeWarp.fixedDeltaTime);
+            if (!isEnabled)
+                OnFixedUpdateResourceSuppliable((double) (decimal) TimeWarp.fixedDeltaTime);
         }
 
         // ReSharper disable once UnusedMember.Global
@@ -771,8 +771,8 @@ namespace FNPlugin
 
             CalculateTimeDialation();
 
-            if (_attachedEngine is ModuleEnginesFX)
-                GetAllPropellants().ForEach(prop => part.Effect(prop.ParticleFXName, 0, -1)); // set all FX to zero
+            //if (_attachedEngine is ModuleEnginesFX)
+            //    GetAllPropellants().ForEach(prop => part.Effect(prop.ParticleFXName, 0, -1)); // set all FX to zero
 
             if (CurrentPropellant == null) return;
 
@@ -788,7 +788,7 @@ namespace FNPlugin
             var sumOfAllEffectivePower = vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.MaxEffectivePower);
             _electrical_share_f = sumOfAllEffectivePower > 0 ? maxEffectivePower / sumOfAllEffectivePower : 1;
 
-            modifiedThrotte = ModifiedThrotte;
+            modifiedThrotte = ModifiedThrottle;
             modifiedMaxThrottlePower = maxEffectivePower * modifiedThrotte;
 
             totalPowerSupplied = getTotalPowerSupplied(ResourceManager.FNRESOURCE_MEGAJOULES);
@@ -847,11 +847,11 @@ namespace FNPlugin
             _effectiveIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * ThrottleModifiedIsp();
             _maxIsp = _effectiveIsp * CurrentPropellantThrustMultiplier;
 
-            var throtteModifier = ispGears == 1 ? 1 : ModifiedThrotte;
+            var throttleModifier = ispGears == 1 ? 1 : ModifiedThrottle;
 
             effectivePowerThrustModifier = timeDilation * currentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier();
 
-            effectiveRecievedPower = effectivePowerThrustModifier * actualPowerReceived * throtteModifier;
+            effectiveRecievedPower = effectivePowerThrustModifier * actualPowerReceived * throttleModifier;
             effectiveSimulatedPower = effectivePowerThrustModifier * simulatedPowerReceived;
 
             currentThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveRecievedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
@@ -862,7 +862,7 @@ namespace FNPlugin
             _currentSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : currentThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
             _simulatedSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : simulatedThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
 
-            var maxThrustWithCurrentThrottle = currentThrustInSpace * throtteModifier;
+            var maxThrustWithCurrentThrottle = currentThrustInSpace * throttleModifier;
 
             calculated_thrust = CurrentPropellant.SupportedEngines == 8
                 ? maxThrustWithCurrentThrottle
@@ -886,7 +886,7 @@ namespace FNPlugin
 
                     _fuelFlowModifier = ispGears == 1
                         ? 1 / throttle
-                        : ModifiedThrotte / throttle;
+                        : ModifiedThrottle / throttle;
 
                     _maxFuelFlowRate = (float)Math.Max(_atmosphereThrustEfficiency * _currentSpaceFuelFlowRate * _fuelFlowModifier, 1e-11);
                     _attachedEngine.maxFuelFlow = _maxFuelFlowRate;
@@ -901,7 +901,7 @@ namespace FNPlugin
 
                 if (!this.vessel.packed)
                 {
-                    // allow throtle to be used up to Geeforce treshold
+                    // allow throttle to be used up to Geeforce threshold
                     TimeWarp.GThreshold = GThreshold;
 
                     _isFullyStarted = true;
@@ -919,8 +919,9 @@ namespace FNPlugin
 
                     ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
 
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
                     if (ratioHeadingVersusRequest == 1)
-                        PersistantThrust((double)(decimal)TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.totalMass, thrust_d, _ispPersistent);
+                        PersistentThrust((double)(decimal)TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), part.transform.up, vessel.totalMass, thrust_d, _ispPersistent);
                 }
                 else
                     IdleEngine();
@@ -935,15 +936,15 @@ namespace FNPlugin
 
                 effectPower = Math.Min(1, particleEffectMult * (engineFuelFlow / maxFuelFlowRate));
 
-                _particleFXName = String.IsNullOrEmpty(EffectName) ? CurrentPropellant.ParticleFXName : EffectName;
+                _particleFxName = string.IsNullOrEmpty(EffectName) ? CurrentPropellant.ParticleFXName : EffectName;
 
-                this.part.Effect(_particleFXName, (float)effectPower, -1);
+                this.part.Effect(_particleFxName, (float)effectPower, -1);
             }
 
             var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
-                var calculatedConsumptionInTon = this.vessel.packed ? 0 : simulatedThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
+                var calculatedConsumptionInTon = vessel.packed ? 0 : simulatedThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
                 var vacuumPlasmaResourceAmount = calculatedConsumptionInTon * 2000 * TimeWarp.fixedDeltaTime;
                 vacuumPlasmaResource.maxAmount = vacuumPlasmaResourceAmount;
                 part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
@@ -968,7 +969,7 @@ namespace FNPlugin
             }
 
             if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
-                this.part.Effect(CurrentPropellant.ParticleFXName, 0, -1);
+                part.Effect(CurrentPropellant.ParticleFXName, 0, -1);
         }
 
         private void CalculateTimeDialation()
@@ -977,7 +978,7 @@ namespace FNPlugin
             {
                 var worldSpaceVelocity = vessel.orbit.GetFrameVel().magnitude;
 
-                lightSpeedRatio = Math.Min(worldSpaceVelocity / _speedOfLight, 0.9999999999);
+                lightSpeedRatio = Math.Min(worldSpaceVelocity / _effectiveSpeedOfLight, 0.9999999999);
 
                 timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
             }
@@ -998,11 +999,9 @@ namespace FNPlugin
             return !(value <= 0);
         }
 
-        private void PersistantThrust(double fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass, double thrust, double isp)
+        private void PersistentThrust(double fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass, double thrust, double isp)
         {
-            double demandMass;
-
-            var deltaVv = CalculateDeltaVV(thrustDirection, vesselMass, fixedDeltaTime, thrust, isp, out demandMass);
+            var deltaVv = CalculateDeltaVV(thrustDirection, vesselMass, fixedDeltaTime, thrust, isp, out var demandMass);
 
             var persistentThrustDot = Vector3d.Dot(thrustDirection, vessel.obt_velocity);
             if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))
@@ -1044,7 +1043,7 @@ namespace FNPlugin
         {
             isupgraded = true;
             type = upgradedtype;
-            _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
+            _vesselPropellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
             engineTypeStr = upgradedName;
 
             if (!vacplasmaadded && type == (int)ElectricEngineType.VACUUMTHRUSTER)
@@ -1108,12 +1107,12 @@ namespace FNPlugin
         {
             Debug.Log("[KSPI]: ElectricEngineControllerFX toggleNextPropellant");
             fuel_mode++;
-            if (fuel_mode >= _propellants.Count)
+            if (fuel_mode >= _vesselPropellants.Count)
                 fuel_mode = 0;
 
             SetupPropellants(true);
 
-            UpdateIsp(1);
+            UpdateIsp();
         }
 
         private void TogglePreviousPropellant()
@@ -1121,11 +1120,11 @@ namespace FNPlugin
             Debug.Log("[KSPI]: ElectricEngineControllerFX togglePreviousPropellant");
             fuel_mode--;
             if (fuel_mode < 0)
-                fuel_mode = _propellants.Count - 1;
+                fuel_mode = _vesselPropellants.Count - 1;
 
             SetupPropellants(false);
 
-            UpdateIsp(1);
+            UpdateIsp();
         }
 
         private double EvaluateMaxThrust(double powerSupply)
@@ -1137,7 +1136,7 @@ namespace FNPlugin
             return CurrentPropellantEfficiency * GetPowerThrustModifier() * powerSupply / (_modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * GameConstants.STANDARD_GRAVITY);
         }
 
-        private void UpdateIsp(double ispEfficiency)
+        private void UpdateIsp(double ispEfficiency = 1)
         {
             _ispFloatCurve.Curve.RemoveKey(0);
             engineIsp = timeDilation * ispEfficiency * _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
@@ -1157,15 +1156,16 @@ namespace FNPlugin
 
         private static List<ElectricEnginePropellant> GetAllPropellants()
         {
-            var propellantlist = GameDatabase.Instance.GetConfigNodes("ELECTRIC_PROPELLANT");
+            var configNodes = GameDatabase.Instance.GetConfigNodes("ELECTRIC_PROPELLANT");
+
             List<ElectricEnginePropellant> propellantList;
-            if (propellantlist.Length == 0)
+            if (configNodes.Length == 0)
             {
                 PluginHelper.showInstallationErrorMessage();
                 propellantList = new List<ElectricEnginePropellant>();
             }
             else
-                propellantList = propellantlist.Select(prop => new ElectricEnginePropellant(prop)).ToList();
+                propellantList = configNodes.Select(prop => new ElectricEnginePropellant(prop)).ToList();
 
             return propellantList;
         }
