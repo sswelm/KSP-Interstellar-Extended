@@ -1,3 +1,4 @@
+using FNPlugin;
 using FNPlugin.Constants;
 using KSP.Localization;
 using System;
@@ -7,6 +8,55 @@ using UnityEngine;
 
 namespace FNPlugin
 {
+    public class AIHome : PartModule
+    {
+        [KSPField(isPersistant = true)]
+        public double AIMoveInTime;
+
+        // Maximum loss of reputation from destroying the AI's home.
+        [KSPField]
+        public float destructionPenaltyMax = 150;
+
+        private void OnJustAboutToBeDestroyed()
+        {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
+            // Has the AI moved in yet?
+            if (AIMoveInTime == 0) return;
+
+            // Transfer the AI away from the ship, just in time for it to watch
+            // it's home to be destroyed.
+
+            DestroyAIsHome();
+        }
+
+        public override void OnStart(PartModule.StartState state)
+        {
+            if (state == StartState.Editor) return;
+
+            // ensure it's called only once.
+            part.OnJustAboutToBeDestroyed -= OnJustAboutToBeDestroyed;
+            part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
+        }
+
+        public void DestroyAIsHome()
+        {
+            double delta = Planetarium.GetUniversalTime() - AIMoveInTime;
+            float penalty = (float)Math.Min(destructionPenaltyMax, (delta * 0.01));
+
+            // Destroying peoples homes is never a good look.
+
+            Reputation.Instance.AddReputation(-penalty, TransactionReasons.VesselLoss);
+            Debug.Log(String.Format("DestroyAIsHOME: removing {0} points of reputation", penalty));
+        }
+
+        public void NewHome()
+        {
+            // Let's throw a welcoming party for the AI to his new home! Everyone is invited, and is at
+            AIMoveInTime = Planetarium.GetUniversalTime();
+        }
+    }
+
     class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule
     {
         // Persistent
@@ -68,6 +118,7 @@ namespace FNPlugin
         BaseEvent _retrofitCoreEvent;
         ModuleDataTransmitter _moduleDataTransmitter;
         ModuleCommand _moduleCommand;
+        AIHome _moduleAIHome;
 
         //Properties
         public string UpgradeTechnology => upgradeTechReq;
@@ -79,6 +130,9 @@ namespace FNPlugin
         {
             if (ResearchAndDevelopment.Instance == null) return;
             if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
+
+            if (_moduleAIHome != null)
+                _moduleAIHome.NewHome();
 
             upgradePartModule();
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
@@ -111,6 +165,7 @@ namespace FNPlugin
 
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
             _moduleCommand = part.FindModuleImplementing<ModuleCommand>();
+            _moduleAIHome = part.FindModuleImplementing<AIHome>();
 
             if (isupgraded || !PluginHelper.TechnologyIsInUse)
                 upgradePartModule();
