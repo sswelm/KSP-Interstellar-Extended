@@ -56,7 +56,7 @@ namespace FNPlugin.Collectors
         [KSPField(isPersistant = false, guiActive = true, guiName = "HeatSink Status")] // Debugging information for the heatsink
         public string heatsinkDebug;
         [KSPField(isPersistant = true, guiActive = false)] // Debugging information for the heatsink
-        private bool pumpingHeat;
+        public bool pumpingHeat;
 
         private int powerCountdown;
         private int powerCountdownMax = 90;
