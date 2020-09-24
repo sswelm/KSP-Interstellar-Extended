@@ -147,6 +147,7 @@ namespace FNPlugin.Wasteheat
         [KSPField] public double oxidationModifier;
         [KSPField] public double temperatureDifference;
         [KSPField] public double submergedModifier;
+        [KSPField] public bool clarifyFunction;
 
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
@@ -315,6 +316,8 @@ namespace FNPlugin.Wasteheat
             {
                 if (radiatorArea == 0)
                 {
+                    clarifyFunction = true;
+
                     double tmp;
                     if (MeshRadiatorSize(out tmp) == true)
                     {
@@ -1208,7 +1211,7 @@ namespace FNPlugin.Wasteheat
         public override string getResourceManagerDisplayName()
         {
             // use identical names so it will be grouped together
-            return part.partInfo.title;
+            return part.partInfo.title + (clarifyFunction ? " (radiator)" : "");
         }
 
     }
