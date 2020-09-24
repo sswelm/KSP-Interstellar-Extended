@@ -313,6 +313,15 @@ namespace FNPlugin.Wasteheat
         {
             get 
             {
+                if (radiatorArea == 0)
+                {
+                    double tmp;
+                    if (MeshRadiatorSize(out tmp) == true)
+                    {
+                        radiatorArea = Math.Round(tmp);
+                    }
+                }
+
                 effectiveRadiativeArea = PluginHelper.RadiatorAreaMultiplier * areaMultiplier * radiatorArea;
 
                 return hasSurfaceAreaUpgradeTechReq 
@@ -527,6 +536,51 @@ namespace FNPlugin.Wasteheat
             }
         }
 
+        public bool MeshRadiatorSize(out double size)
+        {
+            size = 0;
+
+            MeshFilter mf = part.FindModelComponent<MeshFilter>();
+            if (mf == null) {
+                Debug.Log("MeshRadiatorSize: Cannot find a MeshFilter in GetComponent");
+                return false;
+            }
+            if(mf.mesh == null)
+            {
+                Debug.Log("MeshRadiatorSize: Cannot find a Mesh");
+                return false;
+            }
+
+            var triangles = mf.mesh.triangles;
+            var vertices = mf.mesh.vertices;
+
+            double total_area = 0.0;
+
+            for (int i = 0; i < triangles.Length; i += 3)
+            {
+                Vector3 corner = vertices[triangles[i]];
+                Vector3 a = vertices[triangles[i + 1]] - corner;
+                Vector3 b = vertices[triangles[i + 2]] - corner;
+
+                total_area += Vector3.Cross(a, b).magnitude;
+            }
+
+            if(total_area.IsInfinityOrNaNorZero() == true)
+            {
+                Debug.Log("MeshRadiatorSize: total_area is IsInfinityOrNaNorZero :(");
+                return false;
+            }
+
+            // convert from Mesh size to in game size. rescaleFactor changes when TweakScale modifies the
+            // size of the part.
+            size = (total_area / 2.0) * part.rescaleFactor;
+
+            Debug.Log(String.Format("MeshRadiatorSize: surface_area is {0}, rescale_factor is {1}, and scale_factor is {2}. Total radiator size is {3}",
+                size, part.rescaleFactor, part.scaleFactor, size));
+
+            return true;
+        }
+
         public override void OnStart(StartState state)
         {
             String[] resourcesToSupply = { ResourceManager.FNRESOURCE_WASTEHEAT };
@@ -731,6 +785,7 @@ namespace FNPlugin.Wasteheat
 
         public override void OnUpdate() // is called while in flight
         {
+
             radiator_deploy_delay++;
 
             if  (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
