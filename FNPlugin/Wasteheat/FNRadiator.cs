@@ -320,6 +320,13 @@ namespace FNPlugin.Wasteheat
                     {
                         radiatorArea = Math.Round(tmp);
                     }
+
+                    if(radiatorArea == 0)
+                    {
+                        // The Liquid Metal Cooled Reactor shows a tiny surface space, so this
+                        // should not be an else statement.
+                        radiatorArea = 1;
+                    }
                 }
 
                 effectiveRadiativeArea = PluginHelper.RadiatorAreaMultiplier * areaMultiplier * radiatorArea;
