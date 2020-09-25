@@ -2670,7 +2670,7 @@ namespace FNPlugin.Reactors
             {
                 var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW);
                 //var result = part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-                var fuelconsumption = fuel.Simulate ? consumeAmountInUnitOfStorage : result;
+                //var fuelconsumption = fuel.Simulate ? consumeAmountInUnitOfStorage : result;
                 return (fuel.Simulate ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
             }
 
