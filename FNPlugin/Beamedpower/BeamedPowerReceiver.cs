@@ -1703,7 +1703,7 @@ namespace FNPlugin
                         GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistance.Vessel.name, text_black_style, GUILayout.Width(wideLabelWidth));
                         GUILayout.Label(vesselPersistance.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistance.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
-                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity * powerMult), text_black_style, GUILayout.Width(valueWidthWide));
+                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity), text_black_style, GUILayout.Width(valueWidthWide));
                         GUILayout.Label(vesselPersistance.Aperture + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistance.Diameter + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(WavelengthToText(vesselPersistance.MinimumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));
@@ -2042,7 +2042,7 @@ namespace FNPlugin
 
                         // take into account maximum route capacity
                         var beamNetworkPower = beamedPowerData.Relays != null && beamedPowerData.Relays.Count > 0
-                            ? Math.Min(remainingPowerInBeam, beamedPowerData.Relays.Min(m => m.PowerCapacity) * powerMult)
+                            ? Math.Min(remainingPowerInBeam, beamedPowerData.Relays.Min(m => m.PowerCapacity))
                             : remainingPowerInBeam;
 
                         // substract from remaining power 
