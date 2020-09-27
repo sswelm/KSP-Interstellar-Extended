@@ -1,13 +1,13 @@
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using KSP.Localization;
 
-namespace FNPlugin.Wasteheat 
+namespace FNPlugin.Wasteheat
 {
     [KSPModule("Radiator")]
     class IntegratedRadiator : FNRadiator { }
@@ -19,10 +19,10 @@ namespace FNPlugin.Wasteheat
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
-    class FNRadiator : ResourceSuppliableModule    
+    class FNRadiator : ResourceSuppliableModule
     {
         // persitant
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_Cooling"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts= UI_Scene.All)]//Radiator Cooling--Off--On
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_Cooling"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Radiator Cooling--Off--On
         public bool radiatorIsEnabled = false;
         [KSPField(isPersistant = false)]
         public bool canRadiateHeat = true;
@@ -148,6 +148,7 @@ namespace FNPlugin.Wasteheat
         [KSPField] public double temperatureDifference;
         [KSPField] public double submergedModifier;
         [KSPField] public bool clarifyFunction;
+        [KSPField] public double sphericalCowInAVaccum;
 
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
@@ -163,7 +164,7 @@ namespace FNPlugin.Wasteheat
         private double stefanArea;
         private double thermalPowerDissipPerSecond;
         private double radiatedThermalPower;
-        private double convectedThermalPower;   
+        private double convectedThermalPower;
 
         private bool active;
         private bool isGraphene;
@@ -312,7 +313,7 @@ namespace FNPlugin.Wasteheat
 
         public double EffectiveRadiatorArea
         {
-            get 
+            get
             {
                 if (radiatorArea == 0)
                 {
@@ -324,7 +325,7 @@ namespace FNPlugin.Wasteheat
                         radiatorArea = Math.Round(tmp);
                     }
 
-                    if(radiatorArea == 0)
+                    if (radiatorArea == 0)
                     {
                         // The Liquid Metal Cooled Reactor shows a tiny surface space, so this
                         // should not be an else statement.
@@ -334,9 +335,13 @@ namespace FNPlugin.Wasteheat
 
                 effectiveRadiativeArea = PluginHelper.RadiatorAreaMultiplier * areaMultiplier * radiatorArea;
 
-                return hasSurfaceAreaUpgradeTechReq 
-                    ? effectiveRadiativeArea * surfaceAreaUpgradeMult 
-                    : effectiveRadiativeArea; 
+                // Because I have absolutely no idea what I'm doing, I'm taking some short cuts and major simplifications.
+                // This is the radius of a circular radiator, (operating in a vacuum)
+                sphericalCowInAVaccum = (effectiveRadiativeArea / Mathf.PI).Sqrt();
+
+                return hasSurfaceAreaUpgradeTechReq
+                    ? effectiveRadiativeArea * surfaceAreaUpgradeMult
+                    : effectiveRadiativeArea;
             }
         }
 
@@ -396,12 +401,12 @@ namespace FNPlugin.Wasteheat
             radiators_by_vessel.Clear();
         }
 
-        public static bool hasRadiatorsForVessel(Vessel vess) 
+        public static bool hasRadiatorsForVessel(Vessel vess)
         {
             return GetRadiatorsForVessel(vess).Any();
         }
 
-        public static double getAverageRadiatorTemperatureForVessel(Vessel vess) 
+        public static double getAverageRadiatorTemperatureForVessel(Vessel vess)
         {
             var radiator_vessel = GetRadiatorsForVessel(vess);
 
@@ -411,7 +416,7 @@ namespace FNPlugin.Wasteheat
             if (radiator_vessel.Any())
             {
                 var maxRadiatorTemperature = radiator_vessel.Max(r => r.MaxRadiatorTemperature);
-                var totalRadiatorsMass = radiator_vessel.Sum(r =>  (double)(decimal) r.part.mass);
+                var totalRadiatorsMass = radiator_vessel.Sum(r => (double)(decimal)r.part.mass);
 
                 return radiator_vessel.Sum(r => Math.Min(1, r.GetAverateRadiatorTemperature() / r.MaxRadiatorTemperature) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
             }
@@ -419,7 +424,7 @@ namespace FNPlugin.Wasteheat
                 return maximumRadiatorTempInSpace;
         }
 
-        public static float getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) 
+        public static float getAverageMaximumRadiatorTemperatureForVessel(Vessel vess)
         {
             var radiator_vessel = GetRadiatorsForVessel(vess);
 
@@ -434,16 +439,16 @@ namespace FNPlugin.Wasteheat
                 n_radiators += 1;
             }
 
-            if (n_radiators > 0) 
+            if (n_radiators > 0)
                 average_temp = average_temp / n_radiators;
-            else 
+            else
                 average_temp = 0;
 
             return average_temp;
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_DeployRadiator", active = true)]//Deploy Radiator
-        public void DeployRadiator() 
+        public void DeployRadiator()
         {
             isAutomated = false;
 
@@ -454,7 +459,7 @@ namespace FNPlugin.Wasteheat
 
         private void Deploy()
         {
-            if (preventShieldedDeploy && (part.ShieldedFromAirstream || radiator_deploy_delay < RADIATOR_DELAY)) 
+            if (preventShieldedDeploy && (part.ShieldedFromAirstream || radiator_deploy_delay < RADIATOR_DELAY))
             {
                 //Debug.Log("[KSPI]: Deploy Aborted, Part is shielded or nor ready");
                 return;
@@ -484,7 +489,7 @@ namespace FNPlugin.Wasteheat
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_RetractRadiator", active = true)]//Retract Radiator
-        public void RetractRadiator() 
+        public void RetractRadiator()
         {
             if (!isDeployable) return;
 
@@ -522,20 +527,20 @@ namespace FNPlugin.Wasteheat
         }
 
         [KSPAction("Deploy Radiator")]
-        public void DeployRadiatorAction(KSPActionParam param) 
+        public void DeployRadiatorAction(KSPActionParam param)
         {
             Debug.Log("[KSPI]: DeployRadiatorAction Called ");
             DeployRadiator();
         }
 
         [KSPAction("Retract Radiator")]
-        public void RetractRadiatorAction(KSPActionParam param) 
+        public void RetractRadiatorAction(KSPActionParam param)
         {
             RetractRadiator();
         }
 
         [KSPAction("Toggle Radiator")]
-        public void ToggleRadiatorAction(KSPActionParam param) 
+        public void ToggleRadiatorAction(KSPActionParam param)
         {
             if (radiatorIsEnabled)
                 RetractRadiator();
@@ -551,11 +556,12 @@ namespace FNPlugin.Wasteheat
             size = 0;
 
             MeshFilter mf = part.FindModelComponent<MeshFilter>();
-            if (mf == null) {
+            if (mf == null)
+            {
                 Debug.Log("MeshRadiatorSize: Cannot find a MeshFilter in GetComponent");
                 return false;
             }
-            if(mf.mesh == null)
+            if (mf.mesh == null)
             {
                 Debug.Log("MeshRadiatorSize: Cannot find a Mesh");
                 return false;
@@ -575,7 +581,7 @@ namespace FNPlugin.Wasteheat
                 total_area += Vector3.Cross(a, b).magnitude;
             }
 
-            if(total_area.IsInfinityOrNaNorZero() == true)
+            if (total_area.IsInfinityOrNaNorZero() == true)
             {
                 Debug.Log("MeshRadiatorSize: total_area is IsInfinityOrNaNorZero :(");
                 return false;
@@ -669,7 +675,7 @@ namespace FNPlugin.Wasteheat
 
                 deployAnimation[animName].normalizedTime = radiatorIsEnabled ? 1 : 0;
             }
-          
+
             _moduleActiveRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
 
             if (_moduleActiveRadiator != null)
@@ -715,10 +721,10 @@ namespace FNPlugin.Wasteheat
                 ActivateRadiator();
             }
 
-            for (var i = 0; i < 20; i++ )
+            for (var i = 0; i < 20; i++)
             {
                 radTempQueue.Enqueue(currentRadTemp);
-            }        
+            }
 
             InitializeTemperatureColorChannels();
 
@@ -783,8 +789,8 @@ namespace FNPlugin.Wasteheat
         {
             partMass = part.mass;
 
-            var isDeployStateUndefined = _moduleDeployableRadiator == null 
-                || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING 
+            var isDeployStateUndefined = _moduleDeployableRadiator == null
+                || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTING;
 
             var canbeActive = showControls && isDeployable && isDeployStateUndefined;
@@ -798,9 +804,10 @@ namespace FNPlugin.Wasteheat
 
             radiator_deploy_delay++;
 
-            if  (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
-                                                       _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDED)) {
-                if (radiatorState != _moduleDeployableRadiator.deployState) 
+            if (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
+                                                       _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDED))
+            {
+                if (radiatorState != _moduleDeployableRadiator.deployState)
                 {
                     part.SendMessage("GeometryPartModuleRebuildMeshData");
                     Debug.Log("[KSPI]: Updating geometry mesh due to radiator deployment.");
@@ -899,6 +906,25 @@ namespace FNPlugin.Wasteheat
             active = true;
             base.OnFixedUpdate();
         }
+        private double PartRotationDistance()
+        {
+            // how much did we rotate
+            Rigidbody rb = part.GetComponent<Rigidbody>();
+            if (rb == null)
+            {
+                // should not happen.
+                return 0;
+            }
+
+            // rb.angularVelocity.magnitude in radians/second
+            double tmp = 180 * Math.Abs(rb.angularVelocity.magnitude);
+            // calculate the linear velocity
+            double tmpVelocity = tmp / (Mathf.PI * sphericalCowInAVaccum);
+            // and then distance travelled.
+            double distanceTravelled = effectiveRadiatorArea * tmpVelocity;
+
+            return distanceTravelled;
+        }
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
         {
@@ -975,7 +1001,7 @@ namespace FNPlugin.Wasteheat
 
                 if (vessel.atmDensity > 0)
                 {
-                    atmosphere_modifier = vessel.atmDensity * convectiveBonus + vessel.speed.Sqrt();
+                    atmosphere_modifier = vessel.atmDensity * convectiveBonus + vessel.speed.Sqrt() + PartRotationDistance().Sqrt();
 
                     const double heatTransferCooficient = 0.0005; // 500W/m2/K
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - vessel.externalTemperature);
@@ -1006,7 +1032,7 @@ namespace FNPlugin.Wasteheat
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: Exception on " +  part.name + " durring FNRadiator.FixedUpdate with message " + e.Message);
+                Debug.LogError("[KSPI]: Exception on " + part.name + " durring FNRadiator.FixedUpdate with message " + e.Message);
             }
         }
 
@@ -1056,16 +1082,16 @@ namespace FNPlugin.Wasteheat
             if (!radiatorIsEnabled) return 0;
 
             var consumedWasteheat = CheatOptions.IgnoreMaxTemperature || wasteheatToConsume == 0
-                ? wasteheatToConsume 
+                ? wasteheatToConsume
                 : consumeFNResourcePerSecond(wasteheatToConsume, ResourceManager.FNRESOURCE_WASTEHEAT, wasteheatManager);
 
             return Double.IsNaN(consumedWasteheat) ? 0 : consumedWasteheat;
         }
 
 
-        public double CurrentRadiatorTemperature 
+        public double CurrentRadiatorTemperature
         {
-            get 
+            get
             {
                 return currentRadTemp;
             }
@@ -1110,7 +1136,7 @@ namespace FNPlugin.Wasteheat
             sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_radiatorArea") + String.Format(" {0:F2} m\xB2 \n", radiatorArea));//Base surface area:
             sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Mass") + String.Format(" : {0:F2}\n", radiatorArea / part.mass));//Surface area / Mass
 
-            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Bonus") + String.Format(" {0:P0}\n", String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0 : surfaceAreaUpgradeMult - 1 ));//Surface Area Bonus:
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Bonus") + String.Format(" {0:P0}\n", String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0 : surfaceAreaUpgradeMult - 1));//Surface Area Bonus:
             sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_AtmConvectionBonus") + String.Format(" {0:P0}\n", convectiveBonus - 1));//Atm Convection Bonus:
 
             sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_MaximumWasteHeatRadiatedMk1") + String.Format(" {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk1, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk1, 4)));//\nMaximum Waste Heat Radiated\nMk1:
@@ -1127,14 +1153,14 @@ namespace FNPlugin.Wasteheat
             var convection = 0.9 * effectiveRadiatorArea * convectiveBonus;
             var disapation = stefanArea * Math.Pow(900, 4);
 
-            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", String.Format("{0:F3}",disapation),String.Format("{0:F3}",convection)));//String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection)
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", String.Format("{0:F3}", disapation), String.Format("{0:F3}", convection)));//String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection)
 
             sb.Append("</size>");
 
             return sb.ToString();
         }
 
-        public override int getPowerPriority() 
+        public override int getPowerPriority()
         {
             return 3;
         }
@@ -1155,7 +1181,7 @@ namespace FNPlugin.Wasteheat
         {
             displayTemperature = (float)GetAverateRadiatorTemperature();
 
-            colorRatio =  displayTemperature < drapperPoint ? 0 : Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) * 1.05f);
+            colorRatio = displayTemperature < drapperPoint ? 0 : Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) * 1.05f);
 
             if (heatStates != null && heatStates.Any())
             {
