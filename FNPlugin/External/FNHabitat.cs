@@ -858,7 +858,14 @@ namespace FNPlugin
 
         public void AssumeDragCubePosition(string name)
         {
-            var anim = part.FindModelAnimators(deployAnimationName)[0];
+            var anims = part.FindModelAnimators(deployAnimationName);
+            if (anims == null || anims.Length < 1)
+            {
+                enabled = false;
+                return;
+            }
+
+            var anim = anims[0];
             if (anim == null)
             {
                 enabled = false;
