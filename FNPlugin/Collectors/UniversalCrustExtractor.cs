@@ -60,7 +60,7 @@ namespace FNPlugin.Collectors
 
         private int powerCountdown;
         private int powerCountdownMax = 90;
-        private double minimumPowerNeeded = 15;
+        private const double minimumPowerNeeded = 0.15;
 
         // GUI elements declaration
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 5, 150);
