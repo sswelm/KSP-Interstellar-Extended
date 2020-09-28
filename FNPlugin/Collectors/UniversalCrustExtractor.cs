@@ -79,11 +79,11 @@ namespace FNPlugin.Collectors
         private GUIStyle _bold_label;
         private GUIStyle _normal_label;
 
-        private KSPParticleEmitter[] particleEmitters;
+        private KSPParticleEmitter[] _particleEmitters;
 
         Dictionary<string, CrustalResourceAbundance> CrustalResourceAbundanceDict = new Dictionary<string, CrustalResourceAbundance>();
 
-        private AbundanceRequest resourceRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
+        private AbundanceRequest _resourceRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
         {
             ResourceType = HarvestTypes.Planetary,
             ResourceName = "", // this will need to be updated before 'sending the request'
@@ -103,12 +103,11 @@ namespace FNPlugin.Collectors
         public void DeployDrill()
         {
             isDeployed = true;
-            if (deployAnimation != null)
-            {
-                deployAnimation[deployAnimationName].speed = 1;
-                deployAnimation[deployAnimationName].normalizedTime = 0;
-                deployAnimation.Blend(deployAnimationName);
-            }
+            if (deployAnimation == null) return;
+
+            deployAnimation[deployAnimationName].speed = 1;
+            deployAnimation[deployAnimationName].normalizedTime = 0;
+            deployAnimation.Blend(deployAnimationName);
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_RetractDrill", active = true)]//Retract Drill
@@ -201,27 +200,30 @@ namespace FNPlugin.Collectors
         public override void OnStart(PartModule.StartState state)
         {
             // initialise resources
-            this.resources_to_supply = new[] { ResourceManager.FNRESOURCE_WASTEHEAT };
+            resources_to_supply = new[] { ResourceManager.FNRESOURCE_WASTEHEAT };
             base.OnStart(state);
 
-            _moduleScienceExperiment = this.part.FindModuleImplementing<ModuleScienceExperiment>();
+            _moduleScienceExperiment = part.FindModuleImplementing<ModuleScienceExperiment>();
 
             deployAnimation = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
             loopAnimation = part.FindModelAnimators(loopingAnimationName).FirstOrDefault();
 
-            particleEmitters = part.GetComponentsInChildren<KSPParticleEmitter>();
+            _particleEmitters = part.GetComponentsInChildren<KSPParticleEmitter>();
 
-            if (isDeployed)
+            if (deployAnimation != null)
             {
-                deployAnimation[deployAnimationName].speed = 1;
-                deployAnimation[deployAnimationName].normalizedTime = 1;
-                deployAnimation.Blend(deployAnimationName);
-            }
-            else
-            {
-                deployAnimation[deployAnimationName].speed = -1;
-                deployAnimation[deployAnimationName].normalizedTime = 0;
-                deployAnimation.Blend(deployAnimationName);
+                if (isDeployed)
+                {
+                    deployAnimation[deployAnimationName].speed = 1;
+                    deployAnimation[deployAnimationName].normalizedTime = 1;
+                    deployAnimation.Blend(deployAnimationName);
+                }
+                else
+                {
+                    deployAnimation[deployAnimationName].speed = -1;
+                    deployAnimation[deployAnimationName].normalizedTime = 0;
+                    deployAnimation.Blend(deployAnimationName);
+                }
             }
 
             ToggleEmmitters(false);
@@ -232,18 +234,15 @@ namespace FNPlugin.Collectors
                 // force activate this part if not in editor; otherwise the OnFixedUpdate etc. would not work
 
                 Debug.Log("[KSPI]: UniversalCrustExtractor on " + part.name + " was Force Activated");
-                this.part.force_activate();
+                part.force_activate();
 
                 // create the id for the GUI window
                 _window_ID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
-                if (bIsEnabled)
+                if (bIsEnabled && CheckForPreviousData())
                 {
-                    if (CheckForPreviousData())
-                    {
-                        double timeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
-                        MineResources(true, timeDifference);
-                    }
+                    double timeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
+                    MineResources(true, timeDifference);
                 }
             }
 
@@ -256,7 +255,7 @@ namespace FNPlugin.Collectors
             Events["DeployDrill"].active = !isDeployed && !deployAnimation.IsPlaying(deployAnimationName);
             Events["RetractDrill"].active = isDeployed && !deployAnimation.IsPlaying(deployAnimationName);
 
-            if (String.IsNullOrEmpty(reasonNotCollecting))
+            if (string.IsNullOrEmpty(reasonNotCollecting))
             {
                 if (_moduleScienceExperiment != null)
                 {
@@ -306,8 +305,7 @@ namespace FNPlugin.Collectors
             {
                 var currentAbundance = GetResourceAbundance(resource);
 
-                CrustalResourceAbundance existingAbundance;
-                if (CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out existingAbundance))
+                if (CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out var existingAbundance))
                 {
                     //existingAbundance.GlobalWithVariance = currentAbundance.GlobalWithVariance;
                     existingAbundance.Local = currentAbundance.Local;
@@ -323,7 +321,7 @@ namespace FNPlugin.Collectors
         {
             if (bIsEnabled)
             {
-                heatsinkDebug = string.Format("drilling, not pumping heat");
+                heatsinkDebug = "drilling, not pumping heat";
                 ToggleEmmitters(true);
                 UpdateLoopingAnimation();
 
@@ -339,19 +337,16 @@ namespace FNPlugin.Collectors
                     CalculateSpareRoom(resource);
                 }
 
-                if (pumpingHeat == true)
+                if (pumpingHeat)
                 {
                     ToggleEmmitters(true);
 
                     var state = CheckIfCollectingPossible();
-                    if (String.IsNullOrEmpty(state) == false)
+                    if (string.IsNullOrEmpty(state) == false)
                     {
                         heatsinkDebug = state;
                         pumpingHeat = false;
-                        return;
                     }
-
-                    
                 }
                 else
                 {
@@ -371,7 +366,7 @@ namespace FNPlugin.Collectors
 
         private void OnGUI()
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
+            if (vessel == FlightGlobals.ActiveVessel && _render_window)
                 _window_position = GUILayout.Window(_window_ID, _window_position, DrawGui, Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_windowtitle"));//"Universal Mining Interface"
 
             //scrollPosition[1] = GUI.VerticalScrollbar(_window_position, scrollPosition[1], 1, 0, 150, "Scroll");
@@ -426,22 +421,16 @@ namespace FNPlugin.Collectors
         private string CheckIfCollectingPossible()
         {
             if (vessel.checkLanded() == false || vessel.checkSplashed())
-            {
                 return Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_msg1");//"Vessel is not landed properly."
-            }
 
             if (!IsDrillExtended())
-            {
                 return Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_msg2");//"needs to be extended before it can be used."
-            }
 
             if (!CanReachTerrain())
-            {
                 return " " + Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_msg3");//trouble reaching the terrain.
-            }
 
             // cleared all the prerequisites
-            return String.Empty;
+            return string.Empty;
         }
 
         /// <summary>
@@ -465,8 +454,8 @@ namespace FNPlugin.Collectors
         /// <returns>The RaycastHit, which allows us to determine what is underneath us</returns>
         private RaycastHit WhatsUnderneath()
         {
-            Vector3d partPosition = this.part.transform.position; // find the position of the transform in 3d space
-            var scaleFactor = this.part.rescaleFactor; // what is the rescale factor of the drill?
+            Vector3d partPosition = part.transform.position; // find the position of the transform in 3d space
+            var scaleFactor = part.rescaleFactor; // what is the rescale factor of the drill?
             var drillDistance = drillReach * scaleFactor; // adjust the distance for the ray with the rescale factor, needs to be a float for raycast.
 
             RaycastHit hit = new RaycastHit(); // create a variable that stores info about hit colliders etc.
@@ -505,14 +494,9 @@ namespace FNPlugin.Collectors
             }
 
             groundDistance = hit.distance;
-            heatsinkDebug = String.Format("distance to ground is {0}", groundDistance);
+            heatsinkDebug = $"distance to ground is {groundDistance}";
 
-            if (groundDistance <= 0)
-            {
-                return false;
-            }
-
-            return true;
+            return !(groundDistance <= 0);
         }
 
         private bool CalculateWasteHeatConsumable(double amountUnderground, double externalTemp, out double consume, out double newTemp)
@@ -538,7 +522,7 @@ namespace FNPlugin.Collectors
             double maxSize = 30; // 30 metres underground for 1TW of Cooling. Requires Tweakscale'd drills.
             consume = newTemp = 0;
 
-            if (Double.IsNaN(amountUnderground) || Double.IsNaN(externalTemp))
+            if (double.IsNaN(amountUnderground) || double.IsNaN(externalTemp))
             {
                 return false;
             }
@@ -558,13 +542,10 @@ namespace FNPlugin.Collectors
 
         private bool WasteHeat()
         {
-            double distance;
-            double underground;
-
             // TODO: What should be the Megajoule cost of the drill dumping heat?
             // Should WasteHeat consumption be based on Megajoules available?
 
-            if (DistanceToGround(out distance) == false)
+            if (DistanceToGround(out var distance) == false)
             {
                 pumpingHeat = false;
                 return false;
@@ -572,34 +553,31 @@ namespace FNPlugin.Collectors
 
             // On a clamped to the ground base, the distance to the ground varies and oscillates.
             // Round it off to keep things relatively consistent.
-            underground = Math.Round(this.drillSize - distance, 5);
-            heatsinkDebug = String.Format("T: {0}, U: {1}", vessel.externalTemperature, underground);
+            var underground = Math.Round(this.drillSize - distance, 5);
+            heatsinkDebug = $"T: {vessel.externalTemperature}, U: {underground}";
 
             double avail = getResourceAvailability(ResourceManager.FNRESOURCE_WASTEHEAT);
             if (double.IsNaN(avail))
             {
-                heatsinkDebug += String.Format(" - avail NaN");
+                heatsinkDebug += " - avail NaN";
                 return false;
             }
 
             if(avail <= 0)
             {
-                heatsinkDebug += String.Format(" - no available heat");
+                heatsinkDebug += " - no available heat";
                 return false;
             }
 
-            double newTemp;
-            double consume;
-
-            if (CalculateWasteHeatConsumable(underground, vessel.externalTemperature, out consume, out newTemp) == false)
+            if (CalculateWasteHeatConsumable(underground, vessel.externalTemperature, out var consume, out var newTemp) == false)
             {
-                heatsinkDebug += String.Format(" - no draw");
+                heatsinkDebug += " - no draw";
                 return false;
             }
 
             if (consume > avail)
             {
-                heatsinkDebug += String.Format(" - reducing consumption");
+                heatsinkDebug += " - reducing consumption";
                 consume = avail;
             }
 
@@ -637,8 +615,7 @@ namespace FNPlugin.Collectors
             }
 
             // Workaround for some weird glitches where dNormalisedRecievedPowerMW gets slightly smaller than it should be during timewarping
-            double powerPercentage = dNormalisedRecievedPowerMW / dPowerRequirementsMW;
-            return powerPercentage;
+            return dNormalisedRecievedPowerMW / dPowerRequirementsMW;
         }
 
         /// <summary>
@@ -688,8 +665,8 @@ namespace FNPlugin.Collectors
                         ResourceType = HarvestTypes.Planetary,
                         ResourceName = currentResource.ResourceName,
                         BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
-                        Latitude = this.vessel.latitude,
-                        Longitude = this.vessel.longitude,
+                        Latitude = vessel.latitude,
+                        Longitude = vessel.longitude,
                         CheckForLock = false
                     });
 
@@ -711,7 +688,7 @@ namespace FNPlugin.Collectors
 
         private double GetAbundance(AbundanceRequest request)
         {
-            // retreive and convert to double
+            // retrieve and convert to double
             double abundance = (double)(decimal)ResourceMap.Instance.GetAbundance(request) * 100;
 
             if (abundance < 1)
@@ -765,13 +742,11 @@ namespace FNPlugin.Collectors
         /// <summary>
         /// Calculates the spare room for the current resource on the vessel.
         /// </summary>
-        /// <param name="resourceName"></param>
+        /// <param name="resource"></param>
         /// <returns>Double, signifying the amount of spare room for the resource on the vessel.</returns>
         private double CalculateSpareRoom(CrustalResource resource)
         {
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(resource.Definition.id, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(resource.Definition.id, out var currentAmount, out var maxAmount);
 
             resource.Amount = currentAmount;
             resource.MaxAmount = maxAmount;
@@ -785,7 +760,6 @@ namespace FNPlugin.Collectors
         /// </summary>
         /// <param name="amount">The amount of resource to collect/add.</param>
         /// <param name="resourceName">The name of the current resource.</param>
-        /// <param name="deltaTime">The time since last Fixed Update (Unity).</param>
         private double AddResource(double amount, string resourceName)
         {
             return part.RequestResource(resourceName, -amount, ResourceFlowMode.ALL_VESSEL);
@@ -826,7 +800,7 @@ namespace FNPlugin.Collectors
 
                 reasonNotCollecting = CheckIfCollectingPossible();
 
-                if (!String.IsNullOrEmpty(reasonNotCollecting)) // collecting not possible due to some reasons.
+                if (!string.IsNullOrEmpty(reasonNotCollecting)) // collecting not possible due to some reasons.
                 {
                     ScreenMessages.PostScreenMessage(reasonNotCollecting, 3.0f, ScreenMessageStyle.LOWER_CENTER);
 
@@ -841,8 +815,7 @@ namespace FNPlugin.Collectors
                     return;
                 }
 
-                double crustThickness;
-                if (!CalculateCrustThickness(vessel.altitude, FlightGlobals.currentMainBody, out crustThickness)) // crust thickness calculation off, no mining
+                if (!CalculateCrustThickness(vessel.altitude, FlightGlobals.currentMainBody, out var crustThickness)) // crust thickness calculation off, no mining
                 {
                     DisableCollector();
                     return;
@@ -855,8 +828,7 @@ namespace FNPlugin.Collectors
 
                 foreach (CrustalResource resource in localResources)
                 {
-                    CrustalResourceAbundance abundance;
-                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out abundance);
+                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out var abundance);
 
                     if (abundance == null)
                         continue;
@@ -891,15 +863,14 @@ namespace FNPlugin.Collectors
                 // go through each resource, calculate the percentage, abundance, amount collected and spare room in tanks. If possible, add the resource
                 foreach (CrustalResource resource in localResources)
                 {
-                    CrustalResourceAbundance abundance;
-                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out abundance);
+                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out var abundance);
                     if (abundance == null)
                         continue;
 
                     //amount = CalculateResourceAmountCollected(dLastPseudoMinedAmount, abundance.GlobalWithVariance, abundance.Local, deltaTime);
                     resource.Production = dLastPseudoMinedAmount * abundance.Local;
                     CalculateSpareRoom(resource);
-                    if ((resource.SpareRoom > 0) && (resource.Production > 0))
+                    if (resource.SpareRoom > 0 && resource.Production > 0)
                     {
                         var additionFixed = resource.Production * deltaTime;
                         AddResource(additionFixed, resource.ResourceName);
@@ -961,8 +932,7 @@ namespace FNPlugin.Collectors
             {
                 foreach (CrustalResource resource in localResources)
                 {
-                    CrustalResourceAbundance abundance;
-                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out abundance);
+                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out var abundance);
                     if (abundance == null)
                         continue;
 
@@ -1009,9 +979,9 @@ namespace FNPlugin.Collectors
 
         private void ToggleEmmitters(bool state)
         {
-            for (int i = 0; i < particleEmitters.Length; ++i)
+            for (int i = 0; i < _particleEmitters.Length; ++i)
             {
-                var e = particleEmitters[i];
+                var e = _particleEmitters[i];
                 e.emit = state;
                 e.enabled = state;
             }
