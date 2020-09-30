@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Reflection;
+using System.Text;
 using TweakScale;
 using UnityEngine;
 
@@ -410,7 +410,7 @@ namespace InterstellarFuelSwitch
                 if (adaptiveTankSelection || selectedTankSetup == -1)
                 {
                     if (selectedTankSetup == -1)
-                        initialTankSetup = String.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
+                        initialTankSetup = string.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
 
                     var matchingIndex = FindMatchingConfig();
                     if (matchingIndex != -1)
@@ -749,7 +749,7 @@ namespace InterstellarFuelSwitch
                 {
                     // empty configuration if switched by user
                     if (calledByPlayer)
-                        configuredAmounts = String.Empty;
+                        configuredAmounts = string.Empty;
 
                     var configAmounts = configuredAmounts.Split(',');
                     foreach (var item in configAmounts)
@@ -761,14 +761,14 @@ namespace InterstellarFuelSwitch
 
                     // empty configuration if in flight
                     if (!HighLogic.LoadedSceneIsEditor)
-                        configuredAmounts = String.Empty;
+                        configuredAmounts = string.Empty;
                 }
 
                 if (configuredFlowStates.Length > 0)
                 {
                     // empty configuration if switched by user
                     if (calledByPlayer)
-                        configuredFlowStates = String.Empty;
+                        configuredFlowStates = string.Empty;
 
                     var configFlowStates = configuredFlowStates.Split(',');
                     foreach (var item in configFlowStates)
@@ -780,7 +780,7 @@ namespace InterstellarFuelSwitch
 
                     // empty configuration if in flight
                     if (!HighLogic.LoadedSceneIsEditor)
-                        configuredFlowStates = String.Empty;
+                        configuredFlowStates = string.Empty;
                 }
 
                 UpdateHabitat(selectedTank);
@@ -982,7 +982,7 @@ namespace InterstellarFuelSwitch
 
         private double UpdateCost()
         {
-            dryCost = (double)(decimal)part.partInfo.cost * initialMassMultiplier;
+            dryCost = part.partInfo.cost * initialMassMultiplier;
 
             if (selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
                 dryCost += _modularTankList[selectedTankSetup].tankCost * initialMassMultiplier;
@@ -1002,12 +1002,11 @@ namespace InterstellarFuelSwitch
                 preserveInitialCost = true;
                 var initialTankSetupArray = initialTankSetup.Split(';');
 
-
-                var initialTankSetupArrayCount = initialTankSetupArray.Count();
+                var initialTankSetupArrayCount = initialTankSetupArray.Length;
                 for (var i = 0; i < initialTankSetupArrayCount; i++)
                 {
-                    var resourcename = initialTankSetupArray[i];
-                    if (part.Resources.Contains(resourcename)) continue;
+                    var resourceName = initialTankSetupArray[i];
+                    if (part.Resources.Contains(resourceName)) continue;
 
                     preserveInitialCost = false;
                     break;

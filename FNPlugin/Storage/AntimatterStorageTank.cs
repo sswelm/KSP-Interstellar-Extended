@@ -12,19 +12,34 @@ namespace FNPlugin
     [KSPModule("Antimatter Storage")]
     class AntimatterStorageTank : ResourceSuppliableModule, IPartMassModifier, IRescalable<FNGenerator>, IPartCostModifier
     {
-        // persitants
+        // persistent
         [KSPField(isPersistant = true)]
         public double chargestatus = 1000;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "K", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxTemperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]//Maximum Temperature
         public float maxTemperature = 340;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxAcceleration"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 10f, minValue = 0.05f)]//Maximum Acceleration
         public float maxGeeforce = 1;
-        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ModuleCost")]//Module Cost
-        public double moduleCost = 1;
+
+        [KSPField(guiName = "#LOC_KSPIE_AntimatterStorageTank_ModuleCost")]//Module Cost
+        public double moduleCost;
+        [KSPField]
+        public double resourceCost;
+        [KSPField]
+        public double projectedCost;
+        [KSPField]
+        public double targetCost;
+
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredMass")]//Stored Mass
         public double storedMassMultiplier = 1;
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredTargetMass")]//Stored Target Mass
         public double storedTargetMassMultiplier = 1;
+
+        [KSPField(isPersistant = true)]
+        public double storedResourceCostMultiplier = 1;
+        [KSPField(isPersistant = true)]
+        public double storedInitialCostMultiplier = 1;
+        [KSPField(isPersistant = true)]
+        public double storedTargetCostMultiplier = 1;
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ScalingFactor")]//Scaling Factor
         public double storedScalingfactor = 1;
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_AntomatterDensity")]//Antomatter Density
@@ -40,13 +55,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ResourceRatio", guiFormat = "F3")]//Resource Ratio
         public double resourceRatio;
         [KSPField(isPersistant = true)]
-        public float emptyCost = 0;
-        [KSPField(isPersistant = true)]
-        public float dryCost = 0;
-        [KSPField(isPersistant = true)]
-        public double partCost;
+        public double emptyCost;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TechLevel")]//Tech Level
-        public int techLevel = 0;
+        public int techLevel;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Storedamount")]//Stored amount
         public double storedAmount;
 
@@ -92,6 +103,10 @@ namespace FNPlugin
         public double massExponent = 3;
         [KSPField]
         public double massTargetExponent = 3;
+        [KSPField] 
+        public double dryCostInitialExponent = 2.5;
+        [KSPField]
+        public double dryCostTargetExponent = 2;
         [KSPField]
         public double chargeNeeded = 100;
         [KSPField]
@@ -177,12 +192,15 @@ namespace FNPlugin
         {
             try
             {
-                storedScalingfactor = (double)(decimal)factor.absolute.linear;
+                storedScalingfactor = factor.absolute.linear;
 
+                storedResourceCostMultiplier = Math.Pow(storedScalingfactor, 3);
                 storedMassMultiplier = Math.Pow(storedScalingfactor, massExponent);
                 storedTargetMassMultiplier = Math.Pow(storedScalingfactor, massTargetExponent);
+                storedInitialCostMultiplier = Math.Pow(storedScalingfactor, dryCostInitialExponent);
+                storedTargetCostMultiplier = Math.Pow(storedScalingfactor, dryCostTargetExponent);
 
-                initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
+                initialMass = part.prefabMass * storedMassMultiplier;
                 chargestatus = maxCharge;
             }
             catch (Exception e)
@@ -236,16 +254,30 @@ namespace FNPlugin
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            var techModifier = techLevel > 0 ? StorageCapacityModifier : 1;
-
-            if (storedMassMultiplier == 1 && emptyCost != 0)
-                moduleCost = techModifier * emptyCost; 
-            else
-                moduleCost = techModifier * (double)(decimal)dryCost * Math.Pow(storedScalingfactor, 3);
-
-            return (float)moduleCost;
+            return (float)ModuleCost();
         }
-        
+
+        private double ModuleCost()
+        {
+            emptyCost = part.partInfo.cost;
+
+            var antimatterResource = part.Resources[resourceName];
+            if (antimatterResource != null)
+                emptyCost -= maxStorage * antimatterResource.info.unitCost;
+
+            resourceCost = 0;
+            foreach (var resource in part.Resources)
+            {
+                resourceCost += resource.amount * resource.info.unitCost;
+            }
+
+            projectedCost = emptyCost * storedInitialCostMultiplier + resourceCost;
+            targetCost = emptyCost * storedTargetCostMultiplier + resourceCost;
+            moduleCost = targetCost - projectedCost;
+
+            return moduleCost;
+        }
+
         public ModifierChangeWhen GetModuleCostChangeWhen()
         {
             if (HighLogic.LoadedSceneIsEditor)
@@ -350,7 +382,7 @@ namespace FNPlugin
             {
                 DetermineTechLevel();
                 var currentStorageRatio = antimatterResource.amount / antimatterResource.maxAmount;
-                antimatterResource.maxAmount = maxStorage * StorageCapacityModifier;
+                antimatterResource.maxAmount = maxStorage * storedResourceCostMultiplier * StorageCapacityModifier;
                 antimatterResource.amount = antimatterResource.maxAmount * currentStorageRatio;
             }
 
@@ -542,7 +574,6 @@ namespace FNPlugin
 
             resourceRatio = newRatio;
             partMass = part.mass;
-            partCost = part.partInfo.cost;
 
             if (HighLogic.LoadedSceneIsEditor)
             {
