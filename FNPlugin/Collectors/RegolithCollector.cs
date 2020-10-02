@@ -91,12 +91,12 @@ namespace FNPlugin.Collectors
 
         protected string strRegolithResourceName;
         protected double dResourceFlow = 0;
-        protected double dDistanceFromStar = 0; // distance of the current vessel from the system's star
+        //protected double dDistanceFromStar = 0; // distance of the current vessel from the system's star
         protected double dConcentrationRegolith = 0; // regolith concentration at the current location
         protected double dRegolithSpareCapacity = 0; // spare capacity for the regolith on the vessel
         protected double dRegolithDensity; // 'density' of regolith at the current spot
         protected double dTotalWasteHeatProduction = 0; // total waste heat produced in the cycle
-        protected double dAltitude = 0; // current terrain altitude
+        //protected double dAltitude = 0; // current terrain altitude
         protected bool bTouchDown; // helper bool, is the part touching the ground
 
         uint _counter = 0; // helper counter for update cycles, so that we can only do some calculations once in a while

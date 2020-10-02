@@ -136,7 +136,8 @@ namespace FNPlugin.Refinery
         protected double dNitrogenMassByFraction = 0.0274710180;
         protected double dWaterMassByFraction = 0.18130871930;
 
-        protected double dDeuteriumMassByFraction = 0.000004; // based on a measurement of 0.0001% of hydrogen beeing deuterium
+        // deuterium/hydrogen: 13 ppm source https://www.researchgate.net/publication/234236795_Deuterium_content_of_lunar_material/link/5444faa20cf2e6f0c0fbff43/download
+        protected double dDeuteriumMassByFraction = 0.000004355; // based on a measurement of 13 ppm of hydrogen beeing deuterium (13 ppm * 0.335 = 0.000004355)
 
         private double GetTotalExtractedPerSecond()
         {
