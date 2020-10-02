@@ -2458,7 +2458,7 @@ namespace FNPlugin.Reactors
 
                 foreach (var group in fuelGroups)
                 {
-                     sb.AppendLine("Mk" + (1 + group.TechLevel - reactorModeTechBonus) +  " : " + Localizer.Format(group.ModeGUIName));
+                     sb.AppendLine("Mk" + Math.Max(0, 1 + group.TechLevel - reactorModeTechBonus) +  " : " + Localizer.Format(group.ModeGUIName));
                 }
                 sb.Append("</size>");
                 sb.AppendLine();
