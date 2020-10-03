@@ -95,7 +95,7 @@ namespace FNPlugin.Refinery
 
             foreach (var resource in resources)
             {
-                PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resource.ResourceName);
+                Definition definition = PartResourceLibrary.Instance.GetDefinition(resource.ResourceName);
 
                 string found = definition != null ? "D" : "U";
                 ScreenMessages.PostScreenMessage(found + " " + resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);

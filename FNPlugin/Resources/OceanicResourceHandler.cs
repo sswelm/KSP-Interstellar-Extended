@@ -103,9 +103,9 @@ namespace FNPlugin.Resources
             if (oceanicResourcePack != null)
             {
                 Debug.Log("[KSPI]: searching for ocean definition for " + celestialBody.name);
-                List<ConfigNode> oceanic_resource_list = oceanicResourcePack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
-                if (oceanic_resource_list.Any())
-                    bodyOceanicComposition = oceanic_resource_list.Select(orsc => new OceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                List<ConfigNode> oceanicResourceList = oceanicResourcePack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
+                if (oceanicResourceList.Any())
+                    bodyOceanicComposition = oceanicResourceList.Select(orsc => new OceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
             }
             return bodyOceanicComposition;
         }
@@ -299,9 +299,13 @@ namespace FNPlugin.Resources
             if (bodyOceanicComposition.All(m => m.ResourceName != InterstellarResourcesConfiguration.Instance.HeavyWater) && bodyOceanicComposition.Any(m => m.ResourceName == "Water" || m.ResourceName == "LqdWater"))
             {
                 Debug.Log("[KSPI]: Added heavy water based on presence water in ocean");
-                var water = bodyOceanicComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water);
-                var heavyWaterAbundance = water.ResourceAbundance / 6420;
-                bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.HeavyWater, heavyWaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater"}));
+                var waterResource = bodyOceanicComposition.FirstOrDefault(m => m.ResourceName == "Water") ?? bodyOceanicComposition.FirstOrDefault(m => m.ResourceName == "LqdWater");
+
+                if (waterResource != null)
+                {
+                    var heavyWaterAbundance = waterResource.ResourceAbundance / 6420;
+                    bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.HeavyWater, heavyWaterAbundance, "HeavyWater", new[] {"HeavyWater", "D2O", "DeuteriumWater"}));
+                }
             }
 
             if (bodyOceanicComposition.All(m => m.ResourceName != InterstellarResourcesConfiguration.Instance.Lithium6) && bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Lithium7))

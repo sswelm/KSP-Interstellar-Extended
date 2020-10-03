@@ -1,36 +1,37 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
     class SeawaterExtractor : RefineryActivityBase, IRefineryActivity
     {
-        // persistant
+        // persistent
         [KSPField(isPersistant = true)]
         protected int lastBodyID = -1; // ID of the last body. Allows us to skip some expensive calls
         [KSPField(isPersistant = true)]
         protected double lastTotalLiquidScooped = 0; // we need to hold this for offline collecting
 
-        [KSPField(isPersistant = true)]
-        IDictionary<string, double> resourcePercentages = new Dictionary<string, double>(); // create a new persistent list for keeping track of percentages
+        //[KSPField(isPersistant = true)]
+        //IDictionary<string, double> resourcePercentages = new Dictionary<string, double>(); // create a new persistent list for keeping track of percentages
 
         protected double _fixedConsumptionRate;
 
-        public RefineryType RefineryType { get { return RefineryType.heating; } }
+        public RefineryType RefineryType => RefineryType.heating;
 
-        public string ActivityName { get { return "Ocean Extraction"; } }
+        public string ActivityName => "Ocean Extraction";
 
         public bool HasActivityRequirements() { return IsThereAnyLiquid();  }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
+        public double PowerRequirements => PluginHelper.BaseELCPowerConsumption;
 
-        public string Status { get { return string.Copy(_status); } }
+        public string Status => string.Copy(_status);
         // end of IRefinery fields
 
         // characteristics of the intake liquid, a generic resource we 'collect' and process into resources. This will be the same on all planets, as the 'collection' doesn't rely on abundanceRequests etc. and the resource is not actually collected and stored anywhere anyway
@@ -39,8 +40,6 @@ namespace FNPlugin.Refinery
 
         PartResourceDefinition _intakeLiquidDefinition;
 
-        // end of those
-
         public void Initialize(Part part)
         {
             _part = part;
@@ -48,20 +47,19 @@ namespace FNPlugin.Refinery
 
             // get the definition of the 'generic' input resource
             _intakeLiquidDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeLiquid);
-
         }
 
-        List<OceanicResource> localResources = new List<OceanicResource>(); // create a list for keeping track of localResources
+        List<OceanicResource> _localResources = new List<OceanicResource>(); // create a list for keeping track of localResources
 
         // variables for the ExtractSeawater function
-        double currentResourceProductionRate;
+        double _currentResourceProductionRate;
         // end of variables for the ExtractSeawater function
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double timeDifference, bool isStartup = false)
         {
             ExtractSeawater(rateMultiplier, powerFraction, productionModifier, allowOverflow, timeDifference, false);
 
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
         // this is a function used for IRefinery HasActivityRequirements check
         public bool IsThereAnyLiquid()
@@ -79,16 +77,24 @@ namespace FNPlugin.Refinery
          */
         public double GetTotalLiquidScoopedPerSecond()
         {
-            var intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>(); // add any atmo intake part on the vessel to our list
             double tempLqd = 0; // reset tempLqd before we go into the list
 
-            foreach (AtmosphericIntake intake in intakesList) // go through the list
+            if (_vessel != null)
             {
-                if (intake.IntakeEnabled) // only process open intakes
+                var intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>(); // add any atmo intake part on the vessel to our list
+
+                foreach (AtmosphericIntake intake in intakesList) // go through the list
                 {
-                    tempLqd += (intake.area * intake.part.submergedPortion); // add the current intake's liquid intake to our tempLqd. When done with the foreach cycle, we will have the total amount of liquid these intakes collect per cycle
+                    if (intake.IntakeEnabled) // only process open intakes
+                    {
+                        tempLqd += (intake.area * intake.part.submergedPortion); // add the current intake's liquid intake to our tempLqd. When done with the foreach cycle, we will have the total amount of liquid these intakes collect per cycle
+                    }
                 }
             }
+
+            if (_part != null)
+                tempLqd += _part.submergedPortion * _part.surfaceAreas.magnitude;
+
             return tempLqd;
         }
 
@@ -99,16 +105,13 @@ namespace FNPlugin.Refinery
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
 
-            // get the resource for the current body
-            localResources = OceanicResourceHandler.GetOceanicCompositionForBody(FlightGlobals.currentMainBody);
-
             // determine the amount of liquid processed every frame
             _availableIntakeLiquidMass = GetTotalLiquidScoopedPerSecond() * _intakeLiquidDefinition.density;
 
             // this should determine how much resource this process can consume
             var fixedMaxLiquidConsumptionRate = _current_rate * timeDifference * _intakeLiquidDefinition.density;
 
-            // supplement any missig liquidintake by intake
+            // supplement any missing LiquidIntake by intake
             var shortage = fixedMaxLiquidConsumptionRate > _availableIntakeLiquidMass ? fixedMaxLiquidConsumptionRate - _availableIntakeLiquidMass : 0;
             if (shortage > 0)
                 _availableIntakeLiquidMass += _part.RequestResource(_intakeLiquidDefinition.id, shortage, ResourceFlowMode.ALL_VESSEL);
@@ -121,7 +124,10 @@ namespace FNPlugin.Refinery
 
             if (_fixedConsumptionRate <= 0) return;
 
-            foreach (OceanicResource resource in localResources)
+            // get the resource for the current body
+            _localResources = OceanicResourceHandler.GetOceanicCompositionForBody(FlightGlobals.currentMainBody);
+
+            foreach (OceanicResource resource in _localResources)
             {
                 // get the name of the resource
                 var currentResourceName = resource.ResourceName;
@@ -129,38 +135,14 @@ namespace FNPlugin.Refinery
                 if (currentResourceName == null) 
                     continue; // this resource does not interest us anymore
 
-                var currentDefinition = PartResourceLibrary.Instance.GetDefinition(currentResourceName);
-                if (currentDefinition == null) 
+                if (resource.Definition == null) 
                     continue; // this resource is missing a resource definition
 
                 // determine the spare room - gets parts that contain the current resource, gets the sum of their maxAmount - (current)amount and multiplies by density of resource
-                var currentResourceSpareRoom = _part.GetConnectedResources(currentResourceName).Sum(r => r.maxAmount - r.amount) * currentDefinition.density;
+                var currentResourceSpareRoom = _part.GetConnectedResources(currentResourceName).Sum(r => r.maxAmount - r.amount) * resource.Definition.density;
 
-                double currentResourcePercentage = 0;
-                if (FlightGlobals.currentMainBody.flightGlobalsIndex != lastBodyID) // the calculations in here don't have to be run every update - we can instead store the percentage in a persistent dictionary with the resource name as key and retrieve it from there
-                {
-                    // determine the percentage (how much of the resource will be produced from the intake liquid)
-                    currentResourcePercentage = OceanicResourceHandler.getOceanicResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, currentResourceName);
-
-                    // we'll store the value for next time
-                    if (resourcePercentages.ContainsKey(currentResourceName)) // check if the dictionary is storing a value with this key already
-                        resourcePercentages.Remove(currentResourceName); // then first do a remove
-
-                    resourcePercentages.Add(currentResourceName, currentResourcePercentage); // add the current percentage to a dictionary, for easy access
-                }
-                else // if we have been here already, just fetch the value from the dictionary
-                {
-                    double percentage;
-                    if (resourcePercentages.TryGetValue(currentResourceName, out percentage))
-                        currentResourcePercentage = percentage;
-                    else
-                    {
-                        Debug.Log("[KSPI]: Could not retrieve resource percentage from dictionary, setting to zero");
-                        currentResourcePercentage = 0;
-                    }
-                }
                 // how much we should add per cycle
-                var currentResourceMaxRate = _fixedConsumptionRate * currentResourcePercentage;
+                var currentResourceMaxRate = _fixedConsumptionRate * resource.ResourceAbundance;
 
                 // how much we actually CAN add per cycle (into the spare room in the vessel's tanks) - if the allowOverflow setting is on, dump it all in even though it won't fit (excess is lost), otherwise use the smaller of two values (spare room remaining and the full rate)
                 var currentResourcePossibleRate = allowOverflow ? currentResourceMaxRate : Math.Min(currentResourceSpareRoom, currentResourceMaxRate);
@@ -178,10 +160,10 @@ namespace FNPlugin.Refinery
                 }
 
                 // calculate the rate of production
-                var currentResourceTempProductionRate = _intakeLqdConsumptionRate * currentResourcePercentage;
+                var currentResourceTempProductionRate = _intakeLqdConsumptionRate * resource.ResourceAbundance;
 
                 // add the produced resource
-                currentResourceProductionRate = -_part.RequestResource(currentResourceName, -currentResourceTempProductionRate * timeDifference / currentDefinition.density, ResourceFlowMode.ALL_VESSEL) / timeDifference * currentDefinition.density;
+                _currentResourceProductionRate = -_part.RequestResource(currentResourceName, -currentResourceTempProductionRate * timeDifference / resource.Definition.density, ResourceFlowMode.ALL_VESSEL) / timeDifference * resource.Definition.density;
             }
 
             if (lastBodyID != FlightGlobals.currentMainBody.flightGlobalsIndex)
@@ -208,49 +190,97 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_SeawaterExtract_ProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Production Rate"
-            GUILayout.Label(((currentResourceProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((_currentResourceProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
-            foreach (var resource in localResources)
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Name"), _bold_label, GUILayout.Width(valueWidth));//"Name"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Abundance"), _bold_label, GUILayout.Width(valueWidth));//"Abundance"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_SpareRoom"), _bold_label, GUILayout.Width(valueWidth));//"Spare Room"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Stored"), _bold_label, GUILayout.Width(valueWidth));//"Stored"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_MaxCapacity"), _bold_label, GUILayout.Width(valueWidth));//"Max Capacity"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionpersecond"), _bold_label, GUILayout.Width(valueWidth));//"Production per second"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionperhour"), _bold_label, GUILayout.Width(valueWidth));//"Production per hour"
+            GUILayout.EndHorizontal();
+
+            foreach (var resource in _localResources)
             {
-                if (resource == null || resource.ResourceName == null) 
-                    continue; // this resource does not interest us anymore
-
-                var resourceDensityUI = PartResourceLibrary.Instance.GetDefinition(resource.ResourceName).density; // gets the resource density (needed for the next two lines)
-                var spareRoomLabel = (_part.GetConnectedResources(resource.ResourceName).Sum(r => r.maxAmount - r.amount) * resourceDensityUI).ToString("0.0000"); // gets spare room for the resource on the whole vessel
-                var maxCapacityLabel = (_part.GetConnectedResources(resource.ResourceName).Sum(p => p.maxAmount) * resourceDensityUI).ToString("0.0000"); // gets the max capacity for the resource on the whole vessel
-
-                double percentage;
-                double resourcePercentageUI;
-
-                if (resourcePercentages.TryGetValue(resource.ResourceName, out percentage))
-                    resourcePercentageUI = percentage;
-                else
+                if (string.IsNullOrEmpty(resource.ResourceName))
                 {
-                    Debug.Log("[KSPI]: UI could not access resourcePercentage from dictionary, setting to zero");
-                    resourcePercentageUI = 0;
+                    DisplayResourceExtraction(resourceName: resource.DisplayName, percentage: resource.ResourceAbundance, productionRate: 0, spareRoom: 0, maximumCapacity: 0);
+                    continue;
                 }
 
-                var productionRateLabel = (((_intakeLqdConsumptionRate * resourcePercentageUI) * TimeWarp.fixedDeltaTime / resourceDensityUI) * GameConstants.SECONDS_IN_HOUR).ToString("0.0000"); // dirty calculation of the production rate cast to string and made hourly
-
-                if (resourcePercentageUI > 0) // if the percentage is zero, there's no processing going on, so we don't really need to print it here
+                if (resource.Definition == null)
                 {
-                    // calculations done, print it out - first the Storage
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(Localizer.Format("#LOC_KSPIE_SeawaterExtract_ResourcesStorage", resource.ResourceName), _bold_label, GUILayout.Width(labelWidth));// + " Storage"
-                    GUILayout.Label(spareRoomLabel + " mT / " + maxCapacityLabel + " mT", _value_label, GUILayout.Width(valueWidth));
-                    GUILayout.EndHorizontal();
-
-                    // next print out the production rates
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(resource.ResourceName + Localizer.Format("#LOC_KSPIE_SeawaterExtract_ProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Production Rate"
-                    GUILayout.Label((resourcePercentageUI * 100) + "% " + productionRateLabel + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                    GUILayout.EndHorizontal();
+                    DisplayResourceExtraction(resourceName: resource.DisplayName, percentage: resource.ResourceAbundance, productionRate: 0, spareRoom: 0, maximumCapacity: 0);
+                    continue;
                 }
+
+                var connectedResources = _part.GetConnectedResources(resource.ResourceName).ToList();
+
+                var spareRoom = connectedResources.Sum(r => r.maxAmount - r.amount) * resource.Definition.density;
+                var maximumCapacity = connectedResources.Sum(r => r.maxAmount) * resource.Definition.density;
+
+                var productionRate = spareRoom <= 0 ? 0:  _intakeLqdConsumptionRate * resource.ResourceAbundance * TimeWarp.fixedDeltaTime / resource.Definition.density;
+
+                DisplayResourceExtraction(resourceName: resource.DisplayName, percentage: resource.ResourceAbundance, productionRate: productionRate, spareRoom: spareRoom, maximumCapacity: maximumCapacity);
             }
         }
 
-        private void updateStatusMessage()
+        private void DisplayResourceExtraction(string resourceName, double percentage, double productionRate, double spareRoom, double maximumCapacity)
+        {
+            if (percentage <= 0)
+                return;
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(resourceName, _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(GetValueText(percentage * 100) + "%", _value_label, GUILayout.Width(valueWidth));
+
+            if (maximumCapacity > 0)
+            {
+                if (spareRoom > 0)
+                    GUILayout.Label(GetValueText(spareRoom) + " t", _value_label_green, GUILayout.Width(valueWidth));
+                else
+                    GUILayout.Label("0", _value_label_red, GUILayout.Width(valueWidth));
+
+                GUILayout.Label(GetValueText(maximumCapacity - spareRoom) + " t", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label(GetValueText(maximumCapacity) + " t", _value_label, GUILayout.Width(valueWidth));
+            }
+            else
+            {
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+                GUILayout.Label("0", _value_label_red, GUILayout.Width(valueWidth));
+            }
+
+            if (productionRate > 0)
+            {
+                GUILayout.Label(GetValueText(productionRate) + " U/s", _value_label, GUILayout.Width(valueWidth)); 
+                GUILayout.Label(GetValueText(productionRate * GameConstants.SECONDS_IN_HOUR) + " U/h", _value_label, GUILayout.Width(valueWidth));
+            }
+            else
+            {
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+            }
+
+            GUILayout.EndHorizontal();
+        }
+
+        private string GetValueText(double value)
+        {
+            if (value >= 0.00000005)
+                return value.ToString("##.########");
+            else
+                return ((float) value).ToString(CultureInfo.InvariantCulture);
+        }
+
+        private void UpdateStatusMessage()
         {
             if (_intakeLqdConsumptionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_SeawaterExtract_Statumsg1");//"Extracting intake liquid"
