@@ -10,8 +10,14 @@ using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class RegolithProcessor : RefineryActivityBase, IRefineryActivity
+    class RegolithProcessor : RefineryActivity, IRefineryActivity
     {
+        public RegolithProcessor()
+        {
+            ActivityName = "Regolith Process";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         double dFixedDeltaTime;
         double dFixedConsumptionRate;
         double dConsumptionStorageRatio;
@@ -51,19 +57,14 @@ namespace FNPlugin.Refinery
         string strNitrogenResourceName;
         string strWaterResourceName;
 
-        public RefineryType RefineryType { get { return RefineryType.heating; } }
-
-        public String ActivityName { get { return "Regolith Process"; } }
+        public RefineryType RefineryType => RefineryType.Heating;
 
         public bool HasActivityRequirements()
         {
             return _part.GetConnectedResources(strRegolithResourceName).Any(rs => rs.amount > 0);
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
-
+        public string Status => string.Copy(_status);
 
 
         protected PartResourceDefinition deuteriumDefinition;

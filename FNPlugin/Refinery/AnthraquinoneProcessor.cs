@@ -1,14 +1,20 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class AnthraquinoneProcessor : RefineryActivityBase, IRefineryActivity
+    class AnthraquinoneProcessor : RefineryActivity, IRefineryActivity
     {
+        public AnthraquinoneProcessor()
+        {
+            ActivityName = "Anthraquinone Process: H<size=7>2</size> + O<size=7>2</size> => H<size=7>2</size>O<size=7>2</size> (HTP) ";
+            PowerRequirements = PluginHelper.BaseAnthraquiononePowerConsumption;
+        }
+
         double _fixedConsumptionRate;
         double _consumptionRate;
 
@@ -35,9 +41,7 @@ namespace FNPlugin.Refinery
         double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
         double _oxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
 
-        public RefineryType RefineryType { get { return RefineryType.synthesize; } }
-
-        public String ActivityName { get { return "Anthraquinone Process: H<size=7>2</size> + O<size=7>2</size> => H<size=7>2</size>O<size=7>2</size> (HTP) "; } }
+        public RefineryType RefineryType { get { return RefineryType.Synthesize; } }
 
         public bool HasActivityRequirements()
         {
@@ -45,9 +49,7 @@ namespace FNPlugin.Refinery
                 _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0);
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseAnthraquiononePowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -63,9 +65,9 @@ namespace FNPlugin.Refinery
             _hydrogen_peroxide_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
-            _effectiveMaxPower = PowerRequirements * productionModidier;
+            _effectiveMaxPower = PowerRequirements * productionModifier;
 
             // determine how much resource we have
             _current_power = _effectiveMaxPower * powerFraction;

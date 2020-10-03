@@ -7,8 +7,14 @@ using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class MethanePyrolysis : RefineryActivityBase, IRefineryActivity
+    class MethanePyrolysis : RefineryActivity, IRefineryActivity
     {
+        public MethanePyrolysis()
+        {
+            ActivityName = "Methane Pyrolysis: CH<size=7>4</size> => H<size=7>2</size> + C";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         double _fixedConsumptionRate;
         double _consumptionStorageRatio;
 
@@ -28,9 +34,7 @@ namespace FNPlugin.Refinery
         string _hydrogen_resource_name;
         string _oxygen_resource_name;
        
-        public RefineryType RefineryType { get { return RefineryType.heating; } }
-
-        public String ActivityName { get { return "Methane Pyrolysis: CH<size=7>4</size> => H<size=7>2</size> + C"; } }
+        public RefineryType RefineryType => RefineryType.Heating;
 
         public bool HasActivityRequirements()
         {
@@ -38,10 +42,7 @@ namespace FNPlugin.Refinery
                 _part.GetConnectedResources(_oxygen_resource_name).Any(rs => rs.amount > 0);
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
-
+        public string Status => string.Copy(_status);
 
 
         public void Initialize(Part part)
@@ -77,7 +78,7 @@ namespace FNPlugin.Refinery
 
         private double combined_consumption_rate;
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;

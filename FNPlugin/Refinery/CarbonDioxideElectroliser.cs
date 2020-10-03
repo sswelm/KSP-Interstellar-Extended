@@ -1,14 +1,20 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class CarbonDioxideElectroliser : RefineryActivityBase, IRefineryActivity
+    class CarbonDioxideElectroliser : RefineryActivity, IRefineryActivity
     {
+        public CarbonDioxideElectroliser()
+        {
+            ActivityName = "CarbonDioxide Electrolysis: CO<size=7>2</size> => CO + O<size=7>2</size>";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         const double carbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
         const double oxygenMassByFraction = 1 - carbonMonoxideMassByFraction;
 
@@ -35,15 +41,11 @@ namespace FNPlugin.Refinery
         double _maxCapacityMonoxideMass;
         double _maxCapacityOxygenMass;
 
-        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
-
-        public String ActivityName { get { return "CarbonDioxide Electrolysis: CO<size=7>2</size> => CO + O<size=7>2</size>"; } }
+        public RefineryType RefineryType => RefineryType.Electrolysis;
 
         public bool HasActivityRequirements() { return _part.GetConnectedResources(_dioxideResourceName).Any(rs => rs.amount > 0);  }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -59,7 +61,7 @@ namespace FNPlugin.Refinery
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;

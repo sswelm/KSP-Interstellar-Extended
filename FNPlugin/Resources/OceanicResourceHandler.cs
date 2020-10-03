@@ -59,32 +59,30 @@ namespace FNPlugin.Resources
                     // skip all the other stuff and return the composition we already have
                     return body_oceanic_resource_list[refBody]; 
                 }
-                else
-                {
-                    CelestialBody celestialBody = FlightGlobals.Bodies[refBody]; // create a celestialBody object referencing the current body (makes it easier on us in the next lines)
 
-                    // create composition from kspi oceanic definition file
-                    bodyOceanicComposition = CreateFromKspiOceanDefinitionFile(refBody, celestialBody);
+                CelestialBody celestialBody = FlightGlobals.Bodies[refBody]; // create a celestialBody object referencing the current body (makes it easier on us in the next lines)
 
-                    // add from stock resource definitions if missing
-                    GenerateCompositionFromResourceAbundances(refBody, bodyOceanicComposition); // calls the generating function below
+                // create composition from kspi oceanic definition file
+                bodyOceanicComposition = CreateFromKspiOceanDefinitionFile(refBody, celestialBody);
 
-                    // if no ocean definition is created, create one based on celestialBody characteristics
-                    if (bodyOceanicComposition.Sum(m => m.ResourceAbundance) < 0.5)
-                        bodyOceanicComposition = GenerateCompositionFromCelestialBody(celestialBody);
+                // add from stock resource definitions if missing
+                GenerateCompositionFromResourceAbundances(refBody, bodyOceanicComposition); // calls the generating function below
 
-                    // Add rare and isotopic resources
-                    AddRaresAndIsotopesToOceanComposition(bodyOceanicComposition);
+                // if no ocean definition is created, create one based on celestialBody characteristics
+                if (bodyOceanicComposition.Sum(m => m.ResourceAbundance) < 0.5)
+                    bodyOceanicComposition = GenerateCompositionFromCelestialBody(celestialBody);
 
-                    // add missing stock resources
-                    AddMissingStockResources(refBody, bodyOceanicComposition);
+                // Add rare and isotopic resources
+                AddRaresAndIsotopesToOceanComposition(bodyOceanicComposition);
 
-                    // sort on resource abundance
-                    bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
+                // add missing stock resources
+                AddMissingStockResources(refBody, bodyOceanicComposition);
 
-                    // add to database for future reference
-                    body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
-                }
+                // sort on resource abundance
+                bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
+
+                // add to database for future reference
+                body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
             }
             catch (Exception ex)
             {

@@ -1,39 +1,42 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class NuclearFuelReprocessor : RefineryActivityBase, IRefineryActivity
+    class NuclearFuelReprocessor : RefineryActivity, IRefineryActivity
     {
-        double _fixed_current_rate = 0;
-        double _remaining_to_reprocess = 0;
-        double _remaining_seconds = 0;
-        
-        public RefineryType RefineryType { get { return RefineryType.synthesize; } }
+        public NuclearFuelReprocessor()
+        {
+            ActivityName = "Nuclear Fuel Reprocessing";
+            PowerRequirements = PluginHelper.BasePowerConsumption;
+        }
 
-        public String ActivityName { get { return "Nuclear Fuel Reprocessing"; } }
+        private double _fixed_current_rate;
+        private double _remaining_to_reprocess;
+        private double _remaining_seconds;
+        
+        public RefineryType RefineryType => RefineryType.Synthesize;
+
 
         public bool HasActivityRequirements()
         {
             return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Actinides).Any(rs => rs.amount < rs.maxAmount);
         }
 
-        public double PowerRequirements { get { return PluginHelper.BasePowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
-            this._part = part;
+            _part = part;
             _vessel = part.vessel;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false) 
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false) 
         {
             _current_power = PowerRequirements * rateMultiplier;
             List<INuclearFuelReprocessable> nuclear_reactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();

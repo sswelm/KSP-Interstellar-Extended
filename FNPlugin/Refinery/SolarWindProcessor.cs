@@ -7,8 +7,14 @@ using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class SolarWindProcessor : RefineryActivityBase, IRefineryActivity
+    class SolarWindProcessor : RefineryActivity, IRefineryActivity
     {
+        public SolarWindProcessor()
+        {
+            ActivityName = "Solar Wind Process";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         double _fixedConsumptionRate;
 
         double _solar_wind_density;
@@ -66,18 +72,15 @@ namespace FNPlugin.Refinery
         string _neon_liquid_resource_name;
         string _neon_gas_resource_name;
 
-        public RefineryType RefineryType { get { return RefineryType.cryogenics; } }
-
-        public String ActivityName { get { return "Solar Wind Process"; } }
+        public RefineryType RefineryType => RefineryType.Cryogenics;
 
         public bool HasActivityRequirements ()
         {
            return _part.GetConnectedResources(_solar_wind_resource_name).Any(rs => rs.maxAmount > 0);
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
 
         public void Initialize(Part part)
@@ -158,7 +161,7 @@ namespace FNPlugin.Refinery
         protected double _nitrogenMassByFraction  = 0.04173108;
         protected double _neonMassByFraction      = 0.06012;
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;

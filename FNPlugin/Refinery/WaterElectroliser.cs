@@ -1,14 +1,20 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class WaterElectroliser : RefineryActivityBase, IRefineryActivity
+    class WaterElectroliser : RefineryActivity, IRefineryActivity
     {
+        public WaterElectroliser()
+        {
+            ActivityName = "Water Electrolysis: H<size=7>2</size>O => H<size=7>2</size> + O<size=7>2</size>";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         const double protiumAtomicMass = 1.00782503207;
         const double oxygenAtomicMass = 15.999;
         const double hydrogenMassByFraction = (2 * protiumAtomicMass) / (oxygenAtomicMass + (2 * protiumAtomicMass)); // 0.1119067
@@ -32,15 +38,11 @@ namespace FNPlugin.Refinery
         double _maxCapacityHydrogenMass;
         double _maxCapacityOxygenMass;
 
-        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
-
-        public String ActivityName { get { return "Water Electrolysis: H<size=7>2</size>O => H<size=7>2</size> + O<size=7>2</size>"; } }
+        public RefineryType RefineryType => RefineryType.Electrolysis;
 
         public bool HasActivityRequirements() {  return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Water).Any(rs => rs.amount > 0);  }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -52,9 +54,9 @@ namespace FNPlugin.Refinery
             _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
-            _effectiveMaxPower = productionModidier * PowerRequirements;
+            _effectiveMaxPower = productionModifier * PowerRequirements;
 
             // determine how much mass we can produce at max
             _current_power = _effectiveMaxPower * powerFraction;

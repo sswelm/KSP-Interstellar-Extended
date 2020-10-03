@@ -2,7 +2,7 @@
 
 namespace FNPlugin.Refinery 
 {
-    class AntimatterGenerator : RefineryActivityBase
+    class AntimatterGenerator : RefineryActivity
     {
         public double ProductionRate { get { return _current_rate; } }
 

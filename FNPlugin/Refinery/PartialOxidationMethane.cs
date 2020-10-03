@@ -7,8 +7,14 @@ using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class PartialOxidationMethane : RefineryActivityBase, IRefineryActivity
+    class PartialOxidationMethane : RefineryActivity, IRefineryActivity
     {
+        public PartialOxidationMethane()
+        {
+            ActivityName = "Partial Oxidation of Methane : CH<size=7>4</size> + O<size=7>2</size> => CO + H<size=7>2</size>";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         protected double _fixedConsumptionRate;
         protected double _consumptionStorageRatio;
 
@@ -23,9 +29,7 @@ namespace FNPlugin.Refinery
         protected double _hydrogen_production_rate;
         protected double _monoxide_production_rate;      
 
-        public RefineryType RefineryType { get { return RefineryType.heating; } }
-
-        public String ActivityName { get { return "Partial Oxidation of Methane : CH<size=7>4</size> + O<size=7>2</size> => CO + H<size=7>2</size>"; } } // formaly Methane Pyrolysis
+        public RefineryType RefineryType => RefineryType.Heating;
 
         public bool HasActivityRequirements()
         {
@@ -33,9 +37,7 @@ namespace FNPlugin.Refinery
                 _part.GetConnectedResources(_oxygen_resource_name).Any(rs => rs.amount > 0);
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public String Status => String.Copy(_status);
 
         protected string _monoxide_resource_name;
         protected string _methane_resource_name;
@@ -75,7 +77,7 @@ namespace FNPlugin.Refinery
 
         private double combined_consumption_rate;
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon; //* _vessel.atmDensity;

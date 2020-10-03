@@ -42,7 +42,7 @@ namespace FNPlugin.Refinery
         double _current_rate;
         double _effectiveMaxPower;
 
-        // persistant
+        // persistent
         [KSPField(isPersistant = true)]
         protected int lastBodyID = -1; // ID of the last body. Allows us to skip some expensive calls
 
@@ -112,7 +112,7 @@ namespace FNPlugin.Refinery
         PartResourceDefinition _nitrogen15;
         PartResourceDefinition _oxygen;
         PartResourceDefinition _water; // water vapour can form a part of atmosphere as well
-        PartResourceDefinition _heavywater;
+        PartResourceDefinition _heavyWater;
         PartResourceDefinition _xenon;
         PartResourceDefinition _deuterium;
         PartResourceDefinition _krypton;
@@ -200,21 +200,20 @@ namespace FNPlugin.Refinery
             isDeployed = false;
         }
 
-        public double CurrentPower { get { return _current_power; } }
+        public double CurrentPower => _current_power;
 
-        public RefineryType RefineryType { get { return RefineryType.cryogenics; } }
+        public RefineryType RefineryType => RefineryType.Cryogenics;
 
-        public String ActivityName { get { return "Atmospheric Extraction"; } }
+        public string ActivityName => "Atmospheric Extraction";
 
         public bool HasActivityRequirements()
         {
-                //return _vessel.atmDensity > 0 ||  _part.GetConnectedResources(_atmosphere_resource_name).Any(rs => rs.amount > 0);
-                return true;
+            return true;
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
+        public double PowerRequirements => PluginHelper.BaseELCPowerConsumption;
 
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -274,7 +273,7 @@ namespace FNPlugin.Refinery
             _nitrogen15 = PartResourceLibrary.Instance.GetDefinition(_nitrogen15_resource_name);
             _oxygen = PartResourceLibrary.Instance.GetDefinition(_oxygen_resource_name);
             _water = PartResourceLibrary.Instance.GetDefinition(_water_resource_name);
-            _heavywater = PartResourceLibrary.Instance.GetDefinition(_heavywater_resource_name);
+            _heavyWater = PartResourceLibrary.Instance.GetDefinition(_heavywater_resource_name);
             _xenon = PartResourceLibrary.Instance.GetDefinition(_xenon_resource_name);
             _deuterium = PartResourceLibrary.Instance.GetDefinition(_deuterium_resource_name);
             _krypton = PartResourceLibrary.Instance.GetDefinition(_krypton_resource_name);
@@ -295,7 +294,7 @@ namespace FNPlugin.Refinery
 			_nitrogen15_density = (double)(decimal)_nitrogen15.density;
 			_oxygen_density = (double)(decimal)_oxygen.density;
 			_water_density = (double)(decimal)_water.density;
-			_heavywater_density = (double)(decimal)_heavywater.density;
+			_heavywater_density = (double)(decimal)_heavyWater.density;
 			_xenon_density = (double)(decimal)_xenon.density;
 			_deuterium_density = (double)(decimal)_deuterium.density;
 			_krypton_density = (double)(decimal)_krypton.density;
@@ -349,9 +348,9 @@ namespace FNPlugin.Refinery
 
         List<AtmosphericIntake> _intakesList; // create a new list for keeping track of atmo intakes
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
-            ExtractAir(rateMultiplier, powerFraction, productionModidier, allowOverflow, fixedDeltaTime, false);
+            ExtractAir(rateMultiplier, powerFraction, productionModifier, allowOverflow, fixedDeltaTime, false);
 
             UpdateStatusMessage();
         }
@@ -361,7 +360,7 @@ namespace FNPlugin.Refinery
          */
         public double GetTotalAirScoopedPerSecond()
         {
-             // add any atmo intake part on the vessel to our list
+             // add any atmosphere intake part on the vessel to our list
             double tempAir = 0; // reset tempAir before we go into the list
             foreach (AtmosphericIntake intake in _intakesList) // go through the list
             {
@@ -396,7 +395,7 @@ namespace FNPlugin.Refinery
                 _part.GetResourceMass(_nitrogen15, out _spareRoomNitrogen15Mass, out _maxCapacityNitrogen15Mass);
                 _part.GetResourceMass(_oxygen, out _spareRoomOxygenMass, out _maxCapacityOxygenMass);
                 _part.GetResourceMass(_water, out _spareRoomWaterMass, out _maxCapacityWaterMass);
-                _part.GetResourceMass(_heavywater, out _spareRoomHeavyWaterMass, out _maxCapacityHeavyWaterMass);
+                _part.GetResourceMass(_heavyWater, out _spareRoomHeavyWaterMass, out _maxCapacityHeavyWaterMass);
                 _part.GetResourceMass(_xenon, out _spareRoomXenonMass, out _maxCapacityXenonMass);
                 _part.GetResourceMass(_deuterium, out _spareRoomDeuteriumMass, out _maxCapacityDeuteriumMass);
                 _part.GetResourceMass(_krypton, out _spareRoomKryptonMass, out _maxCapacityKryptonMass);
@@ -582,13 +581,13 @@ namespace FNPlugin.Refinery
 
                     var max_atmospheric_consumption_rate = _consumptionStorageRatio * _fixedConsumptionRate;
 
-                    // calculate amospereic consumption per second
+                    // calculate atmospheric consumption per second
                     _atmosphere_consumption_rate = buildInAirIntake;
 
-                    // calculate missing atmsophere which can be extracted from air intakes
+                    // calculate missing atmospheric which can be extracted from air intakes
                     var remainingConsumptionNeeded = Math.Max(0, buildInAirIntake - max_atmospheric_consumption_rate);
 
-                    // add the consumed atmosphere total atmopheric consumption rate
+                    // add the consumed atmosphere total atmospheric consumption rate
                     _atmosphere_consumption_rate += _part.RequestResource(_atmosphere_resource_name, remainingConsumptionNeeded / _atmosphere_density) / fixedDeltaTime * _atmosphere_density;
                 }
                 
@@ -645,15 +644,9 @@ namespace FNPlugin.Refinery
             if (_value_label == null)
                 _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
             if (_value_label_green == null)
-            {
-                _value_label_green = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
-                _value_label_green.normal.textColor = Color.green;
-            }
+                _value_label_green = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, normal = {textColor = Color.green} };
             if (_value_label_red == null)
-            {
-                _value_label_red = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
-                _value_label_red.normal.textColor = Color.red;
-            }
+                _value_label_red = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, normal = {textColor = Color.red} };
             if (_value_label_number == null)
                 _value_label_number = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, alignment = TextAnchor.MiddleRight };
 

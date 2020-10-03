@@ -1,14 +1,19 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
-using System;
+using KSP.Localization;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class UF4Ammonolysiser : RefineryActivityBase, IRefineryActivity
+    class UF4Ammonolysiser : RefineryActivity, IRefineryActivity
     {
+        public UF4Ammonolysiser()
+        {
+            ActivityName = "Uranium Tetraflouride Ammonolysis";
+            PowerRequirements = PluginHelper.BaseUraniumAmmonolysisPowerConsumption;
+        }
+
         double _ammonia_density;
         double _uranium_tetraflouride_density;
         double _uranium_nitride_density;
@@ -17,9 +22,7 @@ namespace FNPlugin.Refinery
         double _uranium_tetraflouride_consumption_rate;
         double _uranium_nitride_production_rate;
 
-        public RefineryType RefineryType { get { return RefineryType.synthesize; } }
-
-        public String ActivityName { get { return "Uranium Tetraflouride Ammonolysis"; } }
+        public RefineryType RefineryType => RefineryType.Synthesize;
 
         public bool HasActivityRequirements()
         {
@@ -27,9 +30,7 @@ namespace FNPlugin.Refinery
                 .Any(rs => rs.amount > 0) && _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0);
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseUraniumAmmonolysisPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -40,7 +41,7 @@ namespace FNPlugin.Refinery
             _uranium_nitride_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower * GameConstants.baseUraniumAmmonolysisRate;
@@ -106,6 +107,5 @@ namespace FNPlugin.Refinery
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
-
     }
 }

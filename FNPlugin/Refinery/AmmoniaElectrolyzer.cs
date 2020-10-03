@@ -1,14 +1,20 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class AmmoniaElectrolyzer : RefineryActivityBase, IRefineryActivity
+    class AmmoniaElectrolyzer : RefineryActivity, IRefineryActivity
     {
+        public AmmoniaElectrolyzer()
+        {
+            ActivityName = "Ammonia Electrolysis: NH<size=7>3</size> => N<size=7>2</size> + H<size=7>2</size>";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         double _current_mass_rate;
         double _ammonia_density;
         double _nitrogen_density;
@@ -18,15 +24,11 @@ namespace FNPlugin.Refinery
         double _hydrogen_production_mass_rate;
         double _nitrogen_production_mass_rate;
 
-        public RefineryType RefineryType { get { return RefineryType.electrolysis; ; } }
-
-        public String ActivityName { get { return "Ammonia Electrolysis: NH<size=7>3</size> => N<size=7>2</size> + H<size=7>2</size>"; } }
+        public RefineryType RefineryType => RefineryType.Electrolysis;
 
         public bool HasActivityRequirements() { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0);  }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -37,7 +39,7 @@ namespace FNPlugin.Refinery
             _hydrogen_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_mass_rate = (CurrentPower / PluginHelper.ElectrolysisEnergyPerTon) * 14.45;

@@ -1,14 +1,20 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class HeavyWaterElectroliser : RefineryActivityBase, IRefineryActivity
+    class HeavyWaterElectroliser : RefineryActivity, IRefineryActivity
     {
+        public HeavyWaterElectroliser()
+        {
+            ActivityName = "Heavy Water Electrolysis";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         const double deuteriumAtomicMass = 2.01410178;
         const double oxygenAtomicMass = 15.999;
         const double deuteuriuumMassByFraction = (2 * deuteriumAtomicMass) / (oxygenAtomicMass + (2 * deuteriumAtomicMass)); // 0.201136
@@ -32,15 +38,11 @@ namespace FNPlugin.Refinery
         double _maxCapacityDeuteriumMass;
         double _maxCapacityOxygenMass;
 
-        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
-
-        public String ActivityName { get { return "Heavy Water Electrolysis"; } }
+        public RefineryType RefineryType => RefineryType.Electrolysis;
 
         public bool HasActivityRequirements() {  return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HeavyWater).Any(rs => rs.amount > 0);   }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -52,7 +54,7 @@ namespace FNPlugin.Refinery
             _deuterium_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;
@@ -60,15 +62,15 @@ namespace FNPlugin.Refinery
 
             var partsThatContainWater = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HeavyWater);
             var partsThatContainOxygen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen);
-            var partsThatContainDeuteurium = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
+            var partsThatContainDeuterium = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
 
             _maxCapacityHeavyWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _heavy_water_density;
             _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygen_density;
-            _maxCapacityDeuteriumMass = partsThatContainDeuteurium.Sum(p => p.maxAmount) * _deuterium_density;
+            _maxCapacityDeuteriumMass = partsThatContainDeuterium.Sum(p => p.maxAmount) * _deuterium_density;
 
             _availableHeavyWaterMass = partsThatContainWater.Sum(p => p.amount) * _heavy_water_density;
             _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen_density;
-            _spareRoomDeuteriumMass = partsThatContainDeuteurium.Sum(r => r.maxAmount - r.amount) * _deuterium_density;
+            _spareRoomDeuteriumMass = partsThatContainDeuterium.Sum(r => r.maxAmount - r.amount) * _deuterium_density;
 
             // determine how much water we can consume
             _fixedMaxConsumptionWaterRate = Math.Min(_current_rate * fixedDeltaTime, _availableHeavyWaterMass);

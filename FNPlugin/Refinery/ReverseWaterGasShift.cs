@@ -1,14 +1,20 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class ReverseWaterGasShift : RefineryActivityBase, IRefineryActivity
+    class ReverseWaterGasShift : RefineryActivity, IRefineryActivity
     {
+        public ReverseWaterGasShift()
+        {
+            ActivityName = "Reverse Water Gas Shift";
+            PowerRequirements = PluginHelper.BaseHaberProcessPowerConsumption * 5;
+        }
+
         const double waterMassByFraction = 18.01528 / (18.01528 + 28.010);
         const double monoxideMassByFraction = 1 - waterMassByFraction;
 
@@ -44,18 +50,15 @@ namespace FNPlugin.Refinery
         double _maxCapacityMonoxideMass;
         double _maxCapacityHydrogenMass;
 
-        public RefineryType RefineryType { get { return RefineryType.synthesize; } }
+        public RefineryType RefineryType => RefineryType.Synthesize;
 
-        public String ActivityName { get { return "Reverse Water Gas Shift"; } }
-
-        public bool HasActivityRequirements ()
+        public bool HasActivityRequirements()
         {
-                return _part.GetConnectedResources(_dioxideResourceName).Any(rs => rs.amount > 0) && _part.GetConnectedResources(_hydrogenResourceName).Any(rs => rs.amount > 0); 
+            return _part.GetConnectedResources(_dioxideResourceName).Any(rs => rs.amount > 0) &&
+                   _part.GetConnectedResources(_hydrogenResourceName).Any(rs => rs.amount > 0);
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseHaberProcessPowerConsumption * 5; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -73,11 +76,11 @@ namespace FNPlugin.Refinery
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _allowOverflow = allowOverflow;
             
-            // determine overal maximum production rate
+            // determine overall maximum production rate
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.HaberProcessEnergyPerTon;
 

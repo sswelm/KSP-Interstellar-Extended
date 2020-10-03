@@ -155,7 +155,7 @@
     <Compile Include="Refinery\PartialOxidationMethane.cs" />
     <Compile Include="Powermanagement\InterstellarPowerSupply.cs" />
     <Compile Include="Refinery\RegolithProcessor.cs" />
-    <Compile Include="Refinery\SeawaterExtractor.cs" />
+    <Compile Include="Refinery\OceanExtractor.cs" />
     <Compile Include="Refinery\SolarWindProcessor.cs" />
     <Compile Include="Refinery\AntimatterGenerator.cs" />
     <Compile Include="Collectors\AtmosphericIntake.cs" />

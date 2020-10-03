@@ -1,15 +1,19 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
-using FNPlugin.Resources;
-using System;
-using System.Linq;
-using UnityEngine;
 using KSP.Localization;
+using System;
+using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class HaberProcess : RefineryActivityBase, IRefineryActivity
+    class HaberProcess : RefineryActivity, IRefineryActivity
     {
+        public HaberProcess()
+        {
+            ActivityName = "Haber Process: H<size=7>2</size> + N<size=7>2</size> => NH<size=7>3</size> (Ammonia) ";
+            PowerRequirements = PluginHelper.BaseHaberProcessPowerConsumption;
+        }
+
         double _hydrogen_consumption_rate;
         double _ammonia_production_rate;
         double _nitrogen_consumption_rate;
@@ -26,9 +30,7 @@ namespace FNPlugin.Refinery
         double hydrogen_density;
         double nitrogen_density;
 
-        public RefineryType RefineryType { get { return RefineryType.synthesize; } }
-
-        public string ActivityName { get { return "Haber Process: H<size=7>2</size> + N<size=7>2</size> => NH<size=7>3</size> (Ammonia) "; } }
+        public RefineryType RefineryType => RefineryType.Synthesize;
 
         public bool HasActivityRequirements ()
         {
@@ -56,11 +58,9 @@ namespace FNPlugin.Refinery
             return spare_capacity_ammonia > 0;
         }
 
-        public double PowerRequirements { get { return PluginHelper.BaseHaberProcessPowerConsumption; } }
-
         private double _effectiveMaxPowerRequirements;
 
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -76,9 +76,9 @@ namespace FNPlugin.Refinery
             nitrogen_density = (double)(decimal)definition_nitrogen.density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double powerModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
-            _effectiveMaxPowerRequirements = PowerRequirements * powerModifier;
+            _effectiveMaxPowerRequirements = PowerRequirements * productionModifier;
             _current_power = powerFraction * _effectiveMaxPowerRequirements;
             _current_rate = CurrentPower / PluginHelper.HaberProcessEnergyPerTon;
 

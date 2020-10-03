@@ -1,14 +1,20 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
-    class AluminiumElectrolyser : RefineryActivityBase, IRefineryActivity
+    class AluminiumElectrolyser : RefineryActivity, IRefineryActivity
     {
+        public AluminiumElectrolyser()
+        {
+            ActivityName = "Aluminium Electrolysis: Al<size=7>2</size>O<size=7>3</size> => O<size=7>2</size> + Al<size=7>2</size>";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+        }
+
         double _alumina_density;
         double _aluminium_density;
         double _oxygen_density;
@@ -17,17 +23,13 @@ namespace FNPlugin.Refinery
         double _aluminium_production_rate;
         double _oxygen_production_rate;
 
-        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
-
-        public String ActivityName { get { return "Aliminium Electrolysis: Al<size=7>2</size>O<size=7>3</size> => O<size=7>2</size> + Al<size=7>2</size>"; } }//Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_ActivityName") +
+        public RefineryType RefineryType { get { return RefineryType.Electrolysis; } }
 
         public bool HasActivityRequirements() { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Alumina).Any(rs => rs.amount > 0);  }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
         private double _effectivePowerRequirements;
 
-        public String Status { get { return String.Copy(_status); } }
+        public string Status { get { return String.Copy(_status); } }
 
         public void Initialize(Part part)
         {
@@ -38,9 +40,9 @@ namespace FNPlugin.Refinery
             _oxygen_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double powerModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
-            _effectivePowerRequirements = powerModifier * PowerRequirements;
+            _effectivePowerRequirements = productionModifier * PowerRequirements;
             _current_power = powerFraction * _effectivePowerRequirements;
 
             _current_rate = CurrentPower / PluginHelper.AluminiumElectrolysisEnergyPerTon;
