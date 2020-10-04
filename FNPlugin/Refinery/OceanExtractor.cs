@@ -34,6 +34,7 @@ namespace FNPlugin.Refinery
 
         private PartResourceDefinition _intakeLiquidDefinition;
 
+        private readonly Dictionary<string, double> _productionRateDict = new Dictionary<string, double>();
 
         public void Initialize(Part localPart)
         {
@@ -118,6 +119,8 @@ namespace FNPlugin.Refinery
 
             _currentResourceProductionRate = 0;
 
+            _productionRateDict.Clear();
+
             // get the resource for the current body
             _localResources = OceanicResourceHandler.GetOceanicCompositionForBody(FlightGlobals.currentMainBody);
 
@@ -139,7 +142,7 @@ namespace FNPlugin.Refinery
                 var currentResourcePossibleRate = allowOverflow ? currentResourceMaxRate : Math.Min(currentResourceSpareRoom, currentResourceMaxRate);
 
                 // calculate the ratio of rates, if the denominator is zero, assign zero outright to prevent problems
-                var currentResourceRatio = currentResourceMaxRate == 0 ? 0 : currentResourcePossibleRate / currentResourceMaxRate;
+                var currentResourceRatio = currentResourceMaxRate <= 0 ? 0 : currentResourcePossibleRate / currentResourceMaxRate;
 
                 // calculate the consumption rate of the intake liquid
                 _intakeLqdConsumptionRate = (currentResourceRatio * fixedConsumptionRate / _intakeLiquidDefinition.density) / timeDifference * _intakeLiquidDefinition.density;
@@ -154,7 +157,11 @@ namespace FNPlugin.Refinery
                 var currentResourceTempProductionRate = _intakeLqdConsumptionRate * resource.ResourceAbundance;
 
                 // add the produced resource
-                _currentResourceProductionRate += -_part.RequestResource(resource.ResourceName, -currentResourceTempProductionRate * timeDifference / resource.Definition.density, ResourceFlowMode.ALL_VESSEL) / timeDifference * resource.Definition.density;
+                 var currentProductionRate = -_part.RequestResource(resource.ResourceName, -currentResourceTempProductionRate * timeDifference / resource.Definition.density, ResourceFlowMode.ALL_VESSEL) / timeDifference * resource.Definition.density;
+
+                _productionRateDict.Add(resource.ResourceName, currentProductionRate);
+
+                _currentResourceProductionRate += currentProductionRate;
             }
         }
 
@@ -184,9 +191,9 @@ namespace FNPlugin.Refinery
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Name"), _bold_label, GUILayout.Width(valueWidth));                // "Name"
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Abundance"), _bold_label, GUILayout.Width(valueWidth));           // "Abundance"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_SpareRoom"), _bold_label, GUILayout.Width(valueWidth));           // "Spare Room"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Stored"), _bold_label, GUILayout.Width(valueWidth));              // "Stored"
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_MaxCapacity"), _bold_label, GUILayout.Width(valueWidth));         // "Max Capacity"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Stored"), _bold_label, GUILayout.Width(valueWidth));              // "Stored"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_SpareRoom"), _bold_label, GUILayout.Width(valueWidth));           // "Spare Room"
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionpersecond"), _bold_label, GUILayout.Width(valueWidth)); // "Production per second"
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionperhour"), _bold_label, GUILayout.Width(valueWidth));   // "Production per hour"
             GUILayout.EndHorizontal();
@@ -208,8 +215,7 @@ namespace FNPlugin.Refinery
                 var connectedResources = _part.GetConnectedResources(resource.ResourceName).ToList();
                 var spareRoom = connectedResources.Sum(r => r.maxAmount - r.amount) * resource.Definition.density;
                 var maximumCapacity = connectedResources.Sum(r => r.maxAmount) * resource.Definition.density;
-
-                var productionRate = spareRoom <= 0 ? 0 :  _intakeLqdConsumptionRate * resource.ResourceAbundance / resource.Definition.density;
+                var productionRate = _productionRateDict[resource.ResourceName];
 
                 DisplayResourceExtraction(resourceName: resource.DisplayName, percentage: resource.ResourceAbundance, productionRate: productionRate, spareRoom: spareRoom, maximumCapacity: maximumCapacity);
             }
@@ -226,19 +232,19 @@ namespace FNPlugin.Refinery
 
             if (maximumCapacity > 0)
             {
+                GUILayout.Label(GetValueText(maximumCapacity) + " t", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label(GetValueText(maximumCapacity - spareRoom) + " t", _value_label, GUILayout.Width(valueWidth));
+
                 if (spareRoom > 0)
                     GUILayout.Label(GetValueText(spareRoom) + " t", _value_label_green, GUILayout.Width(valueWidth));
                 else
                     GUILayout.Label("0", _value_label_red, GUILayout.Width(valueWidth));
-
-                GUILayout.Label(GetValueText(maximumCapacity - spareRoom) + " t", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.Label(GetValueText(maximumCapacity) + " t", _value_label, GUILayout.Width(valueWidth));
             }
             else
             {
-                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
-                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
                 GUILayout.Label("0", _value_label_red, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
             }
 
             if (productionRate > 0)
