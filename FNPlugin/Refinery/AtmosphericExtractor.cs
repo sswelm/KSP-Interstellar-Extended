@@ -4,6 +4,7 @@ using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
@@ -108,49 +109,49 @@ namespace FNPlugin.Refinery
         private PartResourceDefinition _krypton;
         private PartResourceDefinition _sodium;
 
-        double _atmosphereConsumptionRate;
+        private double _atmosphereConsumptionRate;
 
-        double _ammoniaProductionRate;
-        double _argonProductionRate;
-        double _chlorineProductionRate;
-        double _dioxideProductionRate;
-        double _helium3ProductionRate;
-        double _helium4ProductionRate;
-        double _hydrogenProductionRate;
-        double _methaneProductionRate;
-        double _monoxideProductionRate;
-        double _neonProductionRate;
-        double _nitrogenProductionRate;
-        double _nitrogen15ProductionRate;
-        double _oxygenProductionRate;
-        double _waterProductionRate;
-        double _heavyWaterProductionRate;
-        double _xenonProductionRate;
-        double _deuteriumProductionRate;
-        double _kryptonProductionRate;
-        double _sodiumProductionRate;
+        private double _ammoniaProductionRate;
+        private double _argonProductionRate;
+        private double _chlorineProductionRate;
+        private double _dioxideProductionRate;
+        private double _helium3ProductionRate;
+        private double _helium4ProductionRate;
+        private double _hydrogenProductionRate;
+        private double _methaneProductionRate;
+        private double _monoxideProductionRate;
+        private double _neonProductionRate;
+        private double _nitrogenProductionRate;
+        private double _nitrogen15ProductionRate;
+        private double _oxygenProductionRate;
+        private double _waterProductionRate;
+        private double _heavyWaterProductionRate;
+        private double _xenonProductionRate;
+        private double _deuteriumProductionRate;
+        private double _kryptonProductionRate;
+        private double _sodiumProductionRate;
 
-        string _atmosphereResourceName;
+        private string _atmosphereResourceName;
 
-        string _ammoniaResourceName;
-        string _argonResourceName;
-        string _chlorineResourceName;
-        string _dioxideResourceName;
-        string _helium3ResourceName;
-        string _helium4ResourceName;
-        string _hydrogenResourceName;
-        string _methaneResourceName;
-        string _monoxideResourceName;
-        string _neonResourceName;
-        string _nitrogenResourceName;
-        string _nitrogen15ResourceName;
-        string _oxygenResourceName;
-        string _waterResourceName;
-        string _heavyWaterResourceName;
-        string _xenonResourceName;
-        string _deuteriumResourceName;
-        string _kryptonResourceName;
-        string _sodiumResourceName;
+        private string _ammoniaResourceName;
+        private string _argonResourceName;
+        private string _chlorineResourceName;
+        private string _dioxideResourceName;
+        private string _helium3ResourceName;
+        private string _helium4ResourceName;
+        private string _hydrogenResourceName;
+        private string _methaneResourceName;
+        private string _monoxideResourceName;
+        private string _neonResourceName;
+        private string _nitrogenResourceName;
+        private string _nitrogen15ResourceName;
+        private string _oxygenResourceName;
+        private string _waterResourceName;
+        private string _heavyWaterResourceName;
+        private string _xenonResourceName;
+        private string _deuteriumResourceName;
+        private string _kryptonResourceName;
+        private string _sodiumResourceName;
 
 
         [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_DeployScoop", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
@@ -352,7 +353,7 @@ namespace FNPlugin.Refinery
             if (_scoopAnimation != null)
             {
                 var animationState = _scoopAnimation[animName];
-                normalizedTime = animationState.normalizedTime == 0
+                normalizedTime = animationState.normalizedTime <= 0
                     ? isDeployed ? 1 : 0
                     : animationState.normalizedTime;
             }
@@ -366,7 +367,7 @@ namespace FNPlugin.Refinery
             {
                 // calculate build in scoop capacity
                 buildInAirIntake = normalizedTime <= 0.2 ? 0 :
-                    AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(_vessel) * (1 + _vessel.obt_speed) * surfaceArea * _intakeModifier * Math.Sqrt((normalizedTime - 0.2) * 1.25);
+                    AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(_vessel) * (0.1 + _vessel.obt_speed) * surfaceArea * _intakeModifier * Math.Sqrt((normalizedTime - 0.2) * 1.25);
             }
             catch (Exception e)
             {
@@ -416,25 +417,25 @@ namespace FNPlugin.Refinery
                         Debug.Log("[KSPI]: looking up Atmosphere contents for " + FlightGlobals.currentMainBody.name);
 
                         // remember, all these are persistent. Once we get them, we won't need to calculate them again until we change SOI
-                        _ammoniaPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _ammoniaResourceName);
-                        _argonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _argonResourceName);
-                        _chlorinePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _chlorineResourceName);
-                        _monoxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _monoxideResourceName);
-                        _dioxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _dioxideResourceName);
-                        _helium3Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium3ResourceName);
-                        _helium4Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium4ResourceName);
-                        _hydrogenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _hydrogenResourceName);
-                        _methanePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _methaneResourceName);
-                        _neonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _neonResourceName);
-                        _nitrogenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _nitrogenResourceName);
-                        _nitrogen15Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _nitrogen15ResourceName);
-                        _oxygenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _oxygenResourceName);
-                        _waterPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _waterResourceName);
-                        _heavywaterPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _heavyWaterResourceName);
-                        _xenonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _xenonResourceName);
-                        _deuteriumPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _deuteriumResourceName);
-                        _kryptonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _kryptonResourceName);
-                        _sodiumPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _sodiumResourceName);
+                        _ammoniaPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _ammoniaResourceName);
+                        _argonPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _argonResourceName);
+                        _chlorinePercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _chlorineResourceName);
+                        _monoxidePercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _monoxideResourceName);
+                        _dioxidePercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _dioxideResourceName);
+                        _helium3Percentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium3ResourceName);
+                        _helium4Percentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium4ResourceName);
+                        _hydrogenPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _hydrogenResourceName);
+                        _methanePercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _methaneResourceName);
+                        _neonPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _neonResourceName);
+                        _nitrogenPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _nitrogenResourceName);
+                        _nitrogen15Percentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _nitrogen15ResourceName);
+                        _oxygenPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _oxygenResourceName);
+                        _waterPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _waterResourceName);
+                        _heavywaterPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _heavyWaterResourceName);
+                        _xenonPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _xenonResourceName);
+                        _deuteriumPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _deuteriumResourceName);
+                        _kryptonPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _kryptonResourceName);
+                        _sodiumPercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(FlightGlobals.currentMainBody, _sodiumResourceName);
 
                         lastBodyID = FlightGlobals.currentMainBody.flightGlobalsIndex; // reassign the id of current body to the lastBodyID variable, ie. remember this planet, so that we skip this check next time!
                     }
@@ -518,38 +519,38 @@ namespace FNPlugin.Refinery
                     * Otherwise the consumptionStorageRatio would be zero and thus no atmosphere would be consumed. */
                     _consumptionStorageRatio = new [] { ammRatio, arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, nitro15Ratio, oxyRatio, waterRatio, heavywaterRatio, xenonRatio, deuteriumRatio, kryptonRatio, sodiumRatio }.Where(x => x > 0).Min();
 
-                    var max_atmospheric_consumption_rate = _consumptionStorageRatio * _fixedConsumptionRate;
+                    var maxAtmosphericConsumptionRate = _consumptionStorageRatio * _fixedConsumptionRate;
 
                     // calculate atmospheric consumption per second
                     _atmosphereConsumptionRate = buildInAirIntake;
 
                     // calculate missing atmospheric which can be extracted from air intakes
-                    var remainingConsumptionNeeded = Math.Max(0, buildInAirIntake - max_atmospheric_consumption_rate);
+                    var remainingConsumptionNeeded = Math.Max(0, buildInAirIntake - maxAtmosphericConsumptionRate);
 
                     // add the consumed atmosphere total atmospheric consumption rate
                     _atmosphereConsumptionRate += _part.RequestResource(_atmosphereResourceName, remainingConsumptionNeeded / _atmosphere.density) / fixedDeltaTime * _atmosphere.density;
                 }
                 
                 // produce the resources
-                _ammoniaProductionRate = _ammoniaPercentage == 0 ? 0 : -_part.RequestResource(_ammoniaResourceName, -_atmosphereConsumptionRate * _ammoniaPercentage * fixedDeltaTime / _atmosphere.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _atmosphere.density;
-                _argonProductionRate = _argonPercentage == 0 ? 0 : -_part.RequestResource(_argonResourceName, -_atmosphereConsumptionRate * _argonPercentage * fixedDeltaTime / _argon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _argon.density;
-                _chlorineProductionRate = _chlorinePercentage == 0 ? 0 : -_part.RequestResource(_chlorineResourceName, -_atmosphereConsumptionRate * _chlorinePercentage * fixedDeltaTime / _chlorine.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _chlorine.density;
-                _dioxideProductionRate = _dioxidePercentage == 0 ? 0 : -_part.RequestResource(_dioxideResourceName, -_atmosphereConsumptionRate * _dioxidePercentage * fixedDeltaTime / _dioxide.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _dioxide.density;
-                _helium3ProductionRate = _helium3Percentage == 0 ? 0 : -_part.RequestResource(_helium3ResourceName, -_atmosphereConsumptionRate * _helium3Percentage * fixedDeltaTime / _helium3.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium3.density;
-                _helium4ProductionRate = _helium4Percentage == 0 ? 0 : -_part.RequestResource(_helium4ResourceName, -_atmosphereConsumptionRate * _helium4Percentage * fixedDeltaTime / _helium4.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium4.density;
-                _hydrogenProductionRate = _hydrogenPercentage == 0 ? 0 : -_part.RequestResource(_hydrogenResourceName, -_atmosphereConsumptionRate * _hydrogenPercentage * fixedDeltaTime / _hydrogen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen.density;
-                _methaneProductionRate = _methanePercentage == 0 ? 0 : -_part.RequestResource(_methaneResourceName, -_atmosphereConsumptionRate * _methanePercentage * fixedDeltaTime / _methane.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _methane.density;
-                _monoxideProductionRate = _monoxidePercentage == 0 ? 0 : -_part.RequestResource(_monoxideResourceName, -_atmosphereConsumptionRate * _monoxidePercentage * fixedDeltaTime / _monoxide.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide.density;
-                _neonProductionRate = _neonPercentage == 0 ? 0 : -_part.RequestResource(_neonResourceName, -_atmosphereConsumptionRate * _neonPercentage * fixedDeltaTime / _neon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _neon.density;
-                _nitrogenProductionRate = _nitrogenPercentage == 0 ? 0 : -_part.RequestResource(_nitrogenResourceName, -_atmosphereConsumptionRate * _nitrogenPercentage * fixedDeltaTime / _nitrogen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen.density;
-                _nitrogen15ProductionRate = _nitrogen15Percentage == 0 ? 0 : -_part.RequestResource(_nitrogen15ResourceName, -_atmosphereConsumptionRate * _nitrogen15Percentage * fixedDeltaTime / _nitrogen15.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen15.density;
-                _oxygenProductionRate = _oxygenPercentage == 0 ? 0 : -_part.RequestResource(_oxygenResourceName, -_atmosphereConsumptionRate * _oxygenPercentage * fixedDeltaTime / _oxygen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen.density;
-                _waterProductionRate = _waterPercentage == 0 ? 0 : -_part.RequestResource(_waterResourceName, -_atmosphereConsumptionRate * _waterPercentage * fixedDeltaTime / _water.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _water.density;
-                _heavyWaterProductionRate = _heavywaterPercentage == 0 ? 0 : -_part.RequestResource(_heavyWaterResourceName, -_atmosphereConsumptionRate * _heavywaterPercentage * fixedDeltaTime / _heavyWater.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _heavyWater.density;
-                _xenonProductionRate = _xenonPercentage == 0 ? 0 : -_part.RequestResource(_xenonResourceName, -_atmosphereConsumptionRate * _xenonPercentage * fixedDeltaTime / _xenon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _xenon.density;
-                _deuteriumProductionRate = _deuteriumPercentage == 0 ? 0 : -_part.RequestResource(_deuteriumResourceName, -_atmosphereConsumptionRate * _deuteriumPercentage * fixedDeltaTime / _deuterium.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuterium.density;
-                _kryptonProductionRate = _kryptonPercentage == 0 ? 0 : -_part.RequestResource(_kryptonResourceName, -_atmosphereConsumptionRate * _kryptonPercentage * fixedDeltaTime / _krypton.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _krypton.density;
-                _sodiumProductionRate = _sodiumPercentage == 0 ? 0 : -_part.RequestResource(_sodiumResourceName, -_atmosphereConsumptionRate * _sodiumPercentage * fixedDeltaTime / _sodium.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _sodium.density;
+                _ammoniaProductionRate = _ammoniaPercentage <= 0 ? 0 : -_part.RequestResource(_ammoniaResourceName, -_atmosphereConsumptionRate * _ammoniaPercentage * fixedDeltaTime / _atmosphere.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _atmosphere.density;
+                _argonProductionRate = _argonPercentage <= 0 ? 0 : -_part.RequestResource(_argonResourceName, -_atmosphereConsumptionRate * _argonPercentage * fixedDeltaTime / _argon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _argon.density;
+                _chlorineProductionRate = _chlorinePercentage <= 0 ? 0 : -_part.RequestResource(_chlorineResourceName, -_atmosphereConsumptionRate * _chlorinePercentage * fixedDeltaTime / _chlorine.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _chlorine.density;
+                _dioxideProductionRate = _dioxidePercentage <= 0 ? 0 : -_part.RequestResource(_dioxideResourceName, -_atmosphereConsumptionRate * _dioxidePercentage * fixedDeltaTime / _dioxide.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _dioxide.density;
+                _helium3ProductionRate = _helium3Percentage <= 0 ? 0 : -_part.RequestResource(_helium3ResourceName, -_atmosphereConsumptionRate * _helium3Percentage * fixedDeltaTime / _helium3.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium3.density;
+                _helium4ProductionRate = _helium4Percentage <= 0 ? 0 : -_part.RequestResource(_helium4ResourceName, -_atmosphereConsumptionRate * _helium4Percentage * fixedDeltaTime / _helium4.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium4.density;
+                _hydrogenProductionRate = _hydrogenPercentage <= 0 ? 0 : -_part.RequestResource(_hydrogenResourceName, -_atmosphereConsumptionRate * _hydrogenPercentage * fixedDeltaTime / _hydrogen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen.density;
+                _methaneProductionRate = _methanePercentage <= 0 ? 0 : -_part.RequestResource(_methaneResourceName, -_atmosphereConsumptionRate * _methanePercentage * fixedDeltaTime / _methane.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _methane.density;
+                _monoxideProductionRate = _monoxidePercentage <= 0 ? 0 : -_part.RequestResource(_monoxideResourceName, -_atmosphereConsumptionRate * _monoxidePercentage * fixedDeltaTime / _monoxide.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide.density;
+                _neonProductionRate = _neonPercentage <= 0 ? 0 : -_part.RequestResource(_neonResourceName, -_atmosphereConsumptionRate * _neonPercentage * fixedDeltaTime / _neon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _neon.density;
+                _nitrogenProductionRate = _nitrogenPercentage <= 0 ? 0 : -_part.RequestResource(_nitrogenResourceName, -_atmosphereConsumptionRate * _nitrogenPercentage * fixedDeltaTime / _nitrogen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen.density;
+                _nitrogen15ProductionRate = _nitrogen15Percentage <= 0 ? 0 : -_part.RequestResource(_nitrogen15ResourceName, -_atmosphereConsumptionRate * _nitrogen15Percentage * fixedDeltaTime / _nitrogen15.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen15.density;
+                _oxygenProductionRate = _oxygenPercentage <= 0 ? 0 : -_part.RequestResource(_oxygenResourceName, -_atmosphereConsumptionRate * _oxygenPercentage * fixedDeltaTime / _oxygen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen.density;
+                _waterProductionRate = _waterPercentage <= 0 ? 0 : -_part.RequestResource(_waterResourceName, -_atmosphereConsumptionRate * _waterPercentage * fixedDeltaTime / _water.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _water.density;
+                _heavyWaterProductionRate = _heavywaterPercentage <= 0 ? 0 : -_part.RequestResource(_heavyWaterResourceName, -_atmosphereConsumptionRate * _heavywaterPercentage * fixedDeltaTime / _heavyWater.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _heavyWater.density;
+                _xenonProductionRate = _xenonPercentage <= 0 ? 0 : -_part.RequestResource(_xenonResourceName, -_atmosphereConsumptionRate * _xenonPercentage * fixedDeltaTime / _xenon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _xenon.density;
+                _deuteriumProductionRate = _deuteriumPercentage <= 0 ? 0 : -_part.RequestResource(_deuteriumResourceName, -_atmosphereConsumptionRate * _deuteriumPercentage * fixedDeltaTime / _deuterium.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuterium.density;
+                _kryptonProductionRate = _kryptonPercentage <= 0 ? 0 : -_part.RequestResource(_kryptonResourceName, -_atmosphereConsumptionRate * _kryptonPercentage * fixedDeltaTime / _krypton.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _krypton.density;
+                _sodiumProductionRate = _sodiumPercentage <= 0 ? 0 : -_part.RequestResource(_sodiumResourceName, -_atmosphereConsumptionRate * _sodiumPercentage * fixedDeltaTime / _sodium.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _sodium.density;
             }
             else
             {
@@ -580,17 +581,6 @@ namespace FNPlugin.Refinery
         {
             base.UpdateGUI();
 
-            if (_bold_label == null)
-                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
-            if (_value_label == null)
-                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
-            if (_value_label_green == null)
-                _value_label_green = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, normal = {textColor = Color.green} };
-            if (_value_label_red == null)
-                _value_label_red = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, normal = {textColor = Color.red} };
-            if (_value_label_number == null)
-                _value_label_number = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, alignment = TextAnchor.MiddleRight };
-
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
@@ -598,22 +588,26 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_AtmoConsumption"), _bold_label, GUILayout.Width(labelWidth));//"Intake Atmo. Consumption"
-            GUILayout.Label(((_atmosphereConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));//
+            GUILayout.Label((GetValueText(_atmosphereConsumptionRate * GameConstants.SECONDS_IN_HOUR)) + " mT/hour", _value_label, GUILayout.Width(valueWidth));//
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_AtmoAvailable"), _bold_label, GUILayout.Width(labelWidth));//"Intake Atmo. Available"
-            GUILayout.Label(_availableAtmosphereMass.ToString("0.0000") + " mT / " + _maxCapacityAtmosphereMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(GetValueText(_availableAtmosphereMass) + " mT / " + GetValueText(_maxCapacityAtmosphereMass) + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Name"), _bold_label, GUILayout.Width(valueWidth));//"Name"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Abundance"), _bold_label, GUILayout.Width(valueWidth));//"Abundance"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionpersecond"), _bold_label, GUILayout.Width(valueWidth));//"Production per second"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionperhour"), _bold_label, GUILayout.Width(valueWidth));//"Production per hour"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_SpareRoom"), _bold_label, GUILayout.Width(valueWidth));//"Spare Room"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Stored"), _bold_label, GUILayout.Width(valueWidth));//"Stored"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_MaxCapacity"), _bold_label, GUILayout.Width(valueWidth));//"Max Capacity"
+            GUILayout.Label("", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Name"), _bold_label, GUILayout.Width(valueWidth));                // "Name"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Abundance"), _bold_label, GUILayout.Width(valueWidth));           // "Abundance"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_SpareRoom"), _bold_label, GUILayout.Width(valueWidth));           // "Spare Room"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Stored"), _bold_label, GUILayout.Width(valueWidth));              // "Stored"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_MaxCapacity"), _bold_label, GUILayout.Width(valueWidth));         // "Max Capacity"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionpersecond"), _bold_label, GUILayout.Width(valueWidth)); // "Production per second"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionperhour"), _bold_label, GUILayout.Width(valueWidth));   // "Production per hour"
             GUILayout.EndHorizontal();
 
             DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Hydrogen"), _hydrogenPercentage, _hydrogenProductionRate, _spareRoomHydrogenMass, _maxCapacityHydrogenMass);//"Hydrogen"
@@ -637,40 +631,56 @@ namespace FNPlugin.Refinery
             DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Sodium"), _sodiumPercentage, _sodiumProductionRate, _spareRoomSodiumMass, _maxCapacitySodiumMass);//"Sodium"
         }
 
-        private void DisplayResourceExtraction(string resourceName,  double percentage, double productionRate, double spareRoom, double maximumCapacity)
+        private void DisplayResourceExtraction(string resourceName, double percentage, double productionRate, double spareRoom, double maximumCapacity)
         {
             if (percentage <= 0)
                 return;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(resourceName, _value_label, GUILayout.Width(valueWidth));
-            GUILayout.Label((percentage * 100).ToString("##.######") + "%", _value_label, GUILayout.Width(valueWidth));
-            GUILayout.Label(productionRate.ToString("##.######") + " U/s", _value_label, GUILayout.Width(valueWidth));
-            GUILayout.Label((productionRate * GameConstants.SECONDS_IN_HOUR).ToString("##.######") + " U/h", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(GetValueText(percentage * 100) + "%", _value_label, GUILayout.Width(valueWidth));
+
             if (maximumCapacity > 0)
             {
                 if (spareRoom > 0)
-                    GUILayout.Label((spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+                    GUILayout.Label(GetValueText(spareRoom) + " t", _value_label_green, GUILayout.Width(valueWidth));
                 else
-                    GUILayout.Label("", _value_label, GUILayout.Width(valueWidth));
+                    GUILayout.Label("0", _value_label_red, GUILayout.Width(valueWidth));
 
-                GUILayout.Label((maximumCapacity - spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.Label((maximumCapacity).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label(GetValueText(maximumCapacity - spareRoom) + " t", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label(GetValueText(maximumCapacity) + " t", _value_label, GUILayout.Width(valueWidth));
             }
             else
             {
-                GUILayout.Label("", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.Label("", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.Label("", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+                GUILayout.Label("0", _value_label_red, GUILayout.Width(valueWidth));
             }
+
+            if (productionRate > 0)
+            {
+                GUILayout.Label(GetValueText(productionRate) + " U/s", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label(GetValueText(productionRate * GameConstants.SECONDS_IN_HOUR) + " U/h", _value_label, GUILayout.Width(valueWidth));
+            }
+            else
+            {
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label_red, GUILayout.Width(valueWidth));
+            }
+
             GUILayout.EndHorizontal();
-        } 
+        }
+
+        private string GetValueText(double value)
+        {
+            return value >= 0.00000005 ? value.ToString("##.########") : ((float)value).ToString(CultureInfo.InvariantCulture);
+        }
 
         private void UpdateStatusMessage()
         {
-            if (normalizedTime == 0)
+            if (normalizedTime <= 0)
                 _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg1");//"Scoop is not deployed"
-            else if (_intakeModifier == 0)
+            else if (_intakeModifier <= 0)
                 _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg2");//"Scoop is not heading into orbital direction"
             else if (_atmosphereConsumptionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg3");//"Extracting atmosphere"
