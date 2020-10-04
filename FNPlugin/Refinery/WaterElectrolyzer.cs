@@ -7,36 +7,37 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class WaterElectroliser : RefineryActivity, IRefineryActivity
+    class WaterElectrolyzer : RefineryActivity, IRefineryActivity
     {
-        public WaterElectroliser()
+        public WaterElectrolyzer()
         {
             ActivityName = "Water Electrolysis: H<size=7>2</size>O => H<size=7>2</size> + O<size=7>2</size>";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }
 
-        const double protiumAtomicMass = 1.00782503207;
-        const double oxygenAtomicMass = 15.999;
-        const double hydrogenMassByFraction = (2 * protiumAtomicMass) / (oxygenAtomicMass + (2 * protiumAtomicMass)); // 0.1119067
-        const double oxygenMassByFraction = 1 - hydrogenMassByFraction;
+        private const double ProtiumAtomicMass = 1.00782503207;
+        private const double OxygenAtomicMass = 15.999;
+        private const double HydrogenMassByFraction = (2 * ProtiumAtomicMass) / (OxygenAtomicMass + (2 * ProtiumAtomicMass)); // 0.1119067
+        private const double OxygenMassByFraction = 1 - HydrogenMassByFraction;
         
-        double _water_consumption_rate;
-        double _hydrogen_production_rate;
-        double _oxygen_production_rate;
-        double _fixedMaxConsumptionWaterRate;
-        double _consumptionStorageRatio;
+        private double _waterConsumptionRate;
+        private double _hydrogenProductionRate;
+        private double _oxygenProductionRate;
+        private double _fixedMaxConsumptionWaterRate;
+        private double _consumptionStorageRatio;
 
-        double _water_density;
-        double _oxygen_density;
-        double _hydrogen_density;
+        private double _waterDensity;
+        private double _oxygenDensity;
+        private double _hydrogenDensity;
 
-        double _availableWaterMass;
-        double _spareRoomOxygenMass;
-        double _spareRoomHydrogenMass;
+        private double _availableWaterMass;
+        private double _spareRoomOxygenMass;
+        private double _spareRoomHydrogenMass;
 
-        double _maxCapacityWaterMass;
-        double _maxCapacityHydrogenMass;
-        double _maxCapacityOxygenMass;
+        private double _maxCapacityWaterMass;
+        private double _maxCapacityHydrogenMass;
+        private double _maxCapacityOxygenMass;
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
@@ -49,9 +50,9 @@ namespace FNPlugin.Refinery
             _part = part;
 
             _vessel = part.vessel;
-            _water_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
-            _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
-            _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+            _waterDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
+            _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -60,19 +61,19 @@ namespace FNPlugin.Refinery
 
             // determine how much mass we can produce at max
             _current_power = _effectiveMaxPower * powerFraction;
-            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
+            _current_rate = CurrentPower / EnergyPerTon;
 
-            var partsThatContainWater = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Water);
-            var partsThatContainOxygen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen);
-            var partsThatContainHydrogen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen);
+            var partsThatContainWater = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Water).ToList();
+            var partsThatContainOxygen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).ToList();
+            var partsThatContainHydrogen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).ToList();
 
-            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _water_density;
-            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygen_density;
-            _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogen_density;
+            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _waterDensity;
+            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygenDensity;
+            _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogenDensity;
 
-            _availableWaterMass = partsThatContainWater.Sum(p => p.amount) * _water_density;
-            _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen_density;
-            _spareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * _hydrogen_density;
+            _availableWaterMass = partsThatContainWater.Sum(p => p.amount) * _waterDensity;
+            _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygenDensity;
+            _spareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * _hydrogenDensity;
 
             // determine how much water we can consume
             _fixedMaxConsumptionWaterRate = Math.Min(_current_rate * fixedDeltaTime, _availableWaterMass);
@@ -80,8 +81,8 @@ namespace FNPlugin.Refinery
             if (_fixedMaxConsumptionWaterRate > 0 && (_spareRoomOxygenMass > 0 || _spareRoomHydrogenMass > 0))
             {
                 // calculate consumptionStorageRatio
-                var fixedMaxHydrogenRate = _fixedMaxConsumptionWaterRate * hydrogenMassByFraction;
-                var fixedMaxOxygenRate = _fixedMaxConsumptionWaterRate * oxygenMassByFraction;
+                var fixedMaxHydrogenRate = _fixedMaxConsumptionWaterRate * HydrogenMassByFraction;
+                var fixedMaxOxygenRate = _fixedMaxConsumptionWaterRate * OxygenMassByFraction;
 
                 var fixedMaxPossibleHydrogenRate = allowOverflow ? fixedMaxHydrogenRate : Math.Min(_spareRoomHydrogenMass, fixedMaxHydrogenRate);
                 var fixedMaxPossibleOxygenRate = allowOverflow ? fixedMaxOxygenRate : Math.Min(_spareRoomOxygenMass, fixedMaxOxygenRate);
@@ -90,23 +91,23 @@ namespace FNPlugin.Refinery
                 var fixedMaxPossibleOxygenRatio = fixedMaxPossibleOxygenRate / fixedMaxOxygenRate;
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrogenRatio, fixedMaxPossibleOxygenRatio);
 
-                // now we do the real elextrolysis
-                _water_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Water, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _water_density) / fixedDeltaTime * _water_density;
+                // now we do the real electrolysis
+                _waterConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Water, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _waterDensity) / fixedDeltaTime * _waterDensity;
 
-                var hydrogen_rate_temp = _water_consumption_rate * hydrogenMassByFraction;
-                var oxygen_rate_temp = _water_consumption_rate * oxygenMassByFraction;
+                var hydrogenRateTemp = _waterConsumptionRate * HydrogenMassByFraction;
+                var oxygenRateTemp = _waterConsumptionRate * OxygenMassByFraction;
 
-                _hydrogen_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogen_rate_temp * fixedDeltaTime / _hydrogen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen_density;
-                _oxygen_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdOxygen, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
+                _hydrogenProductionRate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogenRateTemp * fixedDeltaTime / _hydrogenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogenDensity;
+                _oxygenProductionRate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdOxygen, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
             }
             else
             {
-                _water_consumption_rate = 0;
-                _hydrogen_production_rate = 0;
-                _oxygen_production_rate = 0;
+                _waterConsumptionRate = 0;
+                _hydrogenProductionRate = 0;
+                _oxygenProductionRate = 0;
             }
 
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -130,7 +131,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_WaterElectroliser_WaterConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Water Consumption Rate"
-            GUILayout.Label((_water_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_waterConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -140,7 +141,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_WaterElectroliser_HydrogenProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Production Rate"
-            GUILayout.Label((_hydrogen_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_hydrogenProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -150,19 +151,19 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_WaterElectroliser_OxygenProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Oxygen Production Rate"
-            GUILayout.Label((_oxygen_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_oxygenProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
-        private void updateStatusMessage()
+        private void UpdateStatusMessage()
         {
-            if (_hydrogen_production_rate > 0 && _oxygen_production_rate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg1");//"Electrolysing Water"
+            if (_hydrogenProductionRate > 0 && _oxygenProductionRate > 0)
+                _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg1");//"Electrolyzing Water"
             else if (_fixedMaxConsumptionWaterRate <= 0.0000000001)
                 _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg2");//"Out of water"
-            else if (_hydrogen_production_rate > 0)
+            else if (_hydrogenProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg3", InterstellarResourcesConfiguration.Instance.LqdOxygen);//"Insufficient " +  + " Storage"
-            else if (_oxygen_production_rate > 0)
+            else if (_oxygenProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg3", InterstellarResourcesConfiguration.Instance.Hydrogen);//"Insufficient " +  + " Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg4");//"Insufficient Power"
@@ -170,7 +171,8 @@ namespace FNPlugin.Refinery
                 _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg5");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources() {
+        public void PrintMissingResources() 
+        {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterElectroliser_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.Water, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }

@@ -2,7 +2,6 @@
 using FNPlugin.Extensions;
 using KSP.Localization;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -14,11 +13,12 @@ namespace FNPlugin.Refinery
         {
             ActivityName = "Nuclear Fuel Reprocessing";
             PowerRequirements = PluginHelper.BasePowerConsumption;
+            EnergyPerTon = 1 / GameConstants.baseReprocessingRate;
         }
 
-        private double _fixed_current_rate;
-        private double _remaining_to_reprocess;
-        private double _remaining_seconds;
+        private double _fixedCurrentRate;
+        private double _remainingToReprocess;
+        private double _remainingSeconds;
         
         public RefineryType RefineryType => RefineryType.Synthesize;
 
@@ -39,20 +39,23 @@ namespace FNPlugin.Refinery
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false) 
         {
             _current_power = PowerRequirements * rateMultiplier;
-            List<INuclearFuelReprocessable> nuclear_reactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();
-            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * fixedDeltaTime / PluginHelper.SecondsInDay * rateMultiplier;
-            double enum_actinides_change = 0;
-            foreach (INuclearFuelReprocessable nuclear_reactor in nuclear_reactors)
+
+            var nuclearReactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();
+            double remainingCapacityToReprocess = GameConstants.baseReprocessingRate * fixedDeltaTime / PluginHelper.SecondsInDay * rateMultiplier;
+            double enumActinidesChange = 0;
+
+            foreach (INuclearFuelReprocessable nuclearReactor in nuclearReactors)
             {
-                double actinides_change = nuclear_reactor.ReprocessFuel(remaining_capacity_to_reprocess);
-                enum_actinides_change += actinides_change;
-                remaining_capacity_to_reprocess = Math.Max(0, remaining_capacity_to_reprocess - actinides_change);
+                double actinidesChange = nuclearReactor.ReprocessFuel(remainingCapacityToReprocess);
+                enumActinidesChange += actinidesChange;
+                remainingCapacityToReprocess = Math.Max(0, remainingCapacityToReprocess - actinidesChange);
             }
-            _remaining_to_reprocess = nuclear_reactors.Sum(nfr => nfr.WasteToReprocess);
-            _fixed_current_rate = enum_actinides_change;
-            _current_rate = _fixed_current_rate / fixedDeltaTime;
-            _remaining_seconds = _remaining_to_reprocess / _fixed_current_rate/ fixedDeltaTime;
-            _status = _fixed_current_rate > 0 ? Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu1") : _remaining_to_reprocess > 0 ? Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu2") : Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu3");//"Online""Power Deprived""No Fuel To Reprocess"
+
+            _remainingToReprocess = nuclearReactors.Sum(nfr => nfr.WasteToReprocess);
+            _fixedCurrentRate = enumActinidesChange;
+            _current_rate = _fixedCurrentRate / fixedDeltaTime;
+            _remainingSeconds = _remainingToReprocess / _fixedCurrentRate/ fixedDeltaTime;
+            _status = _fixedCurrentRate > 0 ? Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu1") : _remainingToReprocess > 0 ? Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu2") : Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_statu3");//"Online""Power Deprived""No Fuel To Reprocess"
         }
 
         public override void UpdateGUI()
@@ -62,14 +65,16 @@ namespace FNPlugin.Refinery
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
-            if (_remaining_seconds > 0 && !double.IsNaN(_remaining_seconds) && !double.IsInfinity(_remaining_seconds))
+
+            if (_remainingSeconds > 0 && !double.IsNaN(_remainingSeconds) && !double.IsInfinity(_remainingSeconds))
             {
-                int hrs = (int) (_remaining_seconds / 3600);
-                int mins = (int) ((_remaining_seconds - hrs*3600)/60);
-                int secs = (hrs * 60 + mins) % ((int)(_remaining_seconds / 60));
+                int hours = (int) (_remainingSeconds / 3600);
+                int minutes = (int) ((_remainingSeconds - hours*3600)/60);
+                int secs = (hours * 60 + minutes) % ((int)(_remainingSeconds / 60));
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_TimeRemaining"), _bold_label, GUILayout.Width(labelWidth));//"Time Remaining"
-                GUILayout.Label(hrs + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_hoursLabel") + " " + mins + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_minutesLabel") + " " + secs + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_secondsLabel"), _value_label, GUILayout.Width(valueWidth));//hours""minutes""seconds
+                GUILayout.Label(hours + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_hoursLabel") + " " + minutes + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_minutesLabel") + " " + secs + " " + Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_secondsLabel"), _value_label, GUILayout.Width(valueWidth));//hours""minutes""seconds
             }
+
             GUILayout.EndHorizontal();
         }
 
@@ -80,7 +85,7 @@ namespace FNPlugin.Refinery
 
         public double getRemainingAmountToReprocess() 
         {
-            return _remaining_to_reprocess;
+            return _remainingToReprocess;
         }
 
         public void PrintMissingResources()

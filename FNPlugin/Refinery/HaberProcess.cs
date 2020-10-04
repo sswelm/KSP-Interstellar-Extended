@@ -12,23 +12,24 @@ namespace FNPlugin.Refinery
         {
             ActivityName = "Haber Process: H<size=7>2</size> + N<size=7>2</size> => NH<size=7>3</size> (Ammonia) ";
             PowerRequirements = PluginHelper.BaseHaberProcessPowerConsumption;
+            EnergyPerTon = PluginHelper.HaberProcessEnergyPerTon;
         }
 
-        double _hydrogen_consumption_rate;
-        double _ammonia_production_rate;
-        double _nitrogen_consumption_rate;
+        double _hydrogenConsumptionRate;
+        double _ammoniaProductionRate;
+        double _nitrogenConsumptionRate;
 
-        PartResourceDefinition definition_hydrogen;
-        PartResourceDefinition definition_nitrogen;
-        PartResourceDefinition definition_ammonia;
+        private PartResourceDefinition _definitionHydrogen;
+        private PartResourceDefinition _definitionNitrogen;
+        private PartResourceDefinition _definitionAmmonia;
 
-        double availalble_hydrogen;
-        double availalble_nitrogen;
-        double spare_capacity_ammonia;
+        private double _availableHydrogen;
+        private double _availableNitrogen;
+        private double _spareCapacityAmmonia;
 
-        double ammonia_density;
-        double hydrogen_density;
-        double nitrogen_density;
+        private double _ammoniaDensity;
+        private double _hydrogenDensity;
+        private double _nitrogenDensity;
 
         public RefineryType RefineryType => RefineryType.Synthesize;
 
@@ -39,23 +40,23 @@ namespace FNPlugin.Refinery
 
         private bool HasAccessToHydrogen()
         {
-            availalble_hydrogen = _part.GetResourceAvailable(definition_hydrogen, ResourceFlowMode.ALL_VESSEL);
+            _availableHydrogen = _part.GetResourceAvailable(_definitionHydrogen, ResourceFlowMode.ALL_VESSEL);
 
-            return availalble_hydrogen > 0;
+            return _availableHydrogen > 0;
         }
 
         private bool HasAccessToNitrogen()
         {
-            availalble_nitrogen = _part.GetResourceAvailable(definition_nitrogen, ResourceFlowMode.ALL_VESSEL);
+            _availableNitrogen = _part.GetResourceAvailable(_definitionNitrogen, ResourceFlowMode.ALL_VESSEL);
 
-            return availalble_nitrogen > 0;
+            return _availableNitrogen > 0;
         }
 
         private bool HasSpareCapacityAmmonia()
         {
-            spare_capacity_ammonia = _part.GetResourceSpareCapacity(definition_ammonia, ResourceFlowMode.ALL_VESSEL);
+            _spareCapacityAmmonia = _part.GetResourceSpareCapacity(_definitionAmmonia, ResourceFlowMode.ALL_VESSEL);
 
-            return spare_capacity_ammonia > 0;
+            return _spareCapacityAmmonia > 0;
         }
 
         private double _effectiveMaxPowerRequirements;
@@ -67,57 +68,57 @@ namespace FNPlugin.Refinery
             _part = part;
             _vessel = part.vessel;
 
-            definition_ammonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia);
-            definition_hydrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
-            definition_nitrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen);
+            _definitionAmmonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia);
+            _definitionHydrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
+            _definitionNitrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen);
 
-            ammonia_density = (double)(decimal)definition_ammonia.density;
-            hydrogen_density = (double)(decimal)definition_hydrogen.density;
-            nitrogen_density = (double)(decimal)definition_nitrogen.density;
+            _ammoniaDensity = _definitionAmmonia.density;
+            _hydrogenDensity = _definitionHydrogen.density;
+            _nitrogenDensity = _definitionNitrogen.density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _effectiveMaxPowerRequirements = PowerRequirements * productionModifier;
             _current_power = powerFraction * _effectiveMaxPowerRequirements;
-            _current_rate = CurrentPower / PluginHelper.HaberProcessEnergyPerTon;
+            _current_rate = CurrentPower / EnergyPerTon;
 
-            var hydrogen_rate = _current_rate * GameConstants.ammoniaHydrogenFractionByMass;
-            var nitrogen_rate = _current_rate * (1 - GameConstants.ammoniaHydrogenFractionByMass);
+            var hydrogenRate = _current_rate * GameConstants.ammoniaHydrogenFractionByMass;
+            var nitrogenRate = _current_rate * (1 - GameConstants.ammoniaHydrogenFractionByMass);
 
-            var required_hydrogen = hydrogen_rate * fixedDeltaTime / hydrogen_density;
-            var required_nitrogen = nitrogen_rate * fixedDeltaTime / nitrogen_density;
-            var max_production_ammonia = required_hydrogen * hydrogen_density / GameConstants.ammoniaHydrogenFractionByMass / ammonia_density;
+            var requiredHydrogen = hydrogenRate * fixedDeltaTime / _hydrogenDensity;
+            var requiredNitrogen = nitrogenRate * fixedDeltaTime / _nitrogenDensity;
+            var maxProductionAmmonia = requiredHydrogen * _hydrogenDensity / GameConstants.ammoniaHydrogenFractionByMass / _ammoniaDensity;
 
-            var supply_ratio_hydrogen = required_hydrogen > 0 ? Math.Min(1, availalble_hydrogen / required_hydrogen) : 0;
-            var supply_ratio_nitrogen = required_nitrogen > 0 ? Math.Min(1, availalble_nitrogen / required_nitrogen) : 0;
-            var production_ratio_ammonia = max_production_ammonia > 0 ? Math.Min(1, spare_capacity_ammonia / max_production_ammonia) : 0;
+            var supplyRatioHydrogen = requiredHydrogen > 0 ? Math.Min(1, _availableHydrogen / requiredHydrogen) : 0;
+            var supplyRatioNitrogen = requiredNitrogen > 0 ? Math.Min(1, _availableNitrogen / requiredNitrogen) : 0;
+            var productionRatioAmmonia = maxProductionAmmonia > 0 ? Math.Min(1, _spareCapacityAmmonia / maxProductionAmmonia) : 0;
 
-            var adjustedRateRatio = Math.Min(production_ratio_ammonia, Math.Min(supply_ratio_hydrogen, supply_ratio_nitrogen));
+            var adjustedRateRatio = Math.Min(productionRatioAmmonia, Math.Min(supplyRatioHydrogen, supplyRatioNitrogen));
 
-            _hydrogen_consumption_rate = _part.RequestResource(definition_hydrogen.id, adjustedRateRatio * required_hydrogen, ResourceFlowMode.ALL_VESSEL) * hydrogen_density / fixedDeltaTime;
-            _nitrogen_consumption_rate = _part.RequestResource(definition_nitrogen.id, adjustedRateRatio * required_nitrogen, ResourceFlowMode.ALL_VESSEL) * nitrogen_density / fixedDeltaTime;
+            _hydrogenConsumptionRate = _part.RequestResource(_definitionHydrogen.id, adjustedRateRatio * requiredHydrogen, ResourceFlowMode.ALL_VESSEL) * _hydrogenDensity / fixedDeltaTime;
+            _nitrogenConsumptionRate = _part.RequestResource(_definitionNitrogen.id, adjustedRateRatio * requiredNitrogen, ResourceFlowMode.ALL_VESSEL) * _nitrogenDensity / fixedDeltaTime;
 
-            var consumed_ratio_hydrogen = hydrogen_rate > 0 ? _hydrogen_consumption_rate / hydrogen_rate : 0;
-            var consumed_ratio_nitrogen = nitrogen_rate > 0 ? _nitrogen_consumption_rate / nitrogen_rate : 0;
+            var consumedRatioHydrogen = hydrogenRate > 0 ? _hydrogenConsumptionRate / hydrogenRate : 0;
+            var consumedRatioNitrogen = nitrogenRate > 0 ? _nitrogenConsumptionRate / nitrogenRate : 0;
 
-            var consumedRatio = Math.Min(consumed_ratio_hydrogen, consumed_ratio_nitrogen);
+            var consumedRatio = Math.Min(consumedRatioHydrogen, consumedRatioNitrogen);
 
             if (consumedRatio > 0)
             {
-                var ammonia_production = -consumedRatio * max_production_ammonia;
-                var ammonia_produced = -_part.RequestResource(definition_ammonia.id, ammonia_production, ResourceFlowMode.ALL_VESSEL);
-                _ammonia_production_rate = ammonia_produced * ammonia_density / fixedDeltaTime;
+                var ammoniaProduction = -consumedRatio * maxProductionAmmonia;
+                var ammoniaProduced = -_part.RequestResource(_definitionAmmonia.id, ammoniaProduction, ResourceFlowMode.ALL_VESSEL);
+                _ammoniaProductionRate = ammoniaProduced * _ammoniaDensity / fixedDeltaTime;
 
                 if (isStartup)
                 {
-                    string message = "produced: " + (ammonia_produced * ammonia_density * 1000).ToString("0.000") + " kg Ammonia";//
+                    string message = "produced: " + (ammoniaProduced * _ammoniaDensity * 1000).ToString("0.000") + " kg Ammonia";//
                     Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 20, ScreenMessageStyle.LOWER_CENTER);
                 }
             }
             
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -136,38 +137,38 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_HaberProcess_NitrogenAvailable"), _bold_label, GUILayout.Width(labelWidth));//"Nitrogen Available:"
-            GUILayout.Label((availalble_nitrogen * nitrogen_density * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_availableNitrogen * _nitrogenDensity * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_HaberProcess_NitrogenConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Nitrogen Consumption Rate:"
-            GUILayout.Label(_nitrogen_consumption_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(_nitrogenConsumptionRate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_HaberProcess_HydrogenAvailable"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Available:"
-            GUILayout.Label((availalble_hydrogen * hydrogen_density * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_availableHydrogen * _hydrogenDensity * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_HaberProcess_HydrogenConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Consumption Rate:"
-            GUILayout.Label(_hydrogen_consumption_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(_hydrogenConsumptionRate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_HaberProcess_AmmoniaSpareCapacity"), _bold_label, GUILayout.Width(labelWidth));//"Ammonia Spare Capacity:"
-            GUILayout.Label((spare_capacity_ammonia * ammonia_density * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_spareCapacityAmmonia * _ammoniaDensity * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_HaberProcess_AmmoniaProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Ammonia Production Rate:"
-            GUILayout.Label(_ammonia_production_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(_ammoniaProductionRate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
-        private void updateStatusMessage()
+        private void UpdateStatusMessage()
         {
-            if (_ammonia_production_rate > 0) 
+            if (_ammoniaProductionRate > 0) 
                 _status = Localizer.Format("#LOC_KSPIE_HaberProcess_Statumsg1");//"Haber Process Ongoing"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_HaberProcess_Statumsg2");//"Insufficient Power"

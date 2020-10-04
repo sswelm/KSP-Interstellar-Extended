@@ -13,35 +13,36 @@ namespace FNPlugin.Refinery
         {
             ActivityName = "Anthraquinone Process: H<size=7>2</size> + O<size=7>2</size> => H<size=7>2</size>O<size=7>2</size> (HTP) ";
             PowerRequirements = PluginHelper.BaseAnthraquiononePowerConsumption;
+            EnergyPerTon = PluginHelper.AnthraquinoneEnergyPerTon;
         }
 
-        double _fixedConsumptionRate;
-        double _consumptionRate;
+        private double _fixedConsumptionRate;
+        private double _consumptionRate;
 
-        double _hydrogen_density;
-        double _oxygen_density;
-        double _hydrogen_peroxide_density;
+        private double _hydrogenDensity;
+        private double _oxygenDensity;
+        private double _hydrogenPeroxideDensity;
 
-        string _oxygenResourceName;
-        string _hydrogenResourceName;
-        string _hydrogenPeroxideResourceName;
+        private string _oxygenResourceName;
+        private string _hydrogenResourceName;
+        private string _hydrogenPeroxideResourceName;
 
-        double _maxCapacityOxygenMass;
-        double _maxCapacityHydrogenMass;
-        double _maxCapacityPeroxideMass;
+        private double _maxCapacityOxygenMass;
+        private double _maxCapacityHydrogenMass;
+        private double _maxCapacityPeroxideMass;
 
-        double _availableOxygenMass;
-        double _availableHydrogenMass;
-        double _spareRoomHydrogenPeroxideMass;
+        private double _availableOxygenMass;
+        private double _availableHydrogenMass;
+        private double _spareRoomHydrogenPeroxideMass;
 
-        double _hydrogen_consumption_rate;
-        double _oxygen_consumption_rate;
-        double _hydrogen_peroxide_production_rate;
+        private double _hydrogenConsumptionRate;
+        private double _oxygenConsumptionRate;
+        private double _hydrogenPeroxideProductionRate;
 
-        double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
-        double _oxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
+        readonly double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
+        readonly double _oxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
 
-        public RefineryType RefineryType { get { return RefineryType.Synthesize; } }
+        public RefineryType RefineryType => RefineryType.Synthesize;
 
         public bool HasActivityRequirements()
         {
@@ -60,9 +61,9 @@ namespace FNPlugin.Refinery
             _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
             _hydrogenPeroxideResourceName = InterstellarResourcesConfiguration.Instance.HydrogenPeroxide;
 
-            _hydrogen_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
-            _oxygen_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
-            _hydrogen_peroxide_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
+            _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
+            _hydrogenPeroxideDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -73,17 +74,17 @@ namespace FNPlugin.Refinery
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / PluginHelper.AnthraquinoneEnergyPerTon;
 
-            var partsThatContainOxygen = _part.GetConnectedResources(_oxygenResourceName);
-            var partsThatContainHydrogen = _part.GetConnectedResources(_hydrogenResourceName);
-            var partsThatContainPeroxide = _part.GetConnectedResources(_hydrogenPeroxideResourceName);
+            var partsThatContainOxygen = _part.GetConnectedResources(_oxygenResourceName).ToList();
+            var partsThatContainHydrogen = _part.GetConnectedResources(_hydrogenResourceName).ToList();
+            var partsThatContainPeroxide = _part.GetConnectedResources(_hydrogenPeroxideResourceName).ToList();
 
-            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygen_density;
-            _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogen_density;
-            _maxCapacityPeroxideMass = partsThatContainPeroxide.Sum(p => p.maxAmount) * _hydrogen_peroxide_density;
+            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygenDensity;
+            _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogenDensity;
+            _maxCapacityPeroxideMass = partsThatContainPeroxide.Sum(p => p.maxAmount) * _hydrogenPeroxideDensity;
 
-            _availableOxygenMass = partsThatContainOxygen.Sum(r => r.amount) * _oxygen_density;
-            _availableHydrogenMass = partsThatContainHydrogen.Sum(r => r.amount) * _hydrogen_density;
-            _spareRoomHydrogenPeroxideMass = partsThatContainPeroxide.Sum(r => r.maxAmount - r.amount) * _hydrogen_peroxide_density;
+            _availableOxygenMass = partsThatContainOxygen.Sum(r => r.amount) * _oxygenDensity;
+            _availableHydrogenMass = partsThatContainHydrogen.Sum(r => r.amount) * _hydrogenDensity;
+            _spareRoomHydrogenPeroxideMass = partsThatContainPeroxide.Sum(r => r.maxAmount - r.amount) * _hydrogenPeroxideDensity;
 
             // determine how much we can consume
             var fixedMaxOxygenConsumptionRate = _current_rate * _oxygenMassByFraction * fixedDeltaTime;
@@ -97,28 +98,28 @@ namespace FNPlugin.Refinery
 
             if (_fixedConsumptionRate > 0 && _spareRoomHydrogenPeroxideMass > 0)
             {
-                var fixedMaxPossibleHydrogenPeroxidenRate = Math.Min(_spareRoomHydrogenPeroxideMass, _fixedConsumptionRate);
+                var fixedMaxPossibleHydrogenPeroxideRate = Math.Min(_spareRoomHydrogenPeroxideMass, _fixedConsumptionRate);
 
-                var hydrogen_consumption_rate = fixedMaxPossibleHydrogenPeroxidenRate * _hydrogenMassByFraction;
-                var oxygen_consumption_rate = fixedMaxPossibleHydrogenPeroxidenRate * _oxygenMassByFraction;
+                var hydrogenConsumptionRate = fixedMaxPossibleHydrogenPeroxideRate * _hydrogenMassByFraction;
+                var oxygenConsumptionRate = fixedMaxPossibleHydrogenPeroxideRate * _oxygenMassByFraction;
 
                 // consume the resource
-                _hydrogen_consumption_rate = _part.RequestResource(_hydrogenResourceName, hydrogen_consumption_rate / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
-                _oxygen_consumption_rate = _part.RequestResource(_oxygenResourceName, oxygen_consumption_rate / _oxygen_density) / fixedDeltaTime * _oxygen_density;
+                _hydrogenConsumptionRate = _part.RequestResource(_hydrogenResourceName, hydrogenConsumptionRate / _hydrogenDensity) / fixedDeltaTime * _hydrogenDensity;
+                _oxygenConsumptionRate = _part.RequestResource(_oxygenResourceName, oxygenConsumptionRate / _oxygenDensity) / fixedDeltaTime * _oxygenDensity;
 
-                var combined_consumption_rate = (_hydrogen_consumption_rate + _oxygen_consumption_rate) * fixedDeltaTime / _hydrogen_peroxide_density;
+                var combinedConsumptionRate = (_hydrogenConsumptionRate + _oxygenConsumptionRate) * fixedDeltaTime / _hydrogenPeroxideDensity;
 
-                _hydrogen_peroxide_production_rate = -_part.RequestResource(_hydrogenPeroxideResourceName, -combined_consumption_rate) / fixedDeltaTime * _hydrogen_peroxide_density;
+                _hydrogenPeroxideProductionRate = -_part.RequestResource(_hydrogenPeroxideResourceName, -combinedConsumptionRate) / fixedDeltaTime * _hydrogenPeroxideDensity;
             }
             else
             {
-                _hydrogen_consumption_rate = 0;
-                _oxygen_consumption_rate = 0;
-                _hydrogen_peroxide_production_rate = 0;
+                _hydrogenConsumptionRate = 0;
+                _oxygenConsumptionRate = 0;
+                _hydrogenPeroxideProductionRate = 0;
             }
 
 
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -142,7 +143,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_HydrogenConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Consumption Rate"
-            GUILayout.Label((_hydrogen_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/"+Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_perhour"), _value_label, GUILayout.Width(valueWidth));//hour
+            GUILayout.Label((_hydrogenConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/"+Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_perhour"), _value_label, GUILayout.Width(valueWidth));//hour
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -152,7 +153,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_OxygenConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Oxygen Consumption Rate"
-            GUILayout.Label((_oxygen_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/"+Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_perhour"), _value_label, GUILayout.Width(valueWidth));//hour
+            GUILayout.Label((_oxygenConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/"+Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_perhour"), _value_label, GUILayout.Width(valueWidth));//hour
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -162,13 +163,13 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_HydrogenPeroxideProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Peroxide Production Rate"
-            GUILayout.Label((_hydrogen_peroxide_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/"+Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_perhour"), _value_label, GUILayout.Width(valueWidth));//hour
+            GUILayout.Label((_hydrogenPeroxideProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/"+Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_perhour"), _value_label, GUILayout.Width(valueWidth));//hour
             GUILayout.EndHorizontal();
         }
 
-        private void updateStatusMessage()
+        private void UpdateStatusMessage()
         {
-            if (_hydrogen_peroxide_production_rate > 0)
+            if (_hydrogenPeroxideProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_statumsg1");//"Electrolysing"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_statumsg2");//"Insufficient Power"

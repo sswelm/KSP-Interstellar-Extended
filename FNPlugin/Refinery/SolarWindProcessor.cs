@@ -1,9 +1,9 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -13,70 +13,71 @@ namespace FNPlugin.Refinery
         {
             ActivityName = "Solar Wind Process";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }
 
-        double _fixedConsumptionRate;
+        private double _fixedConsumptionRate;
 
-        double _solar_wind_density;
+        private double _solarWindDensity;
 
-        double _hydrogen_liquid_density;
-        double _hydrogen_gas_density;
+        private double _hydrogenLiquidDensity;
+        private double _hydrogenGasDensity;
 
-        double _deuterium_liquid_density;
-        double _deuterium_gas_density;
+        private double _deuteriumLiquidDensity;
+        private double _deuteriumGasDensity;
 
-        double _liquid_helium3_liquid_density;
-        double _liquid_helium3_gas_density;
+        private double _liquidHelium3LiquidDensity;
+        private double _liquidHelium3GasDensity;
 
-        double _liquid_helium4_liquid_density;
-        double _liquid_helium4_gas_density;
+        private double _liquidHelium4LiquidDensity;
+        private double _liquidHelium4GasDensity;
 
-        double _monoxide_liquid_density;
-        double _monoxide_gas_density;
+        private double _monoxideLiquidDensity;
+        private double _monoxideGasDensity;
 
-        double _nitrogen_liquid_density;
-        double _nitrogen_gas_density;
+        private double _nitrogenLiquidDensity;
+        private double _nitrogenGasDensity;
 
-        double _neon_liquid_density;
-        double _neon_gas_density;
+        private double _neonLiquidDensity;
+        private double _neonGasDensity;
 
-        double _solar_wind_consumption_rate;
-        double _hydrogen_production_rate;
-        double _deuterium_production_rate;
-        double _liquid_helium3_production_rate;
-        double _liquid_helium4_production_rate;
-        double _monoxide_production_rate;
-        double _nitrogen_production_rate;
-        double _neon_production_rate;
+        private double _solarWindConsumptionRate;
+        private double _hydrogenProductionRate;
+        private double _deuteriumProductionRate;
+        private double _liquidHelium3ProductionRate;
+        private double _liquidHelium4ProductionRate;
+        private double _monoxideProductionRate;
+        private double _nitrogenProductionRate;
+        private double _neonProductionRate;
 
-        string _solar_wind_resource_name;
+        private string _solarWindResourceName;
 
-        string _hydrogen_liquid_resource_name;
-        string _hydrogen_gas_resource_name;
+        private string _hydrogenLiquidResourceName;
+        private string _hydrogenGasResourceName;
 
-        string _deuterium_liquid_resource_name;
-        string _deuterium_gas_resource_name;
+        private string _deuteriumLiquidResourceName;
+        private string _deuteriumGasResourceName;
 
-        string _helium3_liquid_resource_name;
-        string _helium3_gas_resource_name;
+        private string _helium3LiquidResourceName;
+        private string _helium3GasResourceName;
 
-        string _helium4_liquid_resource_name;
-        string _helium4_gas_resource_name;
+        private string _helium4LiquidResourceName;
+        private string _helium4GasResourceName;
 
-        string _monoxide_liquid_resource_name;
-        string _monoxide_gas_resource_name;
+        private string _monoxideLiquidResourceName;
+        private string _monoxideGasResourceName;
 
-        string _nitrogen_liquid_resource_name;
-        string _nitrogen_gas_resource_name;
+        private string _nitrogenLiquidResourceName;
+        private string _nitrogenGasResourceName;
 
-        string _neon_liquid_resource_name;
-        string _neon_gas_resource_name;
+        private string _neonLiquidResourceName;
+        private string _neonGasResourceName;
 
         public RefineryType RefineryType => RefineryType.Cryogenics;
 
         public bool HasActivityRequirements ()
         {
-           return _part.GetConnectedResources(_solar_wind_resource_name).Any(rs => rs.maxAmount > 0);
+           return _part.GetConnectedResources(_solarWindResourceName).Any(rs => rs.maxAmount > 0);
         }
 
 
@@ -88,123 +89,123 @@ namespace FNPlugin.Refinery
             _part = part;
             _vessel = part.vessel;
 
-            _solar_wind_resource_name = InterstellarResourcesConfiguration.Instance.SolarWind;
+            _solarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
 
-            _hydrogen_liquid_resource_name = InterstellarResourcesConfiguration._HYDROGEN_LIQUID;
-            _hydrogen_gas_resource_name = InterstellarResourcesConfiguration._HYDROGEN_GAS;
-            _deuterium_liquid_resource_name = InterstellarResourcesConfiguration._DEUTERIUM_LIQUID;
-            _deuterium_gas_resource_name = InterstellarResourcesConfiguration._DEUTERIUM_GAS;
-            _helium3_liquid_resource_name = InterstellarResourcesConfiguration._HELIUM3_LIQUID;
-            _helium3_gas_resource_name = InterstellarResourcesConfiguration._HELIUM3_GAS;
-            _helium4_liquid_resource_name = InterstellarResourcesConfiguration._HELIUM4_LIQUID;
-            _helium4_gas_resource_name = InterstellarResourcesConfiguration._HELIUM4_GAS;
-            _monoxide_liquid_resource_name = InterstellarResourcesConfiguration._CARBONMONOXIDE_LIQUID;
-            _monoxide_gas_resource_name = InterstellarResourcesConfiguration._CARBONMONOXIDE_GAS;
-            _nitrogen_liquid_resource_name = InterstellarResourcesConfiguration._NITROGEN_LIQUID;
-            _nitrogen_gas_resource_name = InterstellarResourcesConfiguration._NITROGEN_GAS;
-            _neon_liquid_resource_name = InterstellarResourcesConfiguration._NEON_LIQUID;
-            _neon_gas_resource_name = InterstellarResourcesConfiguration._NEON_GAS;
+            _hydrogenLiquidResourceName = InterstellarResourcesConfiguration._HYDROGEN_LIQUID;
+            _hydrogenGasResourceName = InterstellarResourcesConfiguration._HYDROGEN_GAS;
+            _deuteriumLiquidResourceName = InterstellarResourcesConfiguration._DEUTERIUM_LIQUID;
+            _deuteriumGasResourceName = InterstellarResourcesConfiguration._DEUTERIUM_GAS;
+            _helium3LiquidResourceName = InterstellarResourcesConfiguration._HELIUM3_LIQUID;
+            _helium3GasResourceName = InterstellarResourcesConfiguration._HELIUM3_GAS;
+            _helium4LiquidResourceName = InterstellarResourcesConfiguration._HELIUM4_LIQUID;
+            _helium4GasResourceName = InterstellarResourcesConfiguration._HELIUM4_GAS;
+            _monoxideLiquidResourceName = InterstellarResourcesConfiguration._CARBONMONOXIDE_LIQUID;
+            _monoxideGasResourceName = InterstellarResourcesConfiguration._CARBONMONOXIDE_GAS;
+            _nitrogenLiquidResourceName = InterstellarResourcesConfiguration._NITROGEN_LIQUID;
+            _nitrogenGasResourceName = InterstellarResourcesConfiguration._NITROGEN_GAS;
+            _neonLiquidResourceName = InterstellarResourcesConfiguration._NEON_LIQUID;
+            _neonGasResourceName = InterstellarResourcesConfiguration._NEON_GAS;
 
-            _solar_wind_density = PartResourceLibrary.Instance.GetDefinition(_solar_wind_resource_name).density;
+            _solarWindDensity = PartResourceLibrary.Instance.GetDefinition(_solarWindResourceName).density;
 
-            _hydrogen_liquid_density = PartResourceLibrary.Instance.GetDefinition(_hydrogen_liquid_resource_name).density;
-            _hydrogen_gas_density = PartResourceLibrary.Instance.GetDefinition(_hydrogen_gas_resource_name).density;
-            _deuterium_liquid_density = PartResourceLibrary.Instance.GetDefinition(_deuterium_liquid_resource_name).density;
-            _deuterium_gas_density = PartResourceLibrary.Instance.GetDefinition(_deuterium_gas_resource_name).density;
-            _liquid_helium3_liquid_density = PartResourceLibrary.Instance.GetDefinition(_helium3_liquid_resource_name).density;
-            _liquid_helium3_gas_density = PartResourceLibrary.Instance.GetDefinition(_helium3_gas_resource_name).density;
-            _liquid_helium4_liquid_density = PartResourceLibrary.Instance.GetDefinition(_helium4_liquid_resource_name).density;
-            _liquid_helium4_gas_density = PartResourceLibrary.Instance.GetDefinition(_helium4_gas_resource_name).density;
-            _monoxide_liquid_density = PartResourceLibrary.Instance.GetDefinition(_monoxide_liquid_resource_name).density;
-            _monoxide_gas_density = PartResourceLibrary.Instance.GetDefinition(_monoxide_gas_resource_name).density;
-            _nitrogen_liquid_density = PartResourceLibrary.Instance.GetDefinition(_nitrogen_liquid_resource_name).density;
-            _nitrogen_gas_density = PartResourceLibrary.Instance.GetDefinition(_nitrogen_gas_resource_name).density;
-            _neon_liquid_density = PartResourceLibrary.Instance.GetDefinition(_neon_liquid_resource_name).density;
-            _neon_gas_density = PartResourceLibrary.Instance.GetDefinition(_neon_gas_resource_name).density;
+            _hydrogenLiquidDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenLiquidResourceName).density;
+            _hydrogenGasDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenGasResourceName).density;
+            _deuteriumLiquidDensity = PartResourceLibrary.Instance.GetDefinition(_deuteriumLiquidResourceName).density;
+            _deuteriumGasDensity = PartResourceLibrary.Instance.GetDefinition(_deuteriumGasResourceName).density;
+            _liquidHelium3LiquidDensity = PartResourceLibrary.Instance.GetDefinition(_helium3LiquidResourceName).density;
+            _liquidHelium3GasDensity = PartResourceLibrary.Instance.GetDefinition(_helium3GasResourceName).density;
+            _liquidHelium4LiquidDensity = PartResourceLibrary.Instance.GetDefinition(_helium4LiquidResourceName).density;
+            _liquidHelium4GasDensity = PartResourceLibrary.Instance.GetDefinition(_helium4GasResourceName).density;
+            _monoxideLiquidDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideLiquidResourceName).density;
+            _monoxideGasDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideGasResourceName).density;
+            _nitrogenLiquidDensity = PartResourceLibrary.Instance.GetDefinition(_nitrogenLiquidResourceName).density;
+            _nitrogenGasDensity = PartResourceLibrary.Instance.GetDefinition(_nitrogenGasResourceName).density;
+            _neonLiquidDensity = PartResourceLibrary.Instance.GetDefinition(_neonLiquidResourceName).density;
+            _neonGasDensity = PartResourceLibrary.Instance.GetDefinition(_neonGasResourceName).density;
         }
 
-        protected double _maxCapacitySolarWindMass;
-        protected double _maxCapacityHydrogenMass;
-        protected double _maxCapacityDeuteriumMass;
-        protected double _maxCapacityHelium3Mass;
-        protected double _maxCapacityHelium4Mass;
-        protected double _maxCapacityMonoxideMass;
-        protected double _maxCapacityNitrogenMass;
-        protected double _maxCapacityNeonMass;
+        private double _maxCapacitySolarWindMass;
+        private double _maxCapacityHydrogenMass;
+        private double _maxCapacityDeuteriumMass;
+        private double _maxCapacityHelium3Mass;
+        private double _maxCapacityHelium4Mass;
+        private double _maxCapacityMonoxideMass;
+        private double _maxCapacityNitrogenMass;
+        private double _maxCapacityNeonMass;
 
-        protected double _storedSolarWindMass;
-        protected double _storedHydrogenMass;
-        protected double _storedDeuteriumMass;
-        protected double _storedHelium3Mass;
-        protected double _storedHelium4Mass;
-        protected double _storedMonoxideMass;
-        protected double _storedNitrogenMass;
-        protected double _storedNeonMass;
+        private double _storedSolarWindMass;
+        private double _storedHydrogenMass;
+        private double _storedDeuteriumMass;
+        private double _storedHelium3Mass;
+        private double _storedHelium4Mass;
+        private double _storedMonoxideMass;
+        private double _storedNitrogenMass;
+        private double _storedNeonMass;
 
-        protected double _spareRoomHydrogenMass;
-        protected double _spareRoomDeuteriumMass;
-        protected double _spareRoomHelium3Mass;
-        protected double _spareRoomHelium4Mass;
-        protected double _spareRoomMonoxideMass;
-        protected double _spareRoomNitrogenMass;
-        protected double _spareRoomNeonMass;
+        private double _spareRoomHydrogenMass;
+        private double _spareRoomDeuteriumMass;
+        private double _spareRoomHelium3Mass;
+        private double _spareRoomHelium4Mass;
+        private double _spareRoomMonoxideMass;
+        private double _spareRoomNitrogenMass;
+        private double _spareRoomNeonMass;
 
         /* these are the constituents of solar wind with their appropriate mass ratios. According to http://solar-center.stanford.edu/FAQ/Qsolwindcomp.html and other sources,
          * about 90 % of atoms in solar wind are hydrogen. About 8 % is helium (he-3 is less stable than he-4 and apparently the He-3/He-4 ratio is very close to 1/2000), so that's about 7,996 % He-4 and 0.004 % He-3. There are supposedly only trace amounts of heavier elements such as C, O, N and Ne,
          * so I decided on 1 % of atoms for CO and 0.5 % for Nitrogen and Neon. The exact fractions were calculated as (percentage * atomic mass of the element) / Sum of (percentage * atomic mass of the element) for every element.
         */
-        protected double _hydrogenMassByFraction  = 0.540564; // see above how I got this number (as an example 90 * 1.008 / 167.8245484 = 0.540564), ie. percentage times atomic mass of H / sum of the same stuff in numerator for every element
-        protected double _deuteriumMassByFraction = 0.00001081128; // because D/H ratio in solarwind is 2 *10e-5 * Hydrogen mass
-        protected double _helium3MassByFraction   = 0.0000071; // because examples are nice to have (0.004 * 3.016 / 167.8245484 = 0.0000071)
-        protected double _helium4MassByFraction   = 0.1906752;
-        protected double _monoxideMassByFraction  = 0.1669004;
-        protected double _nitrogenMassByFraction  = 0.04173108;
-        protected double _neonMassByFraction      = 0.06012;
+        private double _hydrogenMassByFraction  = 0.540564; // see above how I got this number (as an example 90 * 1.008 / 167.8245484 = 0.540564), ie. percentage times atomic mass of H / sum of the same stuff in numerator for every element
+        private double _deuteriumMassByFraction = 0.00001081128; // because D/H ratio in solarwind is 2 *10e-5 * Hydrogen mass
+        private double _helium3MassByFraction   = 0.0000071; // because examples are nice to have (0.004 * 3.016 / 167.8245484 = 0.0000071)
+        private double _helium4MassByFraction   = 0.1906752;
+        private double _monoxideMassByFraction  = 0.1669004;
+        private double _nitrogenMassByFraction  = 0.04173108;
+        private double _neonMassByFraction      = 0.06012;
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
-            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
+            _current_rate = CurrentPower / EnergyPerTon;
 
             // determine how much resource we have
-            var partsThatContainSolarWind = _part.GetConnectedResources(_solar_wind_resource_name);
+            var partsThatContainSolarWind = _part.GetConnectedResources(_solarWindResourceName).ToList();
 
-            var partsThatContainHydrogenLiquid = _part.GetConnectedResources(_hydrogen_liquid_resource_name);
-            var partsThatContainHydrogenGas = _part.GetConnectedResources(_hydrogen_gas_resource_name);
-            var partsThatContainDeuteriumLiquid = _part.GetConnectedResources(_deuterium_liquid_resource_name);
-            var partsThatContainDeuteriumGas = _part.GetConnectedResources(_deuterium_gas_resource_name);
-            var partsThatContainLqdHelium3Liquid = _part.GetConnectedResources(_helium3_liquid_resource_name);
-            var partsThatContainLqdHelium3Gas = _part.GetConnectedResources(_helium3_gas_resource_name);
-            var partsThatContainLqdHelium4Liquid = _part.GetConnectedResources(_helium4_liquid_resource_name);
-            var partsThatContainLqdHelium4Gas = _part.GetConnectedResources(_helium4_gas_resource_name);
-            var partsThatContainMonoxideLiquid = _part.GetConnectedResources(_monoxide_liquid_resource_name);
-            var partsThatContainMonoxideGas = _part.GetConnectedResources(_monoxide_gas_resource_name);
-            var partsThatContainNitrogenLiquid = _part.GetConnectedResources(_nitrogen_liquid_resource_name);
-            var partsThatContainNitrogenGas = _part.GetConnectedResources(_nitrogen_gas_resource_name);
-            var partsThatContainNeonLiquid = _part.GetConnectedResources(_neon_liquid_resource_name);
-            var partsThatContainNeonGas = _part.GetConnectedResources(_neon_gas_resource_name);
+            var partsThatContainHydrogenLiquid = _part.GetConnectedResources(_hydrogenLiquidResourceName).ToList();
+            var partsThatContainHydrogenGas = _part.GetConnectedResources(_hydrogenGasResourceName).ToList();
+            var partsThatContainDeuteriumLiquid = _part.GetConnectedResources(_deuteriumLiquidResourceName).ToList();
+            var partsThatContainDeuteriumGas = _part.GetConnectedResources(_deuteriumGasResourceName).ToList();
+            var partsThatContainLqdHelium3Liquid = _part.GetConnectedResources(_helium3LiquidResourceName).ToList();
+            var partsThatContainLqdHelium3Gas = _part.GetConnectedResources(_helium3GasResourceName).ToList();
+            var partsThatContainLqdHelium4Liquid = _part.GetConnectedResources(_helium4LiquidResourceName).ToList();
+            var partsThatContainLqdHelium4Gas = _part.GetConnectedResources(_helium4GasResourceName).ToList();
+            var partsThatContainMonoxideLiquid = _part.GetConnectedResources(_monoxideLiquidResourceName).ToList();
+            var partsThatContainMonoxideGas = _part.GetConnectedResources(_monoxideGasResourceName).ToList();
+            var partsThatContainNitrogenLiquid = _part.GetConnectedResources(_nitrogenLiquidResourceName).ToList();
+            var partsThatContainNitrogenGas = _part.GetConnectedResources(_nitrogenGasResourceName).ToList();
+            var partsThatContainNeonLiquid = _part.GetConnectedResources(_neonLiquidResourceName).ToList();
+            var partsThatContainNeonGas = _part.GetConnectedResources(_neonGasResourceName).ToList();
 
             // determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
-            _maxCapacitySolarWindMass = partsThatContainSolarWind.Sum(p => p.maxAmount) * _solar_wind_density;
+            _maxCapacitySolarWindMass = partsThatContainSolarWind.Sum(p => p.maxAmount) * _solarWindDensity;
 
-            _maxCapacityHydrogenMass = partsThatContainHydrogenLiquid.Sum(p => p.maxAmount) * _hydrogen_liquid_density + partsThatContainHydrogenGas.Sum(p => p.maxAmount) * _hydrogen_gas_density;
-            _maxCapacityDeuteriumMass = partsThatContainDeuteriumLiquid.Sum(p => p.maxAmount) * _deuterium_liquid_density + partsThatContainDeuteriumGas.Sum(p => p.maxAmount) * _deuterium_gas_density;
-            _maxCapacityHelium3Mass = partsThatContainLqdHelium3Liquid.Sum(p => p.maxAmount) * _liquid_helium3_liquid_density + partsThatContainLqdHelium3Gas.Sum(p => p.maxAmount) * _liquid_helium3_gas_density;
-            _maxCapacityHelium4Mass = partsThatContainLqdHelium4Liquid.Sum(p => p.maxAmount) * _liquid_helium4_liquid_density + partsThatContainLqdHelium4Gas.Sum(p => p.maxAmount) * _liquid_helium4_gas_density;
-            _maxCapacityMonoxideMass = partsThatContainMonoxideLiquid.Sum(p => p.maxAmount) * _monoxide_liquid_density + partsThatContainMonoxideGas.Sum(p => p.maxAmount) * _monoxide_gas_density;
-            _maxCapacityNitrogenMass = partsThatContainNitrogenLiquid.Sum(p => p.maxAmount) * _nitrogen_liquid_density + partsThatContainNitrogenGas.Sum(p => p.maxAmount) * _nitrogen_gas_density;
-            _maxCapacityNeonMass = partsThatContainNeonLiquid.Sum(p => p.maxAmount) * _neon_liquid_density + partsThatContainNeonGas.Sum(p => p.maxAmount) * _neon_gas_density;
+            _maxCapacityHydrogenMass = partsThatContainHydrogenLiquid.Sum(p => p.maxAmount) * _hydrogenLiquidDensity + partsThatContainHydrogenGas.Sum(p => p.maxAmount) * _hydrogenGasDensity;
+            _maxCapacityDeuteriumMass = partsThatContainDeuteriumLiquid.Sum(p => p.maxAmount) * _deuteriumLiquidDensity + partsThatContainDeuteriumGas.Sum(p => p.maxAmount) * _deuteriumGasDensity;
+            _maxCapacityHelium3Mass = partsThatContainLqdHelium3Liquid.Sum(p => p.maxAmount) * _liquidHelium3LiquidDensity + partsThatContainLqdHelium3Gas.Sum(p => p.maxAmount) * _liquidHelium3GasDensity;
+            _maxCapacityHelium4Mass = partsThatContainLqdHelium4Liquid.Sum(p => p.maxAmount) * _liquidHelium4LiquidDensity + partsThatContainLqdHelium4Gas.Sum(p => p.maxAmount) * _liquidHelium4GasDensity;
+            _maxCapacityMonoxideMass = partsThatContainMonoxideLiquid.Sum(p => p.maxAmount) * _monoxideLiquidDensity + partsThatContainMonoxideGas.Sum(p => p.maxAmount) * _monoxideGasDensity;
+            _maxCapacityNitrogenMass = partsThatContainNitrogenLiquid.Sum(p => p.maxAmount) * _nitrogenLiquidDensity + partsThatContainNitrogenGas.Sum(p => p.maxAmount) * _nitrogenGasDensity;
+            _maxCapacityNeonMass = partsThatContainNeonLiquid.Sum(p => p.maxAmount) * _neonLiquidDensity + partsThatContainNeonGas.Sum(p => p.maxAmount) * _neonGasDensity;
 
             // determine the amount of resources needed for processing (i.e. solar wind) that the vessel actually holds
-            _storedSolarWindMass = partsThatContainSolarWind.Sum(r => r.amount) * _solar_wind_density;
+            _storedSolarWindMass = partsThatContainSolarWind.Sum(r => r.amount) * _solarWindDensity;
 
-            _storedHydrogenMass = partsThatContainHydrogenLiquid.Sum(r => r.amount) * _hydrogen_liquid_density + partsThatContainHydrogenGas.Sum(p => p.amount) * _hydrogen_gas_density;
-            _storedDeuteriumMass = partsThatContainDeuteriumLiquid.Sum(r => r.amount) * _deuterium_liquid_density + partsThatContainDeuteriumGas.Sum(r => r.amount) * _deuterium_gas_density;
-            _storedHelium3Mass = partsThatContainLqdHelium3Liquid.Sum(r => r.amount) * _liquid_helium3_liquid_density + partsThatContainLqdHelium3Gas.Sum(r => r.amount) * _liquid_helium3_gas_density;
-            _storedHelium4Mass = partsThatContainLqdHelium4Liquid.Sum(r => r.amount) * _liquid_helium4_liquid_density + partsThatContainLqdHelium4Gas.Sum(r => r.amount) * _liquid_helium4_gas_density;
-            _storedMonoxideMass = partsThatContainMonoxideLiquid.Sum(r => r.amount) * _monoxide_liquid_density + partsThatContainMonoxideGas.Sum(r => r.amount) * _monoxide_gas_density;
-            _storedNitrogenMass = partsThatContainNitrogenLiquid.Sum(r => r.amount) * _nitrogen_liquid_density + partsThatContainNitrogenGas.Sum(r => r.amount) * _nitrogen_gas_density;
-            _storedNeonMass = partsThatContainNeonLiquid.Sum(r => r.amount) * _neon_liquid_density + partsThatContainNeonGas.Sum(r => r.amount) * _neon_gas_density;
+            _storedHydrogenMass = partsThatContainHydrogenLiquid.Sum(r => r.amount) * _hydrogenLiquidDensity + partsThatContainHydrogenGas.Sum(p => p.amount) * _hydrogenGasDensity;
+            _storedDeuteriumMass = partsThatContainDeuteriumLiquid.Sum(r => r.amount) * _deuteriumLiquidDensity + partsThatContainDeuteriumGas.Sum(r => r.amount) * _deuteriumGasDensity;
+            _storedHelium3Mass = partsThatContainLqdHelium3Liquid.Sum(r => r.amount) * _liquidHelium3LiquidDensity + partsThatContainLqdHelium3Gas.Sum(r => r.amount) * _liquidHelium3GasDensity;
+            _storedHelium4Mass = partsThatContainLqdHelium4Liquid.Sum(r => r.amount) * _liquidHelium4LiquidDensity + partsThatContainLqdHelium4Gas.Sum(r => r.amount) * _liquidHelium4GasDensity;
+            _storedMonoxideMass = partsThatContainMonoxideLiquid.Sum(r => r.amount) * _monoxideLiquidDensity + partsThatContainMonoxideGas.Sum(r => r.amount) * _monoxideGasDensity;
+            _storedNitrogenMass = partsThatContainNitrogenLiquid.Sum(r => r.amount) * _nitrogenLiquidDensity + partsThatContainNitrogenGas.Sum(r => r.amount) * _nitrogenGasDensity;
+            _storedNeonMass = partsThatContainNeonLiquid.Sum(r => r.amount) * _neonLiquidDensity + partsThatContainNeonGas.Sum(r => r.amount) * _neonGasDensity;
 
             // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
             _spareRoomHydrogenMass = _maxCapacityHydrogenMass - _storedHydrogenMass;
@@ -216,7 +217,7 @@ namespace FNPlugin.Refinery
             _spareRoomNeonMass = _maxCapacityNeonMass - _storedNeonMass;
 
             // this should determine how much resource this process can consume
-            double fixedMaxSolarWindConsumptionRate = _current_rate * fixedDeltaTime * _solar_wind_density;
+            double fixedMaxSolarWindConsumptionRate = _current_rate * fixedDeltaTime * _solarWindDensity;
             double solarWindConsumptionRatio = fixedMaxSolarWindConsumptionRate > 0
                 ? Math.Min(fixedMaxSolarWindConsumptionRate, _storedSolarWindMass) / fixedMaxSolarWindConsumptionRate
                 : 0;
@@ -243,7 +244,7 @@ namespace FNPlugin.Refinery
                 var fixedMaxPossibleNeonRate = allowOverflow ? fixedMaxNeonRate : Math.Min(_spareRoomNeonMass, fixedMaxNeonRate);
 
                 // finds the minimum of these five numbers (fixedMaxPossibleZZRate / fixedMaxZZRate), adapted from water electrolyser. Could be more pretty with a custom Min5() function, but eh.
-                var _consumptionStorageRatios = new[] 
+                var consumptionStorageRatios = new[] 
                 { 
                     fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, 
                     fixedMaxPossibleDeuteriumRate / fixedMaxDeuteriumRate,  
@@ -254,53 +255,53 @@ namespace FNPlugin.Refinery
                     fixedMaxPossibleNeonRate / fixedMaxNeonRate 
                 };
 
-                double minConsumptionStorageRatio = _consumptionStorageRatios.Min();
+                double minConsumptionStorageRatio = consumptionStorageRatios.Min();
                                
                 // this consumes the resource
-                _solar_wind_consumption_rate = _part.RequestResource(_solar_wind_resource_name, minConsumptionStorageRatio * _fixedConsumptionRate / _solar_wind_density) / fixedDeltaTime * _solar_wind_density;
+                _solarWindConsumptionRate = _part.RequestResource(_solarWindResourceName, minConsumptionStorageRatio * _fixedConsumptionRate / _solarWindDensity) / fixedDeltaTime * _solarWindDensity;
 
                 // this produces the products
-                var hydrogen_rate_temp = _solar_wind_consumption_rate * _hydrogenMassByFraction;
-                var deuterium_rate_temp = _solar_wind_consumption_rate * _deuteriumMassByFraction;
-                var helium3_rate_temp = _solar_wind_consumption_rate * _helium3MassByFraction;
-                var helium4_rate_temp = _solar_wind_consumption_rate * _helium4MassByFraction;
-                var monoxide_rate_temp = _solar_wind_consumption_rate * _monoxideMassByFraction;
-                var nitrogen_rate_temp = _solar_wind_consumption_rate * _nitrogenMassByFraction;
-                var neon_rate_temp = _solar_wind_consumption_rate * _neonMassByFraction;
+                var hydrogenRateTemp = _solarWindConsumptionRate * _hydrogenMassByFraction;
+                var deuteriumRateTemp = _solarWindConsumptionRate * _deuteriumMassByFraction;
+                var helium3RateTemp = _solarWindConsumptionRate * _helium3MassByFraction;
+                var helium4RateTemp = _solarWindConsumptionRate * _helium4MassByFraction;
+                var monoxideRateTemp = _solarWindConsumptionRate * _monoxideMassByFraction;
+                var nitrogenRateTemp = _solarWindConsumptionRate * _nitrogenMassByFraction;
+                var neonRateTemp = _solarWindConsumptionRate * _neonMassByFraction;
                 
-                _hydrogen_production_rate = -_part.RequestResource(_hydrogen_gas_resource_name, -hydrogen_rate_temp * fixedDeltaTime / _hydrogen_gas_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen_gas_density;
-                _hydrogen_production_rate += -_part.RequestResource(_hydrogen_liquid_resource_name, -(hydrogen_rate_temp - _hydrogen_production_rate) * fixedDeltaTime / _hydrogen_liquid_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen_liquid_density;
+                _hydrogenProductionRate = -_part.RequestResource(_hydrogenGasResourceName, -hydrogenRateTemp * fixedDeltaTime / _hydrogenGasDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogenGasDensity;
+                _hydrogenProductionRate += -_part.RequestResource(_hydrogenLiquidResourceName, -(hydrogenRateTemp - _hydrogenProductionRate) * fixedDeltaTime / _hydrogenLiquidDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogenLiquidDensity;
 
-                _deuterium_production_rate = -_part.RequestResource(_deuterium_gas_resource_name, -deuterium_rate_temp * fixedDeltaTime / _deuterium_gas_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuterium_gas_density;
-                _deuterium_production_rate += -_part.RequestResource(_deuterium_liquid_resource_name, -(deuterium_rate_temp - _deuterium_production_rate) * fixedDeltaTime / _deuterium_liquid_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuterium_liquid_density;
+                _deuteriumProductionRate = -_part.RequestResource(_deuteriumGasResourceName, -deuteriumRateTemp * fixedDeltaTime / _deuteriumGasDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuteriumGasDensity;
+                _deuteriumProductionRate += -_part.RequestResource(_deuteriumLiquidResourceName, -(deuteriumRateTemp - _deuteriumProductionRate) * fixedDeltaTime / _deuteriumLiquidDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuteriumLiquidDensity;
 
-                _liquid_helium3_production_rate = -_part.RequestResource(_helium3_gas_resource_name, -helium3_rate_temp * fixedDeltaTime / _liquid_helium3_gas_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _liquid_helium3_gas_density;
-                _liquid_helium3_production_rate += -_part.RequestResource(_helium3_liquid_resource_name, -(helium3_rate_temp - _liquid_helium3_production_rate) * fixedDeltaTime / _liquid_helium3_liquid_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _liquid_helium3_liquid_density;
+                _liquidHelium3ProductionRate = -_part.RequestResource(_helium3GasResourceName, -helium3RateTemp * fixedDeltaTime / _liquidHelium3GasDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _liquidHelium3GasDensity;
+                _liquidHelium3ProductionRate += -_part.RequestResource(_helium3LiquidResourceName, -(helium3RateTemp - _liquidHelium3ProductionRate) * fixedDeltaTime / _liquidHelium3LiquidDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _liquidHelium3LiquidDensity;
 
-                _liquid_helium4_production_rate = -_part.RequestResource(_helium4_gas_resource_name, -helium4_rate_temp * fixedDeltaTime / _liquid_helium4_gas_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _liquid_helium4_gas_density;
-                _liquid_helium4_production_rate += -_part.RequestResource(_helium4_liquid_resource_name, -(helium4_rate_temp - _liquid_helium4_production_rate) * fixedDeltaTime / _liquid_helium4_liquid_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _liquid_helium4_liquid_density;
+                _liquidHelium4ProductionRate = -_part.RequestResource(_helium4GasResourceName, -helium4RateTemp * fixedDeltaTime / _liquidHelium4GasDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _liquidHelium4GasDensity;
+                _liquidHelium4ProductionRate += -_part.RequestResource(_helium4LiquidResourceName, -(helium4RateTemp - _liquidHelium4ProductionRate) * fixedDeltaTime / _liquidHelium4LiquidDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _liquidHelium4LiquidDensity;
 
-                _monoxide_production_rate = -_part.RequestResource(_monoxide_gas_resource_name, -monoxide_rate_temp * fixedDeltaTime / _monoxide_gas_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide_gas_density;
-                _monoxide_production_rate += -_part.RequestResource(_monoxide_liquid_resource_name, -(monoxide_rate_temp - _monoxide_production_rate) * fixedDeltaTime / _monoxide_liquid_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide_liquid_density;
+                _monoxideProductionRate = -_part.RequestResource(_monoxideGasResourceName, -monoxideRateTemp * fixedDeltaTime / _monoxideGasDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxideGasDensity;
+                _monoxideProductionRate += -_part.RequestResource(_monoxideLiquidResourceName, -(monoxideRateTemp - _monoxideProductionRate) * fixedDeltaTime / _monoxideLiquidDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxideLiquidDensity;
 
-                _nitrogen_production_rate = -_part.RequestResource(_nitrogen_gas_resource_name, -nitrogen_rate_temp * fixedDeltaTime / _nitrogen_gas_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen_gas_density;
-                _nitrogen_production_rate += -_part.RequestResource(_nitrogen_liquid_resource_name, -(nitrogen_rate_temp - _nitrogen_production_rate) * fixedDeltaTime / _nitrogen_liquid_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen_liquid_density;
+                _nitrogenProductionRate = -_part.RequestResource(_nitrogenGasResourceName, -nitrogenRateTemp * fixedDeltaTime / _nitrogenGasDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogenGasDensity;
+                _nitrogenProductionRate += -_part.RequestResource(_nitrogenLiquidResourceName, -(nitrogenRateTemp - _nitrogenProductionRate) * fixedDeltaTime / _nitrogenLiquidDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogenLiquidDensity;
 
-                _neon_production_rate = -_part.RequestResource(_neon_gas_resource_name, -neon_rate_temp * fixedDeltaTime / _neon_gas_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _neon_gas_density;
-                _neon_production_rate += -_part.RequestResource(_neon_liquid_resource_name, -(neon_rate_temp - _neon_production_rate) * fixedDeltaTime / _neon_liquid_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _neon_liquid_density;
+                _neonProductionRate = -_part.RequestResource(_neonGasResourceName, -neonRateTemp * fixedDeltaTime / _neonGasDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _neonGasDensity;
+                _neonProductionRate += -_part.RequestResource(_neonLiquidResourceName, -(neonRateTemp - _neonProductionRate) * fixedDeltaTime / _neonLiquidDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _neonLiquidDensity;
             }
             else
             {
-                _solar_wind_consumption_rate = 0;
-                _hydrogen_production_rate = 0;
-                _deuterium_production_rate = 0;
-                _liquid_helium3_production_rate = 0;
-                _liquid_helium4_production_rate = 0;
-                _monoxide_production_rate = 0;
-                _nitrogen_production_rate = 0;
-                _neon_production_rate = 0;
+                _solarWindConsumptionRate = 0;
+                _hydrogenProductionRate = 0;
+                _deuteriumProductionRate = 0;
+                _liquidHelium3ProductionRate = 0;
+                _liquidHelium4ProductionRate = 0;
+                _monoxideProductionRate = 0;
+                _nitrogenProductionRate = 0;
+                _neonProductionRate = 0;
             }
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -324,7 +325,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_SolarWindConsumption"), _bold_label, GUILayout.Width(labelWidth));//"Solar Wind Consumption"
-            GUILayout.Label((((float)_solar_wind_consumption_rate * GameConstants.SECONDS_IN_HOUR * 1e6).ToString("0.0000")) + " g/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((((float)_solarWindConsumptionRate * GameConstants.SECONDS_IN_HOUR * 1e6).ToString("0.0000")) + " g/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -340,72 +341,72 @@ namespace FNPlugin.Refinery
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(_hydrogen_gas_resource_name + " / " + _hydrogen_liquid_resource_name, _value_label, GUILayout.Width(150));
+            GUILayout.Label(_hydrogenGasResourceName + " / " + _hydrogenLiquidResourceName, _value_label, GUILayout.Width(150));
             GUILayout.Label((_hydrogenMassByFraction * 100).ToString("0.000000") + "%", _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_maxCapacityHydrogenMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_storedHydrogenMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_spareRoomHydrogenMass,"0.000000"), _value_label, GUILayout.Width(100));
-            GUILayout.Label(GramPerHour(_hydrogen_production_rate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
+            GUILayout.Label(GramPerHour(_hydrogenProductionRate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(_helium4_gas_resource_name + " / " + _helium4_liquid_resource_name, _value_label, GUILayout.Width(150));
+            GUILayout.Label(_helium4GasResourceName + " / " + _helium4LiquidResourceName, _value_label, GUILayout.Width(150));
             GUILayout.Label((_helium4MassByFraction * 100).ToString("0.000000") + "%", _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_maxCapacityHelium4Mass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_storedHelium4Mass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_spareRoomHelium4Mass,"0.000000"), _value_label, GUILayout.Width(100));
-            GUILayout.Label(GramPerHour(_liquid_helium4_production_rate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
+            GUILayout.Label(GramPerHour(_liquidHelium4ProductionRate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(_monoxide_gas_resource_name + " / " + _monoxide_liquid_resource_name, _value_label, GUILayout.Width(150));
+            GUILayout.Label(_monoxideGasResourceName + " / " + _monoxideLiquidResourceName, _value_label, GUILayout.Width(150));
             GUILayout.Label((_monoxideMassByFraction * 100).ToString("0.000000") + "%", _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_maxCapacityMonoxideMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_storedMonoxideMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_spareRoomMonoxideMass,"0.000000"), _value_label, GUILayout.Width(100));
-            GUILayout.Label(GramPerHour(_monoxide_production_rate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
+            GUILayout.Label(GramPerHour(_monoxideProductionRate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(_nitrogen_gas_resource_name + " / " + _nitrogen_liquid_resource_name, _value_label, GUILayout.Width(150));
+            GUILayout.Label(_nitrogenGasResourceName + " / " + _nitrogenLiquidResourceName, _value_label, GUILayout.Width(150));
             GUILayout.Label((_nitrogenMassByFraction * 100).ToString("0.000000") + "%", _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_maxCapacityNitrogenMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_storedNitrogenMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_spareRoomNitrogenMass,"0.000000"), _value_label, GUILayout.Width(100));
-            GUILayout.Label(GramPerHour(_nitrogen_production_rate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
+            GUILayout.Label(GramPerHour(_nitrogenProductionRate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(_neon_gas_resource_name + " / " + _neon_liquid_resource_name, _value_label, GUILayout.Width(150));
+            GUILayout.Label(_neonGasResourceName + " / " + _neonLiquidResourceName, _value_label, GUILayout.Width(150));
             GUILayout.Label((_neonMassByFraction * 100).ToString("0.000000") + "%", _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_maxCapacityNeonMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_storedNeonMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_spareRoomNeonMass,"0.000000"), _value_label, GUILayout.Width(100));
-            GUILayout.Label(GramPerHour(_neon_production_rate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
+            GUILayout.Label(GramPerHour(_neonProductionRate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(_deuterium_gas_resource_name + " / " + _deuterium_liquid_resource_name, _value_label, GUILayout.Width(150));
+            GUILayout.Label(_deuteriumGasResourceName + " / " + _deuteriumLiquidResourceName, _value_label, GUILayout.Width(150));
             GUILayout.Label((_deuteriumMassByFraction * 100).ToString("0.000000") + "%", _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_maxCapacityDeuteriumMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_storedDeuteriumMass,"0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_spareRoomDeuteriumMass, "0.000000"), _value_label, GUILayout.Width(100));
-            GUILayout.Label(GramPerHour(_deuterium_production_rate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
+            GUILayout.Label(GramPerHour(_deuteriumProductionRate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(_helium3_gas_resource_name + " / " + _helium3_liquid_resource_name, _value_label, GUILayout.Width(150));
+            GUILayout.Label(_helium3GasResourceName + " / " + _helium3LiquidResourceName, _value_label, GUILayout.Width(150));
             GUILayout.Label((_helium3MassByFraction * 100).ToString("0.000000") + "%", _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_maxCapacityHelium3Mass, "0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_storedHelium3Mass, "0.000000"), _value_label, GUILayout.Width(100));
             GUILayout.Label(MetricTon(_spareRoomHelium3Mass, "0.000000"), _value_label, GUILayout.Width(100));
-            GUILayout.Label(GramPerHour(_liquid_helium3_production_rate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
+            GUILayout.Label(GramPerHour(_liquidHelium3ProductionRate * GameConstants.SECONDS_IN_HOUR * 1e6, "0.0000"), _value_label, GUILayout.Width(100));
             GUILayout.EndHorizontal();
         }
 
-        private void updateStatusMessage()
+        private void UpdateStatusMessage()
         {
-            if (_solar_wind_consumption_rate > 0)
+            if (_solarWindConsumptionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Statumsg1");//"Processing of Solar Wind Particles Ongoing"
             else if (CurrentPower <= 0.01*PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Statumsg2");//"Insufficient Power"

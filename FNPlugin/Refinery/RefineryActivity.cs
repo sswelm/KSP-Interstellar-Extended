@@ -2,8 +2,8 @@
 using UnityEngine;
 
 namespace FNPlugin.Refinery
-{    
-    enum RefineryType { Heating = 1, Cryogenics = 2, Electrolysis = 4, Synthesize = 8,  } 
+{
+    internal enum RefineryType { Heating = 1, Cryogenics = 2, Electrolysis = 4, Synthesize = 8,  } 
 
     public class RefineryActivity: PartModule
     {
@@ -28,8 +28,11 @@ namespace FNPlugin.Refinery
         protected double _effectiveMaxPower;
 
         public double CurrentPower => _current_power;
+
         public string ActivityName { get; protected set; }
         public double PowerRequirements { get; protected set; }
+        public double EnergyPerTon { get; protected set; }
+
 
         public virtual void UpdateGUI()
         {
@@ -54,36 +57,25 @@ namespace FNPlugin.Refinery
         {
             var sb = new StringBuilder();
             sb.AppendLine(ActivityName);
-            sb.AppendLine("Power Requirement: " + sizeModifier * PowerRequirements + " MW");
+            
+            var capacity = sizeModifier * PowerRequirements;
+           if (capacity > 0)
+            {
+                sb.AppendLine("Power Requirement: " + capacity + " MW");
+
+                if (EnergyPerTon > 0)
+                {
+                    sb.AppendLine("MW Per Ton : " + EnergyPerTon + " MW/t");
+                    sb.AppendLine("Ton Per MW: " + 1 / EnergyPerTon + " MW/t");
+
+                    var production = capacity / EnergyPerTon;
+                    sb.AppendLine("Production(s): " + production + " t/s");
+                    sb.AppendLine("Production(m): " + production * 60 + " t/m");
+                    sb.AppendLine("Production(h): " + production * 3600 + " t/h");
+                }
+            }
 
             return sb.ToString();
         }
-    }
-
-    interface IRefineryActivity
-    {
-        // 1 seperation
-        // 2 desconstrution
-        // 3 construction
-
-        RefineryType RefineryType { get; }
-
-        string ActivityName { get;}
-
-        double CurrentPower { get; }
-
-        bool HasActivityRequirements();
-
-        double PowerRequirements { get; }
-
-        string Status { get; }
-
-        void UpdateFrame(double rateMultiplier, double powerFraction,  double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false);
-
-        void UpdateGUI();
-
-        void PrintMissingResources();
-
-        void Initialize(Part part);
     }
 }

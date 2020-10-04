@@ -111,6 +111,7 @@
     <Compile Include="Propulsion\IFNEngineNoozle.cs" />
     <Compile Include="Propulsion\ThermalEngineFuel.cs" />
     <Compile Include="RDColoredUpgradeIcon.cs" />
+    <Compile Include="Refinery\IRefineryActivity.cs" />
     <Compile Include="Resources\CrustalResource.cs" />
     <Compile Include="Resources\CrustalResourceHandler.cs" />
     <Compile Include="Resources\Kopernicus.cs" />
@@ -147,7 +148,7 @@
     <Compile Include="Propulsion\VistaEngineControllerAdvanced2.cs" />
     <Compile Include="Reactors\InterstellarFissionDP.cs" />
     <Compile Include="Reactors\InterstellarFissionPB.cs" />
-    <Compile Include="Refinery\AluminiumElectrolyser.cs" />
+    <Compile Include="Refinery\AluminiumElectrolyzer.cs" />
     <Compile Include="Collectors\AntimatterCollector.cs" />
     <Compile Include="Refinery\AntimatterFactory.cs" />
     <Compile Include="Refinery\AtmosphericExtractor.cs" />
@@ -165,9 +166,9 @@
     <Compile Include="Propulsion\InterstellarMagneticNozzleControllerFX.cs" />
     <Compile Include="Refinery\MethanePyrolysis.cs" />
     <Compile Include="Refinery\ReverseWaterGasShift.cs" />
-    <Compile Include="Refinery\HeavyWaterElectroliser.cs" />
+    <Compile Include="Refinery\HeavyWaterElectrolyzer.cs" />
     <Compile Include="Refinery\WaterGasShift.cs" />
-    <Compile Include="Refinery\CarbonDioxideElectroliser.cs" />
+    <Compile Include="Refinery\CarbonDioxideElectrolyzer.cs" />
     <Compile Include="Science\FNSunModuleScienceExperiment.cs" />
     <Compile Include="Science\InterstellarResourceScienceModule.cs" />
     <Compile Include="Refinery\HaberProcess.cs" />
@@ -227,7 +228,7 @@
     <Compile Include="Wasteheat\FNSolarPanelWasteHeatModule.cs" />
     <Compile Include="Storage\AntimatterStorageTank.cs" />
     <Compile Include="Propulsion\ModuleSolarSail.cs" />
-    <Compile Include="Refinery\WaterElectroliser.cs" />
+    <Compile Include="Refinery\WaterElectrolyzer.cs" />
     <Compile Include="Wasteheat\FNPassiveThermalDissipation.cs" />
     <Compile Include="Wasteheat\FNWasteheatBuffer.cs" />
     <Compile Include="Wasteheat\FNWasteheatExplode.cs" />

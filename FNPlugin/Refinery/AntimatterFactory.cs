@@ -14,9 +14,9 @@ namespace FNPlugin.Refinery
         public string activateTitle = "#LOC_KSPIE_AntimatterFactory_producePositron";
 
         [KSPField(isPersistant = true)]
-        public double last_active_time = 0;
+        public double lastActiveTime;
         [KSPField(isPersistant = true)]
-        public double electrical_power_ratio;
+        public double electricalPowerRatio;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_productionRate")]
         public string productionRateTxt;
 
@@ -31,55 +31,55 @@ namespace FNPlugin.Refinery
 
         AntimatterGenerator _generator;
         PartResourceDefinition _antimatterDefinition;
-        string disabledText;
+        string _disabledText;
 
         public override void OnStart(StartState state)
         {
             _antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
-            _generator = new AntimatterGenerator(this.part, efficiencyMultiplier, _antimatterDefinition);
+            _generator = new AntimatterGenerator(part, efficiencyMultiplier, _antimatterDefinition);
 
             if (state == StartState.Editor)
                 return;
 
-            disabledText = Localizer.Format("#LOC_KSPIE_AntimatterFactory_disabled");
+            _disabledText = Localizer.Format("#LOC_KSPIE_AntimatterFactory_disabled");
 
             Fields["isActive"].guiName = Localizer.Format(activateTitle);
 
             if (!isActive)
                 return;
 
-            var deltaTime = Planetarium.GetUniversalTime() - last_active_time;
+            var deltaTime = Planetarium.GetUniversalTime() - lastActiveTime;
 
-            var energy_provided_in_megajoules = electrical_power_ratio * powerCapacity * deltaTime;
+            var energyProvidedInMegajoules = electricalPowerRatio * powerCapacity * deltaTime;
 
-            _generator.Produce(energy_provided_in_megajoules);
+            _generator.Produce(energyProvidedInMegajoules);
         }
 
         public override void OnUpdate()
         {
             if (!isActive)
             {
-                productionRateTxt = disabledText;
+                productionRateTxt = _disabledText;
                 return;
             }
 
-            last_active_time = Planetarium.GetUniversalTime();
+            lastActiveTime = Planetarium.GetUniversalTime();
 
-            double antimatter_rate_per_day = productionRate * PluginHelper.SecondsInDay;
+            double antimatterRatePerDay = productionRate * PluginHelper.SecondsInDay;
 
-            if (antimatter_rate_per_day > 0.1)
+            if (antimatterRatePerDay > 0.1)
             {
-                if (antimatter_rate_per_day > 1000)
-                    productionRateTxt = (antimatter_rate_per_day / 1e3).ToString("0.0000") + " g/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
+                if (antimatterRatePerDay > 1000)
+                    productionRateTxt = (antimatterRatePerDay / 1e3).ToString("0.0000") + " g/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
                 else
-                    productionRateTxt = (antimatter_rate_per_day).ToString("0.0000") + " mg/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
+                    productionRateTxt = (antimatterRatePerDay).ToString("0.0000") + " mg/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
             }
             else
             {
-                if (antimatter_rate_per_day > 0.1e-3)
-                    productionRateTxt = (antimatter_rate_per_day * 1e3).ToString("0.0000") + " ug/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
+                if (antimatterRatePerDay > 0.1e-3)
+                    productionRateTxt = (antimatterRatePerDay * 1e3).ToString("0.0000") + " ug/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
                 else
-                    productionRateTxt = (antimatter_rate_per_day * 1e6).ToString("0.0000") + " ng/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
+                    productionRateTxt = (antimatterRatePerDay * 1e6).ToString("0.0000") + " ng/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
             }
         }
 
@@ -90,17 +90,17 @@ namespace FNPlugin.Refinery
 
             var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
             var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-            var effectiveResourceThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
+            var effectiveResourceThrottling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
-            var energy_requested_in_megajoules_per_second = Math.Min(powerCapacity, effectiveResourceThrotling * availablePower * (double)(decimal)powerPercentage * 0.01);
+            var energyRequestedInMegajoulesPerSecond = Math.Min(powerCapacity, effectiveResourceThrottling * availablePower * (double)(decimal)powerPercentage * 0.01);
 
-            var energy_provided_in_megajoules_per_second = CheatOptions.InfiniteElectricity
-                ? energy_requested_in_megajoules_per_second
-                : consumeFNResourcePerSecond(energy_requested_in_megajoules_per_second, ResourceManager.FNRESOURCE_MEGAJOULES);
+            var energyProvidedInMegajoulesPerSecond = CheatOptions.InfiniteElectricity
+                ? energyRequestedInMegajoulesPerSecond
+                : consumeFNResourcePerSecond(energyRequestedInMegajoulesPerSecond, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            electrical_power_ratio = energy_requested_in_megajoules_per_second > 0 ? energy_provided_in_megajoules_per_second / energy_requested_in_megajoules_per_second : 0;
+            electricalPowerRatio = energyRequestedInMegajoulesPerSecond > 0 ? energyProvidedInMegajoulesPerSecond / energyRequestedInMegajoulesPerSecond : 0;
 
-            _generator.Produce(energy_provided_in_megajoules_per_second * (double)(decimal)TimeWarp.fixedDeltaTime);
+            _generator.Produce(energyProvidedInMegajoulesPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime);
 
             productionRate = _generator.ProductionRate;
         }

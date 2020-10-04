@@ -133,13 +133,13 @@ namespace FNPlugin.Refinery
 
             if (refineryType > 0)
             {
-                AddIfMissing(refineriesList, new AluminiumElectrolyser());
+                AddIfMissing(refineriesList, new AluminiumElectrolyzer());
                 AddIfMissing(refineriesList, new AmmoniaElectrolyzer());
                 AddIfMissing(refineriesList, new AnthraquinoneProcessor());
                 AddIfMissing(refineriesList, new AtmosphericExtractor());
-                AddIfMissing(refineriesList, new CarbonDioxideElectroliser());
+                AddIfMissing(refineriesList, new CarbonDioxideElectrolyzer());
                 AddIfMissing(refineriesList, new HaberProcess());
-                AddIfMissing(refineriesList, new HeavyWaterElectroliser());
+                AddIfMissing(refineriesList, new HeavyWaterElectrolyzer());
                 AddIfMissing(refineriesList, new PartialOxidationMethane());
                 AddIfMissing(refineriesList, new PeroxideProcess());
                 AddIfMissing(refineriesList, new UF4Ammonolysiser());
@@ -149,7 +149,7 @@ namespace FNPlugin.Refinery
                 AddIfMissing(refineriesList, new SabatierReactor());
                 AddIfMissing(refineriesList, new OceanExtractor());
                 AddIfMissing(refineriesList, new SolarWindProcessor());
-                AddIfMissing(refineriesList, new WaterElectroliser());
+                AddIfMissing(refineriesList, new WaterElectrolyzer());
                 AddIfMissing(refineriesList, new WaterGasShift());
 
                 availableRefineries = refineriesList
@@ -289,7 +289,7 @@ namespace FNPlugin.Refinery
 
         private void OnGUI()
         {
-            if (this.vessel != FlightGlobals.ActiveVessel || !_render_window) return;
+            if (vessel != FlightGlobals.ActiveVessel || !_render_window) return;
 
             _window_position = GUILayout.Window(_window_ID, _window_position, Window, Localizer.Format("#LOC_KSPIE_Refinery_WindowTitle"));//"ISRU Refinery Interface"
         }

@@ -6,13 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    // OceanExtractor
-
     [KSPModule("ISRU Ocean Extraction")]
     class OceanExtractor : RefineryActivity, IRefineryActivity
     {
@@ -20,6 +17,7 @@ namespace FNPlugin.Refinery
         {
             ActivityName = "Ocean Extraction";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }
 
         public double fixedConsumptionRate;
@@ -97,7 +95,7 @@ namespace FNPlugin.Refinery
             _effectiveMaxPower = productionModifier * PowerRequirements;
 
             _current_power = _effectiveMaxPower * powerFraction;
-            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
+            _current_rate = CurrentPower / EnergyPerTon;
 
             // determine the amount of liquid processed every frame
             _availableIntakeLiquidMass = GetTotalLiquidScoopedPerSecond() * _intakeLiquidDefinition.density;

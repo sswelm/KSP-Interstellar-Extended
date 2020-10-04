@@ -10,17 +10,18 @@ namespace FNPlugin.Refinery
     {
         public UF4Ammonolysiser()
         {
-            ActivityName = "Uranium Tetraflouride Ammonolysis";
+            ActivityName = "Uranium Tetrafluoride Ammonolysis";
             PowerRequirements = PluginHelper.BaseUraniumAmmonolysisPowerConsumption;
+            EnergyPerTon = 1 / GameConstants.baseUraniumAmmonolysisRate;
         }
 
-        double _ammonia_density;
-        double _uranium_tetraflouride_density;
-        double _uranium_nitride_density;
+        double _ammoniaDensity;
+        double _uraniumTetrafluorideDensity;
+        double _uraniumNitrideDensity;
 
-        double _ammonia_consumption_rate;
-        double _uranium_tetraflouride_consumption_rate;
-        double _uranium_nitride_production_rate;
+        double _ammoniaConsumptionRate;
+        double _uraniumTetrafluorideConsumptionRate;
+        double _uraniumNitrideProductionRate;
 
         public RefineryType RefineryType => RefineryType.Synthesize;
 
@@ -36,24 +37,24 @@ namespace FNPlugin.Refinery
         {
             _part = part;
             _vessel = part.vessel;
-            _ammonia_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia).density;
-            _uranium_tetraflouride_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).density;
-            _uranium_nitride_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
+            _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia).density;
+            _uraniumTetrafluorideDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).density;
+            _uraniumNitrideDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
-            _current_rate = CurrentPower * GameConstants.baseUraniumAmmonolysisRate;
-            double uf4persec = _current_rate * 1.24597 / _uranium_tetraflouride_density;
-            double ammoniapersec = _current_rate * 0.901 / _ammonia_density;
-            _uranium_tetraflouride_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4persec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _uranium_tetraflouride_density / fixedDeltaTime;
-            _ammonia_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, ammoniapersec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _ammonia_density / fixedDeltaTime;
+            _current_rate = CurrentPower / EnergyPerTon;
+            double uf4persec = _current_rate * 1.24597 / _uraniumTetrafluorideDensity;
+            double ammoniapersec = _current_rate * 0.901 / _ammoniaDensity;
+            _uraniumTetrafluorideConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4persec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _uraniumTetrafluorideDensity / fixedDeltaTime;
+            _ammoniaConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, ammoniapersec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _ammoniaDensity / fixedDeltaTime;
 
-            if (_ammonia_consumption_rate > 0 && _uranium_tetraflouride_consumption_rate > 0)
-                _uranium_nitride_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumNitride, -_uranium_tetraflouride_consumption_rate / 1.24597 / _uranium_nitride_density * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _uranium_nitride_density;
+            if (_ammoniaConsumptionRate > 0 && _uraniumTetrafluorideConsumptionRate > 0)
+                _uraniumNitrideProductionRate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumNitride, -_uraniumTetrafluorideConsumptionRate / 1.24597 / _uraniumNitrideDensity * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _uraniumNitrideDensity;
 
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -66,21 +67,21 @@ namespace FNPlugin.Refinery
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_AmmonaConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Ammona Consumption Rate"
-            GUILayout.Label(_ammonia_consumption_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(_ammoniaConsumptionRate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_ConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Uranium Tetraflouride Consumption Rate"
-            GUILayout.Label(_uranium_tetraflouride_consumption_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(_uraniumTetrafluorideConsumptionRate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_ProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Uranium Nitride Production Rate"
-            GUILayout.Label(_uranium_nitride_production_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(_uraniumNitrideProductionRate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
-        private void updateStatusMessage()
+        private void UpdateStatusMessage()
         {
-            if (_uranium_nitride_production_rate > 0)
+            if (_uraniumNitrideProductionRate > 0)
             {
                 _status = Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_Statumsg1");//"Uranium Tetraflouride Ammonolysis Process Ongoing"
             } else if (CurrentPower <= 0.01*PowerRequirements)
@@ -89,11 +90,11 @@ namespace FNPlugin.Refinery
             } 
             else
             {
-                if (_ammonia_consumption_rate > 0 && _uranium_tetraflouride_consumption_rate > 0)
+                if (_ammoniaConsumptionRate > 0 && _uraniumTetrafluorideConsumptionRate > 0)
                     _status = Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_Statumsg3");//"Insufficient Storage"
-                else if (_ammonia_consumption_rate > 0)
+                else if (_ammoniaConsumptionRate > 0)
                     _status = Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_Statumsg4");//"Uranium Tetraflouride Deprived"
-                else if (_uranium_tetraflouride_consumption_rate > 0)
+                else if (_uraniumTetrafluorideConsumptionRate > 0)
                     _status = Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_Statumsg5");//"Ammonia Deprived"
                 else
                     _status = Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_Statumsg6");//"UF4 and Ammonia Deprived"

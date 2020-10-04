@@ -1,9 +1,9 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -13,48 +13,49 @@ namespace FNPlugin.Refinery
         {
             ActivityName = "Peroxide Process: H<size=7>2</size>O<size=7>2</size> + NH<size=7>3</size> => H<size=7>2</size>O + N<size=7>2</size>H<size=7>4</size> (Hydrazine)";
             PowerRequirements = PluginHelper.BasePechineyUgineKuhlmannPowerConsumption;
+            EnergyPerTon = PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
         }
 
-        double _fixedConsumptionRate;
-        double _consumptionRate;
-        double _consumptionStorageRatio;
+        private double _fixedConsumptionRate;
+        private double _consumptionRate;
+        private double _consumptionStorageRatio;
 
-        string _ammonia_resource_name;
-        string _hydrazine_resource_name;
-        string _hydrogen_peroxide_name;
-        string _water_resource_name;
+        private string _ammoniaResourceName;
+        private string _hydrazineResourceName;
+        private string _hydrogenPeroxideName;
+        private string _waterResourceName;
 
-        double _ammonia_density;
-        double _water_density;
-        double _hydrogen_peroxide_density;
-        double _hydrazine_density;
+        private double _ammoniaDensity;
+        private double _waterDensity;
+        private double _hydrogenPeroxideDensity;
+        private double _hydrazineDensity;
 
-        double _ammonia_consumption_rate;
-        double _hydrogen_peroxide_consumption_rate;
-        double _water_production_rate;
-        double _hydrazine_production_rate;
+        private double _ammoniaConsumptionRate;
+        private double _hydrogenPeroxideConsumptionRate;
+        private double _waterProductionRate;
+        private double _hydrazineProductionRate;
 
-        double _maxCapacityAmmoniaMass;
-        double _maxCapacityHydrogenPeroxideMass;
-        double _maxCapacityHydrazineMass;
-        double _maxCapacityWaterMass;
+        private double _maxCapacityAmmoniaMass;
+        private double _maxCapacityHydrogenPeroxideMass;
+        private double _maxCapacityHydrazineMass;
+        private double _maxCapacityWaterMass;
 
-        double _availableAmmoniaMass;
-        double _availableHydrogenPeroxideMass;
-        double _spareRoomHydrazineMass;
-        double _spareRoomWaterMass;
+        private double _availableAmmoniaMass;
+        private double _availableHydrogenPeroxideMass;
+        private double _spareRoomHydrazineMass;
+        private double _spareRoomWaterMass;
 
-        double ammonia_mass_consumption_ratio = (2 * 35.04) / (2 * 35.04 + 34.0147);
-        double hydrogen_peroxide_mass_consumption_ratio = 34.0147 / (2 * 35.04 + 34.0147);
-        double hydrazine_mass_production_ratio = 32.04516 / (32.04516 + 2 * 18.01528);
-        double water_mass_production_ratio = (2 * 18.01528) / (32.04516 + 2 * 18.01528);
+        private double ammonia_mass_consumption_ratio = (2 * 35.04) / (2 * 35.04 + 34.0147);
+        private double hydrogen_peroxide_mass_consumption_ratio = 34.0147 / (2 * 35.04 + 34.0147);
+        private double hydrazine_mass_production_ratio = 32.04516 / (32.04516 + 2 * 18.01528);
+        private double water_mass_production_ratio = (2 * 18.01528) / (32.04516 + 2 * 18.01528);
 
         public RefineryType RefineryType => RefineryType.Synthesize;
 
         public bool HasActivityRequirements()
         {
-            return _part.GetConnectedResources(_hydrogen_peroxide_name).Any(rs => rs.amount > 0)
-            & _part.GetConnectedResources(_ammonia_resource_name).Any(rs => rs.amount > 0);
+            return _part.GetConnectedResources(_hydrogenPeroxideName).Any(rs => rs.amount > 0)
+            & _part.GetConnectedResources(_ammoniaResourceName).Any(rs => rs.amount > 0);
         }
 
         public string Status => string.Copy(_status);
@@ -64,40 +65,39 @@ namespace FNPlugin.Refinery
             _part = part;
             _vessel = part.vessel;
 
-            _ammonia_resource_name = InterstellarResourcesConfiguration.Instance.Ammonia;
-            _hydrazine_resource_name = InterstellarResourcesConfiguration.Instance.Hydrazine;
-            _water_resource_name = InterstellarResourcesConfiguration.Instance.Water;
-            _hydrogen_peroxide_name = InterstellarResourcesConfiguration.Instance.HydrogenPeroxide;
+            _ammoniaResourceName = InterstellarResourcesConfiguration.Instance.Ammonia;
+            _hydrazineResourceName = InterstellarResourcesConfiguration.Instance.Hydrazine;
+            _waterResourceName = InterstellarResourcesConfiguration.Instance.Water;
+            _hydrogenPeroxideName = InterstellarResourcesConfiguration.Instance.HydrogenPeroxide;
 
-            _ammonia_density = PartResourceLibrary.Instance.GetDefinition(_ammonia_resource_name).density;
-            _water_density = PartResourceLibrary.Instance.GetDefinition(_water_resource_name).density;
-            _hydrogen_peroxide_density = PartResourceLibrary.Instance.GetDefinition(_hydrogen_peroxide_name).density;
-            _hydrazine_density = PartResourceLibrary.Instance.GetDefinition(_hydrazine_resource_name).density;
+            _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(_ammoniaResourceName).density;
+            _waterDensity = PartResourceLibrary.Instance.GetDefinition(_waterResourceName).density;
+            _hydrogenPeroxideDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenPeroxideName).density;
+            _hydrazineDensity = PartResourceLibrary.Instance.GetDefinition(_hydrazineResourceName).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _effectiveMaxPower = PowerRequirements * productionModifier;
             _current_power = PowerRequirements * powerFraction;
-
-            _current_rate = CurrentPower / PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
+            _current_rate = CurrentPower / EnergyPerTon;
 
             // determine how much resource we have
-            var partsThatContainAmmonia = _part.GetConnectedResources(_ammonia_resource_name);
-            var partsThatContainHydrogenPeroxide = _part.GetConnectedResources(_hydrogen_peroxide_name);
-            var partsThatContainHydrazine = _part.GetConnectedResources(_hydrazine_resource_name);
-            var partsThatContainWater = _part.GetConnectedResources(_water_resource_name);
+            var partsThatContainAmmonia = _part.GetConnectedResources(_ammoniaResourceName).ToList();
+            var partsThatContainHydrogenPeroxide = _part.GetConnectedResources(_hydrogenPeroxideName).ToList();
+            var partsThatContainHydrazine = _part.GetConnectedResources(_hydrazineResourceName).ToList();
+            var partsThatContainWater = _part.GetConnectedResources(_waterResourceName).ToList();
 
-            _maxCapacityAmmoniaMass = partsThatContainAmmonia.Sum(p => p.maxAmount) * _ammonia_density;
-            _maxCapacityHydrogenPeroxideMass = partsThatContainHydrogenPeroxide.Sum(p => p.maxAmount) * _hydrogen_peroxide_density;
-            _maxCapacityHydrazineMass = partsThatContainHydrogenPeroxide.Sum(p => p.maxAmount) * _hydrazine_density;
-            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _water_density;
+            _maxCapacityAmmoniaMass = partsThatContainAmmonia.Sum(p => p.maxAmount) * _ammoniaDensity;
+            _maxCapacityHydrogenPeroxideMass = partsThatContainHydrogenPeroxide.Sum(p => p.maxAmount) * _hydrogenPeroxideDensity;
+            _maxCapacityHydrazineMass = partsThatContainHydrogenPeroxide.Sum(p => p.maxAmount) * _hydrazineDensity;
+            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _waterDensity;
 
-            _availableAmmoniaMass = partsThatContainAmmonia.Sum(r => r.amount) * _ammonia_density;
-            _availableHydrogenPeroxideMass = partsThatContainHydrogenPeroxide.Sum(r => r.amount) * _hydrogen_peroxide_density;
+            _availableAmmoniaMass = partsThatContainAmmonia.Sum(r => r.amount) * _ammoniaDensity;
+            _availableHydrogenPeroxideMass = partsThatContainHydrogenPeroxide.Sum(r => r.amount) * _hydrogenPeroxideDensity;
 
-            _spareRoomHydrazineMass = partsThatContainHydrazine.Sum(r => r.maxAmount - r.amount) * _hydrazine_density;
-            _spareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * _water_density;
+            _spareRoomHydrazineMass = partsThatContainHydrazine.Sum(r => r.maxAmount - r.amount) * _hydrazineDensity;
+            _spareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * _waterDensity;
 
             // determine how much we can consume
             var fixedMaxAmmoniaConsumptionRate = _current_rate * ammonia_mass_consumption_ratio * fixedDeltaTime;
@@ -115,35 +115,35 @@ namespace FNPlugin.Refinery
                 var fixedMaxHydrazineRate = _fixedConsumptionRate * hydrazine_mass_production_ratio;
                 var fixedMaxWaterRate = _fixedConsumptionRate * water_mass_production_ratio;
 
-                var fixedMaxPossibleydrazineRate = allowOverflow ? fixedMaxHydrazineRate : Math.Min(_spareRoomHydrazineMass, fixedMaxHydrazineRate);
+                var fixedMaxPossibleHydrazineRate = allowOverflow ? fixedMaxHydrazineRate : Math.Min(_spareRoomHydrazineMass, fixedMaxHydrazineRate);
                 var fixedMaxPossibleWaterRate = allowOverflow ? fixedMaxWaterRate : Math.Min(_spareRoomWaterMass, fixedMaxWaterRate);
 
-                _consumptionStorageRatio = Math.Min(fixedMaxPossibleydrazineRate / fixedMaxHydrazineRate, fixedMaxPossibleWaterRate / fixedMaxWaterRate);
+                _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrazineRate / fixedMaxHydrazineRate, fixedMaxPossibleWaterRate / fixedMaxWaterRate);
 
                 // now we do the real consumption
-                var ammonia_request = _fixedConsumptionRate * ammonia_mass_consumption_ratio * _consumptionStorageRatio / _ammonia_density;
-                _ammonia_consumption_rate = _part.RequestResource(_ammonia_resource_name, ammonia_request) * _ammonia_density / fixedDeltaTime;
+                var ammoniaRequest = _fixedConsumptionRate * ammonia_mass_consumption_ratio * _consumptionStorageRatio / _ammoniaDensity;
+                _ammoniaConsumptionRate = _part.RequestResource(_ammoniaResourceName, ammoniaRequest) * _ammoniaDensity / fixedDeltaTime;
 
-                var hydrogen_peroxide_request = _fixedConsumptionRate * hydrogen_peroxide_mass_consumption_ratio * _consumptionStorageRatio / _hydrogen_peroxide_density;
-                _hydrogen_peroxide_consumption_rate = _part.RequestResource(_hydrogen_peroxide_name, hydrogen_peroxide_request) * _hydrogen_peroxide_density / fixedDeltaTime;
+                var hydrogenPeroxideRequest = _fixedConsumptionRate * hydrogen_peroxide_mass_consumption_ratio * _consumptionStorageRatio / _hydrogenPeroxideDensity;
+                _hydrogenPeroxideConsumptionRate = _part.RequestResource(_hydrogenPeroxideName, hydrogenPeroxideRequest) * _hydrogenPeroxideDensity / fixedDeltaTime;
 
-                var combined_consumption_rate = _ammonia_consumption_rate + _hydrogen_peroxide_consumption_rate;
+                var combinedConsumptionRate = _ammoniaConsumptionRate + _hydrogenPeroxideConsumptionRate;
 
-                var fixed_hydrazine_production = combined_consumption_rate * hydrazine_mass_production_ratio * fixedDeltaTime / _hydrazine_density;
-                    _hydrazine_production_rate = -_part.RequestResource(_hydrazine_resource_name, -fixed_hydrazine_production) * _hydrazine_density / fixedDeltaTime;
+                var fixedHydrazineProduction = combinedConsumptionRate * hydrazine_mass_production_ratio * fixedDeltaTime / _hydrazineDensity;
+                    _hydrazineProductionRate = -_part.RequestResource(_hydrazineResourceName, -fixedHydrazineProduction) * _hydrazineDensity / fixedDeltaTime;
 
-                var fixed_water_production = combined_consumption_rate * water_mass_production_ratio * fixedDeltaTime / _water_density;
-                    _water_production_rate = -_part.RequestResource(_water_resource_name, -fixed_water_production) * _water_density / fixedDeltaTime;
+                var fixedWaterProduction = combinedConsumptionRate * water_mass_production_ratio * fixedDeltaTime / _waterDensity;
+                    _waterProductionRate = -_part.RequestResource(_waterResourceName, -fixedWaterProduction) * _waterDensity / fixedDeltaTime;
             }
             else
             {
-                _ammonia_consumption_rate = 0;
-                _hydrogen_peroxide_consumption_rate = 0;
-                _hydrazine_production_rate = 0;
-                _water_production_rate = 0;
+                _ammoniaConsumptionRate = 0;
+                _hydrogenPeroxideConsumptionRate = 0;
+                _hydrazineProductionRate = 0;
+                _waterProductionRate = 0;
             }
 
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -171,8 +171,8 @@ namespace FNPlugin.Refinery
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_AmmonaConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Ammona Consumption Rate"
-            GUILayout.Label((_ammonia_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_AmmonaConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Ammonia Consumption Rate"
+            GUILayout.Label((_ammoniaConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -182,7 +182,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_HydrogenPeroxideConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrogen Peroxide Consumption Rate"
-            GUILayout.Label((_hydrogen_peroxide_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_hydrogenPeroxideConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -192,7 +192,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_WaterProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Water Production Rate"
-            GUILayout.Label((_water_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_waterProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -202,27 +202,27 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_PeroxideProcess_HydrazineProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Hydrazine Production Rate"
-            GUILayout.Label((_hydrazine_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_hydrazineProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
-        private void updateStatusMessage()
+        private void UpdateStatusMessage()
         {
-            if (_water_production_rate > 0 && _hydrazine_production_rate > 0)
+            if (_waterProductionRate > 0 && _hydrazineProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg1");//"Peroxide Process Ongoing"
-            else if (_hydrazine_production_rate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg2");//"Ongoing: Insufficient Monopropellant Storage"
-            else if (_water_production_rate > 0)
+            else if (_hydrazineProductionRate > 0)
+                _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg2");//"Ongoing: Insufficient MonoPropellant Storage"
+            else if (_waterProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg3");//"Ongoing: Insufficient Water Storage"
             else if (CurrentPower <= 0.01*PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg4");//"Insufficient Power"
             else
             {
-                if (_ammonia_consumption_rate > 0 && _hydrogen_peroxide_consumption_rate > 0)
+                if (_ammoniaConsumptionRate > 0 && _hydrogenPeroxideConsumptionRate > 0)
                     _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg5");//"Insufficient Storage"
-                else if (_ammonia_consumption_rate > 0)
+                else if (_ammoniaConsumptionRate > 0)
                     _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg6");//"Hydrogen Peroxide Deprived"
-                else if (_hydrogen_peroxide_consumption_rate > 0)
+                else if (_hydrogenPeroxideConsumptionRate > 0)
                     _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg7");//"Ammonia Deprived"
                 else
                     _status = Localizer.Format("#LOC_KSPIE_PeroxideProcess_Statumsg8");//"Hydrogen Peroxide and Ammonia Deprived"

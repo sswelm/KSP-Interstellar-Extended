@@ -4,13 +4,13 @@ namespace FNPlugin.Refinery
 {
     class AntimatterGenerator : RefineryActivity
     {
-        public double ProductionRate { get { return _current_rate; } }
+        public double ProductionRate => _current_rate;
 
-        private double _efficiency = 0.01149;   // base efficiency
+        private readonly double _efficiency = 0.01149;   // base efficiency
 
-        public double Efficiency { get { return _efficiency;}}
+        public double Efficiency => _efficiency;
 
-        PartResourceDefinition _antimatterDefinition;
+        readonly PartResourceDefinition _antimatterDefinition;
 
         public AntimatterGenerator(Part part, double efficiencyMultiplier, PartResourceDefinition antimatterDefinition)
         {
@@ -45,14 +45,14 @@ namespace FNPlugin.Refinery
                 _efficiency /= 50000;
         }
 
-        public void Produce(double energy_provided_in_megajoules) 
+        public void Produce(double energyProvidedInMegajoules) 
         {
-            if (energy_provided_in_megajoules <= 0)
+            if (energyProvidedInMegajoules <= 0)
                 return;
 
-            double antimatter_units = energy_provided_in_megajoules * 1E6 / GameConstants.lightSpeedSquared / 2000 / _antimatterDefinition.density * _efficiency;
+            double antimatterUnits = energyProvidedInMegajoules * 1E6 / GameConstants.lightSpeedSquared / 2000 / _antimatterDefinition.density * _efficiency;
 
-            _current_rate = -_part.RequestResource(_antimatterDefinition.id, -antimatter_units, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+            _current_rate = -_part.RequestResource(_antimatterDefinition.id, -antimatterUnits, ResourceFlowMode.STAGE_PRIORITY_FLOW);
         }        
     }
 }
