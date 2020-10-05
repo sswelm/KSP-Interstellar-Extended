@@ -17,31 +17,31 @@ namespace FNPlugin.Refinery.Activity
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }
 
-        const double CarbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
-        const double OxygenMassByFraction = 1 - CarbonMonoxideMassByFraction;
+        private const double CarbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
+        private const double OxygenMassByFraction = 1 - CarbonMonoxideMassByFraction;
 
-        double _fixedMaxConsumptionDioxideRate;
-        double _consumptionStorageRatio;
+        private double _fixedMaxConsumptionDioxideRate;
+        private double _consumptionStorageRatio;
 
-        double _dioxideConsumptionRate;
-        double _monoxideProductionRate;
-        double _oxygenProductionRate;
+        private double _dioxideConsumptionRate;
+        private double _monoxideProductionRate;
+        private double _oxygenProductionRate;
 
-        string _dioxideResourceName;
-        string _oxygenResourceName;
-        string _monoxideResourceName;
+        private string _dioxideResourceName;
+        private string _oxygenResourceName;
+        private string _monoxideResourceName;
 
-        double _dioxideDensity;
-        double _oxygenDensity;
-        double _monoxideDensity;
+        private double _dioxideDensity;
+        private double _oxygenDensity;
+        private double _monoxideDensity;
 
-        double _availableDioxideMass;
-        double _spareRoomOxygenMass;
-        double _spareRoomMonoxideMass;
+        private double _availableDioxideMass;
+        private double _spareRoomOxygenMass;
+        private double _spareRoomMonoxideMass;
 
-        double _maxCapacityDioxideMass;
-        double _maxCapacityMonoxideMass;
-        double _maxCapacityOxygenMass;
+        private double _maxCapacityDioxideMass;
+        private double _maxCapacityMonoxideMass;
+        private double _maxCapacityOxygenMass;
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
@@ -100,11 +100,11 @@ namespace FNPlugin.Refinery.Activity
                 // now we do the real electrolysis
                 _dioxideConsumptionRate = _part.RequestResource(_dioxideResourceName, _consumptionStorageRatio * _fixedMaxConsumptionDioxideRate / _dioxideDensity) / fixedDeltaTime * _dioxideDensity;
 
-                var monoxide_rate_temp = _dioxideConsumptionRate * CarbonMonoxideMassByFraction;
-                var oxygen_rate_temp = _dioxideConsumptionRate * OxygenMassByFraction;
+                var monoxideRateTemp = _dioxideConsumptionRate * CarbonMonoxideMassByFraction;
+                var oxygenRateTemp = _dioxideConsumptionRate * OxygenMassByFraction;
 
-                _monoxideProductionRate = -_part.RequestResource(_monoxideResourceName, -monoxide_rate_temp * fixedDeltaTime / _monoxideDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxideDensity;
-                _oxygenProductionRate = -_part.RequestResource(_oxygenResourceName, -oxygen_rate_temp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
+                _monoxideProductionRate = -_part.RequestResource(_monoxideResourceName, -monoxideRateTemp * fixedDeltaTime / _monoxideDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxideDensity;
+                _oxygenProductionRate = -_part.RequestResource(_oxygenResourceName, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
             }
             else
             {

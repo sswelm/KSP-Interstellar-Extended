@@ -17,6 +17,11 @@ namespace FNPlugin.Refinery.Activity
             EnergyPerTon = PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
         }
 
+        private const double AmmoniaMassConsumptionRatio = (2 * 35.04) / (2 * 35.04 + 34.0147);
+        private const double HydrogenPeroxideMassConsumptionRatio = 34.0147 / (2 * 35.04 + 34.0147);
+        private const double HydrazineMassProductionRatio = 32.04516 / (32.04516 + 2 * 18.01528);
+        private const double WaterMassProductionRatio = (2 * 18.01528) / (32.04516 + 2 * 18.01528);
+
         private double _fixedConsumptionRate;
         private double _consumptionRate;
         private double _consumptionStorageRatio;
@@ -45,11 +50,6 @@ namespace FNPlugin.Refinery.Activity
         private double _availableHydrogenPeroxideMass;
         private double _spareRoomHydrazineMass;
         private double _spareRoomWaterMass;
-
-        private const double AmmoniaMassConsumptionRatio = (2 * 35.04) / (2 * 35.04 + 34.0147);
-        private const double HydrogenPeroxideMassConsumptionRatio = 34.0147 / (2 * 35.04 + 34.0147);
-        private const double HydrazineMassProductionRatio = 32.04516 / (32.04516 + 2 * 18.01528);
-        private const double WaterMassProductionRatio = (2 * 18.01528) / (32.04516 + 2 * 18.01528);
 
         public RefineryType RefineryType => RefineryType.Synthesize;
 

@@ -19,7 +19,6 @@ namespace FNPlugin.Refinery.Activity
 
         private const double WaterMassByFraction = 18.01528 / (18.01528 + 28.010);
         private const double MonoxideMassByFraction = 1 - WaterMassByFraction;
-
         private const double HydrogenMassByFraction = (2 * 1.008) / (44.01 + (2 * 1.008));
         private const double DioxideMassByFraction = 1 - HydrogenMassByFraction;
 

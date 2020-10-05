@@ -17,6 +17,9 @@ namespace FNPlugin.Refinery.Activity
             EnergyPerTon = PluginHelper.AnthraquinoneEnergyPerTon;
         }
 
+        private const double HydrogenMassByFraction = (1.0079 * 2) / 34.01468;
+        private const double OxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
+
         private double _fixedConsumptionRate;
         private double _consumptionRate;
 
@@ -39,9 +42,6 @@ namespace FNPlugin.Refinery.Activity
         private double _hydrogenConsumptionRate;
         private double _oxygenConsumptionRate;
         private double _hydrogenPeroxideProductionRate;
-
-        readonly double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
-        readonly double _oxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
 
         public RefineryType RefineryType => RefineryType.Synthesize;
 
@@ -88,10 +88,10 @@ namespace FNPlugin.Refinery.Activity
             _spareRoomHydrogenPeroxideMass = partsThatContainPeroxide.Sum(r => r.maxAmount - r.amount) * _hydrogenPeroxideDensity;
 
             // determine how much we can consume
-            var fixedMaxOxygenConsumptionRate = _current_rate * _oxygenMassByFraction * fixedDeltaTime;
+            var fixedMaxOxygenConsumptionRate = _current_rate * OxygenMassByFraction * fixedDeltaTime;
             var oxygenConsumptionRatio = fixedMaxOxygenConsumptionRate > 0 ? Math.Min(fixedMaxOxygenConsumptionRate, _availableOxygenMass) / fixedMaxOxygenConsumptionRate : 0;
 
-            var fixedMaxHydrogenConsumptionRate = _current_rate * _hydrogenMassByFraction * fixedDeltaTime;
+            var fixedMaxHydrogenConsumptionRate = _current_rate * HydrogenMassByFraction * fixedDeltaTime;
             var hydrogenConsumptionRatio = fixedMaxHydrogenConsumptionRate > 0 ? Math.Min(fixedMaxHydrogenConsumptionRate, _availableHydrogenMass) / fixedMaxHydrogenConsumptionRate : 0;
 
             _fixedConsumptionRate = _current_rate * fixedDeltaTime * Math.Min(oxygenConsumptionRatio, hydrogenConsumptionRatio);
@@ -101,8 +101,8 @@ namespace FNPlugin.Refinery.Activity
             {
                 var fixedMaxPossibleHydrogenPeroxideRate = Math.Min(_spareRoomHydrogenPeroxideMass, _fixedConsumptionRate);
 
-                var hydrogenConsumptionRate = fixedMaxPossibleHydrogenPeroxideRate * _hydrogenMassByFraction;
-                var oxygenConsumptionRate = fixedMaxPossibleHydrogenPeroxideRate * _oxygenMassByFraction;
+                var hydrogenConsumptionRate = fixedMaxPossibleHydrogenPeroxideRate * HydrogenMassByFraction;
+                var oxygenConsumptionRate = fixedMaxPossibleHydrogenPeroxideRate * OxygenMassByFraction;
 
                 // consume the resource
                 _hydrogenConsumptionRate = _part.RequestResource(_hydrogenResourceName, hydrogenConsumptionRate / _hydrogenDensity) / fixedDeltaTime * _hydrogenDensity;

@@ -17,10 +17,10 @@ namespace FNPlugin.Refinery.Activity
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }
 
-        const double DeuteriumAtomicMass = 2.01410178;
-        const double OxygenAtomicMass = 15.999;
-        const double DeuteriumMassByFraction = (2 * DeuteriumAtomicMass) / (OxygenAtomicMass + (2 * DeuteriumAtomicMass)); // 0.201136
-        const double OxygenMassByFraction = 1 - DeuteriumMassByFraction;
+        private const double DeuteriumAtomicMass = 2.01410178;
+        private const double OxygenAtomicMass = 15.999;
+        private const double DeuteriumMassByFraction = (2 * DeuteriumAtomicMass) / (OxygenAtomicMass + (2 * DeuteriumAtomicMass)); // 0.201136
+        private const double OxygenMassByFraction = 1 - DeuteriumMassByFraction;
         
         double _heavyWaterConsumptionRate;
         double _deuteriumProductionRate;

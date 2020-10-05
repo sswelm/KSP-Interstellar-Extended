@@ -16,9 +16,9 @@ namespace FNPlugin.Refinery.Activity
             EnergyPerTon = PluginHelper.HaberProcessEnergyPerTon;
         }
 
-        double _hydrogenConsumptionRate;
-        double _ammoniaProductionRate;
-        double _nitrogenConsumptionRate;
+        private double _hydrogenConsumptionRate;
+        private double _ammoniaProductionRate;
+        private double _nitrogenConsumptionRate;
 
         private PartResourceDefinition _definitionHydrogen;
         private PartResourceDefinition _definitionNitrogen;

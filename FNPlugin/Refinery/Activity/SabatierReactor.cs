@@ -17,6 +17,11 @@ namespace FNPlugin.Refinery.Activity
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }
 
+        private const double CarbonDioxideMassByFraction = 44.01 / (44.01 + (8 * 1.008));
+        private const double HydrogenMassByFraction = (8 * 1.008) / (44.01 + (8 * 1.008));
+        private const double OxygenMassByFraction = 32.0 / 52.0;
+        private const double MethaneMassByFraction = 20.0 / 52.0;
+
         private double _fixedConsumptionRate;
 
         private double _carbonDioxideDensity;
@@ -44,11 +49,6 @@ namespace FNPlugin.Refinery.Activity
         private double _availableHydrogenMass;
         private double _spareRoomMethaneMass;
         private double _spareRoomOxygenMass;
-
-        private double _carbonDioxideMassByFraction = 44.01 / (44.01 + (8 * 1.008));
-        private double _hydrogenMassByFraction = (8 * 1.008) / (44.01 + (8 * 1.008));
-        private double _oxygenMassByFraction = 32.0 / 52.0;
-        private double _methaneMassByFraction = 20.0 / 52.0;
 
         private double _fixedCombinedConsumptionRate;
         private double _combinedConsumptionRate;
@@ -100,12 +100,12 @@ namespace FNPlugin.Refinery.Activity
             _spareRoomMethaneMass = partsThatContainMethane.Sum(r => r.maxAmount - r.amount) * _methaneDensity;
             _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygenDensity;
 
-            var fixedMaxCarbonDioxideConsumptionRate = _current_rate * _carbonDioxideMassByFraction * fixedDeltaTime;
+            var fixedMaxCarbonDioxideConsumptionRate = _current_rate * CarbonDioxideMassByFraction * fixedDeltaTime;
             var carbonDioxideConsumptionRatio = fixedMaxCarbonDioxideConsumptionRate > 0 
                 ? Math.Min(fixedMaxCarbonDioxideConsumptionRate, _availableCarbonDioxideMass) / fixedMaxCarbonDioxideConsumptionRate 
                 : 0;
 
-            var fixedMaxHydrogenConsumptionRate = _current_rate * _hydrogenMassByFraction * fixedDeltaTime;
+            var fixedMaxHydrogenConsumptionRate = _current_rate * HydrogenMassByFraction * fixedDeltaTime;
             var hydrogenConsumptionRatio = fixedMaxHydrogenConsumptionRate > 0 ? Math.Min(fixedMaxHydrogenConsumptionRate, _availableHydrogenMass) / fixedMaxHydrogenConsumptionRate : 0;
 
             _fixedConsumptionRate = _current_rate * fixedDeltaTime * Math.Min(carbonDioxideConsumptionRatio, hydrogenConsumptionRatio);
@@ -114,8 +114,8 @@ namespace FNPlugin.Refinery.Activity
             {
                 var fixedMaxPossibleProductionRate = Math.Min(_spareRoomMethaneMass, _fixedConsumptionRate);
 
-                var carbonDioxideConsumptionRate = fixedMaxPossibleProductionRate * _carbonDioxideMassByFraction;
-                var hydrogenConsumptionRate = fixedMaxPossibleProductionRate * _hydrogenMassByFraction;
+                var carbonDioxideConsumptionRate = fixedMaxPossibleProductionRate * CarbonDioxideMassByFraction;
+                var hydrogenConsumptionRate = fixedMaxPossibleProductionRate * HydrogenMassByFraction;
 
                 // consume the resource
                 _hydrogenConsumptionRate = _part.RequestResource(_hydrogenResourceName, hydrogenConsumptionRate / _hydrogenDensity) / fixedDeltaTime * _hydrogenDensity;
@@ -124,8 +124,8 @@ namespace FNPlugin.Refinery.Activity
                 _fixedCombinedConsumptionRate = _hydrogenConsumptionRate + _carbonDioxideConsumptionRate;
                 _combinedConsumptionRate = _fixedCombinedConsumptionRate / fixedDeltaTime;
 
-                var fixedMethaneProduction = _fixedCombinedConsumptionRate * _methaneMassByFraction * fixedDeltaTime / _methaneDensity;
-                var fixedOxygenProduction = _fixedCombinedConsumptionRate * _oxygenMassByFraction * fixedDeltaTime / _oxygenDensity;
+                var fixedMethaneProduction = _fixedCombinedConsumptionRate * MethaneMassByFraction * fixedDeltaTime / _methaneDensity;
+                var fixedOxygenProduction = _fixedCombinedConsumptionRate * OxygenMassByFraction * fixedDeltaTime / _oxygenDensity;
 
                 _methaneProductionRate = -_part.RequestResource(_methaneResourceName, -fixedMethaneProduction) / fixedDeltaTime * _methaneDensity;
                 _oxygenProductionRate = -_part.RequestResource(_oxygenResourceName, -fixedOxygenProduction) / fixedDeltaTime * _oxygenDensity;
