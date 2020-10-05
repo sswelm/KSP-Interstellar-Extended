@@ -8,11 +8,11 @@ using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
-    class AtmosphericExtractor : RefineryActivity, IRefineryActivity
+    class AtmosphereProcessor : RefineryActivity, IRefineryActivity
     {
-        public AtmosphericExtractor()
+        public AtmosphereProcessor()
         {
             ActivityName = "Atmospheric Extraction";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;

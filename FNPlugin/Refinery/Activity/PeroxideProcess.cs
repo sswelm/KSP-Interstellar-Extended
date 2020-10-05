@@ -5,13 +5,14 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class PeroxideProcess : RefineryActivity, IRefineryActivity
     {
         public PeroxideProcess()
         {
-            ActivityName = "Peroxide Process: H<size=7>2</size>O<size=7>2</size> + NH<size=7>3</size> => H<size=7>2</size>O + N<size=7>2</size>H<size=7>4</size> (Hydrazine)";
+            ActivityName = "Peroxide Process";
+            Formula = "H<size=7>2</size>O<size=7>2</size> + NH<size=7>3</size> => H<size=7>2</size>O + N<size=7>2</size>H<size=7>4</size> (Hydrazine)";
             PowerRequirements = PluginHelper.BasePechineyUgineKuhlmannPowerConsumption;
             EnergyPerTon = PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
         }
@@ -45,10 +46,10 @@ namespace FNPlugin.Refinery
         private double _spareRoomHydrazineMass;
         private double _spareRoomWaterMass;
 
-        private double ammonia_mass_consumption_ratio = (2 * 35.04) / (2 * 35.04 + 34.0147);
-        private double hydrogen_peroxide_mass_consumption_ratio = 34.0147 / (2 * 35.04 + 34.0147);
-        private double hydrazine_mass_production_ratio = 32.04516 / (32.04516 + 2 * 18.01528);
-        private double water_mass_production_ratio = (2 * 18.01528) / (32.04516 + 2 * 18.01528);
+        private const double AmmoniaMassConsumptionRatio = (2 * 35.04) / (2 * 35.04 + 34.0147);
+        private const double HydrogenPeroxideMassConsumptionRatio = 34.0147 / (2 * 35.04 + 34.0147);
+        private const double HydrazineMassProductionRatio = 32.04516 / (32.04516 + 2 * 18.01528);
+        private const double WaterMassProductionRatio = (2 * 18.01528) / (32.04516 + 2 * 18.01528);
 
         public RefineryType RefineryType => RefineryType.Synthesize;
 
@@ -100,10 +101,10 @@ namespace FNPlugin.Refinery
             _spareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * _waterDensity;
 
             // determine how much we can consume
-            var fixedMaxAmmoniaConsumptionRate = _current_rate * ammonia_mass_consumption_ratio * fixedDeltaTime;
+            var fixedMaxAmmoniaConsumptionRate = _current_rate * AmmoniaMassConsumptionRatio * fixedDeltaTime;
             var ammoniaConsumptionRatio = fixedMaxAmmoniaConsumptionRate > 0 ? Math.Min(fixedMaxAmmoniaConsumptionRate, _availableAmmoniaMass) / fixedMaxAmmoniaConsumptionRate : 0;
 
-            var fixedMaxHydrogenPeroxideConsumptionRate = _current_rate * hydrogen_peroxide_mass_consumption_ratio * fixedDeltaTime;
+            var fixedMaxHydrogenPeroxideConsumptionRate = _current_rate * HydrogenPeroxideMassConsumptionRatio * fixedDeltaTime;
             var hydrogenPeroxideConsumptionRatio = fixedMaxHydrogenPeroxideConsumptionRate > 0 ? Math.Min(fixedMaxHydrogenPeroxideConsumptionRate, _availableHydrogenPeroxideMass) / fixedMaxHydrogenPeroxideConsumptionRate : 0;
 
             _fixedConsumptionRate = _current_rate * fixedDeltaTime * Math.Min(ammoniaConsumptionRatio, hydrogenPeroxideConsumptionRatio);
@@ -112,8 +113,8 @@ namespace FNPlugin.Refinery
             if (_fixedConsumptionRate > 0 && (_spareRoomHydrazineMass > 0 || _spareRoomWaterMass > 0))
             {
                 // calculate consumptionStorageRatio
-                var fixedMaxHydrazineRate = _fixedConsumptionRate * hydrazine_mass_production_ratio;
-                var fixedMaxWaterRate = _fixedConsumptionRate * water_mass_production_ratio;
+                var fixedMaxHydrazineRate = _fixedConsumptionRate * HydrazineMassProductionRatio;
+                var fixedMaxWaterRate = _fixedConsumptionRate * WaterMassProductionRatio;
 
                 var fixedMaxPossibleHydrazineRate = allowOverflow ? fixedMaxHydrazineRate : Math.Min(_spareRoomHydrazineMass, fixedMaxHydrazineRate);
                 var fixedMaxPossibleWaterRate = allowOverflow ? fixedMaxWaterRate : Math.Min(_spareRoomWaterMass, fixedMaxWaterRate);
@@ -121,18 +122,18 @@ namespace FNPlugin.Refinery
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrazineRate / fixedMaxHydrazineRate, fixedMaxPossibleWaterRate / fixedMaxWaterRate);
 
                 // now we do the real consumption
-                var ammoniaRequest = _fixedConsumptionRate * ammonia_mass_consumption_ratio * _consumptionStorageRatio / _ammoniaDensity;
+                var ammoniaRequest = _fixedConsumptionRate * AmmoniaMassConsumptionRatio * _consumptionStorageRatio / _ammoniaDensity;
                 _ammoniaConsumptionRate = _part.RequestResource(_ammoniaResourceName, ammoniaRequest) * _ammoniaDensity / fixedDeltaTime;
 
-                var hydrogenPeroxideRequest = _fixedConsumptionRate * hydrogen_peroxide_mass_consumption_ratio * _consumptionStorageRatio / _hydrogenPeroxideDensity;
+                var hydrogenPeroxideRequest = _fixedConsumptionRate * HydrogenPeroxideMassConsumptionRatio * _consumptionStorageRatio / _hydrogenPeroxideDensity;
                 _hydrogenPeroxideConsumptionRate = _part.RequestResource(_hydrogenPeroxideName, hydrogenPeroxideRequest) * _hydrogenPeroxideDensity / fixedDeltaTime;
 
                 var combinedConsumptionRate = _ammoniaConsumptionRate + _hydrogenPeroxideConsumptionRate;
 
-                var fixedHydrazineProduction = combinedConsumptionRate * hydrazine_mass_production_ratio * fixedDeltaTime / _hydrazineDensity;
+                var fixedHydrazineProduction = combinedConsumptionRate * HydrazineMassProductionRatio * fixedDeltaTime / _hydrazineDensity;
                     _hydrazineProductionRate = -_part.RequestResource(_hydrazineResourceName, -fixedHydrazineProduction) * _hydrazineDensity / fixedDeltaTime;
 
-                var fixedWaterProduction = combinedConsumptionRate * water_mass_production_ratio * fixedDeltaTime / _waterDensity;
+                var fixedWaterProduction = combinedConsumptionRate * WaterMassProductionRatio * fixedDeltaTime / _waterDensity;
                     _waterProductionRate = -_part.RequestResource(_waterResourceName, -fixedWaterProduction) * _waterDensity / fixedDeltaTime;
             }
             else

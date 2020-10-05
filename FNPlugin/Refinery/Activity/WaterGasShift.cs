@@ -5,13 +5,14 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class WaterGasShift : RefineryActivity, IRefineryActivity 
     {
         public WaterGasShift()
         {
-            ActivityName = "Water Gas Shift: H<size=7>2</size>0 + CO => CO<size=7>2</size> + H<size=7>2</size>";
+            ActivityName = "Water Gas Shift";
+            Formula = "H<size=7>2</size>0 + CO => CO<size=7>2</size> + H<size=7>2</size>";
             PowerRequirements = PluginHelper.BaseHaberProcessPowerConsumption * 5;
             EnergyPerTon = PluginHelper.HaberProcessEnergyPerTon;
         }

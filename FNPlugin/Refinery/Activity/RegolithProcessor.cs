@@ -1,5 +1,4 @@
-﻿
-using FNPlugin.Collectors;
+﻿using FNPlugin.Collectors;
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using KSP.Localization;
@@ -8,8 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
+    [KSPModule("ISRU Regolith Processor")]
     class RegolithProcessor : RefineryActivity, IRefineryActivity
     {
         public RegolithProcessor()

@@ -5,13 +5,14 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class WaterElectrolyzer : RefineryActivity, IRefineryActivity
     {
         public WaterElectrolyzer()
         {
-            ActivityName = "Water Electrolysis: H<size=7>2</size>O => H<size=7>2</size> + O<size=7>2</size>";
+            ActivityName = "Water Electrolysis";
+            Formula = "H<size=7>2</size>O => H<size=7>2</size> + O<size=7>2</size>";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }

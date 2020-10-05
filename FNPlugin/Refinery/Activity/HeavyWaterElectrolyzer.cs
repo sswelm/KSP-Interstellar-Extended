@@ -5,13 +5,14 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class HeavyWaterElectrolyzer : RefineryActivity, IRefineryActivity
     {
         public HeavyWaterElectrolyzer()
         {
             ActivityName = "Heavy Water Electrolysis";
+            Formula = "D<size=7>2</size>O => D<size=7>2</size> + O<size=7>2</size>";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }
@@ -156,7 +157,7 @@ namespace FNPlugin.Refinery
         private void UpdateStatusMessage()
         {
             if (_deuteriumProductionRate > 0 && _oxygenProductionRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg1");//"Electrolysing Water"
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg1");//"Electrolyzing Water"
             else if (_fixedMaxConsumptionWaterRate <= 0.0000000001)
                 _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg2");//"Out of water"
             else if (_deuteriumProductionRate > 0)

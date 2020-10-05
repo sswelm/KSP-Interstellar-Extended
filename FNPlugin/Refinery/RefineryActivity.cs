@@ -30,6 +30,8 @@ namespace FNPlugin.Refinery
         public double CurrentPower => _current_power;
 
         public string ActivityName { get; protected set; }
+        public string Formula { get; protected set; }
+
         public double PowerRequirements { get; protected set; }
         public double EnergyPerTon { get; protected set; }
 
@@ -57,21 +59,24 @@ namespace FNPlugin.Refinery
         {
             var sb = new StringBuilder();
             sb.AppendLine(ActivityName);
-            
+
+            if (!string.IsNullOrEmpty(Formula))
+                sb.AppendLine(Formula);
+
             var capacity = sizeModifier * PowerRequirements;
-           if (capacity > 0)
+            if (capacity > 0)
             {
-                sb.AppendLine("Power Requirement: " + capacity + " MW");
+                sb.AppendLine("Power: " + capacity + " MW");
 
                 if (EnergyPerTon > 0)
                 {
-                    sb.AppendLine("MW Per Ton : " + EnergyPerTon + " MW/t");
-                    sb.AppendLine("Ton Per MW: " + 1 / EnergyPerTon + " MW/t");
+                    sb.AppendLine("Energy: " + (float) EnergyPerTon + " MW/t");
+                    sb.AppendLine("Energy: " + (float)(1 / EnergyPerTon) + " t/MW");
 
-                    var production = capacity / EnergyPerTon;
-                    sb.AppendLine("Production(s): " + production + " t/s");
-                    sb.AppendLine("Production(m): " + production * 60 + " t/m");
-                    sb.AppendLine("Production(h): " + production * 3600 + " t/h");
+                    var production = (float) (capacity / EnergyPerTon);
+                    sb.AppendLine("Production: " + production + " t/sec");
+                    sb.AppendLine("Production: " + production * 60 + " t/min");
+                    sb.AppendLine("Production: " + production * 3600 + " t/hour");
                 }
             }
 

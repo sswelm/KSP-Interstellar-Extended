@@ -4,13 +4,14 @@ using KSP.Localization;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class AluminiumElectrolyzer : RefineryActivity, IRefineryActivity
     {
         public AluminiumElectrolyzer()
         {
-            ActivityName = "Aluminium Electrolysis: Al<size=7>2</size>O<size=7>3</size> => O<size=7>2</size> + Al<size=7>2</size>";
+            ActivityName = "Aluminium Electrolysis";
+            Formula = "Al<size=7>2</size>O<size=7>3</size> => O<size=7>2</size> + Al<size=7>2</size>";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
             EnergyPerTon = PluginHelper.AluminiumElectrolysisEnergyPerTon;
         }

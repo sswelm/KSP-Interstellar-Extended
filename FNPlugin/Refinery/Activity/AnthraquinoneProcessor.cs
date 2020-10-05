@@ -5,13 +5,14 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class AnthraquinoneProcessor : RefineryActivity, IRefineryActivity
     {
         public AnthraquinoneProcessor()
         {
-            ActivityName = "Anthraquinone Process: H<size=7>2</size> + O<size=7>2</size> => H<size=7>2</size>O<size=7>2</size> (HTP) ";
+            ActivityName = "Anthraquinone Process";
+            Formula = "H<size=7>2</size> + O<size=7>2</size> => H<size=7>2</size>O<size=7>2</size> (HTP)";
             PowerRequirements = PluginHelper.BaseAnthraquiononePowerConsumption;
             EnergyPerTon = PluginHelper.AnthraquinoneEnergyPerTon;
         }

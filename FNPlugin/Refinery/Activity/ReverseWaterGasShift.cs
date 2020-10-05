@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class ReverseWaterGasShift : RefineryActivity, IRefineryActivity
     {

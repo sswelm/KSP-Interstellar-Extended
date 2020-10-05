@@ -5,13 +5,16 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
-    class PartialOxidationMethane : RefineryActivity, IRefineryActivity
+    [KSPModule("ISRU Partial Methane Oxidation")]
+
+    class PartialMethaneOxidation : RefineryActivity, IRefineryActivity
     {
-        public PartialOxidationMethane()
+        public PartialMethaneOxidation()
         {
-            ActivityName = "Partial Oxidation of Methane : CH<size=7>4</size> + O<size=7>2</size> => CO + H<size=7>2</size>";
+            ActivityName = "Partial Oxidation of Methane";
+            Formula = "CH<size=7>4</size> + O<size=7>2</size> => CO + H<size=7>2</size>";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }

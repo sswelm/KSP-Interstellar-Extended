@@ -4,13 +4,14 @@ using KSP.Localization;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class AmmoniaElectrolyzer : RefineryActivity, IRefineryActivity
     {
         public AmmoniaElectrolyzer()
         {
-            ActivityName = "Ammonia Electrolysis: NH<size=7>3</size> => N<size=7>2</size> + H<size=7>2</size>";
+            ActivityName = "Ammonia Electrolysis";
+            Formula = "NH<size=7>3</size> => N<size=7>2</size> + H<size=7>2</size>";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon / 14.45;
         }

@@ -5,13 +5,14 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class CarbonDioxideElectrolyzer : RefineryActivity, IRefineryActivity
     {
         public CarbonDioxideElectrolyzer()
         {
-            ActivityName = "CarbonDioxide Electrolysis: CO<size=7>2</size> => CO + O<size=7>2</size>";
+            ActivityName = "CarbonDioxide Electrolysis";
+            Formula = "CO<size=7>2</size> => CO + O<size=7>2</size>";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }

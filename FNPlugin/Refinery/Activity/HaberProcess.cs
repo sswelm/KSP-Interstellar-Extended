@@ -4,13 +4,14 @@ using KSP.Localization;
 using System;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class HaberProcess : RefineryActivity, IRefineryActivity
     {
         public HaberProcess()
         {
-            ActivityName = "Haber Process: H<size=7>2</size> + N<size=7>2</size> => NH<size=7>3</size> (Ammonia) ";
+            ActivityName = "Haber Process";
+            Formula = "H<size=7>2</size> + N<size=7>2</size> => NH<size=7>3</size> (Ammonia)";
             PowerRequirements = PluginHelper.BaseHaberProcessPowerConsumption;
             EnergyPerTon = PluginHelper.HaberProcessEnergyPerTon;
         }

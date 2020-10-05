@@ -5,13 +5,15 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
+    [KSPModule("ISRU Methane Pyrolysis")]
     class MethanePyrolysis : RefineryActivity, IRefineryActivity
     {
         public MethanePyrolysis()
         {
-            ActivityName = "Methane Pyrolysis: CH<size=7>4</size> => H<size=7>2</size> + C";
+            ActivityName = "Methane Pyrolysis";
+            Formula = "CH<size=7>4</size> => H<size=7>2</size> + C";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }

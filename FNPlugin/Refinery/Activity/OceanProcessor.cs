@@ -8,12 +8,12 @@ using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
-    [KSPModule("ISRU Ocean Extraction")]
-    class OceanExtractor : RefineryActivity, IRefineryActivity
+    [KSPModule("ISRU Ocean Processing")]
+    class OceanProcessor : RefineryActivity, IRefineryActivity
     {
-        public OceanExtractor()
+        public OceanProcessor()
         {
             ActivityName = "Ocean Extraction";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;

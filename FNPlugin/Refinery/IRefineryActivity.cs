@@ -10,6 +10,8 @@
 
         string ActivityName { get;}
 
+        string Formula { get; }
+
         double CurrentPower { get; }
 
         bool HasActivityRequirements();

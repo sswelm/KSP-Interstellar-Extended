@@ -5,13 +5,14 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class SabatierReactor : RefineryActivity, IRefineryActivity
     {
         public SabatierReactor()
         {
-            ActivityName = "Sabatier Process: CO<size=7>2</size> + H<size=7>2</size> => O<size=7>2</size> + CH<size=7>4</size> (Methane)";
+            ActivityName = "Sabatier Process";
+            Formula = "CO<size=7>2</size> + H<size=7>2</size> => O<size=7>2</size> + CH<size=7>4</size> (Methane)";
             PowerRequirements = PluginHelper.BaseELCPowerConsumption;
             EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
         }

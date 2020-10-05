@@ -1,8 +1,9 @@
-﻿using System;
+﻿using FNPlugin.Refinery.Activity;
+using KSP.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -136,18 +137,18 @@ namespace FNPlugin.Refinery
                 AddIfMissing(refineriesList, new AluminiumElectrolyzer());
                 AddIfMissing(refineriesList, new AmmoniaElectrolyzer());
                 AddIfMissing(refineriesList, new AnthraquinoneProcessor());
-                AddIfMissing(refineriesList, new AtmosphericExtractor());
+                AddIfMissing(refineriesList, new AtmosphereProcessor());
                 AddIfMissing(refineriesList, new CarbonDioxideElectrolyzer());
                 AddIfMissing(refineriesList, new HaberProcess());
                 AddIfMissing(refineriesList, new HeavyWaterElectrolyzer());
-                AddIfMissing(refineriesList, new PartialOxidationMethane());
+                AddIfMissing(refineriesList, new PartialMethaneOxidation());
                 AddIfMissing(refineriesList, new PeroxideProcess());
                 AddIfMissing(refineriesList, new UF4Ammonolysiser());
                 AddIfMissing(refineriesList, new RegolithProcessor());
                 AddIfMissing(refineriesList, new ReverseWaterGasShift());
                 AddIfMissing(refineriesList, new NuclearFuelReprocessor());
                 AddIfMissing(refineriesList, new SabatierReactor());
-                AddIfMissing(refineriesList, new OceanExtractor());
+                AddIfMissing(refineriesList, new OceanProcessor());
                 AddIfMissing(refineriesList, new SolarWindProcessor());
                 AddIfMissing(refineriesList, new WaterElectrolyzer());
                 AddIfMissing(refineriesList, new WaterGasShift());
@@ -193,10 +194,10 @@ namespace FNPlugin.Refinery
 
                 var productionModifier = productionMult * baseProduction;
                 if (lastActivityName == "Atmospheric Extraction")
-                    ((AtmosphericExtractor) _current_activity).ExtractAir(lastPowerRatio * productionModifier,
+                    ((AtmosphereProcessor) _current_activity).ExtractAir(lastPowerRatio * productionModifier,
                         lastPowerRatio, productionModifier, lastOverflowSettings, timeDifference, true);
                 else if (lastActivityName == "Seawater Extraction")
-                    ((OceanExtractor) _current_activity).ExtractSeawater(lastPowerRatio * productionModifier,
+                    ((OceanProcessor) _current_activity).ExtractSeawater(lastPowerRatio * productionModifier,
                         lastPowerRatio, productionModifier, lastOverflowSettings, timeDifference, true);
                 else
                     _current_activity.UpdateFrame(lastPowerRatio * productionModifier, lastPowerRatio,
@@ -321,7 +322,9 @@ namespace FNPlugin.Refinery
                     bool hasRequirement = act.HasActivityRequirements(); // if the requirements for the activity are fulfilled
                     GUIStyle guiStyle = hasRequirement ? _enabled_button : _disabled_button; // either draw the enabled, bold button, or the disabled one
 
-                    if (GUILayout.Button(act.ActivityName, guiStyle, GUILayout.ExpandWidth(true))) // if user clicks the button and has requirements for the activity
+                    var buttonText = string.IsNullOrEmpty(act.Formula) ? act.ActivityName : act.ActivityName + " : " + act.Formula;
+
+                    if (GUILayout.Button(buttonText, guiStyle, GUILayout.ExpandWidth(true))) // if user clicks the button and has requirements for the activity
                     {
                         if (hasRequirement)
                         {
