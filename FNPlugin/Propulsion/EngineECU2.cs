@@ -818,7 +818,7 @@ namespace FNPlugin
                 }
                 return akInt.ToArray();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Debug.LogError("[KSPI]: Exception during StringToIntArray: " + akString);
                 throw;
