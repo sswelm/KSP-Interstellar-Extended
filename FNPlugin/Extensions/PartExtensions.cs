@@ -8,16 +8,14 @@ namespace FNPlugin.Extensions
 {
     public static class PartExtensions
     {
-        public static IEnumerable<PartResource> GetConnectedResources(this Part part, String resourcename)
+        public static IEnumerable<PartResource> GetConnectedResources(this Part part, string resourceName)
         {
-            return part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == resourcename));
+            return part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == resourceName));
         }
 
         public static void GetResourceMass(this Part part, PartResourceDefinition definition,  out double spareRoomMass, out double maximumMass) 
         {
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, out var currentAmount, out var maxAmount);
 
             maximumMass = maxAmount * (double)(decimal)definition.density;
             spareRoomMass = (maxAmount - currentAmount) * (double)(decimal)definition.density;
@@ -25,31 +23,24 @@ namespace FNPlugin.Extensions
 
         public static double GetResourceSpareCapacity(this Part part, String resourcename)
         {
-            var resourcDdefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);
-            if (resourcDdefinition == null)
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);
+            if (resourceDefinition == null)
                 return 0;
 
-            double currentAmount;
-            double maxAmount;
-
-            part.GetConnectedResourceTotals(resourcDdefinition.id, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(resourceDefinition.id, out var currentAmount, out var maxAmount);
 
             return maxAmount - currentAmount;
         }
 
         public static double GetResourceSpareCapacity(this Part part, PartResourceDefinition definition)
         {
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, out var currentAmount, out var maxAmount);
             return maxAmount - currentAmount;
         }
 
         public static double GetResourceSpareCapacity(this Part part, PartResourceDefinition definition, ResourceFlowMode flowmode)
         {
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, flowmode, out var currentAmount, out var maxAmount);
             return maxAmount - currentAmount;
         }
 
@@ -61,10 +52,7 @@ namespace FNPlugin.Extensions
                 return 0;
             }
 
-            double currentAmount;
-            double maxAmount;
-
-            part.GetConnectedResourceTotals(definition.id, ResourceFlowMode.STAGE_PRIORITY_FLOW, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, ResourceFlowMode.STAGE_PRIORITY_FLOW, out var currentAmount, out _);
             return currentAmount;
         }
 
@@ -76,9 +64,7 @@ namespace FNPlugin.Extensions
                 return 0;
             }
 
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, flowmode, out var currentAmount, out _);
             return currentAmount;
         }
 
@@ -90,9 +76,7 @@ namespace FNPlugin.Extensions
                 return 0;
             }
 
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, flowmode, out var currentAmount, out _);
             return currentAmount;
         }
 
@@ -106,9 +90,7 @@ namespace FNPlugin.Extensions
                 return 0;
             }
 
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, flowMode, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, flowMode, out var currentAmount, out _);
             return currentAmount;
         }
 
@@ -122,9 +104,7 @@ namespace FNPlugin.Extensions
                 return 0;
             }
 
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, out var currentAmount, out _);
             return currentAmount;
         }
 
@@ -138,9 +118,7 @@ namespace FNPlugin.Extensions
                 return 0;
             }
 
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, out var currentAmount, out var maxAmount);
             return maxAmount > 0 ? currentAmount / maxAmount: 0;
         }
 
@@ -148,21 +126,17 @@ namespace FNPlugin.Extensions
         {
             var definition = PartResourceLibrary.Instance.GetDefinition(name);
 
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, out _, out var maxAmount);
             return maxAmount;
         }
 
         public static double GetResourceMaxAvailable(this Part part, PartResourceDefinition definition)
         {
-            double currentAmount;
-            double maxAmount;
-            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, out _, out var maxAmount);
             return maxAmount;
         }
 
-        private static FieldInfo windowListField;
+        private static FieldInfo _windowListField;
 
         /// <summary>
         /// Find the UIPartActionWindow for a part. Usually this is useful just to mark it as dirty.
@@ -178,14 +152,14 @@ namespace FNPlugin.Extensions
             if (controller == null)
                 return null;
 
-            if (windowListField == null)
+            if (_windowListField == null)
             {
                 Type cntrType = typeof(UIPartActionController);
                 foreach (FieldInfo info in cntrType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
                 {
                     if (info.FieldType == typeof(List<UIPartActionWindow>))
                     {
-                        windowListField = info;
+                        _windowListField = info;
                         goto foundField;
                     }
                 }
@@ -194,7 +168,7 @@ namespace FNPlugin.Extensions
             }
             foundField:
 
-            List<UIPartActionWindow> uiPartActionWindows = (List<UIPartActionWindow>)windowListField.GetValue(controller);
+            List<UIPartActionWindow> uiPartActionWindows = (List<UIPartActionWindow>)_windowListField.GetValue(controller);
             if (uiPartActionWindows == null)
                 return null;
 
@@ -227,7 +201,7 @@ namespace FNPlugin.Extensions
             return false;
         }
 
-        public static bool IsConnectedToPart(this Part currentPart, String partname, int maxChildDepth, Part previousPart = null)
+        public static bool IsConnectedToPart(this Part currentPart, string partname, int maxChildDepth, Part previousPart = null)
         {
             bool found = currentPart.name == partname;
             if (found)
@@ -253,7 +227,7 @@ namespace FNPlugin.Extensions
             return false;
         }
 
-        public static double FindAmountOfAvailableFuel(this Part currentPart, String resourcename, int maxChildDepth, Part previousPart = null)
+        public static double FindAmountOfAvailableFuel(this Part currentPart, string resourcename, int maxChildDepth, Part previousPart = null)
         {
             double amount = 0;
 
@@ -277,7 +251,7 @@ namespace FNPlugin.Extensions
             return amount;
         }
 
-        public static double FindMaxAmountOfAvailableFuel(this Part currentPart, String resourcename, int maxChildDepth, Part previousPart = null)
+        public static double FindMaxAmountOfAvailableFuel(this Part currentPart, string resourcename, int maxChildDepth, Part previousPart = null)
         {
             double maxAmount = 0;
 

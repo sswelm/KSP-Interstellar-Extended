@@ -1,12 +1,15 @@
-﻿using System;
+﻿using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
-{    
-    enum RefineryType { heating = 1, cryogenics = 2, electrolysis = 4, synthesize = 8,  } 
+{
+    internal enum RefineryType { Heating = 1, Cryogenics = 2, Electrolysis = 4, Synthesize = 8,  } 
 
-    public abstract class RefineryActivityBase
+    public class RefineryActivity: PartModule
     {
+        [KSPField(guiActiveEditor = true, guiName = "Size Multiplier")]
+        public double sizeModifier = 1;
+
         public static int labelWidth = 180;
         public static int valueWidth = 180;
 
@@ -24,7 +27,14 @@ namespace FNPlugin.Refinery
         protected double _current_rate;
         protected double _effectiveMaxPower;
 
-        public double CurrentPower { get { return _current_power; } }
+        public double CurrentPower => _current_power;
+
+        public string ActivityName { get; protected set; }
+        public string Formula { get; protected set; }
+
+        public double PowerRequirements { get; protected set; }
+        public double EnergyPerTon { get; protected set; }
+
 
         public virtual void UpdateGUI()
         {
@@ -33,44 +43,44 @@ namespace FNPlugin.Refinery
             if (_value_label == null)
                 _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
             if (_value_label_green == null)
-            {
-                _value_label_green = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont};
-                _value_label_green.normal.textColor = Color.green;
-            }
+                _value_label_green = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, normal = {textColor = Color.green}};
             if (_value_label_red == null)
-            {
-                _value_label_red = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
-                _value_label_red.normal.textColor = Color.red;
-            }
+                _value_label_red = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, normal = {textColor = Color.red}};
             if (_value_label_number == null)
                 _value_label_number = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, alignment = TextAnchor.MiddleRight };
         }
-    }
 
-    interface IRefineryActivity
-    {
-        // 1 seperation
-        // 2 desconstrution
-        // 3 construction
+        public override string ToString()
+        {
+            return ActivityName;
+        }
 
-        RefineryType RefineryType { get; }
+        public override string GetInfo()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(ActivityName);
 
-        String ActivityName { get; }
+            if (!string.IsNullOrEmpty(Formula))
+                sb.AppendLine(Formula);
 
-        double CurrentPower { get; }
+            var capacity = sizeModifier * PowerRequirements;
+            if (capacity > 0)
+            {
+                sb.AppendLine("Power: " + capacity + " MW");
 
-        bool HasActivityRequirements();
+                if (EnergyPerTon > 0)
+                {
+                    sb.AppendLine("Energy: " + (float) EnergyPerTon + " MW/t");
+                    sb.AppendLine("Energy: " + (float)(1 / EnergyPerTon) + " t/MW");
 
-        double PowerRequirements { get; }
+                    var production = (float) (capacity / EnergyPerTon);
+                    sb.AppendLine("Production: " + production + " t/sec");
+                    sb.AppendLine("Production: " + production * 60 + " t/min");
+                    sb.AppendLine("Production: " + production * 3600 + " t/hour");
+                }
+            }
 
-        String Status { get; }
-
-        void UpdateFrame(double rateMultiplier, double powerFraction,  double powerModidier, bool allowOverfow, double fixedDeltaTime, bool isStartup = false);
-
-        void UpdateGUI();
-
-        void PrintMissingResources();
-
-        void Initialize(Part part);
+            return sb.ToString();
+        }
     }
 }

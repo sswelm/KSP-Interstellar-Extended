@@ -2,6 +2,7 @@
 using FNPlugin.Refinery;
 using System;
 using System.Linq;
+using FNPlugin.Refinery.Activity;
 using UnityEngine;
 using KSP.Localization;
 

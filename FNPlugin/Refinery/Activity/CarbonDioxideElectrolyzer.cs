@@ -1,49 +1,53 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
-    class CarbonDioxideElectroliser : RefineryActivityBase, IRefineryActivity
+    class CarbonDioxideElectrolyzer : RefineryActivity, IRefineryActivity
     {
-        const double carbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
-        const double oxygenMassByFraction = 1 - carbonMonoxideMassByFraction;
+        public CarbonDioxideElectrolyzer()
+        {
+            ActivityName = "CarbonDioxide Electrolysis";
+            Formula = "CO<size=7>2</size> => CO + O<size=7>2</size>";
+            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
+            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
+        }
 
-        double _fixedMaxConsumptionDioxideRate;
-        double _consumptionStorageRatio;
+        private const double CarbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
+        private const double OxygenMassByFraction = 1 - CarbonMonoxideMassByFraction;
 
-        double _dioxide_consumption_rate;
-        double _monoxide_production_rate;
-        double _oxygen_production_rate;
+        private double _fixedMaxConsumptionDioxideRate;
+        private double _consumptionStorageRatio;
 
-        string _dioxideResourceName;
-        string _oxygenResourceName;
-        string _monoxideResourceName;
+        private double _dioxideConsumptionRate;
+        private double _monoxideProductionRate;
+        private double _oxygenProductionRate;
 
-        double _dioxide_density;
-        double _oxygen_density;
-        double _monoxide_density;
+        private string _dioxideResourceName;
+        private string _oxygenResourceName;
+        private string _monoxideResourceName;
 
-        double _availableDioxideMass;
-        double _spareRoomOxygenMass;
-        double _spareRoomMonoxideMass;
+        private double _dioxideDensity;
+        private double _oxygenDensity;
+        private double _monoxideDensity;
 
-        double _maxCapacityDioxideMass;
-        double _maxCapacityMonoxideMass;
-        double _maxCapacityOxygenMass;
+        private double _availableDioxideMass;
+        private double _spareRoomOxygenMass;
+        private double _spareRoomMonoxideMass;
 
-        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
+        private double _maxCapacityDioxideMass;
+        private double _maxCapacityMonoxideMass;
+        private double _maxCapacityOxygenMass;
 
-        public String ActivityName { get { return "CarbonDioxide Electrolysis: CO<size=7>2</size> => CO + O<size=7>2</size>"; } }
+        public RefineryType RefineryType => RefineryType.Electrolysis;
 
         public bool HasActivityRequirements() { return _part.GetConnectedResources(_dioxideResourceName).Any(rs => rs.amount > 0);  }
 
-        public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
-
-        public String Status { get { return String.Copy(_status); } }
+        public string Status => string.Copy(_status);
 
         public void Initialize(Part part)
         {
@@ -54,37 +58,37 @@ namespace FNPlugin.Refinery
             _oxygenResourceName = InterstellarResourcesConfiguration.Instance.LqdOxygen;
             _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
             
-            _dioxide_density = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;
-            _oxygen_density = PartResourceLibrary.Instance.GetDefinition(_oxygenResourceName).density;
-            _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
+            _dioxideDensity = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(_oxygenResourceName).density;
+            _monoxideDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;
-            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
+            _current_rate = CurrentPower / EnergyPerTon;
 
-            var partsThatContainDioxide = _part.GetConnectedResources(_dioxideResourceName);
-            var partsThatContainOxygen = _part.GetConnectedResources(_oxygenResourceName);
-            var partsThatContainMonoxide = _part.GetConnectedResources(_monoxideResourceName);
+            var partsThatContainDioxide = _part.GetConnectedResources(_dioxideResourceName).ToList();
+            var partsThatContainOxygen = _part.GetConnectedResources(_oxygenResourceName).ToList();
+            var partsThatContainMonoxide = _part.GetConnectedResources(_monoxideResourceName).ToList();
 
-            _maxCapacityDioxideMass = partsThatContainDioxide.Sum(p => p.maxAmount) * _dioxide_density;
-            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygen_density;
-            _maxCapacityMonoxideMass = partsThatContainMonoxide.Sum(p => p.maxAmount) * _monoxide_density;
+            _maxCapacityDioxideMass = partsThatContainDioxide.Sum(p => p.maxAmount) * _dioxideDensity;
+            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygenDensity;
+            _maxCapacityMonoxideMass = partsThatContainMonoxide.Sum(p => p.maxAmount) * _monoxideDensity;
 
-            _availableDioxideMass = partsThatContainDioxide.Sum(p => p.amount) * _dioxide_density;
-            _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen_density;
-            _spareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * _monoxide_density;
+            _availableDioxideMass = partsThatContainDioxide.Sum(p => p.amount) * _dioxideDensity;
+            _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygenDensity;
+            _spareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * _monoxideDensity;
 
-            // determine how much carbondioxide we can consume
+            // determine how much carbon dioxide we can consume
             _fixedMaxConsumptionDioxideRate = Math.Min(_current_rate * fixedDeltaTime, _availableDioxideMass);
 
             if (_fixedMaxConsumptionDioxideRate > 0 && (_spareRoomOxygenMass > 0 || _spareRoomMonoxideMass > 0))
             {
                 // calculate consumptionStorageRatio
-                var fixedMaxMonoxideRate = _fixedMaxConsumptionDioxideRate * carbonMonoxideMassByFraction;
-                var fixedMaxOxygenRate = _fixedMaxConsumptionDioxideRate * oxygenMassByFraction;
+                var fixedMaxMonoxideRate = _fixedMaxConsumptionDioxideRate * CarbonMonoxideMassByFraction;
+                var fixedMaxOxygenRate = _fixedMaxConsumptionDioxideRate * OxygenMassByFraction;
 
                 var fixedMaxPossibleMonoxideRate = allowOverflow ? fixedMaxMonoxideRate : Math.Min(_spareRoomMonoxideMass, fixedMaxMonoxideRate);
                 var fixedMaxPossibleOxygenRate = allowOverflow ? fixedMaxOxygenRate : Math.Min(_spareRoomOxygenMass, fixedMaxOxygenRate);
@@ -93,20 +97,20 @@ namespace FNPlugin.Refinery
                 var fixedMaxPossibleOxygenRatio = fixedMaxPossibleOxygenRate / fixedMaxOxygenRate;
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleMonoxideRatio, fixedMaxPossibleOxygenRatio);
 
-                // now we do the real elextrolysis
-                _dioxide_consumption_rate = _part.RequestResource(_dioxideResourceName, _consumptionStorageRatio * _fixedMaxConsumptionDioxideRate / _dioxide_density) / fixedDeltaTime * _dioxide_density;
+                // now we do the real electrolysis
+                _dioxideConsumptionRate = _part.RequestResource(_dioxideResourceName, _consumptionStorageRatio * _fixedMaxConsumptionDioxideRate / _dioxideDensity) / fixedDeltaTime * _dioxideDensity;
 
-                var monoxide_rate_temp = _dioxide_consumption_rate * carbonMonoxideMassByFraction;
-                var oxygen_rate_temp = _dioxide_consumption_rate * oxygenMassByFraction;
+                var monoxideRateTemp = _dioxideConsumptionRate * CarbonMonoxideMassByFraction;
+                var oxygenRateTemp = _dioxideConsumptionRate * OxygenMassByFraction;
 
-                _monoxide_production_rate = -_part.RequestResource(_monoxideResourceName, -monoxide_rate_temp * fixedDeltaTime / _monoxide_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide_density;
-                _oxygen_production_rate = -_part.RequestResource(_oxygenResourceName, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
+                _monoxideProductionRate = -_part.RequestResource(_monoxideResourceName, -monoxideRateTemp * fixedDeltaTime / _monoxideDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxideDensity;
+                _oxygenProductionRate = -_part.RequestResource(_oxygenResourceName, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
             }
             else
             {
-                _dioxide_consumption_rate = 0;
-                _monoxide_production_rate = 0;
-                _oxygen_production_rate = 0;
+                _dioxideConsumptionRate = 0;
+                _monoxideProductionRate = 0;
+                _oxygenProductionRate = 0;
             }
 
             updateStatusMessage();
@@ -133,7 +137,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_CarbonDioxideConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"CarbonDioxide Consumption Rate"
-            GUILayout.Label((_dioxide_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_dioxideConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -143,7 +147,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_CarbonMonoxideProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"CarbonMonoxide Production Rate"
-            GUILayout.Label((_monoxide_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_monoxideProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -153,19 +157,19 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_OxygenProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Oxygen Production Rate"
-            GUILayout.Label((_oxygen_production_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((_oxygenProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 
         private void updateStatusMessage()
         {
-            if (_monoxide_production_rate > 0 && _oxygen_production_rate > 0)
+            if (_monoxideProductionRate > 0 && _oxygenProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Statumsg1");//"Electrolysing CarbonDioxide"
             else if (_fixedMaxConsumptionDioxideRate <= 0.0000000001)
                 _status = Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Statumsg2");//"Out of CarbonDioxide"
-            else if (_monoxide_production_rate > 0)
+            else if (_monoxideProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Statumsg3", _oxygenResourceName);//"Insufficient " +  + " Storage"
-            else if (_oxygen_production_rate > 0)
+            else if (_oxygenProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Statumsg3", _monoxideResourceName);//"Insufficient " +  + " Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Statumsg4");//"Insufficient Power"

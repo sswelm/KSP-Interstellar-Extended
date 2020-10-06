@@ -347,7 +347,11 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - InterstellarMeshSwitch.InitializeData Error: " + e.Message);
+                if (part.partInfo != null)
+                    Debug.LogError("[IFS]: InterstellarMeshSwitch.InitializeData Error with " + part.partInfo.name + " '" + part.partInfo.title + "' : " + e.Message);
+                else
+                    Debug.LogError("[IFS]: InterstellarMeshSwitch.InitializeData Error with " + e.Message);
+
                 throw;
             }
         }

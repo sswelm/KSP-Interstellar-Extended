@@ -568,14 +568,11 @@ namespace InterstellarFuelSwitch
                 if (_initialized)
                     return;
 
-                _field0 = Fields["resourceAmountStr0"];
-                _field1 = Fields["resourceAmountStr1"];
-                _field2 = Fields["resourceAmountStr2"];
-                _field3 = Fields["resourceAmountStr3"];
-                _tankGuiNameField = Fields["tankGuiName"];
-
-                availableInEditor = String.IsNullOrEmpty(inEditorSwitchingTechReq) ? availableInEditor : HasTech(inEditorSwitchingTechReq);
-                availableInFlight = String.IsNullOrEmpty(inFlightSwitchingTechReq) ? availableInFlight : HasTech(inFlightSwitchingTechReq);
+                _field0 = Fields[nameof(resourceAmountStr0)];
+                _field1 = Fields[nameof(resourceAmountStr1)];
+                _field2 = Fields[nameof(resourceAmountStr2)];
+                _field3 = Fields[nameof(resourceAmountStr3)];
+                _tankGuiNameField = Fields[nameof(tankGuiName)];
 
                 SetupTankList();
 
@@ -588,16 +585,19 @@ namespace InterstellarFuelSwitch
                     _numberOfAvailableTanks = _modularTankList.Count(m => m.hasTech);
                 }
 
-                _nextTankSetupEvent = Events["nextTankSetupEvent"];
+                availableInEditor = string.IsNullOrEmpty(inEditorSwitchingTechReq) ? availableInEditor : HasTech(inEditorSwitchingTechReq);
+                availableInFlight = string.IsNullOrEmpty(inFlightSwitchingTechReq) ? availableInFlight : HasTech(inFlightSwitchingTechReq);
+
+                _nextTankSetupEvent = Events[nameof(nextTankSetupEvent)];
                 _nextTankSetupEvent.guiActive = hasGUI && availableInFlight;
 
-                _previousTankSetupEvent = Events["previousTankSetupEvent"];
+                _previousTankSetupEvent = Events[nameof(previousTankSetupEvent)];
                 _previousTankSetupEvent.guiActive = hasGUI && availableInFlight;
 
-                Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
-                Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
-                Fields["maxResourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
-                Fields["totalCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields[nameof(dryCost)].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields[nameof(resourceCost)].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields[nameof(maxResourceCost)].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields[nameof(totalCost)].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
 
                 if (useTextureSwitchModule)
                 {
@@ -610,7 +610,11 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS]: InitializeData Error: " + e.Message);
+                if (part.partInfo != null)
+                    Debug.LogError("[IFS]: InterstellarFuelSwitch.InitializeData Error with " + part.partInfo.name + " '" +  part.partInfo.title + "' : " + e.Message);
+                else
+                    Debug.LogError("[IFS]: InterstellarFuelSwitch.InitializeData Error with " + e.Message);
+
                 throw;
             }
         }
@@ -1451,7 +1455,10 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS]: SetupTankList Error: " + e.Message);
+                if (part.partInfo != null)
+                    Debug.LogError("[IFS]: InterstellarFuelSwitch.SetupTankList Error with " + part.partInfo.name + " '" + part.partInfo.title + "' : " + e.Message);
+                else
+                    Debug.LogError("[IFS]: InterstellarFuelSwitch.SetupTankList Error: " + e.Message);
                 throw;
             }
         }
