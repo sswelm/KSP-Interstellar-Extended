@@ -19,6 +19,9 @@ namespace FNPlugin.Wasteheat
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
+    class HeatPumpRadiator : FNRadiator { }
+
+    [KSPModule("Radiator")]
     class FNRadiator : ResourceSuppliableModule
     {
         // persitant
