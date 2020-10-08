@@ -53,10 +53,6 @@ namespace FNPlugin.Collectors
         public float animationState;
         [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ReasonNotCollecting")]//Reason Not Collecting
         public string reasonNotCollecting;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "HeatSink Status")] // Debugging information for the heatsink
-        public string heatsinkDebug;
-        [KSPField(isPersistant = true, guiActive = false)] // Debugging information for the heatsink
-        public bool pumpingHeat;
 
         private int powerCountdown;
         private int powerCountdownMax = 90;
@@ -154,12 +150,6 @@ namespace FNPlugin.Collectors
         public void ToggleWindow()
         {
             _render_window = !_render_window;
-        }
-
-        [KSPEvent(guiActive = true, guiName = "Toggle HeatPump", active = true)]//Toggle HeatPump
-        public void ToggleHeatPump()
-        {
-            pumpingHeat = !pumpingHeat;
         }
 
         // *** END of KSP Events
@@ -321,7 +311,6 @@ namespace FNPlugin.Collectors
         {
             if (bIsEnabled)
             {
-                heatsinkDebug = "drilling, not pumping heat";
                 ToggleEmmitters(true);
                 UpdateLoopingAnimation();
 
@@ -336,31 +325,6 @@ namespace FNPlugin.Collectors
                 {
                     CalculateSpareRoom(resource);
                 }
-
-                if (pumpingHeat)
-                {
-                    ToggleEmmitters(true);
-
-                    var state = CheckIfCollectingPossible();
-                    if (string.IsNullOrEmpty(state) == false)
-                    {
-                        heatsinkDebug = state;
-                        pumpingHeat = false;
-                    }
-                }
-                else
-                {
-                    heatsinkDebug = string.Format("heatpump disabled");
-                    ToggleEmmitters(false);
-                }
-            }
-        }
-
-        public override void OnPostResourceSuppliable(double fixedDeltaTime)
-        {
-            if (pumpingHeat)
-            {
-                WasteHeat();
             }
         }
 
@@ -494,100 +458,7 @@ namespace FNPlugin.Collectors
             }
 
             groundDistance = hit.distance;
-            heatsinkDebug = $"distance to ground is {groundDistance}";
-
             return !(groundDistance <= 0);
-        }
-
-        private bool CalculateWasteHeatConsumable(double amountUnderground, double externalTemp, out double consume, out double newTemp)
-        {
-            // https://www.researchgate.net/publication/329044575_Calculation_of_Underground_Soil_Temperature_for_the_Installation_of_Ground_Heat_Exchange_Systems_in_Baghdad
-            // Depending on ground thermal properties, the temperature becomes
-            // constant all year. 15 metres is where it becomes stable in the
-            // listed cities.
-
-            // To quote, "Average soil temperature is expected to be equal to the annual mean air temperature.".
-
-            // Moons are another beast. https://www.space.com/18175-moon-temperature.html
-
-            // Per AntaresMC, in #balance, 
-            // "In icy planets your heat storage will be effectively infinite and in salty ones it would grow quickly enough."
-            // "For rocky/metalic ones it will be slow enough to need a few just to dump enpugh shit"
-            // "We could just use an overall depth multiplier depending on the planet and ignore the specifics."
-            // "Also if its above a certain tem itwould start melting the rock, at this point we can assume that the stored heat can infinetly increase"
-            // "Or just cap the temp to 400K"
-
-            // TL;DR - https://discord.com/channels/586489099632902178/615531179503910942/753192660126269480 :)
-
-            double maxSize = 30; // 30 metres underground for 1TW of Cooling. Requires Tweakscale'd drills.
-            consume = newTemp = 0;
-
-            if (double.IsNaN(amountUnderground) || double.IsNaN(externalTemp))
-            {
-                return false;
-            }
-
-            double percent = amountUnderground >= maxSize ? 1 : amountUnderground / maxSize;
-            // Perhaps if they have tweakscale'd their drill to reach maxSize metres underground,
-            // we should let them have more of a bonus?
-
-            // one large amount of of WasteHeat consumption.
-            consume = 1e6 * percent;
-
-            // Please improve me. :)
-            newTemp = Math.Max(4, Math.Min(externalTemp, part.temperature) / 2);
-
-            return true;
-        }
-
-        private bool WasteHeat()
-        {
-            // TODO: What should be the Megajoule cost of the drill dumping heat?
-            // Should WasteHeat consumption be based on Megajoules available?
-
-            if (DistanceToGround(out var distance) == false)
-            {
-                pumpingHeat = false;
-                return false;
-            }
-
-            // On a clamped to the ground base, the distance to the ground varies and oscillates.
-            // Round it off to keep things relatively consistent.
-            var underground = Math.Round(this.drillSize - distance, 5);
-            heatsinkDebug = $"T: {vessel.externalTemperature}, U: {underground}";
-
-            double avail = getResourceAvailability(ResourceManager.FNRESOURCE_WASTEHEAT);
-            if (double.IsNaN(avail))
-            {
-                heatsinkDebug += " - avail NaN";
-                return false;
-            }
-
-            if(avail <= 0)
-            {
-                heatsinkDebug += " - no available heat";
-                return false;
-            }
-
-            if (CalculateWasteHeatConsumable(underground, vessel.externalTemperature, out var consume, out var newTemp) == false)
-            {
-                heatsinkDebug += " - no draw";
-                return false;
-            }
-
-            if (consume > avail)
-            {
-                heatsinkDebug += " - reducing consumption";
-                consume = avail;
-            }
-
-            consumeFNResourcePerSecond(consume, ResourceManager.FNRESOURCE_WASTEHEAT);
-
-            // do we need to do something here about thermal flux / how easy it is for the drill to cool other parts?
-            part.temperature = newTemp;
-            part.skinTemperature = newTemp;
-
-            return true;
         }
 
         /// <summary>
