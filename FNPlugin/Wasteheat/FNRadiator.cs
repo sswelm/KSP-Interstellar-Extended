@@ -215,7 +215,6 @@ namespace FNPlugin.Wasteheat
         [KSPField] public bool hasSurfaceAreaUpgradeTechReq;
         [KSPField] public float atmosphereToleranceModifier = 1;
         [KSPField] public double atmosphericMultiplier;
-        [KSPField] public double externalTemperature;
         [KSPField] public float displayTemperature;
         [KSPField] public float colorRatio;
         [KSPField] public double deltaTemp;
@@ -666,6 +665,12 @@ namespace FNPlugin.Wasteheat
             return true;
         }
 
+        public double ExternalTemp()
+        {
+            // subclass may override, if needed
+            return (vessel == null) ? PhysicsGlobals.SpaceTemperature : vessel.externalTemperature;
+        }
+
         public override void OnStart(StartState state)
         {
             string[] resourcesToSupply = { ResourceManager.FNRESOURCE_WASTEHEAT };
@@ -1019,9 +1024,8 @@ namespace FNPlugin.Wasteheat
                 radiator_temperature_temp_val = Math.Min(maxRadiatorTemperature * wasteheatManager.TemperatureRatio, maxCurrentRadiatorTemperature);
 
                 atmosphericMultiplier = Math.Sqrt(vessel.atmDensity);
-                externalTemperature = vessel.externalTemperature;
 
-                deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(externalTemperature * Math.Min(1, atmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
+                deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(ExternalTemp() * Math.Min(1, atmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
@@ -1068,7 +1072,7 @@ namespace FNPlugin.Wasteheat
                     atmosphere_modifier = vessel.atmDensity * convectiveBonus + vessel.speed.Sqrt() + PartRotationDistance().Sqrt();
 
                     const double heatTransferCoefficient = 0.0005; // 500W/m2/K
-                    temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - vessel.externalTemperature);
+                    temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
                     submergedModifier = Math.Max(part.submergedPortion * 10, 1);
 
                     var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient * submergedModifier;
@@ -1169,7 +1173,7 @@ namespace FNPlugin.Wasteheat
                 var currentExternalTemp = PhysicsGlobals.SpaceTemperature;
 
                 if (vessel != null && vessel.atmDensity > 0)
-                    currentExternalTemp = vessel.externalTemperature * Math.Min(1, vessel.atmDensity);
+                    currentExternalTemp = ExternalTemp() * Math.Min(1, vessel.atmDensity);
 
                 _externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, currentExternalTemp));
                 if (_externalTempQueue.Count > 20)
