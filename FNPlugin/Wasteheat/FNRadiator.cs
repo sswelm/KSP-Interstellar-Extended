@@ -19,7 +19,63 @@ namespace FNPlugin.Wasteheat
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
-    class HeatPumpRadiator : FNRadiator { }
+    class HeatPumpRadiator : FNRadiator
+    {
+        // Duplicate code from UniversalCrustExtractor.cs
+        // Original: WhatsUnderneath()
+        // Changes: returns amount of drill underground.
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillReach", guiUnits = " m\xB3")]//Drill reach
+        public float drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
+        private bool IsDrillUnderground(out double undergroundAmount)
+        {
+            Vector3d partPosition = part.transform.position; // find the position of the transform in 3d space
+            var scaleFactor = part.rescaleFactor; // what is the rescale factor of the drill?
+            var drillDistance = drillReach * scaleFactor; // adjust the distance for the ray with the rescale factor, needs to be a float for raycast.
+
+            undergroundAmount = 0;
+
+            RaycastHit hit = new RaycastHit(); // create a variable that stores info about hit colliders etc.
+            LayerMask terrainMask = 32768; // layermask in unity, number 1 bitshifted to the left 15 times (1 << 15), (terrain = 15, the bitshift is there so that the mask bits are raised; this is a good reading about that: http://answers.unity3d.com/questions/8715/how-do-i-use-layermasks.html)
+            Ray drillPartRay = new Ray(partPosition, -part.transform.up); // this ray will start at the part's center and go down in local space coordinates (Vector3d.down is in world space)
+
+            /* This little bit will fire a ray from the part, straight down, in the distance that the part should be able to reach.
+             * It returns the resulting RayCastHit.
+             * 
+             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact 
+             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing 
+             * this module in a difficult terrain, it just doesn't work properly. (I blame KSP planet meshes + Unity problems with accuracy further away from origin). 
+            */
+            Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
+
+            // hit anything?
+            if (hit.collider == null) return false;
+
+            // how much is underground?
+            undergroundAmount = drillDistance - hit.distance;
+
+            return true;
+        }
+        // Duplicate code end
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Underground Amount", guiFormat = "F0", guiUnits = "m")]
+        public double undergroundAmount;
+
+        public new void FixedUpdate()
+        {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
+            if(IsDrillUnderground(out var amount))
+            {
+                undergroundAmount = amount;
+            } else
+            {
+                undergroundAmount = 0;
+            }
+
+            base.FixedUpdate();
+        }
+    }
 
     [KSPModule("Radiator")]
     class FNRadiator : ResourceSuppliableModule
