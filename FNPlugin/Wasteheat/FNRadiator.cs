@@ -57,15 +57,27 @@ namespace FNPlugin.Wasteheat
         }
         // Duplicate code end
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Distance underground", guiFormat = "F2", guiUnits = "m")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Distance underground", guiFormat = "F1", guiUnits = "m")]
         public double undergroundAmount;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Effective size", guiFormat = "F2", guiUnits = "m")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Effective size", guiFormat = "F2", guiUnits = "m")]
         public double effectiveSize;
 
-        [KSPField(guiActive = true, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")] public double coolTemp;
-        [KSPField(guiActive = true, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")] public double hotTemp;
+        [KSPField(guiActive = false, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")] public double coolTemp;
+        [KSPField(guiActive = false, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")] public double hotTemp;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Underground Temp", guiFormat = "F2", guiUnits = "K")] public double undergroundTemp;
+
+        [KSPAction("Toggle heat pump info")]
+        public void ToggleHeatPumpDebugAction(KSPActionParam param)
+        {
+            var coolTempField = Fields[nameof(coolTemp)];
+            var hotTempField = Fields[nameof(hotTemp)];
+            var effectiveSizeField = Fields[nameof(effectiveSize)];
+
+            var status = !coolTempField.guiActive;
+
+            coolTempField.guiActive = hotTempField.guiActive = effectiveSizeField.guiActive = status;
+        }
 
         private const double meanGroundTempDistance = 10;
         private int frameSkipper;
@@ -77,26 +89,28 @@ namespace FNPlugin.Wasteheat
             
             if (_radiatorState != ModuleDeployablePart.DeployState.EXTENDED) return;
             if (!IsDrillUnderground(out undergroundAmount)) return;
+            undergroundAmount = Math.Round(undergroundAmount, 1);
 
-            effectiveSize += (10 * Math.Round(undergroundAmount, 2));
+            effectiveSize += 10 * undergroundAmount;
             
             // Distance reaches mean ground temp region? Time for a Natural bonus.
             if (undergroundAmount >= meanGroundTempDistance)
             {
                 effectiveSize *= Math.Max(1.25, Math.Log(undergroundAmount - meanGroundTempDistance, Math.E));
             }
-        }
 
-        // Override the external temperature to be the average between the
-        // hottest and the coldest temperature observed.
-        public new double ExternalTemp()
+            effectiveSize = Math.Round(effectiveSize);
+        }
+        
+        protected override double ExternalTemp()
         {
             if(coolTemp == 0 || hotTemp == 0)
             {
                 return base.ExternalTemp();
             }
 
-            return (coolTemp + hotTemp) / 2;
+            // Weak approximation of the underground temp.
+            return Math.Max(PhysicsGlobals.SpaceTemperature, ((coolTemp + hotTemp) / 2) * 0.90);
         }
 
         public new void FixedUpdate()
@@ -107,8 +121,6 @@ namespace FNPlugin.Wasteheat
             if ((++frameSkipper % 10) == 0)
             {
                 // This does not need to run all the time.
-
-                UpdateEffectiveSize();
                 var undergroundTempField = Fields[nameof(undergroundTemp)];
 
                 if (vessel != null && vessel.Landed && _radiatorState == ModuleDeployablePart.DeployState.EXTENDED)
@@ -122,9 +134,28 @@ namespace FNPlugin.Wasteheat
                     coolTemp = hotTemp = 0;
                     undergroundTempField.guiActive = false;
                 }
+
+                undergroundTemp = ExternalTemp();
+
+                UpdateEffectiveSize();
+                radiatorArea = effectiveSize;
+                UpdateRadiatorArea();
             }
 
             base.FixedUpdate();
+        }
+
+        protected override bool CanConvectInSpace()
+        {
+            if (_radiatorState == ModuleDeployablePart.DeployState.EXTENDED)
+            {
+                if (IsDrillUnderground(out var tmp))
+                {
+                    return tmp > 0;
+                }
+            }
+            
+            return false;
         }
     }
 
@@ -697,10 +728,16 @@ namespace FNPlugin.Wasteheat
             return true;
         }
 
-        public double ExternalTemp()
+        protected virtual double ExternalTemp()
         {
             // subclass may override, if needed
             return (vessel == null) ? PhysicsGlobals.SpaceTemperature : vessel.externalTemperature;
+        }
+
+        protected void UpdateRadiatorArea()
+        {
+            effectiveRadiatorArea = EffectiveRadiatorArea;
+            _stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
         }
 
         public override void OnStart(StartState state)
@@ -731,8 +768,7 @@ namespace FNPlugin.Wasteheat
 
             radiatorType = RadiatorType;
 
-            effectiveRadiatorArea = EffectiveRadiatorArea;
-            _stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
+            UpdateRadiatorArea();
 
             _deployRadiatorEvent = Events[nameof(DeployRadiator)];
             _retractRadiatorEvent = Events[nameof(RetractRadiator)];
@@ -1099,9 +1135,9 @@ namespace FNPlugin.Wasteheat
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
 
-                if (vessel.atmDensity > 0)
+                if (vessel.atmDensity > 0 || CanConvectInSpace())
                 {
-                    atmosphere_modifier = vessel.atmDensity * convectiveBonus + vessel.speed.Sqrt() + PartRotationDistance().Sqrt();
+                    atmosphere_modifier = (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * convectiveBonus + vessel.speed.Sqrt() + PartRotationDistance().Sqrt();
 
                     const double heatTransferCoefficient = 0.0005; // 500W/m2/K
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
@@ -1134,6 +1170,11 @@ namespace FNPlugin.Wasteheat
             {
                 Debug.LogError("[KSPI]: Exception on " + part.name + " during FNRadiator.FixedUpdate with message " + e.Message);
             }
+        }
+
+        protected virtual bool CanConvectInSpace()
+        {
+            return false;
         }
 
         private double CalculateInstantaneousRadTemp()
