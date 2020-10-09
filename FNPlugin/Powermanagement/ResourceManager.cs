@@ -674,10 +674,7 @@ namespace FNPlugin
 
             if (resourceDefinition.id == megajouleResourceDefinition.id && stored_stable_supply <= 0)
             {
-                double amount;
-                double maxAmount;
-
-                my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
+                my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out var amount, out var maxAmount);
 
                 current_stock_electric_charge_shortage = maxAmount - amount;
 
@@ -695,10 +692,7 @@ namespace FNPlugin
             //First supply minimal Amount of Stock ElectricCharge resource to keep probe core and life support functioning
             if (resourceDefinition.id == megajouleResourceDefinition.id && stored_stable_supply > 0)
             {
-                double amount;
-                double maxAmount;
-
-                my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
+                my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out var amount, out var maxAmount);
 
                 current_stock_electric_charge_shortage = maxAmount - amount;
 
@@ -736,9 +730,7 @@ namespace FNPlugin
             // store current supply and update average
             power_supply_list_archive.ForEach(m =>
             {
-                Queue<double> queue;
-
-                if (!power_produced_history.TryGetValue(m.Key, out queue))
+                if (!power_produced_history.TryGetValue(m.Key, out var queue))
                 {
                     queue = new Queue<double>(10);
                     power_produced_history.Add(m.Key, queue);
@@ -802,17 +794,14 @@ namespace FNPlugin
             //Prioritise supplying stock ElectricCharge for High power
             if (resourceDefinition.id == megajouleResourceDefinition.id && stored_stable_supply > 0)
             {
-                double amount;
-                double maxAmount;
-
-                my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
+                my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out var amount, out var maxAmount);
 
                 if (!amount.IsInfinityOrNaN())
                 {
                     var stock_electric_charge_needed = maxAmount - amount;
 
                     var power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
-                    var stable_supplied = Math.Min(stablePowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
+                    //var stable_supplied = Math.Min(stablePowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
 
                     if (stock_electric_charge_needed > 0)
                     {
