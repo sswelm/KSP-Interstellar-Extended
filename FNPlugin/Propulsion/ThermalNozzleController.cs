@@ -1644,6 +1644,10 @@ namespace FNPlugin
         public void EstimateEditorPerformance()
         {
             var atmospherecurve = new FloatCurve();
+            if (myAttachedEngine == null)
+            {
+                return;
+            }
 
             if (AttachedReactor == null)
             {
