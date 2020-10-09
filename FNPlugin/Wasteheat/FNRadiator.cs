@@ -63,7 +63,11 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = false, guiActive = true, guiName = "Effective size", guiFormat = "F2", guiUnits = "m")]
         public double effectiveSize;
 
-        private double meanGroundTempDistance = 10;
+        [KSPField(guiActive = true, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")] public double coolTemp;
+        [KSPField(guiActive = true, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")] public double hotTemp;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Underground Temp", guiFormat = "F2", guiUnits = "K")] public double undergroundTemp;
+
+        private const double meanGroundTempDistance = 10;
         private int frameSkipper;
 
         private void UpdateEffectiveSize()
@@ -83,14 +87,42 @@ namespace FNPlugin.Wasteheat
             }
         }
 
+        // Override the external temperature to be the average between the
+        // hottest and the coldest temperature observed.
+        public new double ExternalTemp()
+        {
+            if(coolTemp == 0 || hotTemp == 0)
+            {
+                return base.ExternalTemp();
+            }
+
+            return (coolTemp + hotTemp) / 2;
+        }
+
         public new void FixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
-            if ((++frameSkipper % 10) == 0) UpdateEffectiveSize();
+            if ((++frameSkipper % 10) == 0)
+            {
+                // This does not need to run all the time.
 
-            // TODO track external temp.
+                UpdateEffectiveSize();
+                var undergroundTempField = Fields[nameof(undergroundTemp)];
+
+                if (vessel != null && vessel.Landed && _radiatorState == ModuleDeployablePart.DeployState.EXTENDED)
+                {
+                    if (vessel.externalTemperature < coolTemp || coolTemp == 0) coolTemp = vessel.externalTemperature;
+                    if (vessel.externalTemperature > hotTemp || hotTemp == 0) hotTemp = vessel.externalTemperature;
+                    undergroundTempField.guiActive = true;
+                }
+                else
+                {
+                    coolTemp = hotTemp = 0;
+                    undergroundTempField.guiActive = false;
+                }
+            }
 
             base.FixedUpdate();
         }
