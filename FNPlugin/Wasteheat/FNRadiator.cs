@@ -57,21 +57,40 @@ namespace FNPlugin.Wasteheat
         }
         // Duplicate code end
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Underground Amount", guiFormat = "F0", guiUnits = "m")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Distance underground", guiFormat = "F2", guiUnits = "m")]
         public double undergroundAmount;
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Effective size", guiFormat = "F2", guiUnits = "m")]
+        public double effectiveSize;
+
+        private double meanGroundTempDistance = 10;
+        private int frameSkipper;
+
+        private void UpdateEffectiveSize()
+        {
+            effectiveSize = drillReach;
+            undergroundAmount = 0;
+            
+            if (_radiatorState != ModuleDeployablePart.DeployState.EXTENDED) return;
+            if (!IsDrillUnderground(out undergroundAmount)) return;
+
+            effectiveSize += (10 * Math.Round(undergroundAmount, 2));
+            
+            // Distance reaches mean ground temp region? Time for a Natural bonus.
+            if (undergroundAmount >= meanGroundTempDistance)
+            {
+                effectiveSize *= Math.Max(1.25, Math.Log(undergroundAmount - meanGroundTempDistance, Math.E));
+            }
+        }
 
         public new void FixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
-            if(IsDrillUnderground(out var amount))
-            {
-                undergroundAmount = amount;
-            } else
-            {
-                undergroundAmount = 0;
-            }
+            if ((++frameSkipper % 10) == 0) UpdateEffectiveSize();
+
+            // TODO track external temp.
 
             base.FixedUpdate();
         }
@@ -247,7 +266,7 @@ namespace FNPlugin.Wasteheat
         private AnimationState[] _heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
-        private ModuleDeployablePart.DeployState _radiatorState;
+        internal ModuleDeployablePart.DeployState _radiatorState;
         private ResourceBuffers _resourceBuffers;
 
         private readonly Queue<double> _radTempQueue = new Queue<double>(20);
@@ -916,11 +935,11 @@ namespace FNPlugin.Wasteheat
         {
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2;
+                var combinedPressure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2;
 
-                if (combinedPresure > 101.325)
+                if (combinedPressure > 101.325)
                 {
-                    var extraPressure = combinedPresure - 101.325;
+                    var extraPressure = combinedPressure - 101.325;
                     var ratio = extraPressure / 101.325;
                     if (ratio <= 1)
                         ratio *= ratio;
@@ -929,7 +948,7 @@ namespace FNPlugin.Wasteheat
                     oxidationModifier = 1 + ratio * 0.1;
                 }
                 else
-                    oxidationModifier = Math.Pow(combinedPresure / 101.325, 0.25);
+                    oxidationModifier = Math.Pow(combinedPressure / 101.325, 0.25);
 
                 spaceRadiatorModifier = Math.Max(0.25, Math.Min(0.95, 0.95 + vessel.verticalSpeed * 0.002));
 
