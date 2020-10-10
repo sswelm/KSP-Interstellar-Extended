@@ -87,12 +87,13 @@ namespace FNPlugin.Wasteheat
             effectiveSize = drillReach;
             undergroundAmount = 0;
             
+            // require the drill to be deployed
             if (_radiatorState != ModuleDeployablePart.DeployState.EXTENDED) return;
+            // require the drill to be underground
             if (!IsDrillUnderground(out undergroundAmount)) return;
-            undergroundAmount = Math.Round(undergroundAmount, 1);
-
             if (undergroundAmount == 0) return;
 
+            // reduced effectiveness in space
             if(vessel && vessel.atmDensity == 0)
             {
                 // do not convect above ground in a vacuum
@@ -100,7 +101,8 @@ namespace FNPlugin.Wasteheat
             }
 
             effectiveSize += 10 * undergroundAmount;
-            
+            effectiveSize = Math.Round(effectiveSize);
+
             // Distance reaches mean ground temp region? Time for a Natural bonus.
             if (undergroundAmount >= meanGroundTempDistance)
             {
@@ -118,7 +120,7 @@ namespace FNPlugin.Wasteheat
             }
 
             // Weak approximation of the underground temp.
-            return Math.Max(PhysicsGlobals.SpaceTemperature, ((coolTemp + hotTemp) / 2) * 0.90);
+            return Math.Max(PhysicsGlobals.SpaceTemperature, (coolTemp + hotTemp) / 2 * 0.90);
         }
 
         public new void FixedUpdate()
@@ -128,7 +130,7 @@ namespace FNPlugin.Wasteheat
 
             if ((++frameSkipper % 10) == 0)
             {
-                // This does not need to run all the time.
+                // This code does not need to run all the time.
                 var undergroundTempField = Fields[nameof(undergroundTemp)];
 
                 if (vessel != null && vessel.Landed && _radiatorState == ModuleDeployablePart.DeployState.EXTENDED)
@@ -155,15 +157,7 @@ namespace FNPlugin.Wasteheat
 
         protected override bool CanConvectInSpace()
         {
-            if (_radiatorState == ModuleDeployablePart.DeployState.EXTENDED)
-            {
-                if (IsDrillUnderground(out var tmp))
-                {
-                    return tmp > 0;
-                }
-            }
-            
-            return false;
+            return undergroundAmount > 0;
         }
     }
 
