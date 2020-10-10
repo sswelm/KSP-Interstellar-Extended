@@ -121,7 +121,7 @@ namespace FNPlugin
                 // extract power otherwise we end up with double power
                 if (_field_addedToTanks != null)
                 {
-                    part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _field_addedToTanks.GetValue<float>(moduleGenerator));
+                    part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)_field_addedToTanks.GetValue<float>(moduleGenerator));
                 }
 
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);

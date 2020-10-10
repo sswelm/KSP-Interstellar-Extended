@@ -1,3 +1,4 @@
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
 using KSP.Localization;
@@ -859,10 +860,10 @@ namespace FNPlugin.Wasteheat
             {
                 var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2;
 
-                if (combinedPresure > 101.325)
+                if (combinedPresure > GameConstants.EarthAtmospherePressureAtSeaLevel)
                 {
-                    var extraPressure = combinedPresure - 101.325;
-                    var ratio = extraPressure / 101.325;
+                    var extraPressure = combinedPresure - GameConstants.EarthAtmospherePressureAtSeaLevel;
+                    var ratio = extraPressure / GameConstants.EarthAtmospherePressureAtSeaLevel;
                     if (ratio <= 1)
                         ratio *= ratio;
                     else
@@ -870,7 +871,7 @@ namespace FNPlugin.Wasteheat
                     oxidationModifier = 1 + ratio * 0.1;
                 }
                 else
-                    oxidationModifier = Math.Pow(combinedPresure / 101.325, 0.25);
+                    oxidationModifier = Math.Pow(combinedPresure / GameConstants.EarthAtmospherePressureAtSeaLevel, 0.25);
 
                 spaceRadiatorModifier = Math.Max(0.25, Math.Min(0.95, 0.95 + vessel.verticalSpeed * 0.002));
 
@@ -1074,7 +1075,6 @@ namespace FNPlugin.Wasteheat
             return Double.IsNaN(consumedWasteheat) ? 0 : consumedWasteheat;
         }
 
-
         public double CurrentRadiatorTemperature
         {
             get => currentRadTemp;
@@ -1128,16 +1128,17 @@ namespace FNPlugin.Wasteheat
             sb.Append($"Mk3: {RadiatorProperties.RadiatorTemperatureMk3:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk3, 4):F3} MW\n");
             sb.Append($"Mk4: {RadiatorProperties.RadiatorTemperatureMk4:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk4, 4):F3} MW\n");
 
-            if (String.IsNullOrEmpty(surfaceAreaUpgradeTechReq)) return sb.ToString();
+            if (!string.IsNullOrEmpty(surfaceAreaUpgradeTechReq))
+            {
+                sb.Append($"Mk5: {RadiatorProperties.RadiatorTemperatureMk5:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk5, 4):F3} MW\n");
+                sb.Append($"Mk6: {RadiatorProperties.RadiatorTemperatureMk6:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4):F3} MW\n");
 
-            sb.Append($"Mk5: {RadiatorProperties.RadiatorTemperatureMk5:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk5, 4):F3} MW\n");
-            sb.Append($"Mk6: {RadiatorProperties.RadiatorTemperatureMk6:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4):F3} MW\n");
+                var convection = 0.9 * effectiveRadiatorArea * convectiveBonus;
+                var dissipation = _stefanArea * Math.Pow(900, 4);
 
-            var convection = 0.9 * effectiveRadiatorArea * convectiveBonus;
-            var dissipation = _stefanArea * Math.Pow(900, 4);
-
-            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", $"{dissipation:F3}", $"{convection:F3}"));
-            //String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection)
+                sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", $"{dissipation:F3}", $"{convection:F3}"));
+                //String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection)
+            }
 
             sb.Append("</size>");
 

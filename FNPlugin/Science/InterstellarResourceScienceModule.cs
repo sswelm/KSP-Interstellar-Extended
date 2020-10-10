@@ -280,7 +280,7 @@ namespace FNPlugin
         }
 
         [KSPAction("Deploy")]
-        public void DeployAction(KSPActionParam actParams)
+        new public void DeployAction(KSPActionParam actParams)
         {
             //print("Clicked event! check data: " + resourceName + " " + resourceAmount.ToString() + " " + experimentID + " ");
             if (vesselHasEnoughResource(resourceName, resourceAmount))
