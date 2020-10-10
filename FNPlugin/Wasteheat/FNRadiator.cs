@@ -60,15 +60,15 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = false, guiActive = true, guiName = "Distance underground", guiFormat = "F1", guiUnits = "m")]
         public double undergroundAmount;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Effective size", guiFormat = "F2", guiUnits = "m")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Radiator effective size", guiFormat = "F2", guiUnits = "m")]
         public double effectiveSize;
 
         [KSPField(guiActive = false, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")] public double coolTemp;
         [KSPField(guiActive = false, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")] public double hotTemp;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Underground Temp", guiFormat = "F2", guiUnits = "K")] public double undergroundTemp;
 
-        [KSPAction("Toggle heat pump info")]
-        public void ToggleHeatPumpDebugAction(KSPActionParam param)
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Toggle Heat Pump Information", active = true)]
+        public void ToggleHeatPumpDebugAction()
         {
             var coolTempField = Fields[nameof(coolTemp)];
             var hotTempField = Fields[nameof(hotTemp)];
@@ -91,12 +91,20 @@ namespace FNPlugin.Wasteheat
             if (!IsDrillUnderground(out undergroundAmount)) return;
             undergroundAmount = Math.Round(undergroundAmount, 1);
 
+            if (undergroundAmount == 0) return;
+
+            if(vessel && vessel.atmDensity == 0)
+            {
+                // do not convect above ground in a vacuum
+                effectiveSize -= (drillReach - undergroundAmount);
+            }
+
             effectiveSize += 10 * undergroundAmount;
             
             // Distance reaches mean ground temp region? Time for a Natural bonus.
             if (undergroundAmount >= meanGroundTempDistance)
             {
-                effectiveSize *= Math.Max(1.25, Math.Log(undergroundAmount - meanGroundTempDistance, Math.E));
+                effectiveSize *= Math.Max(1.15, Math.Log(undergroundAmount - meanGroundTempDistance, Math.E));
             }
 
             effectiveSize = Math.Round(effectiveSize);
