@@ -1033,7 +1033,9 @@ namespace FNPlugin.Reactors
             if (connectedReceivers == null) return;
 
             connectedRecieversSum = connectedReceivers.Sum(r => r.Value * r.Value);
-            connectedReceiversFraction = connectedReceivers.ToDictionary(a => a.Key, a => a.Value * a.Value / connectedRecieversSum);
+            connectedReceiversFraction.Clear();
+            foreach (var pair in connectedReceivers)
+                connectedReceiversFraction[pair.Key] = pair.Value * pair.Value / connectedRecieversSum;
 
             reactorSurface = Math.Pow(radius, 2);
             connectedRecieversStr = connectedReceivers.Count() + " (" + connectedRecieversSum.ToString("0.000") + " m2)";

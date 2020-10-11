@@ -6,38 +6,35 @@ namespace FNPlugin
 {
     public class ResourceOvermanager 
     {
-        private static Dictionary<String, ResourceOvermanager> resources_managers = new Dictionary<String, ResourceOvermanager>();
+        private static readonly Dictionary<string, ResourceOvermanager> resourceOverManagers = new Dictionary<string, ResourceOvermanager>();
 
-        public Guid Id { get; private set; }
-
-        public static void Reset()
+        public static ResourceOvermanager getResourceOvermanagerForResource(string resource_name) 
         {
-            resources_managers.Clear();
-        }
-
-        public static ResourceOvermanager getResourceOvermanagerForResource(String resource_name) 
-        {
-            ResourceOvermanager fnro = null;
-
-            if (!resources_managers.TryGetValue(resource_name, out fnro))
+            if (!resourceOverManagers.TryGetValue(resource_name, out ResourceOvermanager fnro))
             {
                 fnro = new ResourceOvermanager(resource_name);
-                if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES)
-                    Debug.Log("[KSPI]: Created new ResourceOvermanager for resource " + resource_name + " with Id" + fnro.Id);
-                resources_managers.Add(resource_name, fnro);
+                Debug.Log("[KSPI]: Created new ResourceOvermanager for resource " + resource_name + " with Id " + fnro.Id);
+                resourceOverManagers.Add(resource_name, fnro);
             }
 
             return fnro;
         }
 
-        protected Dictionary<Vessel, ResourceManager> managers;
-        protected String resource_name;
+        public static void Reset()
+        {
+            resourceOverManagers.Clear();
+        }
 
-        public ResourceOvermanager(String name) 
+        public Guid Id { get; }
+
+        protected readonly Dictionary<Vessel, ResourceManager> managers;
+        protected string resourceName;
+
+        public ResourceOvermanager(string name) 
         {
             Id = Guid.NewGuid();
             managers = new Dictionary<Vessel, ResourceManager>();
-            this.resource_name = name;
+            resourceName = name;
         }
 
         public bool hasManagerForVessel(Vessel vess) 
@@ -50,10 +47,7 @@ namespace FNPlugin
             if (vess == null)
                 return null;
 
-            ResourceManager manager;
-
-            managers.TryGetValue(vess, out manager);
-
+            managers.TryGetValue(vess, out ResourceManager manager);
             return manager;
         }
 
@@ -69,7 +63,7 @@ namespace FNPlugin
 
         public ResourceManager CreateManagerForVessel(PartModule pm) 
         {
-            ResourceManager resourcemanager = new ResourceManager(Id, pm, resource_name);
+            var resourcemanager = ResourceManagerFactory.Create(Id, pm, resourceName);
             managers.Add(pm.vessel, resourcemanager);
             return resourcemanager;
         }

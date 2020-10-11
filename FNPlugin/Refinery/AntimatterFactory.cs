@@ -5,6 +5,8 @@ namespace FNPlugin.Refinery
 {
     class AntimatterFactory : ResourceSuppliableModule
     {
+        public const double ONE_THIRD = 1.0 / 3.0;
+
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false), UI_Toggle(disabledText = "#LOC_KSPIE_AntimatterFactory_Off", enabledText = "#LOC_KSPIE_AntimatterFactory_On")]//OffOn
         public bool isActive = false;
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_powerPecentage"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
@@ -90,7 +92,7 @@ namespace FNPlugin.Refinery
 
             var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
             var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-            var effectiveResourceThrottling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
+            var effectiveResourceThrottling = resourceBarRatio > ONE_THIRD ? 1 : resourceBarRatio * 3;
 
             var energyRequestedInMegajoulesPerSecond = Math.Min(powerCapacity, effectiveResourceThrottling * availablePower * (double)(decimal)powerPercentage * 0.01);
 

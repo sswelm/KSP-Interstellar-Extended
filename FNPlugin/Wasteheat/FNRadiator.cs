@@ -1,6 +1,7 @@
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Powermanagement;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -447,7 +448,7 @@ namespace FNPlugin.Wasteheat
         {
             isAutomated = false;
 
-            Debug.Log("[KSPI]: DeployRadiator Called ");
+            //Debug.Log("[KSPI]: DeployRadiator Called");
 
             Deploy();
         }
@@ -459,7 +460,7 @@ namespace FNPlugin.Wasteheat
                 return;
             }
 
-            Debug.Log("[KSPI]: Deploy Called ");
+            //Debug.Log("[KSPI]: Deploy Called");
 
             if (_moduleDeployableRadiator != null)
                 _moduleDeployableRadiator.Extend();
@@ -763,7 +764,7 @@ namespace FNPlugin.Wasteheat
 
         void radiatorIsEnabled_OnValueModified(object arg1)
         {
-            Debug.Log("[KSPI]: radiatorIsEnabled_OnValueModified " + arg1);
+            //Debug.Log("[KSPI]: radiatorIsEnabled_OnValueModified " + arg1);
 
             isAutomated = false;
 
@@ -798,7 +799,7 @@ namespace FNPlugin.Wasteheat
                 if (_radiatorState != _moduleDeployableRadiator.deployState)
                 {
                     part.SendMessage("GeometryPartModuleRebuildMeshData");
-                    Debug.Log("[KSPI]: Updating geometry mesh due to radiator deployment.");
+                    //Debug.Log("[KSPI]: Updating geometry mesh due to radiator deployment.");
                 }
                 _radiatorState = _moduleDeployableRadiator.deployState;
             }
@@ -930,11 +931,11 @@ namespace FNPlugin.Wasteheat
                 }
 
                 // get resource bar ratio at start of frame
-                var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT) as WasteHeatResourceManager;
 
                 if (double.IsNaN(wasteheatManager.TemperatureRatio))
                 {
-                    Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in TemperatureRatio");
+                    Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Double.IsNaN detected in TemperatureRatio");
                     return;
                 }
 
@@ -949,7 +950,7 @@ namespace FNPlugin.Wasteheat
 
                 if (radiatorIsEnabled)
                 {
-                    if (!CheatOptions.IgnoreMaxTemperature && wasteheatManager.ResourceBarRatioBegin >= 1 && CurrentRadiatorTemperature >= maxRadiatorTemperature)
+                    if (!CheatOptions.IgnoreMaxTemperature && wasteheatManager.ResourceFillFraction >= 1 && CurrentRadiatorTemperature >= maxRadiatorTemperature)
                     {
                         _explodeCounter++;
                         if (_explodeCounter > 25)
@@ -961,12 +962,12 @@ namespace FNPlugin.Wasteheat
                     _thermalPowerDissipationPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * _stefanArea;
 
                     if (double.IsNaN(_thermalPowerDissipationPerSecond))
-                        Debug.LogWarning("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in _thermalPowerDissipationPerSecond");
+                        Debug.LogWarning("[KSPI]: FNRadiator: FixedUpdate Double.IsNaN detected in _thermalPowerDissipationPerSecond");
 
                     _radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(_thermalPowerDissipationPerSecond, wasteheatManager) : 0;
 
                     if (double.IsNaN(_radiatedThermalPower))
-                        Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + _thermalPowerDissipationPerSecond + ")");
+                        Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Double.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + _thermalPowerDissipationPerSecond + ")");
 
                     instantaneous_rad_temp = CalculateInstantaneousRadTemp();
 

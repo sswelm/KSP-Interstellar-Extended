@@ -1838,13 +1838,13 @@ namespace FNPlugin
 
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
-                                var supplyRatio = powerGeneratedResult.currentSupply / total_thermal_power_provided;
-                                var finalThermalWasteheat = powerGeneratedResult.currentSupply + supplyRatio * total_conversion_waste_heat_production;
+                                var supplyRatio = powerGeneratedResult.CurrentSupply / total_thermal_power_provided;
+                                var finalThermalWasteheat = powerGeneratedResult.CurrentSupply + supplyRatio * total_conversion_waste_heat_production;
 
                                 supplyFNResourcePerSecondWithMax(finalThermalWasteheat, total_thermal_power_provided_max, ResourceManager.FNRESOURCE_WASTEHEAT);
                             }
 
-                            thermal_power_ratio = total_thermal_power_available > 0 ? powerGeneratedResult.currentSupply / total_thermal_power_available : 0;
+                            thermal_power_ratio = total_thermal_power_available > 0 ? powerGeneratedResult.CurrentSupply / total_thermal_power_available : 0;
 
                             foreach (var item in received_power)
                             {
@@ -1886,7 +1886,7 @@ namespace FNPlugin
                         var calculatedMinimumRatio = Math.Min(1, minimumRequestedPower / total_beamed_electric_power_provided);
 
                         var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, calculatedMinimumRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
-                        var supply_ratio = powerGeneratedResult.currentProvided / total_beamed_electric_power_provided;
+                        var supply_ratio = powerGeneratedResult.CurrentProvided / total_beamed_electric_power_provided;
 
                         // only generate wasteheat from beamed power when actualy using the energy
                         if (!CheatOptions.IgnoreMaxTemperature)
