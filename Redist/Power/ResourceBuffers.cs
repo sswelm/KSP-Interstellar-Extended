@@ -118,7 +118,7 @@ namespace FNPlugin.Power
                 var bufferedResource = part.Resources[ResourceName];
                 if (bufferedResource != null)
                 {
-                    double timeMultiplier = HighLogic.LoadedSceneIsFlight ? (double)(decimal)TimeWarp.fixedDeltaTime : 0.02;
+                    double timeMultiplier = HighLogic.LoadedSceneIsFlight ? TimeWarp.fixedDeltaTime : 0.02;
                     double maxWasteHeatRatio = ClampInitialMaxAmount && !Initialized ? 0.95d : 1.0d;
 
                     var resourceRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));

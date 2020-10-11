@@ -1150,7 +1150,7 @@ namespace FNPlugin.Wasteheat
                     var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient * submergedModifier;
 
                     if (!radiatorIsEnabled)
-                        convPowerDissipation = convPowerDissipation * 0.25;
+                        convPowerDissipation *= 0.25;
 
                     _convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager) : 0;
 
@@ -1173,6 +1173,7 @@ namespace FNPlugin.Wasteheat
             catch (Exception e)
             {
                 Debug.LogError("[KSPI]: Exception on " + part.name + " during FNRadiator.FixedUpdate with message " + e.Message);
+                throw;
             }
         }
 

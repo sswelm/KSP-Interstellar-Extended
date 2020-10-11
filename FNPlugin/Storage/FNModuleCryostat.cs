@@ -189,7 +189,7 @@ namespace FNPlugin
                 if (powerReqKW > 0)
                 {
                     currentPowerReq = powerReqKW * 0.2 * environmentFactor * powerReqMult;
-                    UpdatePowerStatusSting();
+                    UpdatePowerStatusString();
                 }
                 else
                     currentPowerReq = 0;
@@ -214,7 +214,7 @@ namespace FNPlugin
             }
         }
 
-        private void UpdatePowerStatusSting()
+        private void UpdatePowerStatusString()
         {
             powerStatusStr = currentPowerReq < 1.0e+3
                 ? recievedPowerKW.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
@@ -300,10 +300,7 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            return "<size=10>" + resourceName + " @ " + boilOffTemp + " K</size>";
-
-            //return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: " 
-            //	+ boilOffRate * PluginHelper.SecondsInDay + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * PluginHelper.SecondsInDay + " /day";
+            return "<size=10>" + resourceName + " @ " + boilOffTemp + " K\nPower Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW</size>";
         }
     }
 }

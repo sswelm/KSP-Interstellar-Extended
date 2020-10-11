@@ -708,7 +708,7 @@ namespace FNPlugin.Reactors
             set
             {
                 current_fuel_mode = value;
-                max_power_to_supply = Math.Max(MaximumPower * TimeWarpFixedDeltaTime, 0);
+                max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
                 current_fuel_variants_sorted = current_fuel_mode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.First();
 
@@ -1853,6 +1853,7 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
+            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
             if (!IsEnabled && !IsStarted)
             {
                 IsStarted = true;
@@ -1861,7 +1862,7 @@ namespace FNPlugin.Reactors
 
             base.OnFixedUpdate();
 
-            StoreGeneratorRequests();
+            StoreGeneratorRequests(timeWarpFixedDeltaTime);
 
             decay_ongoing = false;
 
@@ -1973,7 +1974,7 @@ namespace FNPlugin.Reactors
 
                 var totalPowerReceivedFixed = ongoing_total_power_generated * timeWarpFixedDeltaTime;
 
-                UpdateEmbrittlement(Math.Max(thermalThrottleRatio, plasmaThrottleRatio));
+                UpdateEmbrittlement(Math.Max(thermalThrottleRatio, plasmaThrottleRatio), timeWarpFixedDeltaTime);
 
                 ongoing_consumption_rate = maximumPower > 0 ? ongoing_total_power_generated / maximumPower : 0;
                 PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, animExponent), pulseAnimation);
@@ -2152,7 +2153,7 @@ namespace FNPlugin.Reactors
                 geeForceModifier = 1;
         }
 
-        private void UpdateEmbrittlement(double thermalPlasmaRatio)
+        private void UpdateEmbrittlement(double thermalPlasmaRatio, double timeWarpFixedDeltaTime)
         {
             var hasActiveNeutronAbsorption = connectedEngines.All(m => m.PropellantAbsorbsNeutrons) && thermalPlasmaRatio > 0;
             var lithiumEmbrittlementModifer = 1 - Math.Max(lithium_modifier * 0.9, hasActiveNeutronAbsorption ? 0.9 : 0);
@@ -2222,7 +2223,7 @@ namespace FNPlugin.Reactors
             stored_fuel_ratio = current_fuel_variant.FuelRatio;
         }
 
-        private void StoreGeneratorRequests()
+        private void StoreGeneratorRequests(double timeWarpFixedDeltaTime)
         {
             storedIsThermalEnergyGeneratorEfficiency = currentIsThermalEnergyGeneratorEfficiency;
             storedIsPlasmaEnergyGeneratorEfficiency = currentIsPlasmaEnergyGeneratorEfficiency;
@@ -2653,7 +2654,7 @@ namespace FNPlugin.Reactors
 
             CurrentFuelMode = fuel_modes.FirstOrDefault();
 
-            max_power_to_supply = Math.Max(MaximumPower * TimeWarpFixedDeltaTime, 0);
+            max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
 
             if (CurrentFuelMode == null)
                 print("[KSPI]: Warning : CurrentFuelMode is null");

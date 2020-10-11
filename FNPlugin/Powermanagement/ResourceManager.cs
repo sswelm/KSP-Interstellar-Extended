@@ -28,8 +28,10 @@ namespace FNPlugin
                 result = new CPResourceManager(id, pm);
                 break;
             case ResourceManager.FNRESOURCE_THERMALPOWER:
-            default:
                 result = new TPResourceManager(id, pm);
+                break;
+            default:
+                result = new DefaultResourceManager(id, pm, resourceName);
                 break;
             }
             return result;
@@ -38,11 +40,12 @@ namespace FNPlugin
 
     public abstract class ResourceManager
     {
-        public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
         public const string FNRESOURCE_MEGAJOULES = "Megajoules";
         public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
         public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
+        public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
+
         public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
         public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
 
