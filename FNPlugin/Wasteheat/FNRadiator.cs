@@ -21,6 +21,149 @@ namespace FNPlugin.Wasteheat
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
+    class HeatPumpRadiator : FNRadiator
+    {
+        // Duplicate code from UniversalCrustExtractor.cs
+        // Original: WhatsUnderneath()
+        // Changes: returns amount of drill underground.
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillReach", guiUnits = " m\xB3")]//Drill reach
+        public float drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
+        private bool IsDrillUnderground(out double undergroundAmount)
+        {
+            Vector3d partPosition = part.transform.position; // find the position of the transform in 3d space
+            var scaleFactor = part.rescaleFactor; // what is the rescale factor of the drill?
+            var drillDistance = drillReach * scaleFactor; // adjust the distance for the ray with the rescale factor, needs to be a float for raycast.
+
+            undergroundAmount = 0;
+
+            RaycastHit hit = new RaycastHit(); // create a variable that stores info about hit colliders etc.
+            LayerMask terrainMask = 32768; // layermask in unity, number 1 bitshifted to the left 15 times (1 << 15), (terrain = 15, the bitshift is there so that the mask bits are raised; this is a good reading about that: http://answers.unity3d.com/questions/8715/how-do-i-use-layermasks.html)
+            Ray drillPartRay = new Ray(partPosition, -part.transform.up); // this ray will start at the part's center and go down in local space coordinates (Vector3d.down is in world space)
+
+            /* This little bit will fire a ray from the part, straight down, in the distance that the part should be able to reach.
+             * It returns the resulting RayCastHit.
+             * 
+             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact 
+             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing 
+             * this module in a difficult terrain, it just doesn't work properly. (I blame KSP planet meshes + Unity problems with accuracy further away from origin). 
+            */
+            Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
+
+            // hit anything?
+            if (hit.collider == null) return false;
+
+            // how much is underground?
+            undergroundAmount = drillDistance - hit.distance;
+
+            return true;
+        }
+        // Duplicate code end
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Distance underground", guiFormat = "F1", guiUnits = "m")]
+        public double undergroundAmount;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Radiator effective size", guiFormat = "F2", guiUnits = "m")]
+        public double effectiveSize;
+
+        [KSPField(guiActive = false, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")] public double coolTemp;
+        [KSPField(guiActive = false, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")] public double hotTemp;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Underground Temp", guiFormat = "F2", guiUnits = "K")] public double undergroundTemp;
+
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Toggle Heat Pump Information", active = true)]
+        public void ToggleHeatPumpDebugAction()
+        {
+            var coolTempField = Fields[nameof(coolTemp)];
+            var hotTempField = Fields[nameof(hotTemp)];
+            var effectiveSizeField = Fields[nameof(effectiveSize)];
+
+            var status = !coolTempField.guiActive;
+
+            coolTempField.guiActive = hotTempField.guiActive = effectiveSizeField.guiActive = status;
+        }
+
+        private const double meanGroundTempDistance = 10;
+        private int frameSkipper;
+
+        private void UpdateEffectiveSize()
+        {
+            effectiveSize = drillReach;
+            undergroundAmount = 0;
+            
+            // require the drill to be deployed
+            if (_radiatorState != ModuleDeployablePart.DeployState.EXTENDED) return;
+            // require the drill to be underground
+            if (!IsDrillUnderground(out undergroundAmount)) return;
+            if (undergroundAmount == 0) return;
+
+            // reduced effectiveness in space
+            if(vessel && vessel.atmDensity == 0)
+            {
+                // do not convect above ground in a vacuum
+                effectiveSize -= (drillReach - undergroundAmount);
+            }
+
+            effectiveSize += 10 * undergroundAmount;
+            effectiveSize = Math.Round(effectiveSize);
+
+            // Distance reaches mean ground temp region? Time for a Natural bonus.
+            if (undergroundAmount >= meanGroundTempDistance)
+            {
+                effectiveSize *= Math.Max(1.15, Math.Log(undergroundAmount - meanGroundTempDistance, Math.E));
+            }
+
+            effectiveSize = Math.Round(effectiveSize);
+        }
+        
+        protected override double ExternalTemp()
+        {
+            if(coolTemp == 0 || hotTemp == 0)
+            {
+                return base.ExternalTemp();
+            }
+
+            // Weak approximation of the underground temp.
+            return Math.Max(PhysicsGlobals.SpaceTemperature, (coolTemp + hotTemp) / 2 * 0.90);
+        }
+
+        public new void FixedUpdate()
+        {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
+            if ((++frameSkipper % 10) == 0)
+            {
+                // This code does not need to run all the time.
+                var undergroundTempField = Fields[nameof(undergroundTemp)];
+
+                if (vessel != null && vessel.Landed && _radiatorState == ModuleDeployablePart.DeployState.EXTENDED)
+                {
+                    if (vessel.externalTemperature < coolTemp || coolTemp == 0) coolTemp = vessel.externalTemperature;
+                    if (vessel.externalTemperature > hotTemp || hotTemp == 0) hotTemp = vessel.externalTemperature;
+                    undergroundTempField.guiActive = true;
+                }
+                else
+                {
+                    coolTemp = hotTemp = 0;
+                    undergroundTempField.guiActive = false;
+                }
+
+                undergroundTemp = ExternalTemp();
+
+                UpdateEffectiveSize();
+                radiatorArea = effectiveSize;
+                UpdateRadiatorArea();
+            }
+
+            base.FixedUpdate();
+        }
+
+        protected override bool CanConvectInSpace()
+        {
+            return undergroundAmount > 0;
+        }
+    }
+
+    [KSPModule("Radiator")]
     class FNRadiator : ResourceSuppliableModule
     {
         // persitant
@@ -139,7 +282,6 @@ namespace FNPlugin.Wasteheat
         [KSPField] public bool hasSurfaceAreaUpgradeTechReq;
         [KSPField] public float atmosphereToleranceModifier = 1;
         [KSPField] public double atmosphericMultiplier;
-        [KSPField] public double externalTemperature;
         [KSPField] public float displayTemperature;
         [KSPField] public float colorRatio;
         [KSPField] public double deltaTemp;
@@ -190,7 +332,7 @@ namespace FNPlugin.Wasteheat
         private AnimationState[] _heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
-        private ModuleDeployablePart.DeployState _radiatorState;
+        internal ModuleDeployablePart.DeployState _radiatorState;
         private ResourceBuffers _resourceBuffers;
 
         private readonly Queue<double> _radTempQueue = new Queue<double>(20);
@@ -590,6 +732,18 @@ namespace FNPlugin.Wasteheat
             return true;
         }
 
+        protected virtual double ExternalTemp()
+        {
+            // subclass may override, if needed
+            return (vessel == null) ? PhysicsGlobals.SpaceTemperature : vessel.externalTemperature;
+        }
+
+        protected void UpdateRadiatorArea()
+        {
+            effectiveRadiatorArea = EffectiveRadiatorArea;
+            _stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
+        }
+
         public override void OnStart(StartState state)
         {
             string[] resourcesToSupply = { ResourceManager.FNRESOURCE_WASTEHEAT };
@@ -618,8 +772,7 @@ namespace FNPlugin.Wasteheat
 
             radiatorType = RadiatorType;
 
-            effectiveRadiatorArea = EffectiveRadiatorArea;
-            _stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
+            UpdateRadiatorArea();
 
             _deployRadiatorEvent = Events[nameof(DeployRadiator)];
             _retractRadiatorEvent = Events[nameof(RetractRadiator)];
@@ -859,11 +1012,11 @@ namespace FNPlugin.Wasteheat
         {
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2;
+                var combinedPressure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2;
 
-                if (combinedPresure > GameConstants.EarthAtmospherePressureAtSeaLevel)
+                if (combinedPressure > GameConstants.EarthAtmospherePressureAtSeaLevel)
                 {
-                    var extraPressure = combinedPresure - GameConstants.EarthAtmospherePressureAtSeaLevel;
+                    var extraPressure = combinedPressure - GameConstants.EarthAtmospherePressureAtSeaLevel;
                     var ratio = extraPressure / GameConstants.EarthAtmospherePressureAtSeaLevel;
                     if (ratio <= 1)
                         ratio *= ratio;
@@ -872,7 +1025,7 @@ namespace FNPlugin.Wasteheat
                     oxidationModifier = 1 + ratio * 0.1;
                 }
                 else
-                    oxidationModifier = Math.Pow(combinedPresure / GameConstants.EarthAtmospherePressureAtSeaLevel, 0.25);
+                    oxidationModifier = Math.Pow(combinedPressure / GameConstants.EarthAtmospherePressureAtSeaLevel, 0.25);
 
                 spaceRadiatorModifier = Math.Max(0.25, Math.Min(0.95, 0.95 + vessel.verticalSpeed * 0.002));
 
@@ -943,9 +1096,8 @@ namespace FNPlugin.Wasteheat
                 radiator_temperature_temp_val = Math.Min(maxRadiatorTemperature * wasteheatManager.TemperatureRatio, maxCurrentRadiatorTemperature);
 
                 atmosphericMultiplier = Math.Sqrt(vessel.atmDensity);
-                externalTemperature = vessel.externalTemperature;
 
-                deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(externalTemperature * Math.Min(1, atmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
+                deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(ExternalTemp() * Math.Min(1, atmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
@@ -987,12 +1139,12 @@ namespace FNPlugin.Wasteheat
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
 
-                if (vessel.atmDensity > 0)
+                if (vessel.atmDensity > 0 || CanConvectInSpace())
                 {
-                    atmosphere_modifier = vessel.atmDensity * convectiveBonus + vessel.speed.Sqrt() + PartRotationDistance().Sqrt();
+                    atmosphere_modifier = (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * convectiveBonus + vessel.speed.Sqrt() + PartRotationDistance().Sqrt();
 
                     const double heatTransferCoefficient = 0.0005; // 500W/m2/K
-                    temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - vessel.externalTemperature);
+                    temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
                     submergedModifier = Math.Max(part.submergedPortion * 10, 1);
 
                     var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient * submergedModifier;
@@ -1022,6 +1174,11 @@ namespace FNPlugin.Wasteheat
             {
                 Debug.LogError("[KSPI]: Exception on " + part.name + " during FNRadiator.FixedUpdate with message " + e.Message);
             }
+        }
+
+        protected virtual bool CanConvectInSpace()
+        {
+            return false;
         }
 
         private double CalculateInstantaneousRadTemp()
@@ -1092,7 +1249,7 @@ namespace FNPlugin.Wasteheat
                 var currentExternalTemp = PhysicsGlobals.SpaceTemperature;
 
                 if (vessel != null && vessel.atmDensity > 0)
-                    currentExternalTemp = vessel.externalTemperature * Math.Min(1, vessel.atmDensity);
+                    currentExternalTemp = ExternalTemp() * Math.Min(1, vessel.atmDensity);
 
                 _externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, currentExternalTemp));
                 if (_externalTempQueue.Count > 20)
