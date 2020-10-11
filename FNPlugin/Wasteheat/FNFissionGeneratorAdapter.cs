@@ -1,4 +1,5 @@
 ﻿using FNPlugin.Power;
+using FNPlugin.Wasteheat;
 using System;
 using UnityEngine;
 
@@ -46,7 +47,7 @@ namespace FNPlugin
 
                 resourceBuffers = new ResourceBuffers();
                 resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, 1, 2.0e+5, true));
+                resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(1, 2.0e+5, true));
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, (double)(decimal)this.part.mass);
                 resourceBuffers.Init(this.part);
             }

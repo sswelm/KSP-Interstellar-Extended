@@ -416,6 +416,25 @@ namespace FNPlugin
 
         protected virtual void DoWindowFinal() { }
 
+        private PowerGenerated GetProductionRequest(IResourceSupplier pm, double maximum_power, double requiredDemand, double minPower)
+        {
+            double managedSupply = Math.Min(maximum_power, Math.Max(minPower, requiredDemand));
+
+            current.Supply += managedSupply;
+            current.StableSupply += maximum_power;
+
+            if (!productionRequests.TryGetValue(pm, out PowerGenerated powerGenerated))
+            {
+                productionRequests.Add(pm, powerGenerated = new PowerGenerated());
+            }
+
+            powerGenerated.CurrentSupply += managedSupply;
+            powerGenerated.MaximumSupply += maximum_power;
+            powerGenerated.MinimumSupply += minPower;
+
+            return powerGenerated;
+        }
+
         public double GetResourceAvailability()
         {
             part.GetConnectedResourceTotals(resourceDefinition.id, out double amount, out _);
@@ -479,9 +498,13 @@ namespace FNPlugin
         {
             if (maximum_power.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN())
                 return 0.0;
-            double provided = Math.Min(maximum_power, Math.Max(maximum_power * ratio_min, CurrentUnfilledResourceDemand));
-            managedRequestedPowerSupplyPerSecondMinimumRatio(pm, 0.0, maximum_power, ratio_min);
-            return provided;
+
+            double minPower = maximum_power * ratio_min;
+            double providedPower = Math.Min(maximum_power, Math.Max(minPower, CurrentUnfilledResourceDemand));
+
+            GetProductionRequest(pm, maximum_power, RequiredResourceDemand, minPower).CurrentProvided += providedPower;
+
+            return providedPower;
         }
 
         public PowerGenerated managedRequestedPowerSupplyPerSecondMinimumRatio(IResourceSupplier pm, double available_power, double maximum_power, double ratio_min)
@@ -489,25 +512,13 @@ namespace FNPlugin
             if (available_power.IsInfinityOrNaN() || maximum_power.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN())
                 return new PowerGenerated();
 
-            double minPowerPerSecond = maximum_power * ratio_min;
-            double providedPowerPerSecond = Math.Min(maximum_power, Math.Max(minPowerPerSecond, Math.Max(available_power, CurrentUnfilledResourceDemand)));
-            double managedSupplyPerSecond = Math.Min(maximum_power, Math.Max(minPowerPerSecond, Math.Min(available_power, RequiredResourceDemand)));
+            double minPower = maximum_power * ratio_min;
+            double providedPower = Math.Min(maximum_power, Math.Max(minPower, Math.Max(available_power, CurrentUnfilledResourceDemand)));
 
-            current.Supply += managedSupplyPerSecond;
-            current.StableSupply += maximum_power;
+            var request = GetProductionRequest(pm, maximum_power, Math.Min(available_power, RequiredResourceDemand), minPower);
+            request.CurrentProvided += Math.Min(providedPower, CurrentUnfilledResourceDemand);
 
-            if (!productionRequests.TryGetValue(pm, out PowerGenerated powerGenerated))
-            {
-                productionRequests.Add(pm, powerGenerated = new PowerGenerated());
-            }
-
-            powerGenerated.CurrentSupply += managedSupplyPerSecond;
-            // Demand was updated since the first access in this method!
-            powerGenerated.CurrentProvided += Math.Min(providedPowerPerSecond, CurrentUnfilledResourceDemand);
-            powerGenerated.MaximumSupply += maximum_power;
-            powerGenerated.MinimumSupply += minPowerPerSecond;
-
-            return powerGenerated;
+            return request;
         }
 
         public void OnGUI()
@@ -652,7 +663,7 @@ namespace FNPlugin
                     productionHistory.Add(key, queue = new PowerHistory(POWER_HISTORY_LEN));
                 if (queue.Count > POWER_HISTORY_LEN)
                     queue.Dequeue();
-                queue.Enqueue(production.CurrentSupply);
+                queue.Enqueue(currentSupply);
                 production.AverageSupply = queue.Average();
             }
             if (sumPowerProduced > 0.0 && powerProducers.Count > 0)

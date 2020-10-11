@@ -907,7 +907,7 @@ namespace FNPlugin.Wasteheat
             if (maintainResourceBuffers)
             {
                 _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+6));
+                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+6));
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 _resourceBuffers.Init(this.part);
             }

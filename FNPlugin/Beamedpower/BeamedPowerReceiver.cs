@@ -1158,7 +1158,7 @@ namespace FNPlugin
             if (maintainResourceBuffers)
             {
                 _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
+                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));

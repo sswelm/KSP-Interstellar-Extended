@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using FNPlugin.Power;
+﻿using FNPlugin.Power;
 
 namespace FNPlugin.Wasteheat
 {
@@ -20,7 +16,7 @@ namespace FNPlugin.Wasteheat
         public override void OnStart(PartModule.StartState state)
         {
             _resourceBuffers = new ResourceBuffers();
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, baseResourceAmount * wasteHeatBufferMult, true));
+            _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, baseResourceAmount * wasteHeatBufferMult, true));
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             _resourceBuffers.Init(this.part);
         }
@@ -29,8 +25,6 @@ namespace FNPlugin.Wasteheat
         {
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             _resourceBuffers.UpdateBuffers();
-
-            var wasteheatResource = part.Resources["WasteHeat"];
         }
     }
 }

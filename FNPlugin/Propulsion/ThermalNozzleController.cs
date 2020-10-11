@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -488,8 +489,6 @@ namespace FNPlugin
 
         //[KSPField (guiActive = true, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFeulFlow")]//Max FeulFlow
 
-
-
         protected float _fuelCoolingFactor = 1;
         protected float _fuelToxicity;
         protected float _fuelMinimumCoreTemp;
@@ -558,11 +557,6 @@ namespace FNPlugin
                 _myAttachedReactor.AttachThermalReciever(id, radius);
             }
         }
-
-        //Static
-        static Dictionary<string, double> intake_amounts = new Dictionary<string, double>();
-        static Dictionary<string, double> intake_maxamounts = new Dictionary<string, double>();
-        static Dictionary<string, double> fuel_flow_amounts = new Dictionary<string, double>();
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -794,7 +788,7 @@ namespace FNPlugin
                     emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, this.part);
 
                 resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
+                resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
 

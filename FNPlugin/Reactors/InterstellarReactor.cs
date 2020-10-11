@@ -4,6 +4,7 @@ using FNPlugin.External;
 using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -1464,7 +1465,7 @@ namespace FNPlugin.Reactors
             this.resources_to_supply = resources_to_supply;
 
             _resourceBuffers = new ResourceBuffers();
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
+            _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedPowerBufferMult));
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
