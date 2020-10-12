@@ -6,8 +6,6 @@ using FNPlugin.Extensions;
 using KSP.Localization;
 using FNPlugin.Powermanagement;
 
-using PowerHistory = System.Collections.Generic.Queue<double>;
-
 namespace FNPlugin
 {
     public static class ResourceManagerFactory
@@ -97,8 +95,8 @@ namespace FNPlugin
         }
 
         protected readonly IDictionary<IResourceSuppliable, PowerDistribution> consumptionRequests;
-        private readonly IDictionary<IResourceSupplier, PowerHistory> productionHistory;
-        protected readonly IDictionary<IResourceSupplier, PowerGenerated> productionRequests;
+        private readonly IDictionary<IResourceSupplier, PowerGenerated> productionTemp;
+        private readonly IDictionary<IResourceSupplier, PowerGenerated> productionRequests;
         private readonly List<PowerDistributionPair> powerConsumers;
         private readonly List<PowerGeneratedPair> powerProducers;
         private readonly double[] currentDistributed;
@@ -198,7 +196,7 @@ namespace FNPlugin
             // Cannot use SortedDictionary as the priority for some items is dynamic
             consumptionRequests = new Dictionary<IResourceSuppliable, PowerDistribution>(64);
             // Must be kept separately as the producer list gets rebuilt every update
-            productionHistory = new Dictionary<IResourceSupplier, PowerHistory>(64);
+            productionTemp = new Dictionary<IResourceSupplier, PowerGenerated>(64);
             productionRequests = new Dictionary<IResourceSupplier, PowerGenerated>(64);
             powerConsumers = new List<PowerDistributionPair>(64);
             powerProducers = new List<PowerGeneratedPair>(64);
@@ -647,10 +645,14 @@ namespace FNPlugin
             current.Supply += availableAmount;
             current.StableSupply += availableAmount;
 
+            // Avoid leaking power producer history if they are removed from the vessel
+            foreach (var pair in powerProducers)
+                productionTemp.Add(pair.Key, pair.Value);
             powerProducers.Clear();
             // Must be resorted on each update as the production can be dynamic
             foreach (var pair in productionRequests)
             {
+                Queue<double> history;
                 var key = pair.Key;
                 var production = pair.Value;
                 double currentSupply = production.CurrentSupply;
@@ -659,16 +661,20 @@ namespace FNPlugin
                 sumPowerProduced += currentSupply;
                 supplyEfficiencyRatio += production.EfficiencyRatio * currentSupply;
 
-                if (!productionHistory.TryGetValue(key, out PowerHistory queue))
-                    productionHistory.Add(key, queue = new PowerHistory(POWER_HISTORY_LEN));
-                if (queue.Count > POWER_HISTORY_LEN)
-                    queue.Dequeue();
-                queue.Enqueue(currentSupply);
-                production.AverageSupply = queue.Average();
+                if (productionTemp.TryGetValue(key, out PowerGenerated old))
+                    history = old.History;
+                else
+                    history = new Queue<double>(POWER_HISTORY_LEN);
+                if (history.Count > POWER_HISTORY_LEN)
+                    history.Dequeue();
+                history.Enqueue(currentSupply);
+                production.AverageSupply = history.Average();
+                production.History = history;
             }
             if (sumPowerProduced > 0.0 && powerProducers.Count > 0)
                 supplyEfficiencyRatio /= sumPowerProduced;
             powerProducers.Sort();
+            productionTemp.Clear();
 
             powerConsumers.Clear();
             // Must be resorted on each update as the priorities can be dynamic
@@ -690,8 +696,7 @@ namespace FNPlugin
                 // Process any in-between priority requests across all the available priorities
                 while (priority > prevPriority)
                 {
-                    prevPriority++;
-                    SupplyPriority(timeWarpDT, prevPriority);
+                    SupplyPriority(timeWarpDT, ++prevPriority);
                 }
 
                 // Efficiency throttling - prefer starving low priority consumers if supply efficiency is very low
@@ -725,6 +730,12 @@ namespace FNPlugin
 
                 // notify of supply
                 resourceSuppliable.receiveFNResource(powerSupplied, resourceName);
+            }
+
+            // Process any priority requests not run due to low priority items not existing
+            while (MAX_PRIORITY - 1 > prevPriority)
+            {
+                SupplyPriority(timeWarpDT, ++prevPriority);
             }
 
             // substract available resource amount to get delta resource change

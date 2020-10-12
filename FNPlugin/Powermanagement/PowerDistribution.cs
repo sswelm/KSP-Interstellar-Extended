@@ -29,6 +29,8 @@ namespace FNPlugin
 
         public double EfficiencyRatio { get; set; }
 
+        public Queue<double> History { get; set; }
+
         public double MaximumSupply { get; set; }
 
         public double MinimumSupply { get; set; }
@@ -39,6 +41,7 @@ namespace FNPlugin
             CurrentProvided = 0.0;
             CurrentSupply = 0.0;
             EfficiencyRatio = 1;
+            History = null;
             MaximumSupply = 0.0;
             MinimumSupply = 0.0;
         }
