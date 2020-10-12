@@ -69,9 +69,6 @@
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.Networking">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.Networking.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
@@ -101,11 +98,17 @@
     <Compile Include="External\FNEmitterController.cs" />
     <Compile Include="HideHiddenPartsFilter.cs" />
     <Compile Include="External\Kerbalism.cs" />
+    <Compile Include="Powermanagement\DefaultResourceManager.cs" />
+    <Compile Include="Powermanagement\PowerDistribution.cs" />
+    <Compile Include="Powermanagement\TPResourceManager.cs" />
     <Compile Include="Powermanagement\FNBatteryGenerator.cs" />
     <Compile Include="Powermanagement\FNGeneratorAdapterVariable.cs" />
     <Compile Include="Powermanagement\IFNChargedParticleSource.cs" />
     <Compile Include="Powermanagement\IFNPowerSource.cs" />
     <Compile Include="Powermanagement\KspiSuperCapacitator.cs" />
+    <Compile Include="Powermanagement\MegajoulesResourceManager.cs" />
+    <Compile Include="Powermanagement\CPResourceManager.cs" />
+    <Compile Include="Powermanagement\WasteHeatResourceManager.cs" />
     <Compile Include="Propulsion\FNPersistentRotation.cs" />
     <Compile Include="Propulsion\FNSimpleEngineIgnatorFX.cs" />
     <Compile Include="Propulsion\IFNEngineNoozle.cs" />
@@ -234,6 +237,7 @@
     <Compile Include="Wasteheat\FNWasteheatExplode.cs" />
     <Compile Include="Wasteheat\RadiatorManager.cs" />
     <Compile Include="Wasteheat\RadiatorProperties.cs" />
+    <Compile Include="Wasteheat\WasteHeatBufferConfig.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

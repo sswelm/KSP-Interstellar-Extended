@@ -11,8 +11,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ResourceManager_UpdateCounter")]//Update Counter
         public long updateCounter;
 
-        protected Dictionary<Guid, double> connectedReceivers = new Dictionary<Guid, double>();
-        protected Dictionary<Guid, double> connectedReceiversFraction = new Dictionary<Guid, double>();
+        protected readonly Dictionary<Guid, double> connectedReceivers = new Dictionary<Guid, double>();
+        protected readonly Dictionary<Guid, double> connectedReceiversFraction = new Dictionary<Guid, double>();
 
         protected List<Part> similarParts;
         protected string[] resources_to_supply;
@@ -20,10 +20,8 @@ namespace FNPlugin
         public Guid Id { get; private set;}
 
         protected int partNrInList;
-        protected double timeWarpFixedDeltaTime;
 
-        private Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
-
+        private readonly Dictionary<string, double> fnresource_supplied = new Dictionary<string, double>();
 
         public virtual void AttachThermalReciever(Guid key, double radius)
         {
@@ -72,7 +70,7 @@ namespace FNPlugin
             if (!fnresource_supplied.TryGetValue(resourcename, out var availablePower))
                 fnresource_supplied[resourcename] = 0;
 
-            fixedDeltaTime = fixedDeltaTime > 0 ? fixedDeltaTime : (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
+            fixedDeltaTime = fixedDeltaTime > 0 ? fixedDeltaTime : TimeWarp.fixedDeltaTime;
 
             double power_taken_fixed = Math.Max(Math.Min(power_fixed, availablePower * fixedDeltaTime), 0);
 
@@ -108,7 +106,6 @@ namespace FNPlugin
             return power_taken_per_second;
         }
 
-
         public double consumeFNResourcePerSecond(double power_requested_per_second, double maximum_power_requested_per_second, string resourceName, ResourceManager manager = null)
         {
             if (power_requested_per_second.IsInfinityOrNaN() || maximum_power_requested_per_second.IsInfinityOrNaN())
@@ -135,6 +132,7 @@ namespace FNPlugin
 
         public double consumeFNResourcePerSecondBuffered(double requestedPowerPerSecond, string resourceName, double limitBarRatio = 0.1, ResourceManager manager = null)
         {
+            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
             if (requestedPowerPerSecond.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName))
             {
                 Debug.Log("[KSPI]: consumeFNResourcePerSecondBuffered was called with illegal value");
@@ -158,8 +156,8 @@ namespace FNPlugin
             var powerShortage = requestedPowerPerSecond - availablePower;
             if (powerShortage > 0)
             {
-                var currentCapacity = manager.getTotalResourceCapacity();
-                var currentAmount = currentCapacity * manager.ResourceBarRatioBegin;
+                var currentCapacity = manager.GetTotalResourceCapacity();
+                var currentAmount = currentCapacity * manager.ResourceFillFraction;
                 var fixedPowerShortage = powerShortage * timeWarpFixedDeltaTime;
 
                 if (currentAmount - fixedPowerShortage > currentCapacity * limitBarRatio)
@@ -218,7 +216,7 @@ namespace FNPlugin
 
         public double supplyFNResourcePerSecondWithMaxAndEfficiency(double supply, double maxsupply, double efficiencyRatio, string resourceName)
         {
-            if (supply.IsInfinityOrNaN() || maxsupply.IsInfinityOrNaN() || String.IsNullOrEmpty(resourceName))
+            if (supply.IsInfinityOrNaN() || maxsupply.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName))
             {
                 Debug.LogError("[KSPI]: supplyFNResourcePerSecondWithMaxAndEfficiency was called with illegal value");
                 return 0;
@@ -274,7 +272,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.getNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
+            return manager.GetNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
         public double supplyManagedFNResourcePerSecondWithMinimumRatio(double supply, double ratio_min, string resourceName, ResourceManager manager = null)
@@ -308,7 +306,7 @@ namespace FNPlugin
 
             var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
 
-            return result.currentSupply;
+            return result.CurrentSupply;
         }
 
         public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, string resourceName, ResourceManager manager = null)
@@ -325,21 +323,6 @@ namespace FNPlugin
                 return null;
 
             return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
-        }
-
-        public double getCurrentResourceDemand(string resourcename)
-        {
-            if (string.IsNullOrEmpty(resourcename)) 
-            {
-                Debug.LogError("[KSPI]: getCurrentResourceDemand resourceName is null or empty");
-                return 0;
-            }
-
-            ResourceManager manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-
-            return manager.CurrentResourceDemand;
         }
 
         public double getTotalPowerSupplied(string resourcename)
@@ -384,7 +367,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.CurrentHighPriorityResourceDemand;
+            return manager.ResourceDemandHighPriority;
         }
 
         public double getAvailableStableSupply(string resourcename)
@@ -399,7 +382,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return Math.Max(manager.StableResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
+            return Math.Max(manager.StableResourceSupply - manager.ResourceDemandHighPriority, 0);
         }
 
         public double getAvailablePrioritisedStableSupply(string resourcename)
@@ -429,7 +412,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return Math.Max(manager.CurrentResourceSupply - manager.GetCurrentPriorityResourceSupply(getPowerPriority()), 0);
+            return Math.Max(manager.ResourceSupply - manager.GetCurrentPriorityResourceSupply(getPowerPriority()), 0);
         }
 
         public double GetCurrentPriorityResourceSupply(string resourcename)
@@ -492,12 +475,12 @@ namespace FNPlugin
                 return 0;
             }
 
-            return Math.Max(manager.CurrentResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
+            return Math.Max(manager.ResourceSupply - manager.ResourceDemandHighPriority, 0);
         }
 
-        public double getCurrentResourceSupply(String resourcename)
+        public double getCurrentResourceSupply(string resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename)) {
+            if (string.IsNullOrEmpty(resourcename)) {
                 Debug.LogError("[KSPI]: getResourceSupply resourceName is null or empty");
                 return 0;
             }
@@ -509,13 +492,13 @@ namespace FNPlugin
                 return 0;
             }
 
-            return manager.CurrentResourceSupply;
+            return manager.ResourceSupply;
         }
 
         public double GetCurrentSurplus(string resourcename)
         {
             if (string.IsNullOrEmpty(resourcename)) {
-                Debug.LogError("[KSPI]: GetOverproduction resourceName is null or empty");
+                Debug.LogError("[KSPI]: GetCurrentSurplus resourceName is null or empty");
                 return 0;
             }
 
@@ -526,7 +509,7 @@ namespace FNPlugin
                 return 0;
             }
 
-            return manager.getCurrentSurplus();
+            return manager.CurrentSurplus;
         }
 
         public double getDemandStableSupply(string resourcename)
@@ -540,7 +523,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.getDemandStableSupply();
+            return manager.DemandStableSupply;
         }
 
         public double getResourceDemand(string resourcename)
@@ -563,7 +546,7 @@ namespace FNPlugin
 
         public double GetRequiredResourceDemand(string resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename)) 
             {
                 Debug.LogError("[KSPI]: GetRequiredResourceDemand resourceName is null or empty");
                 return 0;
@@ -573,12 +556,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.GetRequiredResourceDemand();
+            return manager.RequiredResourceDemand;
         }
 
         public double GetCurrentUnfilledResourceDemand(string resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename)) 
             {
                 Debug.LogError("[KSPI]: GetRequiredResourceDemand resourceName is null or empty");
                 return 0;
@@ -588,12 +571,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.GetCurrentUnfilledResourceDemand();
+            return manager.CurrentUnfilledResourceDemand;
         }
 
         public double GetPowerSupply(string resourceName)
         {
-            if (String.IsNullOrEmpty(resourceName)) 
+            if (string.IsNullOrEmpty(resourceName)) 
             {
                 Debug.LogError("[KSPI]: GetPowerSupply resourceName is null or empty");
                 return 0;
@@ -603,27 +586,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.PowerSupply;
+            return manager.CurrentResourceSupply;
         }
 
-        public double GetCurrentResourceDemand(string resourcename)
+        public double getResourceBarRatio(string resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename)) 
-            {
-                Debug.LogError("[KSPI]: GetCurrentResourceDemand resourceName is null or empty");
-                return 0;
-            }
-
-            ResourceManager manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-
-            return manager.CurrentResourceDemand;
-        }
-
-        public double getResourceBarRatio(String resourcename)
-        {
-            if (String.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename)) 
             {
                 Debug.LogError("[KSPI]: getResourceBarRatio resourceName is null or empty");
                 return 0;
@@ -633,12 +601,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.ResourceBarRatioBegin;
+            return (double)manager.ResourceFillFraction;
         }
 
-        public double getResourceBarFraction(String resourcename)
+        public double getResourceBarFraction(string resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename))
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getResourceBarFraction resourceName is null or empty");
                 return 0;
@@ -648,42 +616,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.ResourceBarRatioBegin;
+            return manager.ResourceFillFraction;
         }
 
-        public double getSqrtResourceBarRatio(String resourcename)
+        public double getSpareResourceCapacity(string resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename))
-            {
-                Debug.LogError("[KSPI]: getResourceBarRatio resourceName is null or empty");
-                return 0;
-            }
-
-            ResourceManager manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-
-            return manager.SqrtResourceBarRatioBegin;
-        }
-
-        public double getResourceBarRatioEnd(String resourcename)
-        {
-            if (String.IsNullOrEmpty(resourcename)) 
-            {
-                Debug.LogError("[KSPI]: getResourceBarRatioEnd resourceName is null or empty");
-                return 0;
-            }
-
-            ResourceManager manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-
-            return manager.ResourceBarRatioEnd;
-        }
-
-        public double getSpareResourceCapacity(String resourcename)
-        {
-            if (String.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename)) 
             {
                 Debug.LogError("[KSPI]: getSpareResourceCapacity resourceName is null or empty");
                 return 0;
@@ -693,12 +631,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.getSpareResourceCapacity();
+            return manager.GetSpareResourceCapacity();
         }
 
-        public double getResourceAvailability(String resourcename)
+        public double getResourceAvailability(string resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename)) 
             {
                 Debug.LogError("[KSPI]: getResourceAvailability resourceName is null or empty");
                 return 0;
@@ -708,12 +646,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.getResourceAvailability();
+            return manager.GetResourceAvailability();
         }
 
-        public double getTotalResourceCapacity(String resourcename)
+        public double getTotalResourceCapacity(string resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename)) 
             {
                 Debug.LogError("[KSPI]: getTotalResourceCapacity resourceName is null or empty");
                 return 0;
@@ -723,7 +661,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.getTotalResourceCapacity();
+            return manager.GetTotalResourceCapacity();
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -735,7 +673,7 @@ namespace FNPlugin
             part.OnJustAboutToBeDestroyed -= OnJustAboutToBeDestroyed;
             part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
 
-            foreach (String resourcename in resources_to_supply)
+            foreach (string resourcename in resources_to_supply)
             {
                 ResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
@@ -764,20 +702,15 @@ namespace FNPlugin
                 priority_manager.Unregister(this);
         }
 
-        protected double TimeWarpFixedDeltaTime
-        {
-            get { return (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7); }
-        }
-
         public override void OnFixedUpdate()
         {
-            timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
+            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
 
             updateCounter++;
 
             if (resources_to_supply == null) return;
 
-            foreach (String resourcename in resources_to_supply)
+            foreach (string resourcename in resources_to_supply)
             {
                 var overmanager = getOvermanagerForResource(resourcename);
 
@@ -791,7 +724,7 @@ namespace FNPlugin
                     similarParts = null;
                     resource_manager = CreateResourceManagerForResource(resourcename);
 
-                     Debug.Log("[KSPI]: ResourceSuppliableModule.OnFixedUpdate created Resourcemanager for Vessel " + vessel.GetName() + " for " + resourcename + " with ResourseManagerId " + resource_manager.Id + " with OvermanagerId" + resource_manager.Id);
+                    Debug.Log("[KSPI]: ResourceSuppliableModule.OnFixedUpdate created Resourcemanager for Vessel " + vessel.GetName() + " for " + resourcename + " with ResourceManagerId " + resource_manager.Id + " and OvermanagerId" + resource_manager.Id);
                 }
 
                 if (resource_manager != null)
@@ -819,7 +752,7 @@ namespace FNPlugin
 
         public void RemoveItselfAsManager()
         {
-            foreach (String resourcename in resources_to_supply)
+            foreach (string resourcename in resources_to_supply)
             {
                 var overmanager = getOvermanagerForResource(resourcename);
 

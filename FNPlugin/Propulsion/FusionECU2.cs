@@ -427,7 +427,7 @@ namespace FNPlugin
                 DetermineTechLevel();
 
                 resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 1.0e+4, true));
+                resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 1.0e+4, true));
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
 

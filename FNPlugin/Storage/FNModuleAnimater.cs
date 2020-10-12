@@ -39,7 +39,7 @@ namespace FNPlugin
         [KSPField]
         public float unfocusedRange = 5f;
         [KSPField(isPersistant = true)]
-        public bool enabled = false;
+        new public bool enabled = false;
         [KSPField(isPersistant = true)]
         public bool played = true;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ModuleAnimater_Status")]//Status

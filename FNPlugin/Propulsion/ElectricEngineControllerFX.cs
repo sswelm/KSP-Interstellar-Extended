@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -523,7 +524,7 @@ namespace FNPlugin
                 UpdateEngineTypeString();
 
                 _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
+                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+4, true));
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                 _resourceBuffers.Init(part);
 

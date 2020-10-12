@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using KSP.Localization;
+using FNPlugin.Wasteheat;
 
 namespace FNPlugin
 {
@@ -135,7 +136,7 @@ namespace FNPlugin
                 propellantBufferResourceDefinition = PartResourceLibrary.Instance.GetDefinition(propellantBufferResourceName);
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 1.0e+6, true));
+            resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 1.0e+6, true));
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.Init(this.part);
 
