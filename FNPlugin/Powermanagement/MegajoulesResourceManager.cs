@@ -66,7 +66,6 @@ namespace FNPlugin.Powermanagement
 
         private void SupplyEC(double timeWarpDT, double ecToSupply)
         {
-            Debug.Log(string.Format("[KSPI] EC Supplying {0:F2} EC from Supply of {1:F2} MJ", ecToSupply, current.Supply));
             ecToSupply = Math.Min(ecToSupply, current.Supply * EC_PER_MJ * timeWarpDT);
             double powerConverted = part.RequestResource(electricResourceDefinition.id, -ecToSupply) / -EC_PER_MJ / timeWarpDT;
             current.Supply -= powerConverted;
