@@ -13,7 +13,7 @@ namespace FNPlugin
             if (!resourceOverManagers.TryGetValue(resource_name, out ResourceOvermanager fnro))
             {
                 fnro = new ResourceOvermanager(resource_name);
-                Debug.Log("[KSPI]: Created new ResourceOvermanager for resource " + resource_name + " with Id " + fnro.Id);
+                Debug.Log("[KSPI]: Created new ResourceOvermanager for resource " + resource_name + " with ID " + fnro.Id);
                 resourceOverManagers.Add(resource_name, fnro);
             }
 
@@ -25,9 +25,15 @@ namespace FNPlugin
             resourceOverManagers.Clear();
         }
 
+        public static void ResetForVessel(Vessel vess)
+        {
+            foreach (var pair in resourceOverManagers)
+                pair.Value.deleteManagerForVessel(vess);
+        }
+
         public Guid Id { get; }
 
-        protected readonly Dictionary<Vessel, ResourceManager> managers;
+        protected readonly IDictionary<Vessel, ResourceManager> managers;
         protected string resourceName;
 
         public ResourceOvermanager(string name) 
@@ -37,9 +43,21 @@ namespace FNPlugin
             resourceName = name;
         }
 
-        public bool hasManagerForVessel(Vessel vess) 
+        public ResourceManager CreateManagerForVessel(PartModule pm)
         {
-            return managers.ContainsKey(vess);
+            var resourcemanager = ResourceManagerFactory.Create(Id, pm, resourceName);
+            managers.Add(pm.vessel, resourcemanager);
+            return resourcemanager;
+        }
+
+        public void deleteManagerForVessel(Vessel vess)
+        {
+            managers.Remove(vess);
+        }
+
+        public void deleteManager(ResourceManager manager)
+        {
+            managers.Remove(manager.Vessel);
         }
 
         public ResourceManager getManagerForVessel(Vessel vess) 
@@ -51,21 +69,9 @@ namespace FNPlugin
             return manager;
         }
 
-        public void deleteManagerForVessel(Vessel vess) 
+        public bool hasManagerForVessel(Vessel vess)
         {
-            managers.Remove(vess);
-        }
-
-        public void deleteManager(ResourceManager manager) 
-        {
-            managers.Remove(manager.Vessel);
-        }
-
-        public ResourceManager CreateManagerForVessel(PartModule pm) 
-        {
-            var resourcemanager = ResourceManagerFactory.Create(Id, pm, resourceName);
-            managers.Add(pm.vessel, resourcemanager);
-            return resourcemanager;
+            return managers.ContainsKey(vess);
         }
     }
 }
