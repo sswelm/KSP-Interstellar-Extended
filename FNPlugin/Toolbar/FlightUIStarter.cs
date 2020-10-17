@@ -35,7 +35,7 @@ namespace FNPlugin
                 {
                     // activate rendering
                     if (show_window)
-                        mega_manager.showWindow();
+                        mega_manager.ShowWindow();
 
                     // show window
                     mega_manager.OnGUI();
@@ -50,7 +50,7 @@ namespace FNPlugin
                 {
                     // activate rendering
                     if (show_window)
-                        thermal_manager.showWindow();
+                        thermal_manager.ShowWindow();
 
                     // show window
                     thermal_manager.OnGUI();
@@ -65,7 +65,7 @@ namespace FNPlugin
                 {
                     // activate rendering
                     if (show_window)
-                        charged_manager.showWindow();
+                        charged_manager.ShowWindow();
 
                     // show window
                     charged_manager.OnGUI();
@@ -80,7 +80,7 @@ namespace FNPlugin
                 {
                     // activate rendering
                     if (show_window)
-                        waste_manager.showWindow();
+                        waste_manager.ShowWindow();
 
                     // show window
                     waste_manager.OnGUI();

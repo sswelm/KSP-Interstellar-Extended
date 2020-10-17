@@ -7,48 +7,14 @@ namespace FNPlugin
     public class FNModuleRCSFX : ModuleRCS
     {
         // FNModuleRCSFX is a clone of ModuleRCSFX 0.4.2
-
-        /// <summary>
-        /// Always use the full thrust of the thruster, don't decrease it when off-alignment
-        /// </summary>
-        [KSPField]
-        public bool fullThrust = false; // always use full thrust
-
-        /// <summary>
-        /// If fullThrust = true, if thrust ratio is < this, do not apply full thrust (leave thrust unchanged)
-        /// </summary>
-        [KSPField]
-        public float fullThrustMin = 0.2f; // if thrust amount from dots < this, don't do full thrust
-
         [KSPField]
         public bool useEffects = false;
 
         [KSPField]
         public string flameoutEffectName = "";
 
-        public bool rcs_active;
-
-        [KSPField]
-        public bool useZaxis = false;
-
         [KSPField(guiActiveEditor = false)]
         public string RCS = "Enable/Disable for:";
-
-        [KSPField]
-        public bool useThrottle = false;
-
-        /// <summary>
-        /// Stock KSP lever compensation in precision mode (instead of just reduced thrsut
-        /// Defaults to false (reduce thrust uniformly
-        /// </summary>
-        [KSPField]
-        public bool useLever = false;
-
-        /// <summary>
-        /// The factor by which thrust is multiplied in precision mode (if lever compensation is off
-        /// </summary>
-        [KSPField]
-        public float precisionFactor = 0.1f;
 
         //[KSPField(guiActive = true)]
         public float curThrust = 0f;
@@ -57,7 +23,6 @@ namespace FNPlugin
         /// Fuel flow in tonnes/sec
         /// </summary>
         public double fuelFlow = 0f;
-
 
         float inputAngularX;
         float inputAngularY;
@@ -71,10 +36,7 @@ namespace FNPlugin
         private bool precision;
         private double exhaustVel = 0d;
 
-        public double flowMult = 1d;
-        public double ispMult = 1d;
-
-        private double invG = 1d / 9.80665d;
+        private const double invG = 1d / 9.80665d;
 
         /// <summary>
         /// If control actuation < this, ignore.
@@ -83,6 +45,18 @@ namespace FNPlugin
         float EPSILON = 0.05f; // 5% control actuation
 
         public float mixtureFactor;
+
+        public FNModuleRCSFX()
+        {
+            flowMult = 1.0;
+            fullThrust = false;
+            fullThrustMin = 0.2f;
+            ispMult = 1.0;
+            precisionFactor = 0.1f;
+            useZaxis = false;
+            useLever = false;
+            useThrottle = false;
+        }
 
         public override void OnLoad(ConfigNode node)
         {

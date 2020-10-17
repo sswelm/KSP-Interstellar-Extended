@@ -249,6 +249,7 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdate()
         {
+            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
             base.OnFixedUpdate();
 
             UpdateLoopingAnimation(ongoing_consumption_rate * powerPercentage / 100);
@@ -415,6 +416,7 @@ namespace FNPlugin.Reactors
 
         private void ProcessCharging()
         {
+            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
             if (!canJumpstart || !isChargingForJumpstart || !(part.vessel.geeForce < startupMaximumGeforce)) return;
 
             var neededPower = Math.Max(StartupPower - accumulatedElectricChargeInMW, 0);
