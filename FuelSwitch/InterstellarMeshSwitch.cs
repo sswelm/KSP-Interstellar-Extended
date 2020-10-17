@@ -362,14 +362,14 @@ namespace InterstellarFuelSwitch
             {
                 var variantList = ParseTools.ParseNames(objectDisplayNames.Length > 0 ? objectDisplayNames : objects);
 
-                var info = new StringBuilder();
-                info.AppendLine(Localizer.Format("#LOC_IFS_MeshSwitch_GetInfo") + ":");
+                var info = StringBuilderCache.Acquire();
+                info.Append(Localizer.Format("#LOC_IFS_MeshSwitch_GetInfo")).AppendLine(":");
 
                 foreach (var t in variantList)
                 {
                     info.AppendLine(t);
                 }
-                return info.ToString();
+                return info.ToStringAndRelease();
             }
             else
                 return string.Empty;

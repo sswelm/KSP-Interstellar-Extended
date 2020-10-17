@@ -2506,7 +2506,7 @@ namespace FNPlugin.Reactors
             if (thermalPropulsionEfficiency > 0)
             {
                 sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_thermalNozzlePerformance")).AppendLine(":</color><size=10>");
-                sb.AppendLine("Mk1: ").AppendLine(ThermalNozzlePerformance(coreTemperatureMk1, powerOutputMk1));
+                sb.Append("Mk1: ").AppendLine(ThermalNozzlePerformance(coreTemperatureMk1, powerOutputMk1));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk2))
                     sb.Append("Mk2: ").AppendLine(ThermalNozzlePerformance(coreTemperatureMk2, powerOutputMk2));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk3))

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using TweakScale;
 using UnityEngine;
 
@@ -62,6 +61,8 @@ namespace InterstellarFuelSwitch
     [KSPModule("#LOC_IFS_FuelSwitch_moduleName")]
     public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch>, IPartCostModifier, IPartMassModifier
     {
+        private static readonly string[] LINE_BREAKS = new string[] { "<br/>" };
+
         // Persistants
         [KSPField(isPersistant = true)]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
@@ -1485,7 +1486,9 @@ namespace InterstellarFuelSwitch
             this.defaultMass = defaultMass;
 
             if (returnDryMass)
-                return (float)dryMass;
+            {
+                return (float)dryMass - defaultMass;
+            }
             else
             {
                 UpdateDryMass();
@@ -1500,98 +1503,89 @@ namespace InterstellarFuelSwitch
         {
             if (!showInfo) return string.Empty;
 
-            var info = new StringBuilder();
+            var info = StringBuilderCache.Acquire();
 
             if (!string.IsNullOrEmpty(moduleInfoTemplate))
             {
-                var parameters = new List<string>();
+                string[] parameters;
 
                 if (!string.IsNullOrEmpty(moduleInfoParams))
                 {
-                    parameters = moduleInfoParams.Split(';').ToList();
+                    parameters = moduleInfoParams.Split(';');
 
                     // translate parameters
-                    for (var i = 0; i < parameters.Count; i++)
+                    for (var i = 0; i < parameters.Length; i++)
                     {
                         parameters[i] = Localizer.Format(parameters[i]);
                     }
                 }
+                else
+                {
+                    parameters = new string[0];
+                }
 
-                var lines = moduleInfoTemplate.Split(new[] { "<br/>" }, StringSplitOptions.None).ToList();
-
-                var parameterArray = parameters.ToArray();
-
-                lines.ForEach(line => info.AppendLine(Localizer.Format(line, parameterArray)));
-
-                return info.ToString();
+                foreach (string line in moduleInfoTemplate.Split(LINE_BREAKS, StringSplitOptions.None))
+                {
+                    info.AppendLine(Localizer.Format(line, parameters));
+                }
             }
-
-            info.AppendLine(Localizer.Format("#LOC_IFS_FuelSwitch_GetInfo") + ":");
-            info.Append("<size=10>");
-            info.AppendLine();
-
-            foreach (var module in _modularTankList)
+            else
             {
-                var multi = (module.Resources.Count > 1);
+                info.Append(Localizer.Format("#LOC_IFS_FuelSwitch_GetInfo")).AppendLine(":");
+                info.AppendLine("<size=10>");
 
-                if (multi)
+                foreach (var module in _modularTankList)
                 {
-                    info.Append("<color=#00ff00ff>");
-                    info.Append(module.SwitchName);
-                    info.Append("</color>");
-                    info.AppendLine();
-                }
+                    bool multi = module.Resources.Count > 1;
 
-                foreach (var resource in module.Resources)
-                {
                     if (multi)
-                        info.Append("* ");
+                    {
+                        info.Append("<color=#00ff00ff>");
+                        info.Append(module.SwitchName);
+                        info.AppendLine("</color>");
+                    }
 
-                    info.Append(Math.Round(resource.maxAmount, 0));
-                    info.Append(" ");
-                    info.Append("<color=#00ffffff>");
-                    info.Append(resource.name);
-                    info.Append("</color>");
-                    info.AppendLine();
+                    foreach (var resource in module.Resources)
+                    {
+                        if (multi)
+                            info.Append("* ");
+
+                        info.Append(resource.maxAmount.ToString("F0"));
+                        info.Append(" <color=#00ffffff>");
+                        info.Append(resource.name);
+                        info.AppendLine("</color>");
+                    }
                 }
+                info.Append("</size>");
             }
-            info.Append("</size>");
-            return info.ToString();
+            return info.ToStringAndRelease();
         }
 
         private static bool HasTech(string techid)
         {
-            try
+            if (string.IsNullOrEmpty(techid))
+                return true;
+
+            if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
+                return true;
+
+            if ((HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX))
+                return true;
+
+            if (ResearchAndDevelopment.Instance == null)
             {
-                if (String.IsNullOrEmpty(techid))
-                    return true;
+                if (_researchedTechs == null)
+                    LoadSaveFile();
 
-                if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
-                    return true;
-
-                if ((HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX))
-                    return true;
-
-                if (ResearchAndDevelopment.Instance == null)
-                {
-                    if (_researchedTechs == null)
-                        LoadSaveFile();
-
-                    return _researchedTechs != null && _researchedTechs.Contains(techid);
-                }
-                else
-                {
-                    var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
-                    if (techstate != null)
-                        return techstate.state == RDTech.State.Available;
-                    else
-                        return false;
-                }
+                return _researchedTechs != null && _researchedTechs.Contains(techid);
             }
-            catch
+            else
             {
-                Debug.LogError("[IFS] - Verify HasTech: " + techid);
-                throw;
+                var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
+                if (techstate != null)
+                    return techstate.state == RDTech.State.Available;
+                else
+                    return false;
             }
         }
 
@@ -1619,7 +1613,7 @@ namespace InterstellarFuelSwitch
 
         public void OnGUI()
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
+            if (vessel == FlightGlobals.ActiveVessel && render_window)
                 windowPosition = GUILayout.Window(_windowID, windowPosition, Window, part.partInfo.title);
         }
 

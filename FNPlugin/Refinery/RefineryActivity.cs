@@ -76,9 +76,9 @@ namespace FNPlugin.Refinery
                     sb.Append("Energy: ").Append((1.0 / EnergyPerTon).ToString("F3")).AppendLine(" t/MW");
 
                     double production = capacity / EnergyPerTon;
-                    sb.Append("Production: ").Append(production.ToString("F1")).AppendLine(" t/sec");
-                    sb.Append("Production: ").Append((production * 60.0).ToString("F3")).AppendLine(" t/min");
-                    sb.Append("Production: ").Append((production * GameConstants.SECONDS_IN_HOUR).ToString("F4")).AppendLine(" t/hr");
+                    sb.Append("Production: ").Append(production.ToString("F3")).AppendLine(" t/sec");
+                    sb.Append("Production: ").Append((production * 60.0).ToString("F1")).AppendLine(" t/min");
+                    sb.Append("Production: ").Append((production * GameConstants.SECONDS_IN_HOUR).ToString("F0")).AppendLine(" t/hr");
                 }
             }
 
