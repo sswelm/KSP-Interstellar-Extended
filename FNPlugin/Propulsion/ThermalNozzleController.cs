@@ -2423,14 +2423,19 @@ namespace FNPlugin
 
             var propNodes = upgraded && isJet ? getPropellantsHybrid() : getPropellants(isJet);
 
-            var returnStr = Localizer.Format("#LOC_KSPIE_ThermalNozzleController_Info1") +"\n";//Thrust: Variable
+            var returnStr = StringBuilderCache.Acquire();
+            returnStr.AppendLine(Localizer.Format("#LOC_KSPIE_ThermalNozzleController_Info1"));//Thrust: Variable
             foreach (var propellantNode in propNodes)
             {
                 var ispMultiplier = float.Parse(propellantNode.GetValue("ispMultiplier"));
                 var guiname = propellantNode.GetValue("guiName");
-                returnStr = returnStr + "--" + guiname + "--\n" + "ISP: " + ispMultiplier.ToString("0.000") + " x " + EffectiveCoreTempIspMult.ToString("0.000") + " x Sqrt(Core Temperature)" + "\n";
+                returnStr.Append("--");
+                returnStr.Append(guiname);
+                returnStr.Append("--\nISP: ");
+                returnStr.Append((ispMultiplier * EffectiveCoreTempIspMult).ToString("0.000"));
+                returnStr.AppendLine(" x Sqrt(Core Temperature)");
             }
-            return returnStr;
+            return returnStr.ToStringAndRelease();
         }
 
         public override int getPowerPriority()

@@ -416,11 +416,9 @@ namespace FNPlugin
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             if (!calculatedMass)
-                return 0;
+                return 0.0f;
 
-            var moduleMassDelta = (float)(targetMass - initialMass);
-
-            return moduleMassDelta;
+            return (float)(targetMass - initialMass);
         }
 
         public void upgradePartModule()
@@ -1356,7 +1354,6 @@ namespace FNPlugin
         {
             if (_powerState != PowerStates.PowerOffline)
             {
-
                 if (powerDownFraction > 0)
                     powerDownFraction -= 0.01;
 
@@ -1380,35 +1377,48 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            var sb = new StringBuilder();
-
-            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generator_upgradeTechnologies") + "</color>");
+            var sb = StringBuilderCache.Acquire();
+            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Generator_upgradeTechnologies")).AppendLine("</color>");
             sb.Append("<size=10>");
-            if (!string.IsNullOrEmpty(Mk2TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk2TechReq)));
-            if (!string.IsNullOrEmpty(Mk3TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk3TechReq)));
-            if (!string.IsNullOrEmpty(Mk4TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk4TechReq)));
-            if (!string.IsNullOrEmpty(Mk5TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk5TechReq)));
-            if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk6TechReq)));
-            if (!string.IsNullOrEmpty(Mk7TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk7TechReq)));
-            if (!string.IsNullOrEmpty(Mk8TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk8TechReq)));
-            if (!string.IsNullOrEmpty(Mk9TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk9TechReq)));
-            sb.AppendLine();
+
+            if (!string.IsNullOrEmpty(Mk2TechReq))
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk2TechReq)));
+            if (!string.IsNullOrEmpty(Mk3TechReq))
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk3TechReq)));
+            if (!string.IsNullOrEmpty(Mk4TechReq))
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk4TechReq)));
+            if (!string.IsNullOrEmpty(Mk5TechReq))
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk5TechReq)));
+            if (!string.IsNullOrEmpty(Mk6TechReq))
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk6TechReq)));
+            if (!string.IsNullOrEmpty(Mk7TechReq))
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk7TechReq)));
+            if (!string.IsNullOrEmpty(Mk8TechReq))
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk8TechReq)));
+            if (!string.IsNullOrEmpty(Mk9TechReq))
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk9TechReq)));
+
+            sb.Append("</size><color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Generator_conversionEfficiency")).AppendLine("</color>");
+            sb.Append("<size=10>Mk1: ").Append((efficiencyMk1 * 100.0).ToString("F0")).AppendLine("%");
+            if (!string.IsNullOrEmpty(Mk2TechReq))
+                sb.Append("Mk2: ").Append((efficiencyMk2 * 100.0).ToString("F0")).AppendLine("%");
+            if (!string.IsNullOrEmpty(Mk3TechReq))
+                sb.Append("Mk3: ").Append((efficiencyMk3 * 100.0).ToString("F0")).AppendLine("%");
+            if (!string.IsNullOrEmpty(Mk4TechReq))
+                sb.Append("Mk4: ").Append((efficiencyMk4 * 100.0).ToString("F0")).AppendLine("%");
+            if (!string.IsNullOrEmpty(Mk5TechReq))
+                sb.Append("Mk5: ").Append((efficiencyMk5 * 100.0).ToString("F0")).AppendLine("%");
+            if (!string.IsNullOrEmpty(Mk6TechReq))
+                sb.Append("Mk6: ").Append((efficiencyMk6 * 100.0).ToString("F0")).AppendLine("%");
+            if (!string.IsNullOrEmpty(Mk7TechReq))
+                sb.Append("Mk7: ").Append((efficiencyMk7 * 100.0).ToString("F0")).AppendLine("%");
+            if (!string.IsNullOrEmpty(Mk8TechReq))
+                sb.Append("Mk8: ").Append((efficiencyMk8 * 100.0).ToString("F0")).AppendLine("%");
+            if (!string.IsNullOrEmpty(Mk9TechReq))
+                sb.Append("Mk9: ").Append((efficiencyMk9 * 100.0).ToString("F0")).AppendLine("%");
             sb.Append("</size>");
 
-            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generator_conversionEfficiency") + "</color>");
-            sb.Append("<size=10>");
-            sb.AppendLine("Mk1: " + (efficiencyMk1 * 100).ToString("F0") + "%");
-            if (!string.IsNullOrEmpty(Mk2TechReq)) sb.AppendLine("Mk2: " + (efficiencyMk2 * 100).ToString("F0") + "%");
-            if (!string.IsNullOrEmpty(Mk3TechReq)) sb.AppendLine("Mk3: " + (efficiencyMk3 * 100).ToString("F0") + "%");
-            if (!string.IsNullOrEmpty(Mk4TechReq)) sb.AppendLine("Mk4: " + (efficiencyMk4 * 100).ToString("F0") + "%");
-            if (!string.IsNullOrEmpty(Mk5TechReq)) sb.AppendLine("Mk5: " + (efficiencyMk5 * 100).ToString("F0") + "%");
-            if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("Mk6: " + (efficiencyMk6 * 100).ToString("F0") + "%");
-            if (!string.IsNullOrEmpty(Mk7TechReq)) sb.AppendLine("Mk7: " + (efficiencyMk7 * 100).ToString("F0") + "%");
-            if (!string.IsNullOrEmpty(Mk8TechReq)) sb.AppendLine("Mk8: " + (efficiencyMk8 * 100).ToString("F0") + "%");
-            if (!string.IsNullOrEmpty(Mk9TechReq)) sb.AppendLine("Mk9: " + (efficiencyMk9 * 100).ToString("F0") + "%");
-            sb.Append("</size>");
-
-            return sb.ToString();
+            return sb.ToStringAndRelease();
         }
 
         public override string getResourceManagerDisplayName()
@@ -1416,7 +1426,7 @@ namespace FNPlugin
             if (isLimitedByMinThrotle)
                 return base.getResourceManagerDisplayName();
 
-            var displayName = part.partInfo.title + " "+Localizer.Format("#LOC_KSPIE_Generator_partdisplay");//(generator)
+            var displayName = part.partInfo.title + " " + Localizer.Format("#LOC_KSPIE_Generator_partdisplay");//(generator)
 
             if (similarParts == null)
             {
@@ -1428,10 +1438,6 @@ namespace FNPlugin
                 displayName += " " + partNrInList;
 
             return displayName;
-
-            //if (attachedPowerSource != null && attachedPowerSource.Part != null && result != attachedPowerSource.Part.partInfo.title)
-            //    result += " (" + attachedPowerSource.Part.partInfo.title + ")";
-            //return result;
         }
 
         public override int getPowerPriority()

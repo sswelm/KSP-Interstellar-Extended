@@ -142,13 +142,13 @@ namespace FNPlugin
         public double current_power_request;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_propellantEfficiency")]
         public string efficiencyStr = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_overheatEfficiency")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_overheatEfficiency")]
         public string thermalEfficiency = "";
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_heatProduction")]
         public string heatProductionStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_upgradeCost")]
         public string upgradeCostStr = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_maxEffectivePower", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_maxEffectivePower", guiFormat = "F3", guiUnits = " MW")]
         public double maxEffectivePower;
         [KSPField(guiActive = false)]
         public double currentPropellantEfficiency;
@@ -436,7 +436,7 @@ namespace FNPlugin
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return (float)desiredMass;
+            return (float)desiredMass - defaultMass;
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
@@ -482,65 +482,55 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            try
+            if (state != StartState.Editor)
             {
-                Debug.Log("[KSPI]: Start ElectricEngineControllerFX");
-
-                if (state != StartState.Editor)
+                if (vessel.FindPartModulesImplementing<FNGenerator>().Any(m => m.isHighPower) == false)
                 {
-                    if (vessel.FindPartModulesImplementing<FNGenerator>().Any(m => m.isHighPower) == false)
-                    {
-                        // ReSharper disable once CompareOfFloatsByEqualityOperator
-                        if (powerThrustMultiplier == 1 && powerThrustMultiplierWithoutReactors > 0)
-                            powerThrustMultiplier = powerThrustMultiplierWithoutReactors;
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
+                    if (powerThrustMultiplier == 1 && powerThrustMultiplierWithoutReactors > 0)
+                        powerThrustMultiplier = powerThrustMultiplierWithoutReactors;
 
-                        // ReSharper disable once CompareOfFloatsByEqualityOperator
-                        if (powerReqMult == 1 && powerReqMultWithoutReactor > 0)
-                            powerReqMult = powerReqMultWithoutReactor;
-                    }
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
+                    if (powerReqMult == 1 && powerReqMultWithoutReactor > 0)
+                        powerReqMult = powerReqMultWithoutReactor;
                 }
-
-                ScaleParameters();
-
-                // initialise resources
-                this.resources_to_supply = new[] { ResourceManager.FNRESOURCE_WASTEHEAT };
-                base.OnStart(state);
-
-                AttachToEngine();
-                DetermineTechLevel();
-                powerCapacityModifier = PowerCapacityModifier;
-
-                _initializationCountdown = 10;
-                _ispFloatCurve = new FloatCurve();
-                _ispFloatCurve.Add(0, (float)baseISP);
-                _effectiveSpeedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
-                _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
-                _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
-                _hasRequiredUpgrade = this.HasTechsRequiredToUpgrade();
-
-                if (_hasRequiredUpgrade && (isupgraded || state == StartState.Editor))
-                    upgradePartModule();
-
-                UpdateEngineTypeString();
-
-                _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+4, true));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
-                _resourceBuffers.Init(part);
-
-                InitializePropellantMode();
-
-                SetupPropellants(true);
-
-                UpdateIsp();
-
-                _attachedEngine.maxThrust = (float)maximumThrustFromPower;
             }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Error OnStart ElectricEngineControllerFX " + e.Message);
-            }
-            Debug.Log("[KSPI]: End Initializing ElectricEngineControllerFX");
+
+            ScaleParameters();
+
+            // initialise resources
+            resources_to_supply = new string[] { ResourceManager.FNRESOURCE_WASTEHEAT };
+            base.OnStart(state);
+
+            AttachToEngine();
+            DetermineTechLevel();
+            powerCapacityModifier = PowerCapacityModifier;
+
+            _initializationCountdown = 10;
+            _ispFloatCurve = new FloatCurve();
+            _ispFloatCurve.Add(0, (float)baseISP);
+            _effectiveSpeedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
+            _hasGearTechnology = string.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
+            _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
+            _hasRequiredUpgrade = this.HasTechsRequiredToUpgrade();
+
+            if (_hasRequiredUpgrade && (isupgraded || state == StartState.Editor))
+                upgradePartModule();
+
+            UpdateEngineTypeString();
+
+            _resourceBuffers = new ResourceBuffers();
+            _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+4, true));
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+            _resourceBuffers.Init(part);
+
+            InitializePropellantMode();
+
+            SetupPropellants(true);
+
+            UpdateIsp();
+
+            _attachedEngine.maxThrust = (float)maximumThrustFromPower;
         }
 
         private void InitializePropellantMode()
@@ -569,11 +559,11 @@ namespace FNPlugin
             if (_vesselPropellants == null)
             {
                 Debug.LogWarning("[KSPI]: SetupPropellants _vesselPropellants is still null");
-                return;
             }
-
-            if (CurrentPropellant == null)
+            else if (CurrentPropellant == null)
+            {
                 CurrentPropellant = fuel_mode < _vesselPropellants.Count ? _vesselPropellants[fuel_mode] : _vesselPropellants.First();
+            }
         }
 
         private void AttachToEngine()
@@ -982,18 +972,11 @@ namespace FNPlugin
 
         private void CalculateTimeDialation()
         {
-            try
-            {
-                var worldSpaceVelocity = vessel.orbit.GetFrameVel().magnitude;
+            var worldSpaceVelocity = vessel.orbit.GetFrameVel().magnitude;
 
-                lightSpeedRatio = Math.Min(worldSpaceVelocity / _effectiveSpeedOfLight, 0.9999999999);
+            lightSpeedRatio = Math.Min(_effectiveSpeedOfLight == 0.0 ? 1.0 : worldSpaceVelocity / _effectiveSpeedOfLight, 0.9999999999);
 
-                timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
-            }
+            timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
         }
 
         private static bool IsValidPositiveNumber(double value)
@@ -1010,12 +993,13 @@ namespace FNPlugin
         private void PersistentThrust(double fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass, double thrust, double isp)
         {
             var deltaVv = CalculateDeltaVV(thrustDirection, vesselMass, fixedDeltaTime, thrust, isp, out var demandMass);
+            string message;
 
             var persistentThrustDot = Vector3d.Dot(thrustDirection, vessel.obt_velocity);
             if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))
             {
-                const string message = "#LOC_KSPIE_ElectricEngineController_PostMsg1";//"Thrust warp stopped - orbital speed too low"
-                ScreenMessages.PostScreenMessage(Localizer.Format(message), 5, ScreenMessageStyle.UPPER_CENTER);
+                message = Localizer.Format("#LOC_KSPIE_ElectricEngineController_PostMsg1");
+                ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);//"Thrust warp stopped - orbital speed too low"
                 Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
                 return;
@@ -1040,7 +1024,7 @@ namespace FNPlugin
 
             if (thrust > 0.0000005 && fuelRatio < 0.999999 && _isFullyStarted)
             {
-                var message =Localizer.Format("#LOC_KSPIE_ElectricEngineController_PostMsg2", fuelRatio,thrust);// "Thrust warp stopped - " + + " propellant depleted thust: " + 
+                message = Localizer.Format("#LOC_KSPIE_ElectricEngineController_PostMsg2", fuelRatio, thrust);// "Thrust warp stopped - " + + " propellant depleted thust: " + 
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
@@ -1061,41 +1045,13 @@ namespace FNPlugin
                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.VacuumPlasma);
                 node.AddValue("maxAmount", scaledMaxPower * 0.0000001);
                 node.AddValue("amount", scaledMaxPower * 0.0000001);
-                this.part.AddResource(node);
+                part.AddResource(node);
             }
         }
 
         public override string GetInfo()
         {
-            //var props = ElectricEnginePropellant.GetPropellantsEngineForType(type);
-            var returnStr = Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + " : " + maxPower.ToString("F3") + " MW\n";
-            //var thrustPerMw = (2e6 * powerThrustMultiplier) / GameConstants.STANDARD_GRAVITY / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
-            //props.ForEach(prop =>
-            //{
-            //    var ispPropellantModifier = (this.type == (int)ElectricEngineType.VASIMR ? prop.DecomposedIspMult : prop.IspMultiplier);
-            //    var ispProp = _modifiedEngineBaseIsp * ispPropellantModifier;
-
-            //    double efficiency;
-
-            //    switch (type)
-            //    {
-            //        case (int)ElectricEngineType.ARCJET:
-            //            efficiency = 0.87 * prop.Efficiency;
-            //            break;
-            //        case (int)ElectricEngineType.VASIMR:
-            //            efficiency = baseEfficency + 0.5 * variableEfficency;
-            //            break;
-            //        default:
-            //            efficiency = prop.Efficiency;
-            //            break;
-            //    }
-
-            //    var thrustProp = thrustPerMw / ispPropellantModifier * efficiency * (type == (int)ElectricEngineType.ARCJET ? prop.ThrustMultiplier : 1);
-            //    returnStr = returnStr + "---" + prop.PropellantGUIName + "---\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_thrust") 
-            //        + ": " + thrustProp.ToString("0.000") + " " + Localizer.Format("#LOC_KSPIE_ElectricEngine_kiloNewtonPerMegaWatt") + "\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_efficiency") 
-            //        + " : " + (efficiency * 100.0).ToString("0.00") + "%\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_specificImpulse") + ": " + ispProp.ToString("0.00") + "s\n";
-            //});
-            return returnStr;
+            return Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + ": " + maxPower.ToString("F1") + " MW";
         }
 
         public override string getResourceManagerDisplayName()
