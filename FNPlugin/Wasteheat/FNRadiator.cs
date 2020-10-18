@@ -103,6 +103,10 @@ namespace FNPlugin.Wasteheat
                 Fields[nameof(intakeLqdAmount)],
                 Fields[nameof(airCoolantTotal)],
                 Fields[nameof(waterCoolantTotal)],
+                Fields[nameof(steamCoolantTotal)],
+                Fields[nameof(airHeatTransferrable)],
+                Fields[nameof(waterHeatTransferrable)],
+                Fields[nameof(steamHeatTransferrable)],
             };
 
             var status = !debugFields[0].guiActive;
@@ -145,19 +149,6 @@ namespace FNPlugin.Wasteheat
             var powerAvail = consumeFNResourcePerSecond(powerNeeded, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             return Math.Round(powerAvail / powerNeeded, 2);
-        }
-
-        private double PartSpeed()
-        {
-            // very rough approximation of the part rotation speed.
-            var rb = part.GetComponent<Rigidbody>();
-            if (rb == null)
-            {
-                // should not happen.
-                return 0;
-            }
-
-            return Math.Abs(rb.angularVelocity.magnitude);
         }
 
         public void FixedUpdate()
@@ -334,8 +325,8 @@ namespace FNPlugin.Wasteheat
 
             if (heatTransferred == 0) return;
 
-            if (intakeAtmAmount > 0) part.RequestResource(intakeAtmID, intakeAtmAmount * intakeReduction);
-            if (intakeLqdAmount > 0) part.RequestResource(intakeLqdID, intakeLqdAmount * intakeReduction);
+            if (intakeAtmAmount > 0) part.RequestResource(intakeAtmID, intakeAtmAmount * intakeReduction * fixedDeltaTime);
+            if (intakeLqdAmount > 0) part.RequestResource(intakeLqdID, intakeLqdAmount * intakeReduction * fixedDeltaTime);
         }
         public override int getPowerPriority()
         {
