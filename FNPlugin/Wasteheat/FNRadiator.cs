@@ -41,6 +41,15 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = true, guiActive = false, guiName = "Pump Speed")]
         public double pumpSpeed = 100;
 
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Air Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
+        public double airHeatTransferrable;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Water Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
+        public double waterHeatTransferrable;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Steam Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
+        public double steamHeatTransferrable;
+
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
         public double heatTransferrable;
 
@@ -56,8 +65,14 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = false, guiActive = false, guiName = "Intake Lqd Amount", guiFormat = "F2", guiUnits = "")]
         public double intakeLqdAmount;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Cool ants running amok", guiFormat = "F2", guiUnits = "")]
-        public double coolantTotal;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Air Coolant Total", guiFormat = "F2", guiUnits = "")]
+        public double airCoolantTotal;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Water Coolant Total", guiFormat = "F2", guiUnits = "")]
+        public double waterCoolantTotal;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Steam Coolant Total", guiFormat = "F2", guiUnits = "")]
+        public double steamCoolantTotal;
 
         private const double pumpSpeedSqrt = 10;
 
@@ -70,6 +85,8 @@ namespace FNPlugin.Wasteheat
         private int intakeAtmID;
         private double intakeLqdDensity;
         private double intakeAtmDensity;
+
+        private double waterBoilPointInKelvin = 400; // at some stage, calculate it properly
 
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Show debug information", active = true)]
         public void ToggleHeatPumpDebugAction()
@@ -84,6 +101,8 @@ namespace FNPlugin.Wasteheat
                 Fields[nameof(intakeReduction)],
                 Fields[nameof(intakeAtmAmount)],
                 Fields[nameof(intakeLqdAmount)],
+                Fields[nameof(airCoolantTotal)],
+                Fields[nameof(waterCoolantTotal)],
             };
 
             var status = !debugFields[0].guiActive;
@@ -149,47 +168,101 @@ namespace FNPlugin.Wasteheat
             intakeAtmAmount = intakeLqdAmount = 0;
 
             if (null == vessel || null == part) return;
-            if (pumpIsEnabled == false) return;
+            
+            part.GetConnectedResourceTotals(intakeAtmID, out intakeAtmAmount, out _);
+            part.GetConnectedResourceTotals(intakeLqdID, out intakeLqdAmount, out _);
 
-            var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
+            if (intakeAtmAmount == 0 && intakeLqdAmount == 0) return;
 
             /* reduce the efficiency of the transfer if there is not enough power to run at 100% */
             var efficiency = drawPower();
             if (efficiency == 0) return;
+
+            var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
 
             maxSupplyOfHeat = wasteheatManager.CurrentSurplus + wasteheatManager.GetResourceAvailability();
             if (maxSupplyOfHeat == 0) return;
 
             var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
 
-            part.GetConnectedResourceTotals(intakeAtmID, out intakeAtmAmount, out _);
-            part.GetConnectedResourceTotals(intakeLqdID, out intakeLqdAmount, out _);
+            airHeatTransferrable = waterHeatTransferrable = steamHeatTransferrable = heatTransferrable = 0;
 
             // find our baseline of how cold the intake should be. PhysicsGlobals.SpaceTemperature is there in
             // case of negative numbers later on, but that "should not happen".
-
             double coldTemp = Math.Max(PhysicsGlobals.SpaceTemperature, Math.Min(part.skinTemperature, Math.Min(part.temperature, Math.Min(vessel.atmosphericTemperature, vessel.externalTemperature))));
-            double hotTemp = Math.Max(coldTemp + 0.1, coldTemp + (wasteheatManager.ResourceFillFraction * 3000));
-            double deltaT = hotTemp - coldTemp;
 
-            /*
-             * "Don't mind me, I'm just keeping your reactors cool!"
-             * 
-             * /\/\
-             *   \_\  _..._
-             *   (" )(_..._)
-             *    ^^  // \\
-             *   
-             * What kind of ant is good at adding things up? An accountant.
-             */
+            // Peter Han has mentioned performance concerns with Get Average Radiator Temp, and suggested I use ResourceFillFraction as a short cut.
+            // AntaresMC mentioned that the upgrade system should max out at 1800K, and that 900K should be the starting point.
+            double hotTemp = Math.Max(coldTemp + 0.1, coldTemp + (wasteheatManager.ResourceFillFraction * 1800));
 
-            coolantTotal = 1 +
-                // how much potential energy can the air absorb
-                (intakeAtmDensity * intakeAtmAmount * intakeAtmSpecificHeatCapacity * 1000) +   // convert to liters
-                // how much potential energy can the water absorb
-                (intakeLqdDensity * intakeLqdAmount * intakeLqdSpecificHeatCapacity) +
-                // A rule of thumb suggests that a gas takes up about 1000 times the volume of a solid or liquid.
-                (intakeAtmDensity * (intakeLqdAmount * 1000) * intakeAtmSpecificHeatCapacity);
+            if (intakeAtmAmount > 0)
+            {
+                double deltaT = hotTemp - coldTemp;
+
+                /*
+                 * "Don't mind me, I'm just keeping your reactors cool!"
+                 * 
+                 * /\/\
+                 *   \_\  _..._
+                 *   (" )(_..._)
+                 *    ^^  // \\
+                 *   
+                 * What kind of ant is good at adding things up? An accountant.
+                 */
+
+                airCoolantTotal =
+                    // how much potential energy can the air absorb
+                    (intakeAtmDensity * intakeAtmAmount * intakeAtmSpecificHeatCapacity);
+
+                airHeatTransferrable = airHeatTransferCoefficient * efficiency * airCoolantTotal * pumpSpeed * deltaT * surfaceArea;
+            }
+
+            if(intakeLqdAmount > 0)
+            {
+                bool producesSteam = (hotTemp >= waterBoilPointInKelvin);
+
+                /*
+                 *           \/       \\
+                 *     ___  _@@       @@_  ___
+                 *    (___)(_)         (_)(___)
+                 *    //|| ||           || ||\\
+                 *
+                 * What do you call two ants who have a baby together?
+                 * Pair ants
+                 */
+
+                if (coldTemp < waterBoilPointInKelvin)
+                {
+                    double deltaT = Math.Min(waterBoilPointInKelvin, hotTemp) - coldTemp;
+
+                    waterCoolantTotal =
+                        // how much potential energy can the water absorb
+                        (intakeLqdDensity * intakeLqdAmount * intakeLqdSpecificHeatCapacity);
+
+                    waterHeatTransferrable = lqdHeatTransferCoefficient * efficiency * waterCoolantTotal * pumpSpeed * deltaT * surfaceArea;
+                }
+                
+                /*
+                 * Child: I saw some ants on the way to school today.
+                 * Dad: How did you know they were going to school?
+                 */
+
+                if(producesSteam)
+                {
+                    double deltaT = hotTemp - Math.Max(waterBoilPointInKelvin, coldTemp);
+
+                    steamCoolantTotal =
+                        // A rule of thumb suggests that a gas takes up about 1000 times the volume of a solid or liquid.
+                        // We also need to then convert from liters to cubic meters. * 1000 / 1000 = no op.
+                        (intakeAtmDensity * intakeLqdAmount * intakeAtmSpecificHeatCapacity);
+
+                    steamHeatTransferrable = airHeatTransferCoefficient * efficiency * steamCoolantTotal * pumpSpeed * deltaT * surfaceArea;
+                }
+            }
+
+            // how much heat can we transfer in total
+            heatTransferrable = airHeatTransferrable + waterHeatTransferrable + steamHeatTransferrable;
+            if (heatTransferrable == 0) return;
 
             /*
              *             "=.
@@ -225,18 +298,6 @@ namespace FNPlugin.Wasteheat
              *   What ant is bigger than that? A giant.
              */
 
-            // If water is present, it is more efficient to transfer the heat.
-            double transferCoefficient = (intakeLqdAmount > 0) ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
-
-            // account for the speed of the vessel, part, and the pumping speed.
-            // atmospheric density has already been accounted for by the pumping of
-            // resources.
-            double modifier = vessel.speed.Sqrt() + PartSpeed().Sqrt() + pumpSpeedSqrt;
-
-            // how much heat can we transfer in total
-            heatTransferrable = transferCoefficient * coolantTotal * efficiency * modifier * deltaT * surfaceArea;
-            if (heatTransferrable <= 0) return;
-
             intakeReduction = 1;
             var actuallyReduced = heatTransferrable;
 
@@ -250,7 +311,6 @@ namespace FNPlugin.Wasteheat
                 // if we could transfer more heat than exists, then we'll reduce the amount of
                 // coolant we use.
                 intakeReduction = Math.Max(0.10, maxSupplyOfHeat / heatTransferrable);
-
 
                 /*
                  *  \       /
@@ -279,15 +339,6 @@ namespace FNPlugin.Wasteheat
         }
         public override int getPowerPriority()
         {
-            /*
-             *           \/       \\
-             *     ___  _@@       @@_  ___
-             *    (___)(_)         (_)(___)
-             *    //|| ||           || ||\\
-             *
-             * What do you call two ants who have a baby together?
-             * Pair ants
-             */
             return (int)powerPriority;
         }
     }
