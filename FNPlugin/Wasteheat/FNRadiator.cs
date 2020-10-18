@@ -21,6 +21,279 @@ namespace FNPlugin.Wasteheat
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
+    class ActiveRadiator3 : ResourceSuppliableModule
+    {
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Power Priority", guiFormat = "F0", guiUnits = ""), UI_FloatRange(stepIncrement = 1.0F, maxValue = 5F, minValue = 0F)]
+        public float powerPriority = 5;
+
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Pumps"), UI_Toggle(disabledText = "#Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        public bool pumpIsEnabled = true;
+
+        [KSPField]
+        public float surfaceArea = 100;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "intakeAtmSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
+        public double intakeAtmSpecificHeatCapacity;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "intakeLqdSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
+        public double intakeLqdSpecificHeatCapacity;
+
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Pump Speed")]
+        public double pumpSpeed = 100;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
+        public double heatTransferrable;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Heat Supply", guiFormat = "F2", guiUnits = " K")]
+        public double maxSupplyOfHeat;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Coolant Supply Used", guiFormat = "F2", guiUnits = "%")]
+        public double intakeReduction;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Intake ATM Amount", guiFormat = "F2", guiUnits = "")]
+        public double intakeAtmAmount;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Intake Lqd Amount", guiFormat = "F2", guiUnits = "")]
+        public double intakeLqdAmount;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Cool ants running amok", guiFormat = "F2", guiUnits = "")]
+        public double coolantTotal;
+
+        private const double pumpSpeedSqrt = 10;
+
+        private const double powerDrawInJoules = 1; // How much power needed to run fans / etc. in joules.
+
+        private const double airHeatTransferCoefficient = 0.0005; // 500W/m2/K, from FNRadiator.
+        private const double lqdHeatTransferCoefficient = 0.0007; // From AntaresMC
+
+        private int intakeLqdID;
+        private int intakeAtmID;
+        private double intakeLqdDensity;
+        private double intakeAtmDensity;
+
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Show debug information", active = true)]
+        public void ToggleHeatPumpDebugAction()
+        {
+            BaseField[] debugFields = {
+                Fields[nameof(surfaceArea)],
+                Fields[nameof(intakeLqdSpecificHeatCapacity)],
+                Fields[nameof(intakeAtmSpecificHeatCapacity)],
+                Fields[nameof(pumpSpeed)],
+                Fields[nameof(heatTransferrable)],
+                Fields[nameof(maxSupplyOfHeat)],
+                Fields[nameof(intakeReduction)],
+                Fields[nameof(intakeAtmAmount)],
+                Fields[nameof(intakeLqdAmount)],
+            };
+
+            var status = !debugFields[0].guiActive;
+
+            foreach (var x in debugFields)
+            {
+                x.guiActive = status;
+            }
+
+        }
+
+        public override void OnStart(StartState state)
+        {
+            base.OnStart(state);
+
+            var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeLqd");
+            var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeAir");
+            var intakeAtmDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeAtm");
+
+            if (intakeLqdDefinition == null || intakeAirDefinition == null || intakeAtmDefinition == null)
+            {
+                Debug.Log("[ActiveCoolingSystemv3] Missing definitions :(");
+                return;
+            }
+
+            intakeLqdSpecificHeatCapacity = intakeLqdDefinition.specificHeatCapacity;
+            intakeAtmSpecificHeatCapacity = (intakeAtmDefinition.specificHeatCapacity == 0) ? intakeAirDefinition.specificHeatCapacity : intakeAtmDefinition.specificHeatCapacity;
+
+            intakeLqdID = intakeLqdDefinition.id;
+            intakeAtmID = intakeAtmDefinition.id;
+            intakeAtmDensity = intakeAtmDefinition.density;
+            intakeLqdDensity = intakeLqdDefinition.density;
+        }
+
+        private double drawPower()
+        {
+            // what does electricity look like, anyways?
+
+            var powerNeeded = powerDrawInJoules;
+            var powerAvail = consumeFNResourcePerSecond(powerNeeded, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            return Math.Round(powerAvail / powerNeeded, 2);
+        }
+
+        private double PartSpeed()
+        {
+            // very rough approximation of the part rotation speed.
+            var rb = part.GetComponent<Rigidbody>();
+            if (rb == null)
+            {
+                // should not happen.
+                return 0;
+            }
+
+            return Math.Abs(rb.angularVelocity.magnitude);
+        }
+
+        public void FixedUpdate()
+        {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
+            intakeAtmAmount = intakeLqdAmount = 0;
+
+            if (null == vessel || null == part) return;
+            if (pumpIsEnabled == false) return;
+
+            var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            /* reduce the efficiency of the transfer if there is not enough power to run at 100% */
+            var efficiency = drawPower();
+            if (efficiency == 0) return;
+
+            maxSupplyOfHeat = wasteheatManager.CurrentSurplus + wasteheatManager.GetResourceAvailability();
+            if (maxSupplyOfHeat == 0) return;
+
+            var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
+
+            part.GetConnectedResourceTotals(intakeAtmID, out intakeAtmAmount, out _);
+            part.GetConnectedResourceTotals(intakeLqdID, out intakeLqdAmount, out _);
+
+            // find our baseline of how cold the intake should be. PhysicsGlobals.SpaceTemperature is there in
+            // case of negative numbers later on, but that "should not happen".
+
+            double coldTemp = Math.Max(PhysicsGlobals.SpaceTemperature, Math.Min(part.skinTemperature, Math.Min(part.temperature, Math.Min(vessel.atmosphericTemperature, vessel.externalTemperature))));
+            double hotTemp = Math.Max(coldTemp + 0.1, coldTemp + (wasteheatManager.ResourceFillFraction * 3000));
+            double deltaT = hotTemp - coldTemp;
+
+            /*
+             * "Don't mind me, I'm just keeping your reactors cool!"
+             * 
+             * /\/\
+             *   \_\  _..._
+             *   (" )(_..._)
+             *    ^^  // \\
+             *   
+             * What kind of ant is good at adding things up? An accountant.
+             */
+
+            coolantTotal = 1 +
+                // how much potential energy can the air absorb
+                (intakeAtmDensity * intakeAtmAmount * intakeAtmSpecificHeatCapacity * 1000) +   // convert to liters
+                // how much potential energy can the water absorb
+                (intakeLqdDensity * intakeLqdAmount * intakeLqdSpecificHeatCapacity) +
+                // A rule of thumb suggests that a gas takes up about 1000 times the volume of a solid or liquid.
+                (intakeAtmDensity * (intakeLqdAmount * 1000) * intakeAtmSpecificHeatCapacity);
+
+            /*
+             *             "=.
+             *            "=. \
+             *               \ \
+             *            _,-=\/=._        _.-,_
+             *           /         \      /=-._ "-.
+             *          |=-./~\___/~\    /     `-._\
+             *          |   \o/   \o/   /         /
+             *           \_   `~~~;/    |         |
+             *             `~,._,-'    /          /
+             *                | |      =-._      /
+             *            _,-=/ \=-._     /|`-._/
+             *          //           \\   )\
+             *         /|             |)_.'/
+             *        //|             |\_."   _.-\
+             *       (|  \           /    _.`=    \
+             *       ||   ":_    _.;"_.-;"   _.-=.:
+             *    _-."/    / `-."\_."        =-_.;\
+             *   `-_./   /             _.-=.    / \\
+             *          |              =-_.;\ ."   \\
+             *          \                   \\/     \\
+             *          /\_                .'\\      \\
+             *         //  `=_         _.-"   \\      \\
+             *        //      `~-.=`"`'       ||      ||
+             *  LGB   ||    _.-_/|            ||      |\_.-_
+             *    _.-_/|   /_.-._/            |\_.-_  \_.-._\
+             *   /_.-._/                      \_.-._\
+             *   
+             *   "I expected cool ants. Where are the cool ants?!". That ant, probably. 
+             *   
+             *   What is the second biggest ant in the world? An elephant.
+             *   What ant is bigger than that? A giant.
+             */
+
+            // If water is present, it is more efficient to transfer the heat.
+            double transferCoefficient = (intakeLqdAmount > 0) ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
+
+            // account for the speed of the vessel, part, and the pumping speed.
+            // atmospheric density has already been accounted for by the pumping of
+            // resources.
+            double modifier = vessel.speed.Sqrt() + PartSpeed().Sqrt() + pumpSpeedSqrt;
+
+            // how much heat can we transfer in total
+            heatTransferrable = transferCoefficient * coolantTotal * efficiency * modifier * deltaT * surfaceArea;
+            if (heatTransferrable <= 0) return;
+
+            intakeReduction = 1;
+            var actuallyReduced = heatTransferrable;
+
+            if (maxSupplyOfHeat < heatTransferrable)
+            {
+                // To avoid the KSPIE screen saying that we're demanding far more WasteHeat than
+                // it can supply, we cap the max amount of heat here so it looks like 
+                // input == output on the screen.
+                actuallyReduced = maxSupplyOfHeat;
+
+                // if we could transfer more heat than exists, then we'll reduce the amount of
+                // coolant we use.
+                intakeReduction = Math.Max(0.10, maxSupplyOfHeat / heatTransferrable);
+
+
+                /*
+                 *  \       /
+                 *   \     /  
+                 *    \.-./ 
+                 *   (o\^/o)  _   _   _     __
+                 *    ./ \.\ ( )-( )-( ) .-'  '-.
+                 *     {-} \(//  ||   \\/ (   )) '-.
+                 *          //-__||__.-\\.       .-'
+                 *         (/    ()     \)'-._.-'
+                 *         ||    ||      \\
+                 * MJP     ('    ('       ')
+                 * 
+                 * How do you tell a girl ant and a boy ant apart?
+                 * If it sinks, it's a girl ant. If it floats, it's
+                 * a bouyant.
+                 */
+            }
+
+            var heatTransferred = consumeFNResourcePerSecond(actuallyReduced, ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            if (heatTransferred == 0) return;
+
+            if (intakeAtmAmount > 0) part.RequestResource(intakeAtmID, intakeAtmAmount * intakeReduction);
+            if (intakeLqdAmount > 0) part.RequestResource(intakeLqdID, intakeLqdAmount * intakeReduction);
+        }
+        public override int getPowerPriority()
+        {
+            /*
+             *           \/       \\
+             *     ___  _@@       @@_  ___
+             *    (___)(_)         (_)(___)
+             *    //|| ||           || ||\\
+             *
+             * What do you call two ants who have a baby together?
+             * Pair ants
+             */
+            return (int)powerPriority;
+        }
+    }
+
+
+    [KSPModule("Radiator")]
     class HeatPumpRadiator : FNRadiator
     {
         // Duplicate code from UniversalCrustExtractor.cs
