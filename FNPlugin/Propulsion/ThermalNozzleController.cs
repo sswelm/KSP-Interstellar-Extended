@@ -1661,15 +1661,12 @@ namespace FNPlugin
 
             maxThrustOnEngine = (float)Math.Max(base_max_thrust, minimumThrust);
             myAttachedEngine.maxThrust = maxThrustOnEngine;
-
-            var max_thrust_in_current_atmosphere = max_thrust_in_space;
-
             UpdateAtmosphericPresureTreshold();
 
             // update engine thrust/ISP for thermal noozle
             if (!_currentpropellant_is_jet)
             {
-                max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, minimumThrust);
+                double max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, minimumThrust);
 
                 var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(max_thrust_in_current_atmosphere / max_thrust_in_space, 0.01) : 0.01;
                 _minISP = _maxISP * thrustAtmosphereRatio;
