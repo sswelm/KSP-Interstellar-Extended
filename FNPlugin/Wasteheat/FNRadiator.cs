@@ -29,7 +29,7 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F0"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 1F)]
         public float surfaceArea = 100;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 5F, minValue = 0F)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 0F)]
         public float pumpSpeed = 100;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "intakeAtmSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
