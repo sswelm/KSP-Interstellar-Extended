@@ -180,7 +180,7 @@ namespace InterstellarFuelSwitch
                 if (secondary.normalizedDensity == 0)
                     secondary.normalizedDensity = secondaryNormalizedDensity;
 
-                if (secondary.conversionRatio == 0 && secondary.conversionRatio == 0)
+                if (primary.conversionRatio == 0 && secondary.conversionRatio == 0)
                 {
                     if (primary.normalizedDensity > 0 && secondary.normalizedDensity > 0)
                     {
