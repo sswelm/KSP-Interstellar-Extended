@@ -26,20 +26,17 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Power Priority", guiFormat = "F0", guiUnits = ""), UI_FloatRange(stepIncrement = 1.0F, maxValue = 5F, minValue = 0F)]
         public float powerPriority = 5;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Pumps"), UI_Toggle(disabledText = "#Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
-        public bool pumpIsEnabled = true;
-
-        [KSPField]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F0"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 1F)]
         public float surfaceArea = 100;
+
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 0F)]
+        public float pumpSpeed = 100;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "intakeAtmSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
         public double intakeAtmSpecificHeatCapacity;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "intakeLqdSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
         public double intakeLqdSpecificHeatCapacity;
-
-        [KSPField(isPersistant = true, guiActive = false, guiName = "Pump Speed")]
-        public double pumpSpeed = 100;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Air Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
         public double airHeatTransferrable;
