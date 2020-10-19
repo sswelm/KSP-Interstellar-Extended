@@ -19,7 +19,7 @@ History and goals
 
 KSP Interstellar Extended aims to continue in Fractals original KSPI vision in providing a realistic road to the stars.
 
-Players will first gain access to contemporary technologies that have not been widely applied to real space programs such as nuclear reactors, electrical generators and thermal rockets. By continuing down the [Community Tech Tree (CTT)](https://forum.kerbalspaceprogram.com/index.php?/topic/90530-*) tech tree and performing more research, these parts can be upgraded and later surpassed by novel new technologies such as fusion and even antimatter power.
+Players will first gain access to contemporary technologies that have not been widely applied to real space programs such as nuclear reactors, electrical generators and thermal rockets. By continuing down the [Community Tech Tree (CTT)](https://forum.kerbalspaceprogram.com/index.php?/topic/90530-*) and performing more research, these parts can be upgraded and later surpassed by novel new technologies such as fusion and even antimatter power.
 
 We attempt to portray both the tremendous power of these technologies as well as their drawbacks, including the tremendous difficulty of obtaining resources like antimatter and the difficulties associated with storing it safely. The goal being to reward players who develop advanced infrastructure on other planets with new, novel and powerful technologies capable of helping Kerbals explore planets in new and exciting ways.
 
