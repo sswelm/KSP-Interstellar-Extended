@@ -699,7 +699,7 @@ namespace FNPlugin
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
-        public void AttachThermalReciever(Guid key, double radius)
+        public override void AttachThermalReciever(Guid key, double radius)
         {
             try
             {
@@ -720,7 +720,7 @@ namespace FNPlugin
 
         public void Refresh() { }
 
-        public void DetachThermalReciever(Guid key)
+        public override void DetachThermalReciever(Guid key)
         {
             if (connectedRecievers.ContainsKey(key))
             {
@@ -730,7 +730,7 @@ namespace FNPlugin
             }
         }
 
-        public double GetFractionThermalReciever(Guid key)
+        public override double GetFractionThermalReciever(Guid key)
         {
             double result;
             if (connectedRecieversFraction.TryGetValue(key, out result))
