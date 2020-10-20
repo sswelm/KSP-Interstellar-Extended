@@ -657,6 +657,14 @@ namespace FNPlugin.Wasteheat
         private static AnimationCurve greenTempColorChannel;
         private static AnimationCurve blueTempColorChannel;
 
+        private const double airHeatTransferCoefficient = 0.0005; // 500W/m2/K, from FNRadiator.
+        private const double lqdHeatTransferCoefficient = 0.0007; // From AntaresMC
+
+        private double intakeLqdDensity;
+        private double intakeAtmDensity;
+        private double intakeAtmSpecificHeatCapacity;
+        private double intakeLqdSpecificHeatCapacity;
+
         public static void InitializeTemperatureColorChannels()
         {
             if (redTempColorChannel != null)
@@ -1170,6 +1178,23 @@ namespace FNPlugin.Wasteheat
                     _moduleActiveRadiator.Shutdown();
             }
 
+            var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeLqd");
+            var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeAir");
+            var intakeAtmDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeAtm");
+
+            if (intakeLqdDefinition != null && intakeAirDefinition != null && intakeAtmDefinition != null)
+            {
+                intakeLqdSpecificHeatCapacity = intakeLqdDefinition.specificHeatCapacity;
+                intakeAtmSpecificHeatCapacity = (intakeAtmDefinition.specificHeatCapacity == 0) ? intakeAirDefinition.specificHeatCapacity : intakeAtmDefinition.specificHeatCapacity;
+                intakeAtmDensity = intakeAtmDefinition.density;
+                intakeLqdDensity = intakeLqdDefinition.density;
+            }
+            else
+            {
+                Debug.Log("[radiator initialization] Missing definitions for Lqd/Air/Atm :(");
+                return;
+            }
+
             if (state == StartState.Editor)
                 return;
 
@@ -1461,8 +1486,8 @@ namespace FNPlugin.Wasteheat
                     atmDensity = vessel.atmDensity;
 
                     // density * exposed surface area * specific heat capacity
-                    bonusCalculation = (1 + (0.001 * (effectiveRadiatorArea + convectiveBonus) * 4183)) * part.submergedPortion;
-                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (0.005 * (effectiveRadiatorArea + convectiveBonus) * 10)) * (1 - part.submergedPortion);
+                    bonusCalculation = (1 + (intakeLqdDensity * (effectiveRadiatorArea + convectiveBonus) * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
+                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * (effectiveRadiatorArea + convectiveBonus) * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
 
                     partRotationDistance = PartRotationDistance();
                     atmosphere_modifier = bonusCalculation * Math.Min(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
@@ -1470,7 +1495,7 @@ namespace FNPlugin.Wasteheat
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
 
                     // 700W/m2/K for water, 500W/m2/K for air
-                    double heatTransferCoefficient = (part.submergedPortion > 0) ? 0.0007 : 0.0005;
+                    double heatTransferCoefficient = (part.submergedPortion > 0) ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
                     
                     var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient;
 
