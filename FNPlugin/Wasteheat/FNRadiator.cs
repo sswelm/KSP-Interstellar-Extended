@@ -469,7 +469,7 @@ namespace FNPlugin.Wasteheat
             base.FixedUpdate();
         }
 
-        protected override bool CanConvectInSpace()
+        protected override bool CanConvect()
         {
             return undergroundAmount > 0;
         }
@@ -531,8 +531,8 @@ namespace FNPlugin.Wasteheat
         public bool isDeployable = false;
         [KSPField]
         public bool isPassive = false;
-        [KSPField(guiName = "#LOC_KSPIE_Radiator_ConverctionBonus")]//Converction Bonus
-        public double convectiveBonus = 1;
+        [KSPField(guiName = "#LOC_KSPIE_Radiator_ConverctionBonus", guiActive = true, guiActiveEditor = true), UI_FloatRange(stepIncrement = 1.0F, maxValue = 2000F, minValue = 0F)]//Converction Bonus
+        public float convectiveBonus = 1;
         [KSPField]
         public string animName = "";
         [KSPField]
@@ -589,6 +589,9 @@ namespace FNPlugin.Wasteheat
         private double _maxEnergyTransfer;
         [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_MaxRadiatorTemperature", guiFormat = "F0")]//Max Radiator Temperature
         public float maxRadiatorTemperature = _maximumRadiatorTempInSpace;
+
+        [KSPField(guiActive = true, guiName = "Part Rotation Distance", guiFormat = "F2", guiUnits = "m/s")] public double partRotationDistance;
+        [KSPField(guiActive = true, guiName = "vessel.atmDensity", guiFormat = "F4", guiUnits = "")] public double atmDensity;
 
         [KSPField] public int nrAvailableUpgradeTechs;
         [KSPField] public bool hasSurfaceAreaUpgradeTechReq;
@@ -1376,7 +1379,7 @@ namespace FNPlugin.Wasteheat
             // and then distance traveled.
             double distanceTraveled = effectiveRadiatorArea * tmpVelocity;
 
-            return distanceTraveled;
+            return Math.Round(distanceTraveled, 2) * TimeWarp.fixedDeltaTime;
         }
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
@@ -1451,15 +1454,25 @@ namespace FNPlugin.Wasteheat
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
 
-                if (vessel.atmDensity > 0 || CanConvectInSpace())
+                if (CanConvect())
                 {
-                    atmosphere_modifier = (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * convectiveBonus + vessel.speed.Sqrt() + PartRotationDistance().Sqrt();
+                    double bonusCalculation;
 
-                    const double heatTransferCoefficient = 0.0005; // 500W/m2/K
+                    atmDensity = vessel.atmDensity;
+
+                    // density * exposed surface area * specific heat capacity
+                    bonusCalculation = (1 + (0.001 * (effectiveRadiatorArea + convectiveBonus) * 4183)) * part.submergedPortion;
+                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (0.005 * (effectiveRadiatorArea + convectiveBonus) * 10)) * (1 - part.submergedPortion);
+
+                    partRotationDistance = PartRotationDistance();
+                    atmosphere_modifier = bonusCalculation * Math.Min(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
+
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
-                    submergedModifier = Math.Max(part.submergedPortion * 10, 1);
 
-                    var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient * submergedModifier;
+                    // 700W/m2/K for water, 500W/m2/K for air
+                    double heatTransferCoefficient = (part.submergedPortion > 0) ? 0.0007 : 0.0005;
+                    
+                    var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient;
 
                     if (!radiatorIsEnabled)
                         convPowerDissipation *= 0.25;
@@ -1489,9 +1502,9 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        protected virtual bool CanConvectInSpace()
+        protected virtual bool CanConvect()
         {
-            return false;
+            return vessel.atmDensity > 0;
         }
 
         private double CalculateInstantaneousRadTemp()
