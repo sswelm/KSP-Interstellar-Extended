@@ -1665,15 +1665,12 @@ namespace FNPlugin
 
             maxThrustOnEngine = (float)Math.Max(base_max_thrust, minimumThrust);
             myAttachedEngine.maxThrust = maxThrustOnEngine;
-
-            var max_thrust_in_current_atmosphere = max_thrust_in_space;
-
             UpdateAtmosphericPresureTreshold();
 
             // update engine thrust/ISP for thermal noozle
             if (!_currentpropellant_is_jet)
             {
-                max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, minimumThrust);
+                double max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, minimumThrust);
 
                 var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(max_thrust_in_current_atmosphere / max_thrust_in_space, 0.01) : 0.01;
                 _minISP = _maxISP * thrustAtmosphereRatio;
@@ -2427,14 +2424,19 @@ namespace FNPlugin
 
             var propNodes = upgraded && isJet ? getPropellantsHybrid() : getPropellants(isJet);
 
-            var returnStr = Localizer.Format("#LOC_KSPIE_ThermalNozzleController_Info1") +"\n";//Thrust: Variable
+            var returnStr = StringBuilderCache.Acquire();
+            returnStr.AppendLine(Localizer.Format("#LOC_KSPIE_ThermalNozzleController_Info1"));//Thrust: Variable
             foreach (var propellantNode in propNodes)
             {
                 var ispMultiplier = float.Parse(propellantNode.GetValue("ispMultiplier"));
                 var guiname = propellantNode.GetValue("guiName");
-                returnStr = returnStr + "--" + guiname + "--\n" + "ISP: " + ispMultiplier.ToString("0.000") + " x " + EffectiveCoreTempIspMult.ToString("0.000") + " x Sqrt(Core Temperature)" + "\n";
+                returnStr.Append("--");
+                returnStr.Append(guiname);
+                returnStr.Append("--\nISP: ");
+                returnStr.Append((ispMultiplier * EffectiveCoreTempIspMult).ToString("0.000"));
+                returnStr.AppendLine(" x Sqrt(Core Temperature)");
             }
-            return returnStr;
+            return returnStr.ToStringAndRelease();
         }
 
         public override int getPowerPriority()

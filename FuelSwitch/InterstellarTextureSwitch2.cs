@@ -309,23 +309,24 @@ namespace InterstellarFuelSwitch
             if (showInfo)
             {
                 var variantList = ParseTools.ParseNames(textureNames.Length > 0 ? textureNames : mapNames);
-
                 textureDisplayList = ParseTools.ParseNames(textureDisplayNames);
-                var info = new StringBuilder();
+
+                var info = StringBuilderCache.Acquire();
                 info.AppendLine(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfo"));//"Alternate textures available:"
                 if (variantList.Count == 0)
                 {
                     if (variantList.Count == 0)
                         info.AppendLine(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNone"));//"None"
                 }
+
                 for (var i = 0; i < variantList.Count; i++)
                 {
-                    info.AppendLine(i > textureDisplayList.Count - 1
-                        ? getTextureDisplayName(variantList[i])
-                        : textureDisplayList[i]);
+                    info.AppendLine(i > textureDisplayList.Count - 1 ?
+                        getTextureDisplayName(variantList[i]) : textureDisplayList[i]);
                 }
-                info.AppendLine("\n"+Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNext"));//Use the Next Texture button on the right click menu.
-                return info.ToString();
+
+                info.AppendLine().AppendLine().Append(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNext"));//Use the Next Texture button on the right click menu.
+                return info.ToStringAndRelease();
             }
             else
                 return string.Empty;

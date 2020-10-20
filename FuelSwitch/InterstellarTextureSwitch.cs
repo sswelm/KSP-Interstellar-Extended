@@ -179,8 +179,8 @@ namespace InterstellarFuelSwitch
 
         public override string GetInfo()
         {
-            var info = new StringBuilder();
-            info.AppendLine(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfo") + ":");
+            var info = StringBuilderCache.Acquire();
+            info.Append(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfo")).AppendLine(":");
             if (texList.Count == 0)
             {
                 if (!texListDictionary.TryGetValue(uniqueModuleID, out texList))
@@ -194,8 +194,8 @@ namespace InterstellarFuelSwitch
                 if (splitString.Length > 0)
                     info.AppendLine(splitString[splitString.Length - 1]);
             }
-            info.AppendLine("\n"+Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNext"));//Use the Next Texture button on the right click menu."
-            return info.ToString();
+            info.AppendLine().AppendLine().Append(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNext"));//Use the Next Texture button on the right click menu."
+            return info.ToStringAndRelease();
         }
 
         public override void OnLoad(ConfigNode node)

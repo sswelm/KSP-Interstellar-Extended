@@ -217,7 +217,7 @@ namespace FNPlugin
 
         [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotbathTechLevel")]//Hotbath TechLevel
         public int hothBathtechLevel;
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotBathTemperature", guiUnits = " K")]//HotBath Temperature
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotBathTemperature", guiUnits = " K")]//HotBath Temperature
         public double hothBathTemperature = 3200;
 
         [KSPField]
@@ -311,10 +311,14 @@ namespace FNPlugin
 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumInputPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Input Power
         public double maximumPower = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumElectricPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Electric Power
+        [KSPField]
         public double maximumElectricPower = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumThermalPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Thermal Power
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumElectricPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Electric Power
+        public double maximumElectricPowerScaled;
+        [KSPField]
         public double maximumThermalPower = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumThermalPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Thermal Power
+        public double maximumThermalPowerScaled;
 
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Dissipation", guiUnits = " MW", guiFormat = "F3")]//Dissipation
         public double dissipationInMegaJoules;
@@ -701,18 +705,11 @@ namespace FNPlugin
 
         public override void AttachThermalReciever(Guid key, double radius)
         {
-            try
+            if (!connectedRecievers.ContainsKey(key))
             {
-                if (!connectedRecievers.ContainsKey(key))
-                {
-                    connectedRecievers.Add(key, radius);
-                    connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
-                    connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum);
-                }
-            }
-            catch (Exception error)
-            {
-                UnityEngine.Debug.LogError("[KSPI]: InterstellarReactor.ConnectReciever exception: " + error.Message);
+                connectedRecievers.Add(key, radius);
+                connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
+                connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum);
             }
         }
 
@@ -732,11 +729,7 @@ namespace FNPlugin
 
         public override double GetFractionThermalReciever(Guid key)
         {
-            double result;
-            if (connectedRecieversFraction.TryGetValue(key, out result))
-                return result;
-            else
-                return 0;
+            return connectedRecieversFraction.TryGetValue(key, out double result) ? result : 0.0;
         }
 
         protected Animation animT;
@@ -753,7 +746,6 @@ namespace FNPlugin
         protected long deactivate_timer = 0;
 
         protected bool has_transmitter = false;
-
 
         public double RawTotalPowerProduced { get { return ThermalPower * TimeWarp.fixedDeltaTime; } }
 
@@ -992,9 +984,7 @@ namespace FNPlugin
             double EnergyLaser = Wattage * Time;
             double EnergySingle;
             double MomentumSingle;
-            double relativisticMassSingle;
             double MomentumWhole;
-            relativisticMassSingle = 6.626e-34 / (3e8 * Lambda);
 
             EnergySingle = 6.626e-34 * 3e8 / Lambda;
             PhotonImpulse = EnergyLaser / EnergySingle;
@@ -1006,7 +996,9 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER };
+            string[] resources_to_supply = new string[] {
+                ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER
+            };
 
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
@@ -1014,6 +1006,9 @@ namespace FNPlugin
             DetermineTechLevel();
             DetermineCoreTemperature();
             ConnectToModuleGenerator();
+
+            maximumThermalPowerScaled = maximumThermalPower * powerMult;
+            maximumElectricPowerScaled = maximumElectricPower * powerMult;
 
             // while in edit mode, listen to on attach/detach event
             if (state == StartState.Editor)
@@ -1127,7 +1122,11 @@ namespace FNPlugin
                 isInRatiatorMode.guiActiveEditor = fnRadiator != null;
             }
 
-            if (state == StartState.Editor) { return; }
+            if (state == StartState.Editor)
+            {
+                CalculateInputPower();
+                return;
+            }
 
             windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidthWide * 1 + ValueWidthNormal * 10, 100);
 
@@ -1141,7 +1140,7 @@ namespace FNPlugin
 
             if (forceActivateAtStartup)
             {
-                UnityEngine.Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
+                Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
                 part.force_activate();
             }
 
@@ -1150,9 +1149,9 @@ namespace FNPlugin
                 var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is BeamedPowerReceiver && (BeamedPowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
 
                 if (result == null || result.Source == null)
-                    UnityEngine.Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
+                    Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
                 else
-                    ((BeamedPowerReceiver)(result.Source)).RegisterAsSlave(this);
+                    ((BeamedPowerReceiver)result.Source).RegisterAsSlave(this);
             }
 
             if (maintainResourceBuffers)
@@ -1162,11 +1161,11 @@ namespace FNPlugin
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
                 _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
-                _resourceBuffers.Init(this.part);
+                _resourceBuffers.Init(part);
             }
 
             // look for any transmitter partModule
@@ -1176,7 +1175,6 @@ namespace FNPlugin
                 has_transmitter = true;
             }
 
-            //activeRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
             deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
             if (deployableRadiator != null)
             {
@@ -1190,7 +1188,7 @@ namespace FNPlugin
                 }
             }
 
-            if (!String.IsNullOrEmpty(animTName))
+            if (!string.IsNullOrEmpty(animTName))
             {
                 animT = part.FindModelAnimators(animTName).FirstOrDefault();
                 if (animT != null)
@@ -1219,7 +1217,7 @@ namespace FNPlugin
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                     _resourceBuffers.UpdateBuffers();
                 }
             }
@@ -1244,7 +1242,7 @@ namespace FNPlugin
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
                     _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower * powerDownFraction);
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                     _resourceBuffers.UpdateBuffers();
                 }
             }
@@ -1315,130 +1313,104 @@ namespace FNPlugin
 
         private void InitializeBrandwitdhSelector()
         {
-            try
-            {
-                Debug.Log("[KSPI]: Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
+            Debug.Log("[KSPI]: Setup Receiver BandWidth Configurations for " + part.partInfo.title);
 
-                _powerInputMegajoulesField = Fields["powerInputMegajoules"];
-                _maximumWavelengthField = Fields["maximumWavelength"];
-                _minimumWavelengthField = Fields["minimumWavelength"];
-                _solarFacingFactorField = Fields["solarFacingFactor"];
-                _linkedForRelayField = Fields["linkedForRelay"];
-                _slavesAmountField = Fields["slavesAmount"];
-                _ThermalPowerField = Fields["ThermalPower"];
-                _minimumConsumptionPercentageField = Fields["minimumConsumptionPercentage"];
-                _maximumConsumptionPercentageField = Fields["maximumConsumptionPercentage"];
-                _beamedpowerField = Fields["beamedpower"];
-                _solarFluxField = Fields["solarFlux"];
-                _diameterField = Fields["diameter"];
+            _powerInputMegajoulesField = Fields["powerInputMegajoules"];
+            _maximumWavelengthField = Fields["maximumWavelength"];
+            _minimumWavelengthField = Fields["minimumWavelength"];
+            _solarFacingFactorField = Fields["solarFacingFactor"];
+            _linkedForRelayField = Fields["linkedForRelay"];
+            _slavesAmountField = Fields["slavesAmount"];
+            _ThermalPowerField = Fields["ThermalPower"];
+            _minimumConsumptionPercentageField = Fields["minimumConsumptionPercentage"];
+            _maximumConsumptionPercentageField = Fields["maximumConsumptionPercentage"];
+            _beamedpowerField = Fields["beamedpower"];
+            _solarFluxField = Fields["solarFlux"];
+            _diameterField = Fields["diameter"];
 
-                _connectedsatsField = Fields["connectedsats"];
-                _connectedrelaysField = Fields["connectedrelays"];
-                _networkDepthStringField = Fields["networkDepthString"];
+            _connectedsatsField = Fields["connectedsats"];
+            _connectedrelaysField = Fields["connectedrelays"];
+            _networkDepthStringField = Fields["networkDepthString"];
 
-                _bandWidthNameField = Fields["bandWidthName"];
-                _bandWidthNameField.guiActiveEditor = showBandWidthName || !canSwitchBandwidthInEditor;
-                _bandWidthNameField.guiActive = showBandWidthName || !canSwitchBandwidthInFlight;
+            _bandWidthNameField = Fields["bandWidthName"];
+            _bandWidthNameField.guiActiveEditor = showBandWidthName || !canSwitchBandwidthInEditor;
+            _bandWidthNameField.guiActive = showBandWidthName || !canSwitchBandwidthInFlight;
 
-                _selectedBandwidthConfigurationField = Fields["selectedBandwidthConfiguration"];
-                _selectedBandwidthConfigurationField.guiActiveEditor = showSelectedBandwidthConfiguration && canSwitchBandwidthInEditor;
-                _selectedBandwidthConfigurationField.guiActive = showSelectedBandwidthConfiguration && canSwitchBandwidthInFlight;
+            _selectedBandwidthConfigurationField = Fields["selectedBandwidthConfiguration"];
+            _selectedBandwidthConfigurationField.guiActiveEditor = showSelectedBandwidthConfiguration && canSwitchBandwidthInEditor;
+            _selectedBandwidthConfigurationField.guiActive = showSelectedBandwidthConfiguration && canSwitchBandwidthInFlight;
 
-                var names = BandwidthConverters.Select(m => m.bandwidthName).ToArray();
+            var names = BandwidthConverters.Select(m => m.bandwidthName).ToArray();
 
-                var chooseOptionEditor = _selectedBandwidthConfigurationField.uiControlEditor as UI_ChooseOption;
-                chooseOptionEditor.options = names;
+            var chooseOptionEditor = _selectedBandwidthConfigurationField.uiControlEditor as UI_ChooseOption;
+            chooseOptionEditor.options = names;
 
-                var chooseOptionFlight = _selectedBandwidthConfigurationField.uiControlFlight as UI_ChooseOption;
-                chooseOptionFlight.options = names;
+            var chooseOptionFlight = _selectedBandwidthConfigurationField.uiControlFlight as UI_ChooseOption;
+            chooseOptionFlight.options = names;
 
-                UpdateFromGUI(_selectedBandwidthConfigurationField, selectedBandwidthConfiguration);
+            UpdateFromGUI(_selectedBandwidthConfigurationField, selectedBandwidthConfiguration);
 
-                // connect on change event
-                chooseOptionEditor.onFieldChanged = UpdateFromGUI;
-                chooseOptionFlight.onFieldChanged = UpdateFromGUI;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Error in MicrowaveReceiver InitializeBrandwitdhSelector " + e.Message + " at " + e.StackTrace);
-            }
+            // connect on change event
+            chooseOptionEditor.onFieldChanged = UpdateFromGUI;
+            chooseOptionFlight.onFieldChanged = UpdateFromGUI;
         }
 
         private void LoadInitialConfiguration()
         {
-            try
+            isLoaded = true;
+
+            var currentWavelength = targetWavelength != 0 ? targetWavelength : 1;
+
+            Debug.Log("[KSPI]: LoadInitialConfiguration initialize initial beam configuration with wavelength target " + currentWavelength);
+
+            // find wavelength closes to target wavelength
+            activeBandwidthConfiguration = BandwidthConverters.FirstOrDefault();
+            bandWidthName = activeBandwidthConfiguration.bandwidthName;
+            selectedBandwidthConfiguration = 0;
+            var lowestWavelengthDifference = Math.Abs(currentWavelength - activeBandwidthConfiguration.TargetWavelength);
+
+            if (!BandwidthConverters.Any()) return;
+
+            foreach (var currentConfig in BandwidthConverters)
             {
-                isLoaded = true;
+                var configWaveLengthDifference = Math.Abs(currentWavelength - currentConfig.TargetWavelength);
 
-                var currentWavelength = targetWavelength != 0 ? targetWavelength : 1;
+                if (!(configWaveLengthDifference < lowestWavelengthDifference)) continue;
 
-                Debug.Log("[KSPI]: LoadInitialConfiguration initialize initial beam configuration with wavelength target " + currentWavelength);
-
-                // find wavelength closes to target wavelength
-                activeBandwidthConfiguration = BandwidthConverters.FirstOrDefault();
+                activeBandwidthConfiguration = currentConfig;
+                lowestWavelengthDifference = configWaveLengthDifference;
+                selectedBandwidthConfiguration = BandwidthConverters.IndexOf(currentConfig);
                 bandWidthName = activeBandwidthConfiguration.bandwidthName;
-                selectedBandwidthConfiguration = 0;
-                var lowestWavelengthDifference = Math.Abs(currentWavelength - activeBandwidthConfiguration.TargetWavelength);
-
-                if (!BandwidthConverters.Any()) return;
-
-                foreach (var currentConfig in BandwidthConverters)
-                {
-                    var configWaveLengthDifference = Math.Abs(currentWavelength - currentConfig.TargetWavelength);
-
-                    if (!(configWaveLengthDifference < lowestWavelengthDifference)) continue;
-
-                    activeBandwidthConfiguration = currentConfig;
-                    lowestWavelengthDifference = configWaveLengthDifference;
-                    selectedBandwidthConfiguration = BandwidthConverters.IndexOf(currentConfig);
-                    bandWidthName = activeBandwidthConfiguration.bandwidthName;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Error in MicrowaveReceiver LoadInitialConfiguration " + e.Message + " at " + e.StackTrace);
             }
         }
 
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
         {
-            try
+            if (!BandwidthConverters.Any())
+                return;
+
+            if (isLoaded == false)
+                LoadInitialConfiguration();
+            else
             {
-                //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
-
-                if (!BandwidthConverters.Any())
-                    return;
-
-                //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
-
-                if (isLoaded == false)
-                    LoadInitialConfiguration();
+                if (selectedBandwidthConfiguration < BandwidthConverters.Count)
+                {
+                    activeBandwidthConfiguration = BandwidthConverters[selectedBandwidthConfiguration];
+                }
                 else
                 {
-                    if (selectedBandwidthConfiguration < BandwidthConverters.Count)
-                    {
-                        //Debug.Log("[KSPI]: BeamedPowerReceiver UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
-                        activeBandwidthConfiguration = BandwidthConverters[selectedBandwidthConfiguration];
-                    }
-                    else
-                    {
-                        //Debug.Log("[KSPI]: BeamedPowerReceiver BeamedPowerReceiver UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
-                        selectedBandwidthConfiguration = BandwidthConverters.Count - 1;
-                        activeBandwidthConfiguration = BandwidthConverters.Last();
-                    }
+                    selectedBandwidthConfiguration = BandwidthConverters.Count - 1;
+                    activeBandwidthConfiguration = BandwidthConverters.Last();
                 }
-
-                if (activeBandwidthConfiguration == null)
-                {
-                    Debug.LogWarning("[KSPI]: BeamedPowerReceiver UpdateFromGUI failed to find BandwidthConfiguration");
-                    return;
-                }
-
-                UpdateProperties();
             }
-            catch (Exception e)
+
+            if (activeBandwidthConfiguration == null)
             {
-                Debug.LogError("[KSPI]: Error in MicrowaveReceiver UpdateFromGUI " + e.Message + " at " + e.StackTrace);
+                Debug.LogWarning("[KSPI]: BeamedPowerReceiver UpdateFromGUI failed to find BandwidthConfiguration");
+            }
+            else
+            {
+                UpdateProperties();
             }
         }
 
@@ -1974,11 +1946,9 @@ namespace FNPlugin
                 //loop all connected beamed power transmitters
                 foreach (var connectedTransmitterEntry in InterstellarBeamedPowerHelper.GetConnectedTransmitters(this))
                 {
-                    ReceivedPowerData beamedPowerData;
-
                     var transmitter = connectedTransmitterEntry.Key;
 
-                    if (!received_power.TryGetValue(transmitter.Vessel, out beamedPowerData))
+                    if (!received_power.TryGetValue(transmitter.Vessel, out ReceivedPowerData beamedPowerData))
                     {
                         Debug.Log("[KSPI]: Added ReceivedPowerData for " + transmitter.Vessel.name);
                         beamedPowerData = new ReceivedPowerData
@@ -2066,11 +2036,6 @@ namespace FNPlugin
                         var satPower = Math.Min(currentRecievalPower, beamNetworkPower * efficiencyFraction);
                         var satPowerMax = Math.Min(maximumRecievalPower, beamNetworkPower * efficiencyFraction);
                         var satWasteheat = Math.Min(currentRecievalPower, beamNetworkPower * (1 - efficiencyFraction));
-
-                        // calculate wasteheat beamed energy absorbed by vessel;
-                        //var diameterToSpotSizeRatio = beamedPowerData.Route.Spotsize > 0 ? Math.Min(1, diameter / beamedPowerData.Route.Spotsize) : 1;
-                        //var lostEnergyWasteheatRatio = Math.Max(0,  Math.Min(1, Math.Log10(Math.Sqrt(1 / selectedBrandWith.TargetWavelength)) - Math.PI));
-                        //var missedPowerPowerWasteheat = remainingPowerInBeam * lostEnergyWasteheatRatio * Math.Min(0.25, Math.Pow(1 - diameterToSpotSizeRatio, 2 ));
 
                         // calculate wasteheat by power conversion
                         var conversionWasteheat = (thermalMode ? 0.05 : 1) * satPower * (1 - efficiencyFraction);

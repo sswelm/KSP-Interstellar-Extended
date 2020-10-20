@@ -49,10 +49,7 @@ namespace FNPlugin.Science
 
         public override string GetInfo()
         {
-            var info = new StringBuilder();
-            info.AppendLine("Minimum experiment altitude" + maximumDistanceInKm + " km");
-
-            return info.ToString();
+            return "Minimum experiment altitude: " + maximumDistanceInKm.ToString("F2") + " km";
         }
     }
 }

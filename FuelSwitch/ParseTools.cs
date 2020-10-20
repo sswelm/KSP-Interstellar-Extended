@@ -8,20 +8,16 @@ namespace InterstellarFuelSwitch
 {
     public static class ParseTools
     {
-
         public static double ParseDouble(string data)
         {
-            var trimmed = data.Trim();
+            string trimmed = data.Trim();
 
-            if (trimmed == String.Empty)
-                return 0;
-
-            return double.Parse(data);
+            return trimmed != string.Empty && double.TryParse(trimmed, out double result) ? result : 0.0;
         }
 
         public static List<double> ParseDoubles<T>(string stringOfDoubles, Expression<Func<T>> expr)
         {
-            if (String.IsNullOrEmpty(stringOfDoubles))
+            if (string.IsNullOrEmpty(stringOfDoubles))
                 return new List<double>();
 
             var body = (MemberExpression)expr.Body;
@@ -35,11 +31,10 @@ namespace InterstellarFuelSwitch
             var array = stringOfDoubles.Trim().Split(';');
             foreach (var arrayItem in array)
             {
-                double item;
-                if (Double.TryParse(arrayItem.Trim(), out item))
+                if (double.TryParse(arrayItem.Trim(), out double item))
                     list.Add(item);
                 else
-                    Debug.Log("InsterstellarFuelSwitch: parseDoubles error in '" + stringOfDoubles + "', invalid float: " + errorDisplayName +  " [len:" + arrayItem.Length + "] '" + arrayItem + "']");
+                    Debug.Log("InsterstellarFuelSwitch: parseDoubles error in '" + stringOfDoubles + "', invalid float: " + errorDisplayName + " [len:" + arrayItem.Length + "] '" + arrayItem + "']");
             }
             return list;
         }
@@ -50,8 +45,7 @@ namespace InterstellarFuelSwitch
             string[] valueArray = stringOfInts.Split(';');
             for (int i = 0; i < valueArray.Length; i++)
             {
-                int newValue = 0;
-                if (int.TryParse(valueArray[i], out newValue))
+                if (int.TryParse(valueArray[i], out int newValue))
                     newIntList.Add(newValue);
                 else
                     Debug.Log("InsterstellarFuelSwitch: error in '" + stringOfInts + "',  invalid integer: " + valueArray[i]);
@@ -61,12 +55,12 @@ namespace InterstellarFuelSwitch
 
         public static List<string> ParseNames(string names)
         {
-            return ParseNames(names, false, true, String.Empty);
+            return ParseNames(names, false, true, string.Empty);
         }
 
         public static List<string> ParseNames(string names, bool replaceBackslashErrors)
         {
-            return ParseNames(names, replaceBackslashErrors, true, String.Empty);
+            return ParseNames(names, replaceBackslashErrors, true, string.Empty);
         }
 
         public static List<string> ParseNames(string names, bool replaceBackslashErrors, bool trimWhiteSpace, string prefix)
@@ -74,7 +68,7 @@ namespace InterstellarFuelSwitch
             var source = names.Split(';',',').ToList<string>();
             for (var i = source.Count - 1; i >= 0; i--)
             {
-                if (source[i] == String.Empty)
+                if (source[i] == string.Empty)
                     source.RemoveAt(i);
             }
             if (trimWhiteSpace)
@@ -84,7 +78,7 @@ namespace InterstellarFuelSwitch
                     source[i] = source[i].Trim(' ');
                 }
             }
-            if (prefix != String.Empty)
+            if (prefix != string.Empty)
             {
                 for (var i = 0; i < source.Count; i++)
                 {

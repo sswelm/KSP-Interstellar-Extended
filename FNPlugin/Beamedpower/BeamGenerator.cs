@@ -3,7 +3,6 @@ using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using TweakScale;
 using UnityEngine;
 
@@ -408,9 +407,7 @@ namespace FNPlugin.Microwave
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            var moduleMassDelta = fixedMass ? 0 : targetMass - initialMass;
-
-            return (float)moduleMassDelta;
+            return (float)(fixedMass ? 0.0 : targetMass - initialMass);
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
@@ -464,57 +461,64 @@ namespace FNPlugin.Microwave
 
         public override string GetInfo()
         {
-            var sb = new StringBuilder();
+            var sb = StringBuilderCache.Acquire();
 
             sb.Append("<size=10>");
-            sb.AppendLine(Localizer.Format("#LOC_KSPIE_BeamGenerator_Type") + ": " + beamTypeName);//Type
-            sb.AppendLine(Localizer.Format("#LOC_KSPIE_BeamGenerator_CanSwitch") + ": " + DisplayBoolean(canSwitchWavelengthInFlight));//Can Switch In Flight
+            sb.Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_Type")).Append(": ").AppendLine(beamTypeName);//Type
+            sb.Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_CanSwitch")).Append(": ").AppendLine(RUIutils.GetYesNoUIString(canSwitchWavelengthInFlight));//Can Switch In Flight
             sb.AppendLine("</size>");
 
             if (!string.IsNullOrEmpty(techLevelMk2))
             {
-                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_upgradeTechnologies") + ":</color><size=10>");
-                if (!string.IsNullOrEmpty(techLevelMk1)) sb.AppendLine("<color=#ffff00ff>Mk1:</color> " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk1)));
-                if (!string.IsNullOrEmpty(techLevelMk2)) sb.AppendLine("<color=#ffdd00ff>Mk2:</color> " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk2)));
-                if (!string.IsNullOrEmpty(techLevelMk3)) sb.AppendLine("<color=#ffcc00ff>Mk3:</color> " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk3)));
-                if (!string.IsNullOrEmpty(techLevelMk4)) sb.AppendLine("<color=#ffbb00ff>Mk4:</color> " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk4)));
-                if (!string.IsNullOrEmpty(techLevelMk5)) sb.AppendLine("<color=#ffaa00ff>Mk5:</color> " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk5)));
-                sb.Append("</size>");
-                sb.AppendLine("");
+                sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_upgradeTechnologies")).AppendLine(":</color><size=10>");
+                if (!string.IsNullOrEmpty(techLevelMk1))
+                    sb.Append("<color=#ffff00ff>Mk1:</color> ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk1)));
+                if (!string.IsNullOrEmpty(techLevelMk2))
+                    sb.Append("<color=#ffdd00ff>Mk2:</color> ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk2)));
+                if (!string.IsNullOrEmpty(techLevelMk3))
+                    sb.Append("<color=#ffcc00ff>Mk3:</color> ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk3)));
+                if (!string.IsNullOrEmpty(techLevelMk4))
+                    sb.Append("<color=#ffbb00ff>Mk4:</color> ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk4)));
+                if (!string.IsNullOrEmpty(techLevelMk5))
+                    sb.Append("<color=#ffaa00ff>Mk5:</color> ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk5)));
+                sb.AppendLine("</size>");
             }
 
             if (_inlineConfigurations.Count <= 0) return sb.ToString();
 
-            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_atmosphericAbsorbtion") + ":</color>");
+            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_atmosphericAbsorbtion")).AppendLine(":</color>");
             foreach (var beamConfiguration in _inlineConfigurations)
             {
-                sb.Append("<size=10>" + ExtendWithSpace(beamConfiguration.atmosphericAbsorptionPercentage + "%", 4));
-                sb.Append(" / " + ExtendWithSpace(beamConfiguration.waterAbsorptionPercentage + "%", 4));
-                sb.Append("<color=#00ff00ff> " + beamConfiguration.beamWaveName + "</color>");
+                sb.Append("<size=10>").Append(ExtendWithSpace(beamConfiguration.atmosphericAbsorptionPercentage + "%", 4));
+                sb.Append(" / ").Append(ExtendWithSpace(beamConfiguration.waterAbsorptionPercentage + "%", 4));
+                sb.Append("<color=#00ff00ff> ").Append(beamConfiguration.beamWaveName).AppendLine("</color></size>");
+            }
+
+            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies")).AppendLine(":</color>");            
+            foreach (var beamConfiguration in _inlineConfigurations)
+            {
+                sb.Append("<size=10><color=#00ff00ff>").Append(beamConfiguration.beamWaveName).Append("</color>");
+                sb.Append("<color=#00e600ff> (").Append(WavelenthToText(beamConfiguration.wavelength)).AppendLine(")</color>  ");
+                if (beamConfiguration.efficiencyPercentage0 > 0)
+                    sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement0)).Append("Mk").
+                        Append(GetTechLevelFromTechId(beamConfiguration.techRequirement0)).Append(":</color> ").
+                        Append(beamConfiguration.efficiencyPercentage0).Append("% ");
+                if (beamConfiguration.efficiencyPercentage1 > 0)
+                    sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement1)).Append("Mk").
+                        Append(GetTechLevelFromTechId(beamConfiguration.techRequirement1)).Append(":</color> ")
+                        .Append(beamConfiguration.efficiencyPercentage1).Append("% ");
+                if (beamConfiguration.efficiencyPercentage2 > 0)
+                    sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement2)).Append("Mk").
+                        Append(GetTechLevelFromTechId(beamConfiguration.techRequirement2)).Append(":</color> ").
+                        Append(beamConfiguration.efficiencyPercentage2).Append("% ");
+                if (beamConfiguration.efficiencyPercentage3 > 0)
+                    sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement3)).Append("Mk").
+                        Append(GetTechLevelFromTechId(beamConfiguration.techRequirement3)).Append(":</color> ").
+                        Append(beamConfiguration.efficiencyPercentage3).Append("% ");
                 sb.AppendLine("</size>");
             }
 
-            sb.AppendLine("");
-            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies") + ":</color>");            
-
-            foreach (var beamConfiguration in _inlineConfigurations)
-            {
-                sb.Append("<size=10><color=#00ff00ff>" + beamConfiguration.beamWaveName + "</color>");
-                sb.AppendLine("<color=#00e600ff> (" + WavelenthToText(beamConfiguration.wavelength) + ")</color>");  
-                sb.Append("  ");
-                if (beamConfiguration.efficiencyPercentage0 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement0) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement0) + ":</color> " + beamConfiguration.efficiencyPercentage0 + "% ");
-                if (beamConfiguration.efficiencyPercentage1 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement1) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement1) + ":</color> " + beamConfiguration.efficiencyPercentage1 + "% ");
-                if (beamConfiguration.efficiencyPercentage2 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement2) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement2) + ":</color> " + beamConfiguration.efficiencyPercentage2 + "% ");
-                if (beamConfiguration.efficiencyPercentage3 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement3) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement3) + ":</color> " + beamConfiguration.efficiencyPercentage3 + "% ");
-                sb.AppendLine("</size>");
-            }
-
-            return sb.ToString();
-        }
-
-        private string DisplayBoolean(bool value)
-        {
-            return value ? "<color=green>Ѵ</color>" : "<color=red>X</color>";
+            return sb.ToStringAndRelease();
         }
 
         private string ExtendWithSpace(string input, int targetlength)

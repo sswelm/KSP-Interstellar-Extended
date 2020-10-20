@@ -158,10 +158,7 @@ namespace FNPlugin.Reactors
 
         public override string GetInfo()
         {
-            var info = new StringBuilder();
-            info.AppendLine("Maximum Power: " + ResourceManager.getPowerFormatString(maximumPowerCapacity));
-
-            return info.ToString();
+            return "Maximum Power: " + ResourceManager.getPowerFormatString(maximumPowerCapacity);
         }
     }
 }
