@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace FNPlugin.Wasteheat
 {
@@ -27,10 +28,10 @@ namespace FNPlugin.Wasteheat
         public float powerPriority = 5;
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F0"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 1F)]
-        public float surfaceArea = 100;
+        public float surfaceArea = 1;
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 0F)]
-        public float pumpSpeed = 100;
+        public float pumpSpeed = 1;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "intakeAtmSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
         public double intakeAtmSpecificHeatCapacity;
@@ -85,6 +86,43 @@ namespace FNPlugin.Wasteheat
 
         private double waterBoilPointInKelvin = 400; // at some stage, calculate it properly
 
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Upgrades applied")]
+        public string upgradeInformation;
+
+        [KSPField] public string surfaceAreaUpgradeMk1;
+        [KSPField] public string surfaceAreaUpgradeMk2;
+        [KSPField] public string surfaceAreaUpgradeMk3;
+        [KSPField] public string surfaceAreaUpgradeMk4;
+
+        [KSPField] public string pumpSpeedUpgradeMk1;
+        [KSPField] public string pumpSpeedUpgradeMk2;
+        [KSPField] public string pumpSpeedUpgradeMk3;
+        [KSPField] public string pumpSpeedUpgradeMk4;
+
+        [KSPField] public string storageTechUpgradeMk1;
+        [KSPField] public string storageTechUpgradeMk2;
+        [KSPField] public string storageTechUpgradeMk3;
+        [KSPField] public string storageTechUpgradeMk4;
+
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasSurfaceUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk1;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasSurfaceUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk2;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasSurfaceUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk3;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasSurfaceUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk4;
+
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasFanUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk1;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasFanUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk2;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasFanUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk3;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasFanUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk4;
+
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk1;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk2;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk3;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk4;
+
+        private const double defaultPumpSpeed = 1;
+        private const double defaultLqdStorage = 1;
+        private const double defaultSurfaceArea = 1;
+
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Show debug information", active = true)]
         public void ToggleHeatPumpDebugAction()
         {
@@ -115,9 +153,75 @@ namespace FNPlugin.Wasteheat
 
         }
 
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Recalculate upgrades", active = true)]
+        public void Recalculate()
+        {
+            processUpgrades();
+        }
+
+        private void handleUpgrades()
+        {
+            hasSurfaceUpgradeMk1 = PluginHelper.UpgradeAvailable(surfaceAreaUpgradeMk1);
+            hasSurfaceUpgradeMk2 = PluginHelper.UpgradeAvailable(surfaceAreaUpgradeMk2);
+            hasSurfaceUpgradeMk3 = PluginHelper.UpgradeAvailable(surfaceAreaUpgradeMk3);
+            hasSurfaceUpgradeMk4 = PluginHelper.UpgradeAvailable(surfaceAreaUpgradeMk4);
+
+            hasPumpUpgradeMk1 = PluginHelper.UpgradeAvailable(pumpSpeedUpgradeMk1);
+            hasPumpUpgradeMk2 = PluginHelper.UpgradeAvailable(pumpSpeedUpgradeMk2);
+            hasPumpUpgradeMk3 = PluginHelper.UpgradeAvailable(pumpSpeedUpgradeMk3);
+            hasPumpUpgradeMk4 = PluginHelper.UpgradeAvailable(pumpSpeedUpgradeMk4);
+
+            hasStorageUpgradeMk1 = PluginHelper.UpgradeAvailable(storageTechUpgradeMk1);
+            hasStorageUpgradeMk2 = PluginHelper.UpgradeAvailable(storageTechUpgradeMk2);
+            hasStorageUpgradeMk3 = PluginHelper.UpgradeAvailable(storageTechUpgradeMk3);
+            hasStorageUpgradeMk4 = PluginHelper.UpgradeAvailable(storageTechUpgradeMk4);
+
+        }
+
+        private void processUpgrades()
+        {
+            upgradeInformation = $"{hasSurfaceUpgradeMk1}/{hasSurfaceUpgradeMk2}/{hasSurfaceUpgradeMk3}/{hasSurfaceUpgradeMk4}, {hasPumpUpgradeMk1}/{hasPumpUpgradeMk2}/{hasPumpUpgradeMk3}/{hasPumpUpgradeMk4}, {hasStorageUpgradeMk1}/{hasStorageUpgradeMk2}/{hasStorageUpgradeMk3}/{hasStorageUpgradeMk4}";
+
+            pumpSpeed = (float)defaultPumpSpeed * part.rescaleFactor;
+
+            // pump speed is used as a direct multiplier
+            if (hasPumpUpgradeMk1) pumpSpeed += 10;
+            if (hasPumpUpgradeMk2) pumpSpeed += 10;
+            if (hasPumpUpgradeMk3) pumpSpeed += 20;
+            if (hasPumpUpgradeMk4) pumpSpeed += 50;
+
+            var storage = defaultLqdStorage * part.rescaleFactor;
+
+            // used to calculate coolant total, used as an indirect multiplier
+            if (hasStorageUpgradeMk1) storage += 10;
+            if (hasStorageUpgradeMk2) storage += 50;
+            if (hasStorageUpgradeMk3) storage += 100;
+            if (hasStorageUpgradeMk4) storage += 100;
+
+            var surface = defaultSurfaceArea * part.rescaleFactor;
+
+            if (hasSurfaceUpgradeMk1) surface += 5;
+            if (hasSurfaceUpgradeMk2) surface += 10;
+            if (hasSurfaceUpgradeMk3) surface += 15;
+            if (hasSurfaceUpgradeMk4) surface += 20;
+
+            var resource = part.Resources["IntakeLqd"];
+            resource.amount = 0;
+            resource.maxAmount = storage;
+
+            this.surfaceArea = (float)surface;
+
+        }
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
+
+            if (state == StartState.Editor)
+            {
+                handleUpgrades();    
+            }
+            processUpgrades();
 
             var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeLqd");
             var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeAir");
