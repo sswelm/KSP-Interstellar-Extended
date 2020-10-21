@@ -28,9 +28,9 @@ namespace FNPlugin.Wasteheat
         public bool isInitialized;
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Heat Dissipation", guiUnits = " MW", guiFormat = "F3")]//Dissipation
+        [KSPField(guiActive = true, guiName = "Heat Dissipation", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Dissipation
         public double dissipationInMegaJoules;
-        [KSPField(guiActive = true, guiName = "Heat Absorption", guiUnits = " MW", guiFormat = "F3")] //Absorption
+        [KSPField(guiActive = true, guiName = "Heat Absorption", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")] //Absorption
         public double deltaEnergyIncreaseInMegajoules;
         [KSPField(guiActive = true, guiName = "Stock SolarFlux", guiFormat = "F1")]//Solar Flux
         public double stockSolarFlux;

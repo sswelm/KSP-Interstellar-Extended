@@ -20,6 +20,9 @@ namespace InterstellarFuelSwitch
 
     class InterstellarResourceConverter : PartModule
     {
+        public const string GROUP = "InterstellarResourceConverter";
+        public const string GROUP_TITLE = "";
+
         // configs
         [KSPField]
         public bool showPowerUsageFloatRange = false;

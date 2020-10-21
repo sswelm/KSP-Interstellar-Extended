@@ -10,6 +10,9 @@ namespace FNPlugin.Collectors
 {
     class RegolithCollector : ResourceSuppliableModule
     {
+        public const string GROUP = "RegolithCollector";
+        public const string GROUP_TITLE = "#LOC_KSPIE_RegolithCollector_groupName";
+
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool bIsEnabled = false;
@@ -21,31 +24,31 @@ namespace FNPlugin.Collectors
         public double dLastRegolithConcentration;
 
         // Part properties
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_Drillsize", guiUnits = " m\xB3")]//Drill size
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_Drillsize", guiUnits = " m\xB3")]//Drill size
         public double drillSize = 0; // Volume of the collector's drill. Raise in part config (for larger drills) to make collecting faster.
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_Effectiveness", guiFormat = "P1")]//Drill effectiveness
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_Effectiveness", guiFormat = "P1")]//Drill effectiveness
         public double effectiveness = 1; // Effectiveness of the drill. Lower in part config (to a 0.5, for example) to slow down resource collecting.
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_MWRequirements", guiUnits = " MW")]//MW Requirements
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_MWRequirements", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//MW Requirements
         public double mwRequirements = 1; // MW requirements of the drill. Affects heat produced.
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_WasteHeatModifier", guiFormat = "P1")]//Waste Heat Modifier
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_WasteHeatModifier", guiFormat = "P1")]//Waste Heat Modifier
         public double wasteHeatModifier = 1; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
 
         // GUI
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_RegolithConcentration", guiFormat = "P1")]//Regolith Concentration
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_RegolithConcentration", guiFormat = "P1")]//Regolith Concentration
         protected string strRegolithConc = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Distancefromthesun")]//Distance from the sun
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Distancefromthesun")]//Distance from the sun
         protected string strStarDist = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Drillstatus")]//Drill status
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Drillstatus")]//Drill status
         protected string strCollectingStatus = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ReceivedPower")]//Power Usage
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ReceivedPower")]//Power Usage
         protected string strReceivedPower = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Altitude", guiUnits = " m")]//Altitude
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Altitude", guiUnits = " m")]//Altitude
         protected string strAltitude = "";
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ResourceProduction", guiUnits = " Unit/s")]//Resource Production
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ResourceProduction", guiUnits = " Unit/s")]//Resource Production
         public double resourceProduction;
 
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ActivateDrill", active = true)]//Activate Drill
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ActivateDrill", active = true)]//Activate Drill
         public void ActivateCollector()
         {
             if (IsCollectLegal() != true) return;
@@ -61,7 +64,7 @@ namespace FNPlugin.Collectors
             OnUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_DisableDrill", active = true)]//Disable Drill
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_DisableDrill", active = true)]//Disable Drill
         public void DisableCollector()
         {
             bIsEnabled = false;

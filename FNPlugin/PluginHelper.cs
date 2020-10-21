@@ -515,6 +515,12 @@ namespace FNPlugin
             return techName != String.Empty && UpgradeAvailable(techName);
         }
 
+        public static string DisplayTech(string techid)
+        {
+            return string.IsNullOrEmpty(techid) ? string.Empty : RUIutils.GetYesNoUIString(
+                UpgradeAvailable(techid)) + " " + Localizer.Format(GetTechTitleById(techid));
+        }
+
         public static string GetTechTitleById(string id)
         {
             var result = ResearchAndDevelopment.GetTechnologyTitle(id);
