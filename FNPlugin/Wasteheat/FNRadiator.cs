@@ -1614,8 +1614,8 @@ namespace FNPlugin.Wasteheat
                     atmDensity = vessel.atmDensity;
 
                     // density * exposed surface area * specific heat capacity
-                    bonusCalculation = (1 + (intakeLqdDensity * (effectiveRadiatorArea + convectiveBonus) * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
-                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * (effectiveRadiatorArea + convectiveBonus) * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
+                    bonusCalculation = (1 + (intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
+                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
 
                     partRotationDistance = PartRotationDistance();
                     atmosphere_modifier = bonusCalculation * Math.Min(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
