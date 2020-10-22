@@ -1,9 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using KSP.Localization;
+using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -832,16 +831,18 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            if (String.IsNullOrEmpty(ResourceCosts))
+            if (string.IsNullOrEmpty(ResourceCosts))
                 return "";
 
-            var output = new StringBuilder(Localizer.Format("#LOC_KSPIE_FNHabitat_ResourceCost") +":\n\n");//Resource Cost
+            var output = StringBuilderCache.Acquire();
+            output.Append(Localizer.Format("#LOC_KSPIE_FNHabitat_ResourceCost")).AppendLine(":");//Resource Cost
             var resources = ResourceCosts.Split(',');
             for (int i = 0; i < resources.Length; i += 2)
             {
-                output.Append(string.Format("{0} {1}\n", double.Parse(resources[i + 1]), resources[i]));
+                output.Append(double.Parse(resources[i + 1]).ToString("F1"));
+                output.Append(" ").AppendLine(resources[i]);
             }
-            return output.ToString();
+            return output.ToStringAndRelease();
         }
 
         public string[] GetDragCubeNames()

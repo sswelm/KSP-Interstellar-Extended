@@ -1299,53 +1299,71 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
+            var sb = StringBuilderCache.Acquire();
             DetermineTechLevel();
-
-            var sb = new StringBuilder();
 
             if (!string.IsNullOrEmpty(upgradeTechReq1))
             {
-                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generic_upgradeTechnologies") + ":</color><size=10>");
-                if (!string.IsNullOrEmpty(upgradeTechReq1)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq1)));
-                if (!string.IsNullOrEmpty(upgradeTechReq2)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq2)));
-                if (!string.IsNullOrEmpty(upgradeTechReq3)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq3)));
-                if (!string.IsNullOrEmpty(upgradeTechReq4)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq4)));
-                if (!string.IsNullOrEmpty(upgradeTechReq5)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq5)));
-                if (!string.IsNullOrEmpty(upgradeTechReq6)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq6)));
-                if (!string.IsNullOrEmpty(upgradeTechReq7)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq7)));
-                if (!string.IsNullOrEmpty(upgradeTechReq8)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq8)));
-                sb.Append("</size>");
-                sb.AppendLine();
+                sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Generic_upgradeTechnologies")).AppendLine(":</color><size=10>");
+                sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq1)));
+                if (!string.IsNullOrEmpty(upgradeTechReq2))
+                    sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq2)));
+                if (!string.IsNullOrEmpty(upgradeTechReq3))
+                    sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq3)));
+                if (!string.IsNullOrEmpty(upgradeTechReq4))
+                    sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq4)));
+                if (!string.IsNullOrEmpty(upgradeTechReq5))
+                    sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq5)));
+                if (!string.IsNullOrEmpty(upgradeTechReq6))
+                    sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq6)));
+                if (!string.IsNullOrEmpty(upgradeTechReq7))
+                    sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq7)));
+                if (!string.IsNullOrEmpty(upgradeTechReq8))
+                    sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq8)));
+                sb.AppendLine("</size>");
             }
 
-            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generic_EnginePerformance") + ":</color><size=10>");
+            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Generic_EnginePerformance")).AppendLine(":</color><size=10>");
             sb.AppendLine(FormatThrustStatistics(maxThrustMk1, thrustIspMk1));
-            if (!string.IsNullOrEmpty(upgradeTechReq1)) sb.AppendLine(FormatThrustStatistics(maxThrustMk2, thrustIspMk2));
-            if (!string.IsNullOrEmpty(upgradeTechReq2)) sb.AppendLine(FormatThrustStatistics(maxThrustMk3, thrustIspMk3));
-            if (!string.IsNullOrEmpty(upgradeTechReq3)) sb.AppendLine(FormatThrustStatistics(maxThrustMk4, thrustIspMk4));
-            if (!string.IsNullOrEmpty(upgradeTechReq4)) sb.AppendLine(FormatThrustStatistics(maxThrustMk5, thrustIspMk5));
-            if (!string.IsNullOrEmpty(upgradeTechReq5)) sb.AppendLine(FormatThrustStatistics(maxThrustMk6, thrustIspMk6));
-            if (!string.IsNullOrEmpty(upgradeTechReq6)) sb.AppendLine(FormatThrustStatistics(maxThrustMk7, thrustIspMk7));
-            if (!string.IsNullOrEmpty(upgradeTechReq7)) sb.AppendLine(FormatThrustStatistics(maxThrustMk8, thrustIspMk8));
-            if (!string.IsNullOrEmpty(upgradeTechReq8)) sb.AppendLine(FormatThrustStatistics(maxThrustMk9, thrustIspMk9));
-            
-            sb.Append("</size>");
-            sb.AppendLine();
+            if (!string.IsNullOrEmpty(upgradeTechReq1))
+                sb.AppendLine(FormatThrustStatistics(maxThrustMk2, thrustIspMk2));
+            if (!string.IsNullOrEmpty(upgradeTechReq2))
+                sb.AppendLine(FormatThrustStatistics(maxThrustMk3, thrustIspMk3));
+            if (!string.IsNullOrEmpty(upgradeTechReq3))
+                sb.AppendLine(FormatThrustStatistics(maxThrustMk4, thrustIspMk4));
+            if (!string.IsNullOrEmpty(upgradeTechReq4))
+                sb.AppendLine(FormatThrustStatistics(maxThrustMk5, thrustIspMk5));
+            if (!string.IsNullOrEmpty(upgradeTechReq5))
+                sb.AppendLine(FormatThrustStatistics(maxThrustMk6, thrustIspMk6));
+            if (!string.IsNullOrEmpty(upgradeTechReq6))
+                sb.AppendLine(FormatThrustStatistics(maxThrustMk7, thrustIspMk7));
+            if (!string.IsNullOrEmpty(upgradeTechReq7))
+                sb.AppendLine(FormatThrustStatistics(maxThrustMk8, thrustIspMk8));
+            if (!string.IsNullOrEmpty(upgradeTechReq8))
+                sb.AppendLine(FormatThrustStatistics(maxThrustMk9, thrustIspMk9));
+            sb.AppendLine("</size>");
 
-            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generic_PowerRequirementAndWasteheat") + ":</color><size=10>");
+            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Generic_PowerRequirementAndWasteheat")).AppendLine(":</color><size=10>");
             sb.AppendLine(FormatPowerStatistics(powerRequirementMk1, wasteheatMk1));
-            if (!string.IsNullOrEmpty(upgradeTechReq1)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk2, wasteheatMk2));
-            if (!string.IsNullOrEmpty(upgradeTechReq2)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk3, wasteheatMk3));
-            if (!string.IsNullOrEmpty(upgradeTechReq3)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk4, wasteheatMk4));
-            if (!string.IsNullOrEmpty(upgradeTechReq4)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk5, wasteheatMk5));
-            if (!string.IsNullOrEmpty(upgradeTechReq5)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk6, wasteheatMk6));
-            if (!string.IsNullOrEmpty(upgradeTechReq6)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk7, wasteheatMk7));
-            if (!string.IsNullOrEmpty(upgradeTechReq7)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk8, wasteheatMk8));
-            if (!string.IsNullOrEmpty(upgradeTechReq8)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk9, wasteheatMk9));
+            if (!string.IsNullOrEmpty(upgradeTechReq1))
+                sb.AppendLine(FormatPowerStatistics(powerRequirementMk2, wasteheatMk2));
+            if (!string.IsNullOrEmpty(upgradeTechReq2))
+                sb.AppendLine(FormatPowerStatistics(powerRequirementMk3, wasteheatMk3));
+            if (!string.IsNullOrEmpty(upgradeTechReq3))
+                sb.AppendLine(FormatPowerStatistics(powerRequirementMk4, wasteheatMk4));
+            if (!string.IsNullOrEmpty(upgradeTechReq4))
+                sb.AppendLine(FormatPowerStatistics(powerRequirementMk5, wasteheatMk5));
+            if (!string.IsNullOrEmpty(upgradeTechReq5))
+                sb.AppendLine(FormatPowerStatistics(powerRequirementMk6, wasteheatMk6));
+            if (!string.IsNullOrEmpty(upgradeTechReq6))
+                sb.AppendLine(FormatPowerStatistics(powerRequirementMk7, wasteheatMk7));
+            if (!string.IsNullOrEmpty(upgradeTechReq7))
+                sb.AppendLine(FormatPowerStatistics(powerRequirementMk8, wasteheatMk8));
+            if (!string.IsNullOrEmpty(upgradeTechReq8))
+                sb.AppendLine(FormatPowerStatistics(powerRequirementMk9, wasteheatMk9));
             sb.Append("</size>");
 
-            return sb.ToString();
+            return sb.ToStringAndRelease();
         }
     }
 }
-

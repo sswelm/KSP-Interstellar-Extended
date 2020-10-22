@@ -602,7 +602,7 @@ namespace PhotonSail
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return (float)(initialMass * massTechMultiplier - initialMass);
+            return (float)(initialMass * (massTechMultiplier - 1.0));
         }
 
         private void CreateBeamArray()

@@ -1,7 +1,4 @@
-﻿using System.Text;
-using KSP.Localization;
-
-namespace FNPlugin.Microwave
+﻿namespace FNPlugin.Microwave
 {
     [KSPModule("#LOC_KSPIE_BeamConfiguration_MouduleName")]//Beamed Power Transmit Configuration
     public class BeamConfiguration : PartModule
@@ -30,37 +27,5 @@ namespace FNPlugin.Microwave
         public double efficiencyPercentage3 = 0;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_BeamConfiguration_TechRequirement3")]//Tech Requirement 3
         public string techRequirement3 = "";
-
-
-        //public override string GetInfo()
-        //{
-        //    var info = new StringBuilder();
-
-        //    info.AppendLine("Name: " + beamWaveName);
-        //    info.AppendLine("Wavelength: " + wavelength);
-
-        //    if (!string.IsNullOrEmpty(techRequirement0))
-        //    {
-        //        info.AppendLine("Mk1 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement0)));
-        //        info.AppendLine("Mk1 efficiency: " + efficiencyPercentage0 + "%");
-        //    }
-        //    if (!string.IsNullOrEmpty(techRequirement1))
-        //    {
-        //        info.AppendLine("Mk2 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement1)));
-        //        info.AppendLine("Mk2 efficiency: " + efficiencyPercentage1 + "%");
-        //    }
-        //    if (!string.IsNullOrEmpty(techRequirement2))
-        //    {
-        //        info.AppendLine("Mk3 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement2)));
-        //        info.AppendLine("Mk3 efficiency: " + efficiencyPercentage2 + "%");
-        //    }
-        //    if (!string.IsNullOrEmpty(techRequirement3))
-        //    {
-        //        info.AppendLine("Mk4 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement3)));
-        //        info.AppendLine("Mk4 efficiency: " + efficiencyPercentage3 + "%");
-        //    }
-
-        //    return info.ToString();
-        //}
     }
 }

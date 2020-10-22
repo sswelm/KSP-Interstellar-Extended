@@ -1,12 +1,10 @@
-﻿using System;
-using System.Text;
+﻿using FNPlugin.Extensions;
+using FNPlugin.Microwave;
+using KSP.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using FNPlugin.Microwave;
-using FNPlugin.Redist;
-using FNPlugin.Extensions;
-using KSP.Localization;
 
 namespace FNPlugin.Beamedpower
 {
@@ -1031,14 +1029,18 @@ namespace FNPlugin.Beamedpower
 
         public override string GetInfo()
         {
-            var info = new StringBuilder();
+            var info = StringBuilderCache.Acquire();
 
-            info.AppendLine(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info1") +": " + apertureDiameter + " m");//Aperture Diameter
-            info.AppendLine(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info2") +": " + isMirror.ToString());//Can Mirror power
-            info.AppendLine(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info3") +": " + canTransmit.ToString());//Can Transmit power
-            info.AppendLine(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info4") +" " + buildInRelay.ToString());//Can Relay independantly
+            info.Append(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info1"));//Aperture Diameter
+            info.Append(": ").Append(apertureDiameter.ToString("F1")).AppendLine(" m");
+            info.Append(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info2"));//Can Mirror power
+            info.Append(": ").AppendLine(RUIutils.GetYesNoUIString(isMirror));
+            info.Append(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info3"));//Can Transmit power
+            info.Append(": ").AppendLine(RUIutils.GetYesNoUIString(canTransmit));
+            info.Append(Localizer.Format("#LOC_KSPIE_MicrowavePowerTransmitter_info4"));//Can Relay independantly
+            info.Append(": ").AppendLine(RUIutils.GetYesNoUIString(buildInRelay));
 
-            return info.ToString();
+            return info.ToStringAndRelease();
         }
     }
 }

@@ -1,8 +1,4 @@
-﻿using System.Text;
-using System;
-using System.Linq;
-using KSP.Localization;
-using KSP.UI.Screens;
+﻿using KSP.Localization;
 
 namespace FNPlugin.Microwave
 {
@@ -138,39 +134,44 @@ namespace FNPlugin.Microwave
 
         public override string GetInfo()
         {
-            var info = new StringBuilder();
+            var info = StringBuilderCache.Acquire();
 
             info.AppendLine("<size=10>");
-            info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_InfoName") + ": " + bandwidthName);//Name
-            info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Bandwidthstart") +": " + minimumWavelength + " m");//Bandwidth start
-            info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Bandwidthend") +": " + maximumWavelength + " m");//Bandwidth end
+            info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_InfoName")).Append(": ").AppendLine(bandwidthName);//Name
+            info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Bandwidthstart")).Append(": ").Append(minimumWavelength).AppendLine(" m");//Bandwidth start
+            info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Bandwidthend")).Append(": ").Append(maximumWavelength).AppendLine(" m");//Bandwidth end
 
             if (!string.IsNullOrEmpty(techRequirement0))
             {
-                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk1technode") +": \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement0)));//Mk1 technode
-                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk1efficiency") +": " + efficiencyPercentage0 + "%");//Mk1 efficiency
+                info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk1technode")).AppendLine(": ");
+                info.AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techRequirement0)));//Mk1 technode
+                info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk1efficiency")).Append(": ");
+                info.Append(efficiencyPercentage0.ToString("F0")).AppendLine("%");//Mk1 efficiency
             }
             if (!string.IsNullOrEmpty(techRequirement1))
             {
-                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk2technode") +": \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement1)));//Mk2 technode
-                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk2efficiency") +": " + efficiencyPercentage1 + "%");//Mk2 efficiency
+                info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk2technode")).AppendLine(": ");
+                info.AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techRequirement1)));//Mk2 technode
+                info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk2efficiency")).Append(": ");
+                info.Append(efficiencyPercentage1.ToString("F0")).AppendLine("%");//Mk2 efficiency
             }
             if (!string.IsNullOrEmpty(techRequirement2))
             {
-                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk3technode") +": \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement2)));//Mk3 technode
-                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk3efficiency") +": " + efficiencyPercentage2 + "%");//Mk3 efficiency
+                info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk3technode")).AppendLine(": ");
+                info.AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techRequirement2)));//Mk3 technode
+                info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk3efficiency")).Append(": ");
+                info.Append(efficiencyPercentage2.ToString("F0")).AppendLine("%");//Mk3 efficiency
             }
             if (!string.IsNullOrEmpty(techRequirement3))
             {
-                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk4technode") +": \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement3)));//Mk4 technode
-                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk4efficiency") +": " + efficiencyPercentage3 + "%");//Mk4 efficiency
+                info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk4technode")).AppendLine(": ");
+                info.AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(techRequirement3)));//Mk4 technode
+                info.Append(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk4efficiency")).Append(": ");
+                info.Append(efficiencyPercentage3.ToString("F0")).AppendLine("%");//Mk4 efficiency
             }
             info.AppendLine("</size>");
 
-            return info.ToString();
+            return info.ToStringAndRelease();
         }
-
     }
-
-
 }

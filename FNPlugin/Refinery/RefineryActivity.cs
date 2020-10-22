@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using FNPlugin.Constants;
+using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
@@ -57,30 +59,30 @@ namespace FNPlugin.Refinery
 
         public override string GetInfo()
         {
-            var sb = new StringBuilder();
+            var sb = StringBuilderCache.Acquire();
             sb.AppendLine(ActivityName);
 
             if (!string.IsNullOrEmpty(Formula))
                 sb.AppendLine(Formula);
 
-            var capacity = sizeModifier * PowerRequirements;
+            double capacity = sizeModifier * PowerRequirements;
             if (capacity > 0)
             {
-                sb.AppendLine("Power: " + capacity + " MW");
+                sb.Append("Power: ").AppendLine(PluginHelper.getFormattedPowerString(capacity));
 
-                if (EnergyPerTon > 0)
+                if (EnergyPerTon > 0.0)
                 {
-                    sb.AppendLine("Energy: " + (float) EnergyPerTon + " MW/t");
-                    sb.AppendLine("Energy: " + (float)(1 / EnergyPerTon) + " t/MW");
+                    sb.Append("Energy: ").Append(PluginHelper.getFormattedPowerString(EnergyPerTon)).AppendLine("/t");
+                    sb.Append("Energy: ").Append((1.0 / EnergyPerTon).ToString("F3")).AppendLine(" t/MW");
 
-                    var production = (float) (capacity / EnergyPerTon);
-                    sb.AppendLine("Production: " + production + " t/sec");
-                    sb.AppendLine("Production: " + production * 60 + " t/min");
-                    sb.AppendLine("Production: " + production * 3600 + " t/hour");
+                    double production = capacity / EnergyPerTon;
+                    sb.Append("Production: ").Append(production.ToString("F3")).AppendLine(" t/sec");
+                    sb.Append("Production: ").Append((production * 60.0).ToString("F1")).AppendLine(" t/min");
+                    sb.Append("Production: ").Append((production * GameConstants.SECONDS_IN_HOUR).ToString("F0")).AppendLine(" t/hr");
                 }
             }
 
-            return sb.ToString();
+            return sb.ToStringAndRelease();
         }
     }
 }

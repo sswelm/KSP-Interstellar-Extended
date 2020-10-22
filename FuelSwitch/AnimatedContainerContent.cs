@@ -36,7 +36,7 @@ namespace FNPlugin
         {
             double resourceRatio = -1;
 
-            if (!String.IsNullOrEmpty(resourceName))
+            if (!string.IsNullOrEmpty(resourceName))
             {
                 var animatedResource = part.Resources[resourceName];
                 if (animatedResource != null)

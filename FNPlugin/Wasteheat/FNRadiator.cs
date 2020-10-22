@@ -119,13 +119,9 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk3;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk4;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Max Temp Difference")] public double maxTempDifference = 900;
-
         private const double defaultPumpSpeed = 1;
         private const double defaultLqdStorage = 1;
         private const double defaultSurfaceArea = 1;
-
-        private const double defaultMaxTempDifference = 900;
 
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Show debug information", active = true)]
         public void ToggleHeatPumpDebugAction()
@@ -186,65 +182,28 @@ namespace FNPlugin.Wasteheat
         {
             upgradeInformation = $"{hasSurfaceUpgradeMk1}/{hasSurfaceUpgradeMk2}/{hasSurfaceUpgradeMk3}/{hasSurfaceUpgradeMk4}, {hasPumpUpgradeMk1}/{hasPumpUpgradeMk2}/{hasPumpUpgradeMk3}/{hasPumpUpgradeMk4}, {hasStorageUpgradeMk1}/{hasStorageUpgradeMk2}/{hasStorageUpgradeMk3}/{hasStorageUpgradeMk4}";
 
-            /*
-             * [surfaceAreav1 = 49,
-             * surfaceAreav3 = 201 / 4,
-             * pumpSpeedv1 = 65,
-             * pumpSpeedv2 = 66,
-             * lqdStoragev1 = 3,
-             * surfaceAreav2 = 50,
-             * lqdStoragev2 = 12,
-             * pumpSpeedv3 = 67,
-             * lqdStoragev3 = 39,
-             * pumpSpeedv4 = 68,
-             * surfaceAreav4 = 101 / 2,
-             * lqdStoragev4 = 2,
-             * lqdStoragev0 = 1,
-             * surfaceAreav0 = 1,
-             * pumpSpeedv0 = 1]
-             */
-
             pumpSpeed = (float)defaultPumpSpeed * part.rescaleFactor;
 
             // pump speed is used as a direct multiplier
-            if (hasPumpUpgradeMk1) pumpSpeed += 65;
-            if (hasPumpUpgradeMk2) pumpSpeed += 66;
-            if (hasPumpUpgradeMk3) pumpSpeed += 67;
-            if (hasPumpUpgradeMk4) pumpSpeed += 68;
+            if (hasPumpUpgradeMk1) pumpSpeed += 10;
+            if (hasPumpUpgradeMk2) pumpSpeed += 10;
+            if (hasPumpUpgradeMk3) pumpSpeed += 20;
+            if (hasPumpUpgradeMk4) pumpSpeed += 50;
 
             var storage = defaultLqdStorage * part.rescaleFactor;
 
             // used to calculate coolant total, used as an indirect multiplier
-            if (hasStorageUpgradeMk1) storage += 3;
-            if (hasStorageUpgradeMk2) storage += 12;
-            if (hasStorageUpgradeMk3) storage += 39;
-            if (hasStorageUpgradeMk4) storage += 2;
+            if (hasStorageUpgradeMk1) storage += 10;
+            if (hasStorageUpgradeMk2) storage += 50;
+            if (hasStorageUpgradeMk3) storage += 100;
+            if (hasStorageUpgradeMk4) storage += 100;
 
             var surface = defaultSurfaceArea * part.rescaleFactor;
-            var externalTemp = defaultMaxTempDifference;
 
-            if (hasSurfaceUpgradeMk1)
-            {
-                surface += 12;
-                externalTemp += 225;
-            }
-            if (hasSurfaceUpgradeMk2)
-            {
-                surface += 50;
-                externalTemp += 225;
-            }
-            if (hasSurfaceUpgradeMk3)
-            {
-                surface += 201 / 4;
-                externalTemp += 225;
-            }
-            if (hasSurfaceUpgradeMk4)
-            {
-                surface += 101 / 2;
-                externalTemp += 225;
-            }
-
-            maxTempDifference = externalTemp;
+            if (hasSurfaceUpgradeMk1) surface += 5;
+            if (hasSurfaceUpgradeMk2) surface += 10;
+            if (hasSurfaceUpgradeMk3) surface += 15;
+            if (hasSurfaceUpgradeMk4) surface += 20;
 
             var resource = part.Resources["IntakeLqd"];
             resource.amount = 0;
@@ -326,7 +285,7 @@ namespace FNPlugin.Wasteheat
 
             // Peter Han has mentioned performance concerns with Get Average Radiator Temp, and suggested I use ResourceFillFraction as a short cut.
             // AntaresMC mentioned that the upgrade system should max out at 1800K, and that 900K should be the starting point.
-            double hotTemp = Math.Max(coldTemp + 0.1, coldTemp + (wasteheatManager.ResourceFillFraction * maxTempDifference));
+            double hotTemp = Math.Max(coldTemp + 0.1, coldTemp + (wasteheatManager.ResourceFillFraction * 1800));
 
             if (intakeAtmAmount > 0)
             {
@@ -1549,7 +1508,7 @@ namespace FNPlugin.Wasteheat
             // and then distance traveled.
             double distanceTraveled = effectiveRadiatorArea * tmpVelocity;
 
-            return Math.Round(distanceTraveled * TimeWarp.fixedDeltaTime, 1);
+            return Math.Round(distanceTraveled, 2) * TimeWarp.fixedDeltaTime;
         }
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
@@ -1631,8 +1590,8 @@ namespace FNPlugin.Wasteheat
                     atmDensity = vessel.atmDensity;
 
                     // density * exposed surface area * specific heat capacity
-                    bonusCalculation = (1 + (intakeLqdDensity * (effectiveRadiatorArea) * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
-                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * (effectiveRadiatorArea) * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
+                    bonusCalculation = (1 + (intakeLqdDensity * (effectiveRadiatorArea + convectiveBonus) * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
+                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * (effectiveRadiatorArea + convectiveBonus) * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
 
                     partRotationDistance = PartRotationDistance();
                     atmosphere_modifier = bonusCalculation * Math.Min(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
@@ -1761,42 +1720,53 @@ namespace FNPlugin.Wasteheat
         public override string GetInfo()
         {
             DetermineGenerationType();
-
             RadiatorProperties.Initialize();
 
             effectiveRadiatorArea = EffectiveRadiatorArea;
             _stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
 
-            var sb = new StringBuilder();
+            var sb = StringBuilderCache.Acquire();
             sb.Append("<size=11>");
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_radiatorArea")).Append(" ");//Base surface area:
+            sb.Append(radiatorArea.ToString("F2")).AppendLine(" m\xB2 ");
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Mass")).Append(" ");//Surface area / Mass
+            sb.AppendLine((radiatorArea / part.mass).ToString("F2"));
 
-            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_radiatorArea") + $" {radiatorArea:F2} m\xB2 \n");//Base surface area:
-            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Mass") + $" : {radiatorArea / part.mass:F2}\n");//Surface area / Mass
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Bonus")).Append(" ");//Surface Area Bonus:
+            sb.AppendLine((string.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0.0 : surfaceAreaUpgradeMult - 1).ToString("P0"));
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_AtmConvectionBonus")).Append(" ");//Atm Convection Bonus:
+            sb.AppendLine((convectiveBonus - 1.0).ToString("P0"));
 
-            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Bonus") + $" {(string.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0 : surfaceAreaUpgradeMult - 1):P0}\n");//Surface Area Bonus:
-            //sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_AtmConvectionBonus") + $" {convectiveBonus - 1:P0}\n");//Atm Convection Bonus:
+            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_MaximumWasteHeatRadiatedMk1")).Append(" ");//\nMaximum Waste Heat Radiated\nMk1:
+            sb.Append(RadiatorProperties.RadiatorTemperatureMk1.ToString("F0")).Append(" K, ");
+            sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk1, 4)));
 
-            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_MaximumWasteHeatRadiatedMk1") + $" {RadiatorProperties.RadiatorTemperatureMk1:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk1, 4):F3} MW\n");//\nMaximum Waste Heat Radiated\nMk1:
+            sb.Append("Mk2: ").Append(RadiatorProperties.RadiatorTemperatureMk2.ToString("F0")).Append(" K, ");
+            sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk2, 4)));
 
-            sb.Append($"Mk2: {RadiatorProperties.RadiatorTemperatureMk2:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk2, 4):F3} MW\n");
-            sb.Append($"Mk3: {RadiatorProperties.RadiatorTemperatureMk3:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk3, 4):F3} MW\n");
-            sb.Append($"Mk4: {RadiatorProperties.RadiatorTemperatureMk4:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk4, 4):F3} MW\n");
+            sb.Append("Mk3: ").Append(RadiatorProperties.RadiatorTemperatureMk3.ToString("F0")).Append(" K, ");
+            sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk3, 4)));
+
+            sb.Append("Mk4: ").Append(RadiatorProperties.RadiatorTemperatureMk4.ToString("F0")).Append(" K, ");
+            sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk4, 4)));
 
             if (!string.IsNullOrEmpty(surfaceAreaUpgradeTechReq))
             {
-                sb.Append($"Mk5: {RadiatorProperties.RadiatorTemperatureMk5:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk5, 4):F3} MW\n");
-                sb.Append($"Mk6: {RadiatorProperties.RadiatorTemperatureMk6:F0} K {_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4):F3} MW\n");
+                sb.Append("Mk5: ").Append(RadiatorProperties.RadiatorTemperatureMk5.ToString("F0")).Append(" K, ");
+                sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk5, 4)));
+
+                sb.Append("Mk6: ").Append(RadiatorProperties.RadiatorTemperatureMk6.ToString("F0")).Append(" K, ");
+                sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4)));
 
                 var convection = 0.9 * effectiveRadiatorArea * convectiveBonus;
                 var dissipation = _stefanArea * Math.Pow(900, 4);
 
-                sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", $"{dissipation:F3}", $"{convection:F3}"));
-                //String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection)
+                sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", dissipation.ToString("F3"), convection.ToString("F3")));
             }
 
             sb.Append("</size>");
 
-            return sb.ToString();
+            return sb.ToStringAndRelease();
         }
 
         public override int getPowerPriority()

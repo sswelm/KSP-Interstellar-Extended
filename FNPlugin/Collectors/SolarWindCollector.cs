@@ -4,7 +4,6 @@ using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Collectors
@@ -883,12 +882,12 @@ namespace FNPlugin.Collectors
 
         public override string GetInfo()
         {
-            var sb = new StringBuilder();
+            var sb = StringBuilderCache.Acquire();
 
-            sb.AppendLine("Deployed Surface Area: " + surfaceArea + "m\xB2");
-            sb.AppendLine("Deployed Magnetic Area: " + magneticArea / 1000 + "km\xB2");
+            sb.Append("Deployed Surface Area: ").Append(surfaceArea.ToString("F2")).AppendLine("m\xB2");
+            sb.Append("Deployed Magnetic Area: ").Append((magneticArea * 1e-6).ToString("F2")).AppendLine("km\xB2");
 
-            return sb.ToString();
+            return sb.ToStringAndRelease();
         }
     }
 }

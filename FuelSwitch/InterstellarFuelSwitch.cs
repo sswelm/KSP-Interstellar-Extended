@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using TweakScale;
 using UnityEngine;
 
@@ -42,9 +41,9 @@ namespace InterstellarFuelSwitch
     public class IFSmodularTank
     {
         public bool hasTech;
-        public string GuiName = String.Empty;
-        public string SwitchName = String.Empty;
-        public string Composition = String.Empty;
+        public string GuiName = string.Empty;
+        public string SwitchName = string.Empty;
+        public string Composition = string.Empty;
         public string techReq;
         public double tankCost;
         public double tankMass;
@@ -62,6 +61,8 @@ namespace InterstellarFuelSwitch
     [KSPModule("#LOC_IFS_FuelSwitch_moduleName")]
     public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch>, IPartCostModifier, IPartMassModifier
     {
+        private static readonly string[] LINE_BREAKS = new string[] { "<br/>" };
+
         // Persistants
         [KSPField(isPersistant = true)]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
@@ -727,156 +728,133 @@ namespace InterstellarFuelSwitch
         {
             tankGuiName = _modularTankList[selectedTankSetup].GuiName;
 
-            var tankGuiNameIsNotEmpty = !String.IsNullOrEmpty(tankGuiName);
+            var tankGuiNameIsNotEmpty = !string.IsNullOrEmpty(tankGuiName);
             _tankGuiNameField.guiActive = showTankName && tankGuiNameIsNotEmpty;
             _tankGuiNameField.guiActiveEditor = showTankName && tankGuiNameIsNotEmpty;
         }
 
         private List<string> SetupTankInPart(Part currentPart, bool calledByPlayer)
         {
-            try
+            FindSelectedTank(calledByPlayer);
+
+            // update txt and index for future
+            selectedTankSetupTxt = selectedTank.GuiName;
+            selectedTankSetup = _modularTankList.IndexOf(selectedTank);
+
+            // create new ResourceNode
+            var newResources = new List<string>(8);
+            var newResourceNodes = new List<ConfigNode>(8);
+            var parsedConfigAmount = new List<double>(8);
+            var parsedConfigFlowStates = new List<bool>(8);
+
+            // parse configured amounts
+            if (configuredAmounts.Length > 0)
             {
-                FindSelectedTank(calledByPlayer);
+                // empty configuration if switched by user
+                if (calledByPlayer)
+                    configuredAmounts = string.Empty;
 
-                // update txt and index for future
-                selectedTankSetupTxt = selectedTank.GuiName;
-                selectedTankSetup = _modularTankList.IndexOf(selectedTank);
-
-                // create new ResourceNode
-                var newResources = new List<string>();
-                var newResourceNodes = new List<ConfigNode>();
-                var parsedConfigAmount = new List<double>();
-                var parsedConfigFlowStates = new List<bool>();
-
-                // parse configured amounts
-                if (configuredAmounts.Length > 0)
+                var configAmounts = configuredAmounts.Split(',');
+                foreach (var item in configAmounts)
                 {
-                    // empty configuration if switched by user
-                    if (calledByPlayer)
-                        configuredAmounts = string.Empty;
-
-                    var configAmounts = configuredAmounts.Split(',');
-                    foreach (var item in configAmounts)
-                    {
-                        double value;
-                        if (double.TryParse(item, out value))
-                            parsedConfigAmount.Add(value);
-                    }
-
-                    // empty configuration if in flight
-                    if (!HighLogic.LoadedSceneIsEditor)
-                        configuredAmounts = string.Empty;
+                    double value;
+                    if (double.TryParse(item, out value))
+                        parsedConfigAmount.Add(value);
                 }
 
-                if (configuredFlowStates.Length > 0)
+                // empty configuration if in flight
+                if (!HighLogic.LoadedSceneIsEditor)
+                    configuredAmounts = string.Empty;
+            }
+
+            if (configuredFlowStates.Length > 0)
+            {
+                // empty configuration if switched by user
+                if (calledByPlayer)
+                    configuredFlowStates = string.Empty;
+
+                var configFlowStates = configuredFlowStates.Split(',');
+                foreach (var item in configFlowStates)
                 {
-                    // empty configuration if switched by user
-                    if (calledByPlayer)
-                        configuredFlowStates = string.Empty;
-
-                    var configFlowStates = configuredFlowStates.Split(',');
-                    foreach (var item in configFlowStates)
-                    {
-                        bool value;
-                        if (bool.TryParse(item, out value))
-                            parsedConfigFlowStates.Add(value);
-                    }
-
-                    // empty configuration if in flight
-                    if (!HighLogic.LoadedSceneIsEditor)
-                        configuredFlowStates = string.Empty;
+                    if (bool.TryParse(item, out bool value))
+                        parsedConfigFlowStates.Add(value);
                 }
 
-                UpdateHabitat(selectedTank);
+                // empty configuration if in flight
+                if (!HighLogic.LoadedSceneIsEditor)
+                    configuredFlowStates = string.Empty;
+            }
 
-                for (var resourceId = 0; resourceId < selectedTank.Resources.Count; resourceId++)
+            UpdateHabitat(selectedTank);
+
+            for (var resourceId = 0; resourceId < selectedTank.Resources.Count; resourceId++)
+            {
+                var selectedTankResource = selectedTank.Resources[resourceId];
+
+                if (selectedTankResource.name == "Structural")
+                    continue;
+
+                newResources.Add(selectedTankResource.name);
+
+                var newResourceNode = new ConfigNode("RESOURCE");
+                var maxAmount = selectedTankResource.maxAmount * storedVolumeMultiplier;
+
+                newResourceNode.AddValue("name", selectedTankResource.name);
+                newResourceNode.AddValue("maxAmount", maxAmount);
+
+                var existingResource = currentPart.Resources[selectedTankResource.name];
+
+                double resourceNodeAmount;
+
+                if (existingResource != null)
+                    resourceNodeAmount = Math.Min(existingResource.amount * maxAmount / existingResource.maxAmount, maxAmount);
+                else if (!HighLogic.LoadedSceneIsEditor && resourceId < parsedConfigAmount.Count)
+                    resourceNodeAmount = parsedConfigAmount[resourceId];
+                else if (!HighLogic.LoadedSceneIsEditor && calledByPlayer)
+                    resourceNodeAmount = 0.0;
+                else
+                    resourceNodeAmount = selectedTank.Resources[resourceId].amount * storedVolumeMultiplier;
+
+                newResourceNode.AddValue("amount", resourceNodeAmount);
+
+                if (existingResource != null)
+                    newResourceNode.AddValue("flowState", existingResource.flowState);
+                else if (resourceId < parsedConfigFlowStates.Count)
+                    newResourceNode.AddValue("flowState", parsedConfigFlowStates[resourceId]);
+
+                newResourceNodes.Add(newResourceNode);
+            }
+                
+            foreach (var resource in currentPart.Resources)
+            {
+                if (!activeResourceList.Contains(resource.resourceName))
                 {
-                    var selectedTankResource = selectedTank.Resources[resourceId];
-
-                    if (selectedTankResource.name == "Structural")
-                        continue;
-
-                    newResources.Add(selectedTankResource.name);
-
-                    var newResourceNode = new ConfigNode("RESOURCE");
-                    var maxAmount = selectedTankResource.maxAmount * storedVolumeMultiplier;
-
-                    newResourceNode.AddValue("name", selectedTankResource.name);
-                    newResourceNode.AddValue("maxAmount", maxAmount);
-
-                    PartResource existingResource = currentPart.Resources[selectedTankResource.name];
-
-                    double resourceNodeAmount;
-
-                    if (existingResource != null)
-                        resourceNodeAmount = Math.Min((existingResource.amount / existingResource.maxAmount) * maxAmount, maxAmount);
-                    else if (!HighLogic.LoadedSceneIsEditor && resourceId < parsedConfigAmount.Count)
-                        resourceNodeAmount = parsedConfigAmount[resourceId];
-                    else if (!HighLogic.LoadedSceneIsEditor && calledByPlayer)
-                        resourceNodeAmount = 0.0;
-                    else
-                        resourceNodeAmount = selectedTank.Resources[resourceId].amount * storedVolumeMultiplier;
-
-                    newResourceNode.AddValue("amount", resourceNodeAmount);
-
-                    if (existingResource != null)
-                        newResourceNode.AddValue("flowState", existingResource.flowState);
-                    else if (resourceId < parsedConfigFlowStates.Count)
-                        newResourceNode.AddValue("flowState", parsedConfigFlowStates[resourceId]);
-
-                    newResourceNodes.Add(newResourceNode);
-                }
-
-                var finalResourceNodes = new List<ConfigNode>();
-                if (newResourceNodes.Count > 0)
-                {
-                    finalResourceNodes.AddRange(newResourceNodes);
-                    newResourceNodes.Clear();
-                }
-
-                foreach (var resource in currentPart.Resources)
-                {
-                    if (activeResourceList.Contains(resource.resourceName)) continue;
-
                     var newResourceNode = new ConfigNode("RESOURCE");
                     newResourceNode.AddValue("name", resource.resourceName);
                     newResourceNode.AddValue("maxAmount", resource.maxAmount);
                     newResourceNode.AddValue("amount", resource.amount);
                     newResourceNode.AddValue("flowState", resource.flowState);
+                    newResourceNode.AddValue("flowMode", resource.flowMode);
 
-                    finalResourceNodes.Add(newResourceNode);
+                    newResourceNodes.Add(newResourceNode);
                 }
-
-                // add any remaining new nodes
-                if (newResourceNodes.Count > 0)
-                {
-                    finalResourceNodes.AddRange(newResourceNodes);
-                    newResourceNodes.Clear();
-                }
-
-                // remove all resources
-                currentPart.Resources.Clear();
-
-                // add new or exisitng resources
-                if (finalResourceNodes.Count > 0)
-                {
-                    foreach (var resourceNode in finalResourceNodes)
-                    {
-                        currentPart.AddResource(resourceNode);
-                    }
-                }
-
-                UpdateCost();
-
-                UpdatePartActionWindow();
-
-                return newResources;
             }
-            catch (Exception e)
+
+            currentPart.Resources.Clear();
+            currentPart.SetupSimulationResources();
+            GameEvents.onPartResourceListChange.Fire(currentPart);
+
+            // add new or existing resources
+            foreach (var resourceNode in newResourceNodes)
             {
-                Debug.LogError("[IFS]: SetupTankInPart Error: " + e.Message);
-                throw;
+                currentPart.AddResource(resourceNode);
             }
+
+            UpdateCost();
+
+            UpdatePartActionWindow();
+
+            return newResources;
         }
 
         private void UpdatePartActionWindow()
@@ -895,58 +873,50 @@ namespace InterstellarFuelSwitch
 
         private void FindSelectedTank(bool calledByPlayer)
         {
-            try
+            // first find selected tank on index
+            selectedTank = calledByPlayer && selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : null;
+
+            // find based on guiname, switchname or contents
+            if (selectedTank == null)
             {
-                // first find selected tank on index
-                selectedTank = calledByPlayer && selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : null;
-
-                // find based on guiname, switchname or contents
-                if (selectedTank == null)
-                {
-                    var matchingIndex = FindMatchingConfig();
-                    if (matchingIndex >= 0)
-                        selectedTank = _modularTankList[matchingIndex];
-                }
-
-                // if still no tank found create a tank based on current tank contents
-                if (selectedTank == null && (HighLogic.LoadedSceneIsFlight || _modularTankList.Count == 0) && part.Resources.Any(m => m.info.density > 0))
-                {
-                    var resourcesWithMass = part.Resources.Where(m => m.info.density > 0);
-
-                    var concatinatedGuiName = string.Join("+", resourcesWithMass.Select(r => r.info.displayName).ToArray());
-
-                    Debug.LogWarning("[IFS]: Constructing new tank definition for " + part.name + " with name " + concatinatedGuiName);
-
-                    var ifsResources = resourcesWithMass.Select(r => new IFSresource(r.resourceName)
-                    {
-                        amount = r.amount / storedVolumeMultiplier,
-                        maxAmount = r.maxAmount / storedVolumeMultiplier
-                    }).ToList();
-
-                    var concatinatedSwitchName = string.Join("+", resourcesWithMass.Select(r => r.info.abbreviation).ToArray());
-
-                    selectedTank = new IFSmodularTank
-                    {
-                        SwitchName = concatinatedSwitchName,
-                        Composition = concatinatedSwitchName,
-                        GuiName = concatinatedGuiName,
-                        Resources = ifsResources
-                    };
-
-                    _modularTankList.Add(selectedTank);
-                }
-
-                // otherwise select first tank
-                if (selectedTank == null)
-                {
-                    Debug.Log("[IFS]: Defaulting selected tank to first tank in collection");
-                    selectedTank = _modularTankList[0];
-                }
-
+                var matchingIndex = FindMatchingConfig();
+                if (matchingIndex >= 0)
+                    selectedTank = _modularTankList[matchingIndex];
             }
-            catch (Exception e)
+
+            // if still no tank found create a tank based on current tank contents
+            if (selectedTank == null && (HighLogic.LoadedSceneIsFlight || _modularTankList.Count == 0) && part.Resources.Any(m => m.info.density > 0))
             {
-                Debug.LogError("[IFS]: FindSelectedTank " + e.Message);
+                var resourcesWithMass = part.Resources.Where(m => m.info.density > 0);
+
+                var concatinatedGuiName = string.Join("+", resourcesWithMass.Select(r => r.info.displayName).ToArray());
+
+                Debug.LogWarning("[IFS]: Constructing new tank definition for " + part.name + " with name " + concatinatedGuiName);
+
+                var ifsResources = resourcesWithMass.Select(r => new IFSresource(r.resourceName)
+                {
+                    amount = r.amount / storedVolumeMultiplier,
+                    maxAmount = r.maxAmount / storedVolumeMultiplier
+                }).ToList();
+
+                var concatinatedSwitchName = string.Join("+", resourcesWithMass.Select(r => r.info.abbreviation).ToArray());
+
+                selectedTank = new IFSmodularTank
+                {
+                    SwitchName = concatinatedSwitchName,
+                    Composition = concatinatedSwitchName,
+                    GuiName = concatinatedGuiName,
+                    Resources = ifsResources
+                };
+
+                _modularTankList.Add(selectedTank);
+            }
+
+            // otherwise select first tank
+            if (selectedTank == null)
+            {
+                Debug.Log("[IFS]: Defaulting selected tank to first tank in collection");
+                selectedTank = _modularTankList[0];
             }
         }
 
@@ -1173,10 +1143,10 @@ namespace InterstellarFuelSwitch
 
             totalMass = dryMass + currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2 + currentResourceMassAmount3;
 
-            resourceAmountStr0 = missing0 ? String.Empty : FormatMassStr(currentResourceMassAmount0);
-            resourceAmountStr1 = missing1 ? String.Empty : FormatMassStr(currentResourceMassAmount1);
-            resourceAmountStr2 = missing2 ? String.Empty : FormatMassStr(currentResourceMassAmount2);
-            resourceAmountStr3 = missing3 ? String.Empty : FormatMassStr(currentResourceMassAmount3);
+            resourceAmountStr0 = missing0 ? string.Empty : FormatMassStr(currentResourceMassAmount0);
+            resourceAmountStr1 = missing1 ? string.Empty : FormatMassStr(currentResourceMassAmount1);
+            resourceAmountStr2 = missing2 ? string.Empty : FormatMassStr(currentResourceMassAmount2);
+            resourceAmountStr3 = missing3 ? string.Empty : FormatMassStr(currentResourceMassAmount3);
         }
 
         private void UpdateMassRatio()
@@ -1251,22 +1221,22 @@ namespace InterstellarFuelSwitch
                 // show/hide switch buttons
                 _nextTankSetupEvent.guiActive = hasGUI && allowedToSwitch;
                 _previousTankSetupEvent.guiActive = hasGUI && allowedToSwitch;
-
-                return;
             }
-
-            // update Dry Mass
-            UpdateDryMass();
-            UpdateGuiResourceMass();
-            UpdateCost();
-
-            configuredAmounts = String.Empty; ;
-            configuredFlowStates = String.Empty;
-
-            foreach (var resoure in part.Resources)
+            else
             {
-                configuredAmounts += resoure.amount + ",";
-                configuredFlowStates += resoure.flowState + ",";
+                // update Dry Mass
+                UpdateDryMass();
+                UpdateGuiResourceMass();
+                UpdateCost();
+
+                configuredAmounts = string.Empty;
+                configuredFlowStates = string.Empty;
+
+                foreach (var resoure in part.Resources)
+                {
+                    configuredAmounts += resoure.amount + ",";
+                    configuredFlowStates += resoure.flowState + ",";
+                }
             }
         }
 
@@ -1300,7 +1270,7 @@ namespace InterstellarFuelSwitch
                 var tankSwitcherNameArray = tankSwitchNames.Split(';');
 
                 // if initial resource ammount is missing or not complete, use full amount
-                if (initialResourceAmounts.Equals(String.Empty) ||
+                if (initialResourceAmounts.Equals(string.Empty) ||
                     initialResourceTankArray.Length != resourceTankAbsoluteAmountArray.Length)
                     initialResourceTankArray = resourceTankAbsoluteAmountArray;
 
@@ -1317,34 +1287,18 @@ namespace InterstellarFuelSwitch
                     var initialResourceAmountArray = initialResourceTankArray[tankCounter].Trim().Split(',');
 
                     // if missing or not complete, use full amount
-                    if (initialResourceAmounts.Equals(String.Empty) ||
+                    if (initialResourceAmounts.Equals(string.Empty) ||
                         initialResourceAmountArray.Length != resourceAmountArray.Length)
                         initialResourceAmountArray = resourceAmountArray;
 
                     for (var amountCounter = 0; amountCounter < resourceAmountArray.Length; amountCounter++)
                     {
-                        try
-                        {
-                            if (tankCounter >= resourceList.Count || amountCounter >= resourceAmountArray.Count()) continue;
+                        if (tankCounter >= resourceList.Count || amountCounter >= resourceAmountArray.Count()) continue;
 
-                            resourceList[tankCounter].Add(double.Parse(resourceAmountArray[amountCounter].Trim()));
-                        }
-                        catch (Exception exception)
-                        {
-                            Debug.LogWarning("[IFS]: " + part.name + " error parsing resourceTankAmountArray amount " + tankCounter + "/" + amountCounter +
-                                      ": '" + resourceTankAbsoluteAmountArray[tankCounter] + "': '" + resourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
-                        }
+                        resourceList[tankCounter].Add(ParseTools.ParseDouble(resourceAmountArray[amountCounter]));
 
-                        try
-                        {
-                            if (tankCounter < initialResourceList.Count && amountCounter < initialResourceAmountArray.Count())
-                                initialResourceList[tankCounter].Add(ParseTools.ParseDouble(initialResourceAmountArray[amountCounter]));
-                        }
-                        catch (Exception exception)
-                        {
-                            Debug.LogWarning("[IFS]: " + part.name + " error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
-                                      ": '" + initialResourceList[tankCounter] + "': '" + initialResourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
-                        }
+                        if (tankCounter < initialResourceList.Count && amountCounter < initialResourceAmountArray.Count())
+                            initialResourceList[tankCounter].Add(ParseTools.ParseDouble(initialResourceAmountArray[amountCounter]));
                     }
                 }
 
@@ -1424,10 +1378,10 @@ namespace InterstellarFuelSwitch
                         Debug.Log("[IFS]: " + part.name + " modularTank.GuiName is null");
 
                         var names = modularTank.Resources.Select(m => m.name);
-                        modularTank.GuiName = String.Empty;
+                        modularTank.GuiName = string.Empty;
                         foreach (var name in names)
                         {
-                            if (!String.IsNullOrEmpty(modularTank.GuiName))
+                            if (!string.IsNullOrEmpty(modularTank.GuiName))
                                 modularTank.GuiName += "+";
                             modularTank.GuiName += name;
                         }
@@ -1485,7 +1439,9 @@ namespace InterstellarFuelSwitch
             this.defaultMass = defaultMass;
 
             if (returnDryMass)
-                return (float)dryMass;
+            {
+                return (float)dryMass - defaultMass;
+            }
             else
             {
                 UpdateDryMass();
@@ -1500,98 +1456,89 @@ namespace InterstellarFuelSwitch
         {
             if (!showInfo) return string.Empty;
 
-            var info = new StringBuilder();
+            var info = StringBuilderCache.Acquire();
 
             if (!string.IsNullOrEmpty(moduleInfoTemplate))
             {
-                var parameters = new List<string>();
+                string[] parameters;
 
                 if (!string.IsNullOrEmpty(moduleInfoParams))
                 {
-                    parameters = moduleInfoParams.Split(';').ToList();
+                    parameters = moduleInfoParams.Split(';');
 
                     // translate parameters
-                    for (var i = 0; i < parameters.Count; i++)
+                    for (var i = 0; i < parameters.Length; i++)
                     {
                         parameters[i] = Localizer.Format(parameters[i]);
                     }
                 }
+                else
+                {
+                    parameters = new string[0];
+                }
 
-                var lines = moduleInfoTemplate.Split(new[] { "<br/>" }, StringSplitOptions.None).ToList();
-
-                var parameterArray = parameters.ToArray();
-
-                lines.ForEach(line => info.AppendLine(Localizer.Format(line, parameterArray)));
-
-                return info.ToString();
+                foreach (string line in moduleInfoTemplate.Split(LINE_BREAKS, StringSplitOptions.None))
+                {
+                    info.AppendLine(Localizer.Format(line, parameters));
+                }
             }
-
-            info.AppendLine(Localizer.Format("#LOC_IFS_FuelSwitch_GetInfo") + ":");
-            info.Append("<size=10>");
-            info.AppendLine();
-
-            foreach (var module in _modularTankList)
+            else
             {
-                var multi = (module.Resources.Count > 1);
+                info.Append(Localizer.Format("#LOC_IFS_FuelSwitch_GetInfo")).AppendLine(":");
+                info.AppendLine("<size=10>");
 
-                if (multi)
+                foreach (var module in _modularTankList)
                 {
-                    info.Append("<color=#00ff00ff>");
-                    info.Append(module.SwitchName);
-                    info.Append("</color>");
-                    info.AppendLine();
-                }
+                    bool multi = module.Resources.Count > 1;
 
-                foreach (var resource in module.Resources)
-                {
                     if (multi)
-                        info.Append("* ");
+                    {
+                        info.Append("<color=#00ff00ff>");
+                        info.Append(module.SwitchName);
+                        info.AppendLine("</color>");
+                    }
 
-                    info.Append(Math.Round(resource.maxAmount, 0));
-                    info.Append(" ");
-                    info.Append("<color=#00ffffff>");
-                    info.Append(resource.name);
-                    info.Append("</color>");
-                    info.AppendLine();
+                    foreach (var resource in module.Resources)
+                    {
+                        if (multi)
+                            info.Append("* ");
+
+                        info.Append(resource.maxAmount.ToString("F0"));
+                        info.Append(" <color=#00ffffff>");
+                        info.Append(resource.name);
+                        info.AppendLine("</color>");
+                    }
                 }
+                info.Append("</size>");
             }
-            info.Append("</size>");
-            return info.ToString();
+            return info.ToStringAndRelease();
         }
 
         private static bool HasTech(string techid)
         {
-            try
+            if (string.IsNullOrEmpty(techid))
+                return true;
+
+            if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
+                return true;
+
+            if ((HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX))
+                return true;
+
+            if (ResearchAndDevelopment.Instance == null)
             {
-                if (String.IsNullOrEmpty(techid))
-                    return true;
+                if (_researchedTechs == null)
+                    LoadSaveFile();
 
-                if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
-                    return true;
-
-                if ((HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX))
-                    return true;
-
-                if (ResearchAndDevelopment.Instance == null)
-                {
-                    if (_researchedTechs == null)
-                        LoadSaveFile();
-
-                    return _researchedTechs != null && _researchedTechs.Contains(techid);
-                }
-                else
-                {
-                    var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
-                    if (techstate != null)
-                        return techstate.state == RDTech.State.Available;
-                    else
-                        return false;
-                }
+                return _researchedTechs != null && _researchedTechs.Contains(techid);
             }
-            catch
+            else
             {
-                Debug.LogError("[IFS] - Verify HasTech: " + techid);
-                throw;
+                var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
+                if (techstate != null)
+                    return techstate.state == RDTech.State.Available;
+                else
+                    return false;
             }
         }
 
@@ -1619,7 +1566,7 @@ namespace InterstellarFuelSwitch
 
         public void OnGUI()
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
+            if (vessel == FlightGlobals.ActiveVessel && render_window)
                 windowPosition = GUILayout.Window(_windowID, windowPosition, Window, part.partInfo.title);
         }
 
@@ -1690,7 +1637,7 @@ namespace InterstellarFuelSwitch
                     surfaceField = habitatModule.Fields["Surface"];
 
                     if (habitatOnStartMethod != null)
-                        UnityEngine.Debug.Log("[IFS]: Found onStartMethod");
+                        Debug.Log("[IFS]: Found onStartMethod");
 
                     break;
                 }
@@ -1779,7 +1726,7 @@ namespace InterstellarFuelSwitch
                 if (habitatOnStartMethod != null)
                 {
                     //UnityEngine.Debug.Log("[IFS]: Invoke onStartMethod");
-                    habitatOnStartMethod.Invoke(habitatModule, new object[] { (int)PartModule.StartState.None });
+                    habitatOnStartMethod.Invoke(habitatModule, new object[] { (int)StartState.None });
                 }
 
                 if (volumeField != null)
