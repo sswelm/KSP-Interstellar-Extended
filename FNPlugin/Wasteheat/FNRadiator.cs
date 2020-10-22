@@ -119,6 +119,9 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk3;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk4;
 
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Max External Temp")] public double maxExternalTemp;
+
+        private const double defaultMaxExternalTemp = 900;
         private const double defaultPumpSpeed = 1;
         private const double defaultLqdStorage = 1;
         private const double defaultSurfaceArea = 1;
@@ -199,11 +202,32 @@ namespace FNPlugin.Wasteheat
             if (hasStorageUpgradeMk4) storage += 100;
 
             var surface = defaultSurfaceArea * part.rescaleFactor;
+            var externalTemp = defaultMaxExternalTemp;
 
-            if (hasSurfaceUpgradeMk1) surface += 5;
-            if (hasSurfaceUpgradeMk2) surface += 10;
-            if (hasSurfaceUpgradeMk3) surface += 15;
-            if (hasSurfaceUpgradeMk4) surface += 20;
+            if (hasSurfaceUpgradeMk1)
+            {
+                surface += 5;
+                externalTemp += 225;
+            }
+
+            if (hasSurfaceUpgradeMk2)
+            {
+                surface += 10;
+                externalTemp += 225;
+            }
+
+            if (hasSurfaceUpgradeMk3)
+            {
+                surface += 15;
+                externalTemp += 225;
+            }
+            if (hasSurfaceUpgradeMk4)
+            {
+                surface += 20;
+                externalTemp += 225;
+            }
+
+            maxExternalTemp = externalTemp;
 
             var resource = part.Resources["IntakeLqd"];
             resource.amount = 0;
@@ -285,7 +309,7 @@ namespace FNPlugin.Wasteheat
 
             // Peter Han has mentioned performance concerns with Get Average Radiator Temp, and suggested I use ResourceFillFraction as a short cut.
             // AntaresMC mentioned that the upgrade system should max out at 1800K, and that 900K should be the starting point.
-            double hotTemp = Math.Max(coldTemp + 0.1, coldTemp + (wasteheatManager.ResourceFillFraction * 1800));
+            double hotTemp = Math.Max(coldTemp + 0.1, coldTemp + (wasteheatManager.ResourceFillFraction * maxExternalTemp));
 
             if (intakeAtmAmount > 0)
             {
@@ -1590,8 +1614,8 @@ namespace FNPlugin.Wasteheat
                     atmDensity = vessel.atmDensity;
 
                     // density * exposed surface area * specific heat capacity
-                    bonusCalculation = (1 + (intakeLqdDensity * (effectiveRadiatorArea + convectiveBonus) * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
-                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * (effectiveRadiatorArea + convectiveBonus) * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
+                    bonusCalculation = (1 + (intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
+                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
 
                     partRotationDistance = PartRotationDistance();
                     atmosphere_modifier = bonusCalculation * Math.Min(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
