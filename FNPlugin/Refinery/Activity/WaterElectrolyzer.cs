@@ -88,7 +88,7 @@ namespace FNPlugin.Refinery.Activity
             _spareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * _hydrogen.density;
 
             // determine how much water we can consume
-            _fixedMaxConsumptionWaterRate = Math.Min(_current_rate * fixedDeltaTime, _availableWaterMass + _availableLqdWaterMass);
+            _fixedMaxConsumptionWaterRate = Math.Min(_current_rate * fixedDeltaTime, allowOverflow? _availableWaterMass + _availableLqdWaterMass : _availableLqdWaterMass);
 
             if (_fixedMaxConsumptionWaterRate > 0 && (_spareRoomOxygenMass > 0 && _spareRoomHydrogenMass > 0
                                                       || allowOverflow && (_spareRoomOxygenMass > 0 || _spareRoomHydrogenMass > 0)) )
