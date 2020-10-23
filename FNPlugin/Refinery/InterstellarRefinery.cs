@@ -39,11 +39,11 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_PowerReqMultiplier", guiFormat = "F3")]//Power Req Multiplier
         public double powerReqMult = 1;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_PowerRequirement", guiFormat = "F3", guiUnits = " MW")]//Power Requirement
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_PowerRequirement", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Power Requirement
         public double currentPowerReq;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_PowerAvailable", guiUnits = "%", guiFormat = "F3")]//Power Available
         public double utilisationPercentage;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_ConsumedPower", guiFormat = "F3", guiUnits = " MW")]//Consumed Power
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Refinery_ConsumedPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Consumed Power
         public double consumedPowerMW;
 
         protected IRefineryActivity _current_activity = null;

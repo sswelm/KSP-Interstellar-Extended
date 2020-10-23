@@ -7,7 +7,7 @@ namespace FNPlugin.Power
     [KSPModule("Power Supply")]
     class InterstellarPowerSupply : ResourceSuppliableModule, IPowerSupply
     {
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_InterstellarPowerSupply_TotalPowerSupply", guiFormat = "F3", guiUnits = " MW")]//Total Power Supply
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_InterstellarPowerSupply_TotalPowerSupply", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Total Power Supply
         public double totalPowerSupply;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_InterstellarPowerSupply_Proces")]//Proces
         public string displayName = "";

@@ -14,14 +14,14 @@ namespace FNPlugin.Powermanagement
     [KSPModule("Super Capacitator")]
     class KspiSuperCapacitator : ResourceSuppliableModule
     {
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_MaxCapacity", guiUnits = " MWe")]//Max Capacity
+        [KSPField(groupName = FNBatteryGenerator.GROUP, groupDisplayName = FNBatteryGenerator.GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_MaxCapacity", guiUnits = " MJe")]//Max Capacity
         public float maxStorageCapacityMJ = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_Mass", guiUnits = " t")]//Mass
+        [KSPField(groupName = FNBatteryGenerator.GROUP, groupDisplayName = FNBatteryGenerator.GROUP_TITLE, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_Mass", guiUnits = " t")]//Mass
         public float partMass = 0;
 
-        [KSPField(guiActiveEditor = false)]
+        [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
         public string powerResourceName = "Megajoules";
-        [KSPField(guiActiveEditor = false)]
+        [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
         public string electricChargeResourceName = "ElectricCharge";
 
         [KSPField]
@@ -119,6 +119,11 @@ namespace FNPlugin.Powermanagement
             var deltaElectricChargeMaxAmount = protoElectricCharge.maxAmount - electricCharge.maxAmount;
 
             megajoulesAfterLoad = deltaElectricChargeMaxAmount == 0 ? 0 : Math.Max(0, (protoElectricCharge.amount - electricCharge.maxAmount) / deltaElectricChargeMaxAmount) * powerResource.maxAmount;
+        }
+
+        public void Update()
+        {
+            partMass = part.mass;
         }
     }
 }

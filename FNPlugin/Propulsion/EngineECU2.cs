@@ -10,12 +10,15 @@ namespace FNPlugin
 
     abstract class EngineECU2 : ResourceSuppliableModule
     {
-        [KSPField(guiActive = true, guiActiveEditor = true,  guiName = "#LOC_KSPIE_EngineECU2_MaxThrust", guiUnits = " kN", guiFormat = "F3")]//Max Thrust
+        public const string GROUP = "EngineECU2";
+        public const string GROUP_TITLE = "#LOC_KSPIE_EngineECU2_groupName";
+
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_MaxThrust", guiUnits = " kN", guiFormat = "F1")]//Max Thrust
         public double maximumThrust;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaximumFuelFlow", guiFormat = "F3")]//Maximum FuelFlow
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaximumFuelFlow", guiFormat = "F3")]//Maximum FuelFlow
         public double maxFuelFlow;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_FuelConfig")]//Fuel Config
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_FuelConfig")]//Fuel Config
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedFuel;
 
@@ -32,19 +35,28 @@ namespace FNPlugin
         public string selectedTankName = "";
 
         // None Persistent VAB
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_upgradetech1")]//upgrade tech 1
+        [KSPField]
         public string upgradeTechReq1;
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_upgradetech2")]//upgrade tech 2
+        [KSPField]
         public string upgradeTechReq2;
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_upgradetech3")]//upgrade tech 3
+        [KSPField]
         public string upgradeTechReq3;
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_upgradetech4")]//upgrade tech 4
+        [KSPField]
         public string upgradeTechReq4;
 
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_EngineECU2_upgradetech1")]//upgrade tech 1
+        public string translatedTechMk1;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_EngineECU2_upgradetech2")]//upgrade tech 2
+        public string translatedTechMk2;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_EngineECU2_upgradetech3")]//upgrade tech 3
+        public string translatedTechMk3;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_EngineECU2_upgradetech4")]//upgrade tech 4
+        public string translatedTechMk4;
+
         // Gui
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_EngineECU2_ThrustPower", guiUnits = " GW", guiFormat = "F3")]//Thrust Power
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_EngineECU2_ThrustPower", guiUnits = " GW", guiFormat = "F3")]//Thrust Power
         public double thrustPower;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_EngineECU2_FusionRatio", guiFormat = "F3")]//Fusion Ratio
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_EngineECU2_FusionRatio", guiFormat = "F3")]//Fusion Ratio
         public double fusionRatio;
 
         [KSPField]
@@ -52,15 +64,15 @@ namespace FNPlugin
         [KSPField]
         public double thrustmultiplier = 1;
 
-        [KSPField(guiName = "Max Thrust Mk1", guiUnits = " kN", guiActiveEditor = true)]
+        [KSPField]
         public float maxThrust = 150;
-        [KSPField(guiName = "Max Thrust Mk2", guiUnits = " kN")]
+        [KSPField]
         public float maxThrustUpgraded1 = 300;
-        [KSPField(guiName = "Max Thrust Mk3", guiUnits = " kN")]
+        [KSPField]
         public float maxThrustUpgraded2 = 500;
-        [KSPField(guiName = "Max Thrust Mk4", guiUnits = " kN")]
+        [KSPField]
         public float maxThrustUpgraded3 = 800;
-        [KSPField(guiName = "Max Thrust Mk5", guiUnits = " kN")]
+        [KSPField]
         public float maxThrustUpgraded4 = 1200;
 
         [KSPField]
@@ -117,7 +129,7 @@ namespace FNPlugin
             EngineGenerationType = (GenerationType)numberOfUpgradeTechs;
         }
 
-        [KSPEvent(active = true, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "#LOC_KSPIE_EngineECU2_HideUnusableConfigurations")]//Hide Unusable Configurations
+        [KSPEvent(groupName = GROUP, active = true, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "#LOC_KSPIE_EngineECU2_HideUnusableConfigurations")]//Hide Unusable Configurations
         public void HideFuels()
         {
             hideEmpty = true;
@@ -129,7 +141,7 @@ namespace FNPlugin
             UpdateFuel();
         }
 
-        [KSPEvent(active = false, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "#LOC_KSPIE_EngineECU2_ShowAllConfigurations")]//Show All Configurations
+        [KSPEvent(groupName = GROUP, active = false, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "#LOC_KSPIE_EngineECU2_ShowAllConfigurations")]//Show All Configurations
         public void ShowFuels()
         {
             FuelConfiguration curConfig = CurrentActiveConfiguration;
@@ -285,7 +297,7 @@ namespace FNPlugin
 
         private void UpdateEditorGUI(BaseField field, object oldFieldValueObj)
         {
-            UnityEngine.Debug.Log("[KSPI]: UpdateEditorGUI called");
+            Debug.Log("[KSPI]: UpdateEditorGUI called");
 
             foreach (var counterpart in part.symmetryCounterparts)
             {
@@ -533,48 +545,36 @@ namespace FNPlugin
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
             this.resources_to_supply = resources_to_supply;
 
-            try
+            Debug.Log("[KSPI]: Start Current State: " + (int)state + " " + state.ToString());
+            Debug.Log("[KSPI]: OnStart Already Launched: " + Launched);
+
+            curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
+            curEngineWarp = this.part.FindModuleImplementing<ModuleEnginesWarp>();
+
+            if ((state & StartState.PreLaunch) == StartState.PreLaunch)
+                hideEmpty = true;
+
+            InitializeGUI();
+
+            _fuelConfigurationWithEffect = FuelConfigurations.Where(m => !string.IsNullOrEmpty(m.effectname)).ToList();
+            _fuelConfigurationWithEffect.ForEach(prop => part.Effect(prop.effectname, 0, -1));
+
+            if (state == StartState.Editor)
             {
-                Debug.Log("[KSPI]: Start Current State: " + (int)state + " " + state.ToString());
-                Debug.Log("[KSPI]: OnStart Already Launched: " + Launched);
-
-                curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
-                curEngineWarp = this.part.FindModuleImplementing<ModuleEnginesWarp>();
-
-                if ((state & StartState.PreLaunch) == StartState.PreLaunch)
-                    hideEmpty = true;
-
-                InitializeGUI();
-
-                _fuelConfigurationWithEffect = FuelConfigurations.Where(m => !string.IsNullOrEmpty(m.effectname)).ToList();
-                _fuelConfigurationWithEffect.ForEach(prop => part.Effect(prop.effectname, 0, -1));
-
-                if (state == StartState.Editor)
-                {
-                    hideEmpty = false;
-                    selectedTank = selectedFuel;
-                    selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
-                }
-
-                UpdateFuel();
-                Events["ShowFuels"].active = hideEmpty;
-                Events["HideFuels"].active = !hideEmpty;
-
-                Fields["upgradeTechReq1"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq1);
-                Fields["upgradeTechReq2"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq2);
-                Fields["upgradeTechReq3"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq3);
-                Fields["upgradeTechReq4"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq4);
-
-                Fields["maxThrustUpgraded1"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq1);
-                Fields["maxThrustUpgraded2"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq2);
-                Fields["maxThrustUpgraded3"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq3);
-                Fields["maxThrustUpgraded4"].guiActiveEditor = !string.IsNullOrEmpty(upgradeTechReq4);
+                hideEmpty = false;
+                selectedTank = selectedFuel;
+                selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
             }
-            catch (Exception e)
-            {
-                Debug.LogError("EngineECU2 OnStart exception: " + e.Message);
-            }
-            
+
+            UpdateFuel();
+            Events["ShowFuels"].active = hideEmpty;
+            Events["HideFuels"].active = !hideEmpty;
+
+            translatedTechMk1 = PluginHelper.DisplayTech(upgradeTechReq1);
+            translatedTechMk2 = PluginHelper.DisplayTech(upgradeTechReq2);
+            translatedTechMk3 = PluginHelper.DisplayTech(upgradeTechReq3);
+            translatedTechMk4 = PluginHelper.DisplayTech(upgradeTechReq4);
+
             base.OnStart(state);
         }
       
@@ -836,19 +836,6 @@ namespace FNPlugin
                 I++;
             }
             return akFloat.ToArray();
-        }
-
-        private bool[] StringToBoolArray(string akString)
-        {
-            var akBool = new List<bool>();
-            string[] arString = Regex.Replace(akString, " ", "").Split(',');
-            int I = 0;
-            while (I < arString.Length)
-            {
-                akBool.Add(Convert.ToBoolean(arString[I]));
-                I++;
-            }
-            return akBool.ToArray();
         }
     }
 }

@@ -11,6 +11,9 @@ namespace FNPlugin.Collectors
     [KSPModule("Solar Wind Collector")]
     class SolarWindCollector : ResourceSuppliableModule
     {
+        public const string GROUP = "SolarWindCollector";
+        public const string GROUP_TITLE = "#LOC_KSPIE_SolarwindCollector_groupName";
+
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool bIsEnabled;
@@ -33,25 +36,25 @@ namespace FNPlugin.Collectors
         [KSPField(isPersistant = true)]
         public double solarWindMolesPerSquareMeterPerSecond;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionisation"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 0)]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionisation"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 0)]
         protected float ionizationPercentage;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_magneticField"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 0)]
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_magneticField"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 0)]
         protected float powerPercentage = 100;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_pulsation"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 0)]
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_pulsation"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 0)]
         protected float pulsatingPercentage = 100;
 
         // Part properties
-        [KSPField(guiActiveEditor = false, guiName = "#LOC_KSPIE_SolarwindCollector_surfaceArea", guiUnits = " m\xB2")]
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiName = "#LOC_KSPIE_SolarwindCollector_surfaceArea", guiUnits = " m\xB2")]
         public double surfaceArea = 0; // Surface area of the panel.
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_magneticArea", guiUnits = " m\xB2")]
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_magneticArea", guiUnits = " m\xB2")]
         public double magneticArea = 0; // Magnetic area of the panel.
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_effectiveness", guiFormat = "P1")]
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_effectiveness", guiFormat = "P1")]
         public double effectiveness = 1; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_mwRequirements", guiUnits = " MW")]
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_mwRequirements", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
         public double mwRequirements = 1; // MW requirements of the collector panel.
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_superConductingRatio", guiUnits = " MW")]
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_superConductingRatio", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
         public double superConductingRatio = 0.05; // MW requirements of the collector panel.
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionRequirements", guiUnits = " MW")]
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionRequirements", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
         public double ionRequirements = 100; // MW requirements of the collector panel.
 
         [KSPField]
@@ -78,85 +81,85 @@ namespace FNPlugin.Collectors
         public double avgSolarWindPerCubM = 6e6;        // various sources differ, most state that there are around 6 particles per cm^3, so around 6000000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
         // GUI
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_effectiveSurfaceArea", guiFormat = "F3", guiUnits = " km\xB2")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_effectiveSurfaceArea", guiFormat = "F3", guiUnits = " km\xB2")]
         protected double effectiveSurfaceAreaInSquareKiloMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_effectiveDiameter", guiFormat = "F3", guiUnits = " km")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_effectiveDiameter", guiFormat = "F3", guiUnits = " km")]
         protected double effectiveDiameterInKilometer;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarWindIons", guiUnits = " mol/m\xB2/s")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarWindIons", guiUnits = " mol/m\xB2/s")]
         protected float fSolarWindConcentrationPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarIons", guiUnits = " mol/m\xB2/s")] 
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarIons", guiUnits = " mol/m\xB2/s")] 
         protected float fInterstellarIonsPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarParticles", guiUnits = " mol/m\xB3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarParticles", guiUnits = " mol/m\xB3")]
         protected float fInterstellarIonsPerCubicMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphereParticles", guiUnits = " mol/m\xB3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphereParticles", guiUnits = " mol/m\xB3")]
         protected float fAtmosphereConcentration;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_neutralHydrogenConcentration", guiUnits = " mol/m\xB3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_neutralHydrogenConcentration", guiUnits = " mol/m\xB3")]
         protected float fNeutralHydrogenConcentration;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_neutralHeliumConcentration", guiUnits = " mol/m\xB3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_neutralHeliumConcentration", guiUnits = " mol/m\xB3")]
         protected float fNeutralHeliumConcentration;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionizedHydrogenConcentration", guiUnits = " mol/m\xB3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionizedHydrogenConcentration", guiUnits = " mol/m\xB3")]
         protected float fIonizedHydrogenConcentration;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionizedHeliumConcentration", guiUnits = " mol/m\xB3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionizedHeliumConcentration", guiUnits = " mol/m\xB3")]
         protected float fIonizedHeliumConcentration;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphericIonsDensity", guiUnits = " kg/m\xB3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphericIonsDensity", guiUnits = " kg/m\xB3")]
         protected float fAtmosphereIonsKgPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphericGasDensity", guiUnits = " kg/m\xB3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphericGasDensity", guiUnits = " kg/m\xB3")]
         protected float fAtmosphereGasKgPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarIonsDensity", guiUnits = " kg/m\xB2")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarIonsDensity", guiUnits = " kg/m\xB2")]
         protected float fInterstellarIonsKgPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindMassDensity", guiUnits = " kg/m\xB2")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindMassDensity", guiUnits = " kg/m\xB2")]
         protected float fSolarWindKgPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solidVesselDrag", guiUnits = " N/m\xB2")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solidVesselDrag", guiUnits = " N/m\xB2")]
         protected float solidVesselDragInNewton;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphericGasDrag", guiUnits = " N/m\xB2")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphericGasDrag", guiUnits = " N/m\xB2")]
         protected float fAtmosphericGasDragInNewton;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphericIonDrag", guiUnits = " N/m\xB2")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphericIonDrag", guiUnits = " N/m\xB2")]
         protected float fAtmosphericIonDragInNewton;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindDrag", guiUnits = " N/m\xB2")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindDrag", guiUnits = " N/m\xB2")]
         protected float fSolarWindDragInNewtonPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarDrag", guiUnits = " N/m\xB2")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarDrag", guiUnits = " N/m\xB2")]
         protected float fInterstellarDustDragInNewton;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionisationFacingFactor", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionisationFacingFactor", guiFormat = "F3")]
         protected double ionizationFacingFactor;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_orbitalDragOnVessel", guiUnits = " kN")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_orbitalDragOnVessel", guiUnits = " kN")]
         protected float fEffectiveOrbitalDragInKiloNewton;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindForceOnVessel", guiUnits = " N")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindForceOnVessel", guiUnits = " N")]
         protected float fSolarWindVesselForceInNewton;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_magnetosphereStrengthRatio", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_magnetosphereStrengthRatio", guiFormat = "F3")]
         protected double magnetoSphereStrengthRatio;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindFacingFactor", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindFacingFactor", guiFormat = "F3")]
         protected double solarWindAngleOfAttackFactor = 0;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindCollectionModifier", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarwindCollectionModifier", guiFormat = "F3")]
         protected double solarwindProductionModifiers = 0;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarWindMassCollected", guiUnits = " g/h")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarWindMassCollected", guiUnits = " g/h")]
         protected float fSolarWindCollectedGramPerHour;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarMassCollected", guiUnits = " g/h")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarMassCollected", guiUnits = " g/h")]
         protected float fInterstellarIonsCollectedGramPerHour;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphereHydrogenCollected", guiUnits = " g/h")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphereHydrogenCollected", guiUnits = " g/h")]
         protected float fHydrogenCollectedGramPerHour;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphereHeliumCollected", guiUnits = " g/h")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_atmosphereHeliumCollected", guiUnits = " g/h")]
         protected float fHeliumCollectedGramPerHour;
 
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_distanceFromSun", guiFormat = "F1", guiUnits = " km")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_distanceFromSun", guiFormat = "F1", guiUnits = " km")]
         protected double distanceToLocalStar;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_status")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_status")]
         protected string strCollectingStatus = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_powerUsage")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_powerUsage")]
         protected string strReceivedPower = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_magnetosphereShieldingStrength", guiUnits = " %")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_magnetosphereShieldingStrength", guiUnits = " %")]
         protected string strMagnetoStrength = "";
 
         //[KSPField(guiActive = true, guiName = "Belt Radiation Flux")]
         //protected double beltRadiationFlux;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_verticalSpeed", guiFormat = "F1", guiUnits = " m/s")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_verticalSpeed", guiFormat = "F1", guiUnits = " m/s")]
         protected double verticalSpeed;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_heliosphereFactor", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_heliosphereFactor", guiFormat = "F3")]
         protected double heliosphereFactor;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_relativeSolarwindSpeed", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_relativeSolarwindSpeed", guiFormat = "F3")]
         protected double relativeSolarWindSpeed;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarDensityFactor", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarDensityFactor", guiFormat = "F3")]
         protected double interstellarDensityFactor;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarWindDensityFactor", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarWindDensityFactor", guiFormat = "F3")]
         protected double solarwindDensityFactor;
 
         // internals
@@ -184,7 +187,7 @@ namespace FNPlugin.Collectors
         PartResourceDefinition _hydrogenResourceDefinition;
         PartResourceDefinition _solarWindResourceDefinition;
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_activateCollector", active = true)]
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_activateCollector", active = true)]
         public void ActivateCollector()
         {
             Debug.Log("[KSPI]: SolarwindCollector on " + part.name + " was Force Activated");
@@ -196,7 +199,7 @@ namespace FNPlugin.Collectors
                 UpdatePartAnimation();
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_disableCollector", active = true)]
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_disableCollector", active = true)]
         public void DisableCollector()
         {
             bIsEnabled = false;

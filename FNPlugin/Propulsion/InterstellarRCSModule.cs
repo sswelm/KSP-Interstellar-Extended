@@ -8,6 +8,9 @@ namespace FNPlugin
 {
     class InterstellarRCSModule : ResourceSuppliableModule 
     {
+        public const string GROUP = "InterstellarRCSModule";
+        public const string GROUP_TITLE = "#LOC_KSPIE_RCSModule_groupName";
+
         [KSPField(isPersistant = true)]
         public int fuel_mode;
         [KSPField(isPersistant = false)]
@@ -25,34 +28,34 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         string displayName = "";
 
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_Power"), UI_Toggle(disabledText = "Off", enabledText = "On")]//Power
-        public bool powerEnabled = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_RCSModule_BaseThrust", guiUnits = " kN")]//Max Thrust
-        public float baseThrust = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_IsPowered")]//Is Powered
-        public bool hasSufficientPower = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_Efficency")]//Efficency
-        public string efficencyStr = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_PropellantName")]//Propellant Name
-        public string propNameStr = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_PropellantMaximumIsp")]//Propellant Maximum Isp
-        public float maxPropellantIsp;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_PropellantThrustMultiplier")]//Propellant Thrust Multiplier
-        public double currentThrustMultiplier;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_ThrustLimiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]//Thrust Limiter
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_ThrustLimiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]//Thrust Limiter
         public float thrustLimiter = 100;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_MaxThrust")]//Max Thrust
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_IsPowered")]//Is Powered
+        public bool hasSufficientPower = true;
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_RCSModule_BaseThrust", guiUnits = " kN")]//Max Thrust
+        public float baseThrust = 0;
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_Efficency")]//Efficency
+        public string efficencyStr = "";
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_PropellantName")]//Propellant Name
+        public string propNameStr = "";
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_PropellantMaximumIsp")]//Propellant Maximum Isp
+        public float maxPropellantIsp;
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_PropellantThrustMultiplier")]//Propellant Thrust Multiplier
+        public double currentThrustMultiplier;
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_MaxThrust")]//Max Thrust
         public string thrustStr;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_CurrentThrust", guiUnits = " kN")]//Current Thrust
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_CurrentThrust", guiUnits = " kN")]//Current Thrust
         public float currentThrust;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_RCSModule_Mass", guiUnits = " t")]//Mass
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_RCSModule_Mass", guiFormat = "F3", guiUnits = " t")]//Mass
         public float partMass = 0;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_Power")]//Power
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_Power")]//Power
         public string electricalPowerConsumptionStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_HeatProduction")]//Heat Production
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_HeatProduction")]//Heat Production
         public string heatProductionStr = "";
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_Power"), UI_Toggle(disabledText = "Off", enabledText = "On")]//Power
+        public bool powerEnabled = true;
 
         // internal
         private AnimationState[] rcsStates;
@@ -85,13 +88,13 @@ namespace FNPlugin
             TogglePreviousPropellantEvent();
         }
 
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_NextPropellant", active = true)]//Next Propellant
+        [KSPEvent(groupName = GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_NextPropellant", active = true)]//Next Propellant
         public void ToggleNextPropellantEvent()
         {
             SwitchToNextPropellant(_propellants.Count);
         }
 
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_PreviousPropellant", active = true)]//Previous Propellant
+        [KSPEvent(groupName = GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_PreviousPropellant", active = true)]//Previous Propellant
         public void TogglePreviousPropellantEvent()
         {
             SwitchToPreviousPropellant(_propellants.Count);

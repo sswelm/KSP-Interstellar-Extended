@@ -13,8 +13,11 @@ namespace FNPlugin.Powermanagement
     [KSPModule("Battery Power Generator")]
     class FNBatteryGenerator : ResourceSuppliableModule
     {
+        public const string GROUP = "FNBatteryGenerator";
+        public const string GROUP_TITLE = "#LOC_KSPIE_FNBatteryGenerator_groupName";
+
         // configuration
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Power
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumEnergy", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F2")]//Maximum Energy Stored
         public double maxPower = 1;
         [KSPField]
         public bool forceActivateAtStartup = true;
@@ -28,29 +31,29 @@ namespace FNPlugin.Powermanagement
         public string inputConversionRates = "2.77777777777e-1";
         [KSPField]
         public string outputConversionRates = "";
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
         public float electricSupplyPriority = 5;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_SpareMWCapacity", guiUnits = " MW", guiFormat = "F3")]//Spare MW Capacity
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_SpareMWCapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Spare MW Capacity
         public double spareResourceCapacity;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Remainingsupplylifetime", guiUnits = " s", guiFormat = "F0")]//Remaining supply lifetime
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Remainingsupplylifetime", guiUnits = " s", guiFormat = "F0")]//Remaining supply lifetime
         public double batterySupplyRemaining;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Power
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Maximum Power
         public double currentMaxPower = 1;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_PowerSupply", guiUnits = " MW", guiFormat = "F3")]//Power Supply
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_PowerSupply", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Power Supply
         public double powerSupply;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Wasteheat", guiUnits = " MJ", guiFormat = "F3")]//Wasteheat
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Wasteheat", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F3")]//Wasteheat
         public double wasteheat;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double electrical_power_currently_needed;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
 
-        [KSPField(isPersistant = false, guiActive = true, guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerSurplus;
-        [KSPField(isPersistant = false, guiActive = false, guiFormat = "F4")]
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiFormat = "F2")]
         public double effectiveFuelRatio;
-        [KSPField(isPersistant = false, guiActive = false, guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double effectiveMaxPower;
 
         // privates

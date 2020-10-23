@@ -9,6 +9,9 @@ namespace FNPlugin
 {
     class ISRUScoop : ResourceSuppliableModule 
     {
+        public const string GROUP = "ISRUScoop";
+        public const string GROUP_TITLE = "#LOC_KSPIE_ISRUScoop_groupName";
+
         // persistants
         [KSPField(isPersistant = true)]
         public bool scoopIsEnabled = false;
@@ -20,48 +23,48 @@ namespace FNPlugin
         public double last_power_percentage ;
 
         // part proterties
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ISRUScoop_ScoopedAir", guiFormat = "F6")]//Scooped Air
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ISRUScoop_ScoopedAir", guiFormat = "F6")]//Scooped Air
         public double scoopair = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false)]
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = false)]
         public double powerReqMult = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ISRUScoop_Mass", guiUnits = " t")]//Mass
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ISRUScoop_Mass", guiUnits = " t")]//Mass
         public float partMass = 0;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_AtmosphericDensity")]//Density
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_AtmosphericDensity")]//Density
         public string atmosphericDensity;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_resoucesflow")]//Collected
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_resoucesflow")]//Collected
         public string resflow;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Resource")]//Resource
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Resource")]//Resource
         public string currentresourceStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Percentage", guiUnits = "%")]//Percentage
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Percentage", guiUnits = "%")]//Percentage
         public double rescourcePercentage;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Storage")]//Storage
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Storage")]//Storage
         public string resourceStoragename;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_RecievedPower")]//Power
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_RecievedPower")]//Power
         public string recievedPower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_TraceAtmosphere")]//Trace Atmosphere
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_TraceAtmosphere")]//Trace Atmosphere
         public string densityFractionOfUpperAthmosphere;
 
         
         // internals
         protected double resflowf = 0;
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ActivateScoop", active = true)]//Activate Scoop
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ActivateScoop", active = true)]//Activate Scoop
         public void ActivateScoop() 
         {
             scoopIsEnabled = true;
             OnUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_DisableScoop", active = true)]//Disable Scoop
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_DisableScoop", active = true)]//Disable Scoop
         public void DisableScoop() 
         {
             scoopIsEnabled = false;
             OnUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ToggleResource", active = true)]//Toggle Resource
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ToggleResource", active = true)]//Toggle Resource
         public void ToggleResource() 
         {
             currentresource++;

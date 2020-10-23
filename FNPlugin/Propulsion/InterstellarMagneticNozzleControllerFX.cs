@@ -12,8 +12,11 @@ namespace FNPlugin
 {
     class InterstellarMagneticNozzleControllerFX : ResourceSuppliableModule, IFNEngineNoozle
     {
+        public const string GROUP = "MagneticNozzleController";
+        public const string GROUP_TITLE = "#LOC_KSPIE_MagneticNozzleControllerFX_groupName";
+
         //Persistent
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_SimulatedThrottle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]//Simulated Throttle
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_SimulatedThrottle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]//Simulated Throttle
         public float simulatedThrottle = 0.5f;
         [KSPField(isPersistant = true)]
         double powerBufferStore;
@@ -21,9 +24,9 @@ namespace FNPlugin
         public bool exhaustAllowed = true;
 
         // Non Persistant fields
-        [KSPField(guiActiveEditor = true, guiUnits = "m")]
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_ThermalNozzleController_Radius", guiActiveEditor = true, guiFormat = "F2", guiUnits = "m")]
         public double radius = 2.5;
-        [KSPField(guiActiveEditor = true, guiUnits = " t")]
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionEngine_partMass", guiActiveEditor = true, guiFormat = "F3", guiUnits = " t")]
         public float partMass = 1;
         [KSPField]
         public bool showPartMass = true;
@@ -42,37 +45,37 @@ namespace FNPlugin
         [KSPField]
         public string powerEffectName = String.Empty;
 
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_ChargedParticleMaximumPercentageUsage", guiFormat = "F3")]//CP max fraction usage
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_ChargedParticleMaximumPercentageUsage", guiFormat = "F3")]//CP max fraction usage
         private double _chargedParticleMaximumPercentageUsage;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaxChargedParticlesPower", guiUnits = " MW", guiFormat = "F3")]//Max CP Power
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaxChargedParticlesPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Max CP Power
         private double _max_charged_particles_power;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedParticles", guiUnits = " MW")]//Requested Particles
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedParticles", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Requested Particles
         private double _charged_particles_requested;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedParticles", guiUnits = " MW")]//Recieved Particles
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedParticles", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Recieved Particles
         private double _charged_particles_received;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedElectricity", guiUnits = " MW")]//Requested Electricity
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedElectricity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Requested Electricity
         private double _requestedElectricPower;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedElectricity", guiUnits = " MW")]//Recieved Electricity
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedElectricity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Recieved Electricity
         private double _recievedElectricPower;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Thrust", guiUnits = " kN")]//Thrust
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Thrust", guiUnits = " kN")]//Thrust
         private double _engineMaxThrust;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Consumption", guiUnits = " kg/s")]//Consumption
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Consumption", guiUnits = " kg/s")]//Consumption
         private double calculatedConsumptionPerSecond;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_ThrotleExponent")]//Throtle Exponent
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_ThrotleExponent")]//Throtle Exponent
         protected double throtleExponent = 1;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaximumChargedPower", guiUnits = " MW", guiFormat = "F1")]//Maximum ChargedPower
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaximumChargedPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Maximum ChargedPower
         protected double maximumChargedPower;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_PowerThrustModifier", guiUnits = " MW", guiFormat = "F1")]//Power Thrust Modifier
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_PowerThrustModifier", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F1")]//Power Thrust Modifier
         protected double powerThrustModifier;
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Minimumisp", guiUnits = " s", guiFormat = "F1")]//Minimum isp
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Minimumisp", guiUnits = " s", guiFormat = "F1")]//Minimum isp
         protected double minimum_isp;
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Maximumisp", guiUnits = " s", guiFormat = "F1")]//Maximum isp
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Maximumisp", guiUnits = " s", guiFormat = "F1")]//Maximum isp
         protected double maximum_isp;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_PowerRatio")]//Power Ratio
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_PowerRatio")]//Power Ratio
         protected double megajoulesRatio;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineIsp")]//Engine Isp
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineIsp")]//Engine Isp
         protected double engineIsp;
-        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineFuelFlow")]//Engine Fuel Flow
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineFuelFlow")]//Engine Fuel Flow
         protected float engineFuelFlow;
         [KSPField(guiActive = false)]
         protected double chargedParticleRatio;
