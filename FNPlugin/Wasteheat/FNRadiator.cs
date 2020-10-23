@@ -22,13 +22,19 @@ namespace FNPlugin.Wasteheat
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
-    class ActiveRadiator3 : ResourceSuppliableModule
+    class ActiveRadiator3 : ResourceSuppliableModule, IPartMassModifier, IPartCostModifier
     {
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Power Priority", guiFormat = "F0", guiUnits = ""), UI_FloatRange(stepIncrement = 1.0F, maxValue = 5F, minValue = 0F)]
         public float powerPriority = 5;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F0"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 1F)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Surface Area", guiFormat = "F0"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 1F)]
         public float surfaceArea = 1;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Surface Area Upgrade", guiFormat = "F0", guiUnits = " m2"), UI_FloatRange(stepIncrement = 1F, maxValue = 128F, minValue = 0F)]
+        public float surfaceAreaUpgrade;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Pump Speed Upgrade", guiFormat = "F0", guiUnits = " m/s"), UI_FloatRange(stepIncrement = 1F, maxValue = 1024F, minValue = 0F)]
+        public float pumpSpeedUpgrade;
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 0F)]
         public float pumpSpeed = 1;
@@ -188,42 +194,42 @@ namespace FNPlugin.Wasteheat
             pumpSpeed = (float)defaultPumpSpeed * part.rescaleFactor;
 
             // pump speed is used as a direct multiplier
-            if (hasPumpUpgradeMk1) pumpSpeed += 10;
-            if (hasPumpUpgradeMk2) pumpSpeed += 10;
-            if (hasPumpUpgradeMk3) pumpSpeed += 20;
-            if (hasPumpUpgradeMk4) pumpSpeed += 50;
+            if (hasPumpUpgradeMk1) pumpSpeed += 59;
+            if (hasPumpUpgradeMk2) pumpSpeed += 120;
+            if (hasPumpUpgradeMk3) pumpSpeed += 150;
+            if (hasPumpUpgradeMk4) pumpSpeed += 270;
 
             var storage = defaultLqdStorage * part.rescaleFactor;
 
             // used to calculate coolant total, used as an indirect multiplier
-            if (hasStorageUpgradeMk1) storage += 10;
-            if (hasStorageUpgradeMk2) storage += 50;
-            if (hasStorageUpgradeMk3) storage += 100;
-            if (hasStorageUpgradeMk4) storage += 100;
+            if (hasStorageUpgradeMk1) storage += 2499;
+            if (hasStorageUpgradeMk2) storage += 2500;
+            if (hasStorageUpgradeMk3) storage += 5000;
+            if (hasStorageUpgradeMk4) storage += 10000;
 
             var surface = defaultSurfaceArea * part.rescaleFactor;
             var externalTemp = defaultMaxExternalTemp;
 
             if (hasSurfaceUpgradeMk1)
             {
-                surface += 5;
+                surface += 49;
                 externalTemp += 225;
             }
 
             if (hasSurfaceUpgradeMk2)
             {
-                surface += 10;
+                surface += 75;
                 externalTemp += 225;
             }
 
             if (hasSurfaceUpgradeMk3)
             {
-                surface += 15;
+                surface += 125;
                 externalTemp += 225;
             }
             if (hasSurfaceUpgradeMk4)
             {
-                surface += 20;
+                surface += 250;
                 externalTemp += 225;
             }
 
@@ -237,13 +243,39 @@ namespace FNPlugin.Wasteheat
 
         }
 
+        public ModifierChangeWhen GetModuleCostChangeWhen()
+        {
+            return ModifierChangeWhen.CONSTANTLY;
+        }
+
+        public ModifierChangeWhen GetModuleMassChangeWhen()
+        {
+            return ModifierChangeWhen.CONSTANTLY;
+        }
+
+        private const float surfaceAreaUpgradeMassCost = 0.005F;
+        private const float pumpSpeedUpgradeMassCost = 0.01F;
+
+        private const float surfaceAreaUpgradePriceCost = 1000F;
+        private const float pumpSpeedUpgradePriceCost = 500F;
+
+
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        {
+            return (surfaceAreaUpgradeMassCost * surfaceAreaUpgrade) + (pumpSpeedUpgradeMassCost * pumpSpeedUpgrade);
+        }
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            return (surfaceAreaUpgradePriceCost * surfaceAreaUpgrade) + (pumpSpeedUpgradePriceCost * pumpSpeedUpgrade);
+        }
+
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
 
             if (state == StartState.Editor)
             {
-                handleUpgrades();    
+                handleUpgrades();
             }
             processUpgrades();
 
@@ -719,8 +751,8 @@ namespace FNPlugin.Wasteheat
         [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_Radiator_MaxEnergyTransfer", guiFormat = "F2")]//Max Energy Transfer
         private double _maxEnergyTransfer;
 
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "Part Rotation Distance", guiFormat = "F2", guiUnits = " m/s")] public double partRotationDistance;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "Atmosphere Density", guiFormat = "F1", guiUnits = " kPa")] public double atmDensity;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "Part Rotation Distance", guiFormat = "F2", guiUnits = "m/s")] public double partRotationDistance;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "vessel.atmDensity", guiFormat = "F4", guiUnits = "")] public double atmDensity;
 
         [KSPField] public int nrAvailableUpgradeTechs;
         [KSPField] public bool hasSurfaceAreaUpgradeTechReq;
@@ -1218,7 +1250,7 @@ namespace FNPlugin.Wasteheat
             _kspShader = Shader.Find(kspShaderLocation);
             maxRadiatorTemperature = (float)MaxRadiatorTemperature;
 
-            part.heatConvectiveConstant = convectiveBonus;
+            part.heatConvectiveConstant = 2;
             if (hasSurfaceAreaUpgradeTechReq)
                 part.emissiveConstant = 1.6;
 
@@ -1250,7 +1282,6 @@ namespace FNPlugin.Wasteheat
                 partMass = part.mass;
                 Fields[nameof(partMass)].guiActiveEditor = true;
                 Fields[nameof(partMass)].guiActive = true;
-                Fields[nameof(convectiveBonus)].guiActiveEditor = true;
             }
 
             if (!string.IsNullOrEmpty(thermalAnim))
@@ -1759,8 +1790,6 @@ namespace FNPlugin.Wasteheat
 
             sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Area_Bonus")).Append(" ");//Surface Area Bonus:
             sb.AppendLine((string.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0.0 : surfaceAreaUpgradeMult - 1).ToString("P0"));
-            sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_AtmConvectionBonus")).Append(" ");//Atm Convection Bonus:
-            sb.AppendLine((convectiveBonus - 1.0).ToString("P0"));
 
             sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_MaximumWasteHeatRadiatedMk1")).Append(" ");//\nMaximum Waste Heat Radiated\nMk1:
             sb.Append(RadiatorProperties.RadiatorTemperatureMk1.ToString("F0")).Append(" K, ");
@@ -1783,7 +1812,7 @@ namespace FNPlugin.Wasteheat
                 sb.Append("Mk6: ").Append(RadiatorProperties.RadiatorTemperatureMk6.ToString("F0")).Append(" K, ");
                 sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4)));
 
-                var convection = 0.9 * effectiveRadiatorArea * convectiveBonus;
+                var convection = 0.9 * effectiveRadiatorArea;
                 var dissipation = _stefanArea * Math.Pow(900, 4);
 
                 sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", dissipation.ToString("F3"), convection.ToString("F3")));
