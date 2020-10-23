@@ -17,6 +17,9 @@ namespace FNPlugin
     [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
     class ElectricEngineControllerFX : ResourceSuppliableModule, IUpgradeableModule, IRescalable<ElectricEngineControllerFX>, IPartMassModifier
     {
+        public const string GROUP = "ElectricEngineControllerFX";
+        public const string GROUP_TITLE = "#LOC_KSPIE_ElectricEngine_groupName";
+
         [KSPField(isPersistant = true)]
         public double storedAbsoluteFactor = 1;
 
@@ -118,46 +121,65 @@ namespace FNPlugin
         public string Mk7Tech = "";
 
         // GUI
-        [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineType")]
+        public string engineTypeStr = "";
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F3")]
         public double thrust_d;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CalculatedThrust", guiFormat = "F6", guiUnits = "kN")]//Calculated Thrust
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CalculatedThrust", guiFormat = "F3", guiUnits = "kN")]//Calculated Thrust
         public double calculated_thrust;
+        [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
+        public double engineIsp;
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput",  guiFormat = "F1", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
+        public double scaledMaxPower = 0;
+        [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_activePropellantName")]
+        public string propNameStr = "";
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerShare")]
+        public string electricalPowerShareStr = "";
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_MaximumPowerRequest", guiFormat = "F1", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Maximum Power Request
+        public double maximum_power_request;
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerRequested", guiFormat = "F1", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")] // Current Power Request
+        public double current_power_request;
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_propellantEfficiency")]
+        public string efficiencyStr = "";
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_overheatEfficiency")]
+        public string thermalEfficiency = "";
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_heatProduction")]
+        public string heatProductionStr = "";
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_upgradeCost")]
+        public string upgradeCostStr = "";
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_maxEffectivePower", guiFormat = "F1", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
+        public double maxEffectivePower;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_maxThrottlePower", guiFormat = "F1", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
+        public double modifiedMaxThrottlePower;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
+        public double lightSpeedRatio;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
+        public double timeDilation = 1;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CapacityModifier")]//Capacity Modifier
+        protected double powerCapacityModifier = 1;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_AtmTrustEfficiency")]//Atm Trust Efficiency
+        protected double _atmosphereThrustEfficiency;
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_AtmTrustEfficiency", guiFormat = "F2", guiUnits = "%")]//Atm Trust Efficiency
+        protected double _atmosphereThrustEfficiencyPercentage;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_MaxFuelFlowRate")]//Max Fuel Flow Rate
+        protected float _maxFuelFlowRate;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentSpaceFuelFlowRate")]//Current Space Fuel Flow Rate
+        protected double _currentSpaceFuelFlowRate;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_PotentialSpaceFuelFlowRate")]//Potential Space Fuel Flow Rate
+        protected double _simulatedSpaceFuelFlowRate;
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_FuelFlowModifier")]//Fuel Flow Modifier
+        protected double _fuelFlowModifier;
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentThrustinSpace", guiFormat = "F3", guiUnits = " kN")]//Current Thrust in Space
+        protected double currentThrustInSpace;
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_MaxThrustinSpace", guiFormat = "F3", guiUnits = " kN")]//Max Thrust in Space
+        protected double simulatedThrustInSpace;
         [KSPField(guiActive = false)]
         public double simulated_max_thrust;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
-        public double engineIsp;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput",  guiFormat = "F3", guiUnits = " MW")]
-        public double scaledMaxPower = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiUnits = " t")]
-        public float partMass = 0;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineType")]
-        public string engineTypeStr = "";
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_activePropellantName")]
-        public string propNameStr = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerShare")]
-        public string electricalPowerShareStr = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_MaximumPowerRequest", guiFormat = "F3", guiUnits = " MW")]//Maximum Power Request
-        public double maximum_power_request;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerRequested", guiFormat = "F3", guiUnits = " MW")] // Current Power Request
-        public double current_power_request;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_propellantEfficiency")]
-        public string efficiencyStr = "";
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_overheatEfficiency")]
-        public string thermalEfficiency = "";
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_heatProduction")]
-        public string heatProductionStr = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_upgradeCost")]
-        public string upgradeCostStr = "";
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_maxEffectivePower", guiFormat = "F3", guiUnits = " MW")]
-        public double maxEffectivePower;
+
         [KSPField(guiActive = false)]
         public double currentPropellantEfficiency;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_maxThrottlePower", guiFormat = "F3", guiUnits = " MW")]
-        public double modifiedMaxThrottlePower;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
-        public double lightSpeedRatio;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
-        public double timeDilation = 1;
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiFormat = "F3", guiUnits = " t")]
+        public float partMass = 0;
 
         [KSPField]
         public double prefabMass;
@@ -176,7 +198,6 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         protected double effectiveCurrentAvailablePowerForEngine;
 
-
         [KSPField(guiActive = false)]
         protected double effectiveMaximumPower;
         [KSPField(guiActive = false)]
@@ -192,25 +213,6 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         public double simulatedPowerReceived;
 
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CapacityModifier")]//Capacity Modifier
-        protected double powerCapacityModifier = 1;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_AtmTrustEfficiency")]//Atm Trust Efficiency
-        protected double _atmosphereThrustEfficiency;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_AtmTrustEfficiency", guiFormat = "F3", guiUnits = "%")]//Atm Trust Efficiency
-        protected double _atmosphereThrustEfficiencyPercentage;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_MaxFuelFlowRate")]//Max Fuel Flow Rate
-        protected float _maxFuelFlowRate;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentSpaceFuelFlowRate")]//Current Space Fuel Flow Rate
-        protected double _currentSpaceFuelFlowRate;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_PotentialSpaceFuelFlowRate")]//Potential Space Fuel Flow Rate
-        protected double _simulatedSpaceFuelFlowRate;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_FuelFlowModifier")]//Fuel Flow Modifier
-        protected double _fuelFlowModifier;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentThrustinSpace", guiFormat = "F6", guiUnits = " kN")]//Current Thrust in Space
-        protected double currentThrustInSpace;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngineController_MaxThrustinSpace", guiFormat = "F6", guiUnits = " kN")]//Max Thrust in Space
-        protected double simulatedThrustInSpace;
-
         [KSPField] 
         protected double maximumAvailablePowerForEngine;
         [KSPField]
@@ -221,7 +223,6 @@ namespace FNPlugin
         protected double availableMaximumPower;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentAvailablePower")]//Current Available Power
         protected double availableCurrentPower;
-       
 
         [KSPField]
         protected double maximumThrustFromPower = 0.001;
@@ -407,13 +408,13 @@ namespace FNPlugin
         }
 
         // Events
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_nextPropellant", active = true)]
+        [KSPEvent(groupName = GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_nextPropellant", active = true)]
         public void ToggleNextPropellantEvent()
         {
             ToggleNextPropellant();
         }
 
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_previous Propellant", active = true)]
+        [KSPEvent(groupName = GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_previous Propellant", active = true)]
         public void TogglePreviousPropellantEvent()
         {
             TogglePreviousPropellant();
@@ -444,7 +445,7 @@ namespace FNPlugin
             return ModifierChangeWhen.STAGED;
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_retrofit", active = true)]
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_retrofit", active = true)]
         public void RetrofitEngine()
         {
             if (ResearchAndDevelopment.Instance == null) return;

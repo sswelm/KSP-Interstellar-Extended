@@ -40,36 +40,34 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false)]
         public double maxStoredPower = 0;
 
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Power", advancedTweakable = true), UI_Toggle(disabledText = "#LOC_KSPIE_ElectricRCSController_Power_Off", enabledText = "#LOC_KSPIE_ElectricRCSController_Power_On", affectSymCounterparts = UI_Scene.All)]//Power--Off--On
-        public bool powerEnabled = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantName")]//Propellant Name
+        [KSPField(groupName = InterstellarRCSModule.GROUP, groupDisplayName = InterstellarRCSModule.GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_HasSufficientPower")]//Is Powered
+        public bool hasSufficientPower = true;
+        [KSPField(groupName = InterstellarRCSModule.GROUP, groupDisplayName = InterstellarRCSModule.GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantName")]//Propellant Name
         public string propNameStr = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantMaximumIsp")]//Propellant Maximum Isp
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantMaximumIsp")]//Propellant Maximum Isp
         public float maxPropellantIsp;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantThrustMultiplier")]//Propellant Thrust Multiplier
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantThrustMultiplier")]//Propellant Thrust Multiplier
         public double currentThrustMultiplier = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_ThrustIspMultiplier")]//Thrust / ISP Mult
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_ThrustIspMultiplier")]//Thrust / ISP Mult
         public string thrustIspMultiplier = "";
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_BaseThrust", guiUnits = " kN")]//Base Thrust
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_BaseThrust", guiUnits = " kN")]//Base Thrust
         public float baseThrust = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_CurrentTotalThrust", guiUnits = " kN")]//Current Total Thrust
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_CurrentTotalThrust", guiUnits = " kN")]//Current Total Thrust
         public float currentThrust;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_Mass", guiUnits = " t")]//Mass
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_Mass", guiFormat = "F3", guiUnits = " t")]//Mass
         public float partMass = 0;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Consumption")]//Consumption
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Consumption")]//Consumption
         public string electricalPowerConsumptionStr = "";
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_HasSufficientPower")]//Is Powered
-        public bool hasSufficientPower = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Efficiency")]//Efficiency
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Efficiency")]//Efficiency
         public string efficiencyStr = "";
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Power", advancedTweakable = true), UI_Toggle(disabledText = "#LOC_KSPIE_ElectricRCSController_Power_Off", enabledText = "#LOC_KSPIE_ElectricRCSController_Power_On", affectSymCounterparts = UI_Scene.All)]//Power--Off--On
+        public bool powerEnabled = true;
 
         // internal
         private AnimationState[] rcsStates;
         private bool rcsIsOn;
         private bool rcsPartActive;
-
-        private PartResourceDefinition definitionMegajoule;
 
         [KSPField(guiActive = false)]
         public double power_shortage;
@@ -84,7 +82,6 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         public double additional_power_recieved_f;
 
-        private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCSFX attachedRCS;
         private bool oldPowerEnabled;
@@ -104,13 +101,13 @@ namespace FNPlugin
             TogglePreviousPropellantEvent();
         }
 
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_NextPropellant", active = true)]//Next Propellant
+        [KSPEvent(groupName = InterstellarRCSModule.GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_NextPropellant", active = true)]//Next Propellant
         public void ToggleNextPropellantEvent()
         {
             SwitchToNextPropellant(_propellants.Count);
         }
 
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_PreviousPropellant", active = true)]//Previous Propellant
+        [KSPEvent(groupName = InterstellarRCSModule.GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_PreviousPropellant", active = true)]//Previous Propellant
         public void TogglePreviousPropellantEvent()
         {
             SwitchToPreviousPropellant(_propellants.Count);
@@ -223,8 +220,6 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
-            definitionMegajoule = PartResourceLibrary.Instance.GetDefinition(ResourceManager.FNRESOURCE_MEGAJOULES);
-
             try
             {
                 attachedRCS = this.part.FindModulesImplementing<ModuleRCSFX>().Skip(rcsIndex).FirstOrDefault();
@@ -407,9 +402,7 @@ namespace FNPlugin
 
                     var heatToProduce = (power_recieved_f + additional_power_recieved_f) * (1 - efficiency);
 
-                    heat_production_f = CheatOptions.IgnoreMaxTemperature
-                        ? heatToProduce
-                        : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }           
             }
             else

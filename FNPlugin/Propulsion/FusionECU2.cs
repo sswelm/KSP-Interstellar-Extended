@@ -17,39 +17,39 @@ namespace FNPlugin
         bool rad_safety_features = true;
 
         // None Persistant
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_Radhazardstr")]//Radiation Hazard To
-        public string radhazardstr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_Temperature")]//Temperature
-        public string temperatureStr = "";
-
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Fuels")]//Fuels
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Fuels")]//Fuels
         public string fuels;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Ratios")]//Ratios
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Ratios")]//Ratios
         public string ratios;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Isp", guiFormat = "F3", guiUnits = " s")]//Isp
+        public float currentIsp;
 
         [KSPField]
         public string fuelSwitchName = "Fusion Type";
 
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk1", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk1
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk1", guiActiveEditor = true, guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Power Requirement Mk1
+        public double powerRequirementMax;
+
+        [KSPField]
         public double powerRequirement = 0;
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk2", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk2
+        [KSPField]
         public double powerRequirementUpgraded1 = 0;
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk3", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk3
+        [KSPField]
         public double powerRequirementUpgraded2 = 0;
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk4", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk4
+        [KSPField]
         public double powerRequirementUpgraded3 = 0;
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PowerRequirementMk5", guiFormat = "F3", guiUnits = " MW")]//Power Requirement Mk5
+        [KSPField]
         public double powerRequirementUpgraded4 = 0;
 
-        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk1
+        [KSPField]
         public double powerProduction = 0;
-        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk2
+        [KSPField]
         public double powerProductionUpgraded1 = 0;
-        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk3
+        [KSPField]
         public double powerProductionUpgraded2 = 0;
-        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk4
+        [KSPField]
         public double powerProductionUpgraded3 = 0;
-        [KSPField(guiFormat = "F3", guiUnits = " MW")]//Power Production Mk5
+        [KSPField]
         public double powerProductionUpgraded4 = 0;
 
         [KSPField]
@@ -63,15 +63,18 @@ namespace FNPlugin
         [KSPField]
         public int powerPriority = 4;
 
-        [KSPField(guiName = "Wasteheat Mk1", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(groupName = GROUP, guiName = "Wasteheat Mk1", guiActiveEditor = true, guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
+        public double fusionWasteHeatMax;
+
+        [KSPField]
         public double fusionWasteHeat = 625;
-        [KSPField(guiName = "Wasteheat Mk2", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField]
         public double fusionWasteHeatUpgraded1 = 2500;
-        [KSPField(guiName = "Wasteheat Mk3", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField]
         public double fusionWasteHeatUpgraded2 = 5000;
-        [KSPField(guiName = "Wasteheat Mk4", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField]
         public double fusionWasteHeatUpgraded3 = 7500;
-        [KSPField(guiName = "Wasteheat Mk5", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField]
         public double fusionWasteHeatUpgraded4 = 10000;
 
         // Use for SETI Mode
@@ -85,31 +88,31 @@ namespace FNPlugin
         public double powerMultiplier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public bool hasIspThrottling = true;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Isp", guiFormat = "F3", guiUnits = " s")]//Isp
-        public float currentIsp;
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double neutronbsorbionBonus;
 
-        //[KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        //public bool useMegajouleBattery = false;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_AvailablePower", guiFormat = "F3", guiUnits = " MW")]//Available Power
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_AvailablePower", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Available Power
         public double availablePower;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaxPowerRequirement", guiFormat = "F3", guiUnits = " MW")]//Max Power Requirement
+        [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_FusionECU2_MaxPowerRequirement", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Max Power Requirement
         public double currentMaximumPowerRequirement;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaxPowerProduction", guiFormat = "F3", guiUnits = " MW")]//Max Power Production
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaxPowerProduction", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Max Power Production
         public double currentMaximumPowerProduction;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_LaserWasteheat", guiFormat = "F3", guiUnits = " MW")]//Laser Wasteheat
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_LaserWasteheat", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Laser Wasteheat
         public double laserWasteheat;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_AbsorbedWasteheat", guiFormat = "F3", guiUnits = " MW")]//Absorbed Wasteheat
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FusionECU2_AbsorbedWasteheat", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Absorbed Wasteheat
         public double absorbedWasteheat;
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_RadiatorTemp")]//Radiator Temp
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_RadiatorTemp")]//Radiator Temp
         public double coldBathTemp;
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_MaxRadiatorTemp")]//Max Radiator Temp
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_MaxRadiatorTemp")]//Max Radiator Temp
         public float maxTempatureRadiators;
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_PerformanceRadiators")]//Performance Radiators
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_PerformanceRadiators")]//Performance Radiators
         public double radiatorPerformance;
-        [KSPField(guiName = "#LOC_KSPIE_FusionECU2_Emisiveness")]//Emisiveness
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_Emisiveness")]//Emisiveness
         public double partEmissiveConstant;
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_Temperature")]//Temperature
+        public string temperatureStr = "";
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_Radhazardstr")]//Radiation Hazard To
+        public string radhazardstr = "";
         [KSPField]
         protected float curveMaxISP; // ToDo: make sure it is properly initialized after  comming from assembly 
         [KSPField]
@@ -147,13 +150,13 @@ namespace FNPlugin
         protected ResourceBuffers resourceBuffers;
         protected FNEmitterController emitterController;        
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_DisableRadiationSafety", active = true)]//Disable Radiation Safety
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_DisableRadiationSafety", active = true)]//Disable Radiation Safety
         public void DeactivateRadSafety()
         {
             rad_safety_features = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_ActivateRadiationSafety", active = false)]//Activate Radiation Safety
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_ActivateRadiationSafety", active = false)]//Activate Radiation Safety
         public void ActivateRadSafety()
         {
             rad_safety_features = true;
@@ -316,50 +319,41 @@ namespace FNPlugin
             else
                 Altitude = 0;
 
-            try
+            BaseField ispField = Fields["localIsp"];
+
+            UI_FloatRange[] ispController = { ispField.uiControlFlight as UI_FloatRange, ispField.uiControlEditor as UI_FloatRange };
+
+            ispField.OnValueModified += IspField_OnValueModified;
+
+            for (int i = 0; i < ispController.Length; i++)
             {
+                float akIsp = SelectedIsp;
+                float akMinIsp = ispController[i].minValue;
+                float akMaxIsp = ispController[i].maxValue;
+                float stepIncrement = ispController[i].stepIncrement;
+                float stepNumb = stepIncrement > 0 ? (akIsp - akMinIsp) / stepIncrement : 0;
 
-                BaseField ispField = Fields["localIsp"];
+                if (stepNumb < 0)
+                    stepNumb = 0;
+                else
+                    if (stepNumb > MaxSteps) stepNumb = MaxSteps;
 
-                UI_FloatRange[] ispController = { ispField.uiControlFlight as UI_FloatRange, ispField.uiControlEditor as UI_FloatRange };
+                akMinIsp = (float)Math.Round(BaseFloatCurve.Evaluate((float)Altitude));
 
-                ispField.OnValueModified += IspField_OnValueModified;
+                if (akMinIsp < 1)
+                    akMinIsp = 1;
 
-                for (int I = 0; I < ispController.Length; I++)
-                {
-                    float akIsp = SelectedIsp;
-                    float akMinIsp = ispController[I].minValue;
-                    float akMaxIsp = ispController[I].maxValue;
-                    float stepIncrement = ispController[I].stepIncrement;
-                    float stepNumb = stepIncrement > 0 ? (akIsp - akMinIsp) / stepIncrement : 0;
+                akMaxIsp = GearDivider > 0 ? (float)Math.Round(akMinIsp / GearDivider) : akMinIsp;
+                stepIncrement = (akMaxIsp - akMinIsp) / 100;
 
-                    if (stepNumb < 0)
-                        stepNumb = 0;
-                    else
-                        if (stepNumb > MaxSteps) stepNumb = MaxSteps;
+                ispController[i].minValue = akMinIsp;
+                ispController[i].maxValue = akMaxIsp;
+                ispController[i].stepIncrement = stepIncrement;
 
-                    akMinIsp = (float)Math.Round(BaseFloatCurve.Evaluate((float)Altitude));
-
-                    if (akMinIsp < 1)
-                        akMinIsp = 1;
-
-                    akMaxIsp = GearDivider > 0 ? (float)Math.Round(akMinIsp / GearDivider) : akMinIsp;
-                    stepIncrement = (akMaxIsp - akMinIsp) / 100;
-
-                    ispController[I].minValue = akMinIsp;
-                    ispController[I].maxValue = akMaxIsp;
-                    ispController[I].stepIncrement = stepIncrement;
-
-                    SelectedIsp = akMinIsp + stepIncrement * stepNumb;
-                    I++;
-                }
-                lastAltitude = Altitude;
-
+                SelectedIsp = akMinIsp + stepIncrement * stepNumb;
+                i++;
             }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: FusionEngine FcSetup exception: " + e.Message);
-            }
+            lastAltitude = Altitude;
         }
 
         private void IspField_OnValueModified(object arg1)
@@ -380,69 +374,55 @@ namespace FNPlugin
 
         public override void OnStart(StartState state)
         {
-            try
+            if (state.ToString().Contains(StartState.PreLaunch.ToString()))
             {
-                if (state.ToString().Contains(StartState.PreLaunch.ToString()))
-                {
-                    Debug.Log("[KSPI]: PreLaunch uses InitialGearRatio:" + InitialGearRatio);
-                    SelectedIsp = ((MaxIsp - MinIsp) * Math.Max(0, Math.Min(1, InitialGearRatio))) + MinIsp;
-                }
+                Debug.Log("[KSPI]: PreLaunch uses InitialGearRatio:" + InitialGearRatio);
+                SelectedIsp = ((MaxIsp - MinIsp) * Math.Max(0, Math.Min(1, InitialGearRatio))) + MinIsp;
+            }
 
-                Fields[nameof(selectedFuel)].guiName = fuelSwitchName;
+            Fields[nameof(selectedFuel)].guiName = fuelSwitchName;
 
-                Fields[nameof(currentMaximumPowerRequirement)].guiActive = powerRequirement > 0;
-                Fields[nameof(laserWasteheat)].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
-                Fields[nameof(absorbedWasteheat)].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
-                Fields[nameof(fusionRatio)].guiActive = powerRequirement > 0;
+            Fields[nameof(currentMaximumPowerRequirement)].guiActive = powerRequirement > 0;
+            Fields[nameof(laserWasteheat)].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
+            Fields[nameof(absorbedWasteheat)].guiActive = powerRequirement > 0 && fusionWasteHeat > 0;
+            Fields[nameof(fusionRatio)].guiActive = powerRequirement > 0;
 
-                Fields[nameof(powerRequirement)].guiActiveEditor = powerRequirement > 0;
-                Fields[nameof(powerRequirementUpgraded1)].guiActiveEditor = powerRequirementUpgraded1 > 0 && !string.IsNullOrEmpty(upgradeTechReq1);
-                Fields[nameof(powerRequirementUpgraded2)].guiActiveEditor = powerRequirementUpgraded2 > 0 && !string.IsNullOrEmpty(upgradeTechReq2);
-                Fields[nameof(powerRequirementUpgraded3)].guiActiveEditor = powerRequirementUpgraded3 > 0 && !string.IsNullOrEmpty(upgradeTechReq3);
-                Fields[nameof(powerRequirementUpgraded4)].guiActiveEditor = powerRequirementUpgraded4 > 0 && !string.IsNullOrEmpty(upgradeTechReq4);
-
-                Fields[nameof(fusionWasteHeat)].guiActiveEditor = fusionWasteHeat > 0;
-                Fields[nameof(fusionWasteHeatUpgraded1)].guiActiveEditor = fusionWasteHeatUpgraded1 > 0 && !string.IsNullOrEmpty(upgradeTechReq1);
-                Fields[nameof(fusionWasteHeatUpgraded2)].guiActiveEditor = fusionWasteHeatUpgraded2 > 0 && !string.IsNullOrEmpty(upgradeTechReq2);
-                Fields[nameof(fusionWasteHeatUpgraded3)].guiActiveEditor = fusionWasteHeatUpgraded3 > 0 && !string.IsNullOrEmpty(upgradeTechReq3);
-                Fields[nameof(fusionWasteHeatUpgraded4)].guiActiveEditor = fusionWasteHeatUpgraded4 > 0 && !string.IsNullOrEmpty(upgradeTechReq4);
+            Fields[nameof(powerRequirementMax)].guiActiveEditor = powerRequirement > 0;
+            Fields[nameof(fusionWasteHeatMax)].guiActiveEditor = fusionWasteHeat > 0;
                
-                part.maxTemp = maxTemp;
-                part.thermalMass = 1;
-                part.thermalMassModifier = 1;
+            part.maxTemp = maxTemp;
+            part.thermalMass = 1;
+            part.thermalMassModifier = 1;
 
-                curEngineT = part.FindModuleImplementing<ModuleEngines>();
-                if (curEngineT == null)
-                {
-                    Debug.LogError("[KSPI]: FusionEngine OnStart Engine not found");
-                    return;
-                }
-                BaseFloatCurve = curEngineT.atmosphereCurve;
-
-                curveMaxISP = GetMaxKey(BaseFloatCurve);
-                if (hasMultipleConfigurations) FcSetup();
-
-                InitializeKerbalismEmitter();
-
-                DetermineTechLevel();
-
-                resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 1.0e+4, true));
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-                resourceBuffers.Init(this.part);
-
-                if (state != StartState.Editor)
-                    part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
-
-                base.OnStart(state);
-
-                Fields["localIsp"].guiActive = selectableIsp;
-                Fields["localIsp"].guiActiveEditor = selectableIsp;
-            }
-            catch (Exception e)
+            curEngineT = part.FindModuleImplementing<ModuleEngines>();
+            if (curEngineT == null)
             {
-                Debug.LogError("[KSPI]: FusionEngine OnStart Exception: " + e.Message);
+                Debug.LogError("[KSPI]: FusionEngine OnStart Engine not found");
+                return;
             }
+            BaseFloatCurve = curEngineT.atmosphereCurve;
+
+            curveMaxISP = GetMaxKey(BaseFloatCurve);
+            if (hasMultipleConfigurations) FcSetup();
+
+            InitializeKerbalismEmitter();
+
+            DetermineTechLevel();
+            powerRequirementMax = PowerRequirementMaximum;
+            fusionWasteHeatMax = FusionWasteHeat;
+
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 1.0e+4, true));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.Init(this.part);
+
+            if (state != StartState.Editor)
+                part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
+
+            base.OnStart(state);
+
+            Fields["localIsp"].guiActive = selectableIsp;
+            Fields["localIsp"].guiActiveEditor = selectableIsp;
         }
 
         private double GetRatio(string akPropName)
@@ -593,7 +573,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
+            temperatureStr = part.temperature.ToString("F0") + "K / " + part.maxTemp.ToString("F0") + "K";
             MinIsp = BaseFloatCurve.Evaluate((float)Altitude);
 
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);

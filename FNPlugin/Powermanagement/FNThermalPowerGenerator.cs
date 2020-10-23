@@ -23,17 +23,17 @@ namespace FNPlugin.Reactors
         [KSPField] public double hotColdBathRatioExponent = 0.5;
 
         //GUI
-        [KSPField(guiActive = false, guiName = "Maximum Power Supply", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(groupName = FNGenerator.GROUP, groupDisplayName = FNGenerator.GROUP_TITLE, guiActive = false, guiName = "Maximum Power Supply", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
         public double maximumPowerSupplyInMegaWatt;
-        [KSPField(guiActive = true, guiName = "Maximum Power Supply", guiFormat = "F3")]
+        [KSPField(groupName = FNGenerator.GROUP, guiActive = true, guiName = "Maximum Power Supply", guiFormat = "F2")]
         public string maximumPowerSupply;
-        [KSPField(guiActive = false, guiName = "Current Power Supply", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(groupName = FNGenerator.GROUP, guiActive = false, guiName = "Current Power Supply", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
         public double currentPowerSupplyInMegaWatt;
-        [KSPField(guiActive = true, guiName = "Current Power Supply", guiFormat = "F3")]
+        [KSPField(groupName = FNGenerator.GROUP, guiActive = true, guiName = "Current Power Supply", guiFormat = "F2")]
         public string currentPowerSupply;
-        [KSPField(guiActive = true, guiName = "Hot Bath Temperature", guiFormat = "F3", guiUnits = " K")]
+        [KSPField(groupName = FNGenerator.GROUP, guiActive = true, guiName = "Hot Bath Temperature", guiFormat = "F0", guiUnits = " K")]
         public double hotBathTemperature;
-        [KSPField(guiActive = true, guiName = "Cold Bath Temperature", guiFormat = "F3", guiUnits = " K")]
+        [KSPField(groupName = FNGenerator.GROUP, guiActive = true, guiName = "Cold Bath Temperature", guiFormat = "F0", guiUnits = " K")]
         public double radiatorTemperature;
 
         // reference types

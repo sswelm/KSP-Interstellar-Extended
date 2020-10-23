@@ -255,7 +255,7 @@ namespace PhotonSail
 
         [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_ExternalTemperature", guiFormat = "F4", guiUnits = " K°")]//External Temperature
         public double externalTemperature;
-        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_DissipationInMegaJoules", guiFormat = "F4", guiUnits = " MJ")]//Current Skin Dissipation
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_DissipationInMegaJoules", guiFormat = "F4", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Current Skin Dissipation
         public double dissipationInMegaJoules;
         [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_totalSolarFluxInWatt", guiFormat = "F3", guiUnits = " W/m\xB2")]//Solar Flux
         public double totalSolarFluxInWatt;
@@ -272,7 +272,7 @@ namespace PhotonSail
         [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_SolarfluxWasteheatInMegaJoules", guiFormat = "F3", guiUnits = " MJ/s")]//Solar Energy Absorbed
         public double solarfluxWasteheatInMegaJoules;
 
-        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_maxNetworkPower", guiFormat = "F4", guiUnits = " MW")]//Network power
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_maxNetworkPower", guiFormat = "F4", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Network power
         public double maxNetworkPower;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_PhotonSail_KSCBeamedPowerThrottle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]//KCS Power Throttle
         public float kcsBeamedPowerThrottle = 0;

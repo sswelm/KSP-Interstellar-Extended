@@ -16,68 +16,71 @@ namespace FNPlugin.Beamedpower
 
     class BeamedPowerTransmitter : ResourceSuppliableModule, IMicrowavePowerTransmitter //, IScalarModule
     {
+        public const string GROUP = "BeamedPowerTransmitter";
+        public const string GROUP_TITLE = "#LOC_KSPIE_MicrowavePowerTransmitter_groupName";
+
         //Persistent 
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitPower"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]//Transmission Strength
+        public float transmitPower = 100;
         [KSPField(isPersistant = true)]
         public string partId;
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
         public bool relay;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanRelay")]//Can Relay
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanRelay")]//Can Relay
         public bool canRelay;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MergingBeams")]//Merging Beams
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_IsMirror")]//Is Mirror
+        public bool isMirror = false;
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Canmergebeams")]//Can merge beams
+        public bool isBeamMerger = false;
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MergingBeams")]//Merging Beams
         public bool mergingBeams;
         [KSPField(isPersistant = true)]
         public double nuclear_power = 0;
         [KSPField(isPersistant = true)]
         public double solar_power = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_PowerCapacity", guiUnits = " MW", guiFormat = "F2")]//Power Capacity
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_PowerCapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Power Capacity
         public double power_capacity = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthm", guiFormat = "F8", guiUnits = " m")]//Transmit WaveLength m
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthm", guiFormat = "F8", guiUnits = " m")]//Transmit WaveLength m
         public double wavelength = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthSI")]//Transmit WaveLength SI
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthSI")]//Transmit WaveLength SI
         public string wavelengthText;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MinRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Min Relay WaveLength
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MinRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Min Relay WaveLength
         public double minimumRelayWavelenght;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MaxRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Max Relay WaveLength
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MaxRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Max Relay WaveLength
         public double maximumRelayWavelenght;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthWLName")]//Transmit WaveLength WL Name
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthWLName")]//Transmit WaveLength WL Name
         public string wavelengthName;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
         [KSPField(isPersistant = true)]
         public double diameter = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName= "#LOC_KSPIE_MicrowavePowerTransmitter_IsMirror")]//Is Mirror
-        public bool isMirror = false;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Canmergebeams")]//Can merge beams
-        public bool isBeamMerger = false;
         [KSPField(isPersistant = true)]
         public bool forceActivateAtStartup = false;
         [KSPField(isPersistant = true)]
         public bool hasLinkedReceivers = false;
-        [KSPField(isPersistant = true, guiActiveEditor = true)]
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_NativeWavelength", guiFormat = "F8", guiUnits = " m")]
         public double nativeWaveLength = 0.003189281;
         [KSPField(isPersistant = true, guiActiveEditor = false)]
         public double nativeAtmosphericAbsorptionPercentage = 10;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitPower"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]//Transmission Strength
-        public float transmitPower = 100;
 
         //Non Persistent 
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AtmosphericAbsorptionPercentage")]//Air Absorbtion Percentage
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AtmosphericAbsorptionPercentage")]//Air Absorbtion Percentage
         public double atmosphericAbsorptionPercentage;
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_WaterAbsorptionPercentage")]//Water Absorbtion Percentage
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_WaterAbsorptionPercentage")]//Water Absorbtion Percentage
         public double waterAbsorptionPercentage;
-        [KSPField(guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TotalAbsorptionPercentage", guiFormat = "F4", guiUnits = "%")]//Absorbtion Percentage
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TotalAbsorptionPercentage", guiFormat = "F4", guiUnits = "%")]//Absorbtion Percentage
         public double totalAbsorptionPercentage;
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Bodyname")]//Body
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Bodyname")]//Body
         public string body_name;
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BiomeName")]//Biome Name
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BiomeName")]//Biome Name
         public string biome_desc;
-        [KSPField(guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MoistureModifier", guiFormat = "F4")]//Moisture Modifier
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MoistureModifier", guiFormat = "F4")]//Moisture Modifier
         public double moistureModifier;
-        [KSPField(guiActiveEditor = false, guiActive = false)]
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false)]
         public bool canFunctionOnSurface = true;
 
         [KSPField]
@@ -94,23 +97,23 @@ namespace FNPlugin.Beamedpower
         protected int nearbyPartsCount;
 
         //GUI 
-        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanTransmit")]//Can Transmit
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanTransmit")]//Can Transmit
         public bool canTransmit = false;
-        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BuildinRelay")]//Build in Relay
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BuildinRelay")]//Build in Relay
         public bool buildInRelay = false;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField(groupName = GROUP)]
         public int compatibleBeamTypes = 1;
-        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ApertureDiameter", guiFormat = "F2", guiUnits = " m")]//Aperture Diameter
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ApertureDiameter", guiFormat = "F2", guiUnits = " m")]//Aperture Diameter
         public double apertureDiameter = 0;
-        [KSPField( guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Status")]//Status
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Status")]//Status
         public string statusStr;
-        [KSPField( guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmissionEfficiency", guiUnits = "%")]//Transmission Efficiency
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmissionEfficiency", guiUnits = "%")]//Transmission Efficiency
         public double transmissionEfficiencyPercentage;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BeamedPower")]//Wall to Beam Power
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BeamedPower")]//Wall to Beam Power
         public string beamedpower;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AvailablePower", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]//Available Power
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AvailablePower", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", advancedTweakable = true)]//Available Power
         public double availablePower;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_RequestedPower", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]//Requested Power
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_RequestedPower", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", advancedTweakable = true)]//Requested Power
         public double requestedPower;
 
         // Near Future Compatibility properties
@@ -188,7 +191,7 @@ namespace FNPlugin.Beamedpower
             // ignore
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ActivateTransmitter", active = false)]//Activate Transmitter
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ActivateTransmitter", active = false)]//Activate Transmitter
         public void ActivateTransmitter()
         {
             if (relay) return;
@@ -233,7 +236,7 @@ namespace FNPlugin.Beamedpower
                 return (wavelength * 1.0e+12).ToString() + " pm";
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_DeactivateTransmitter", active = false)]//Deactivate Transmitter
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_DeactivateTransmitter", active = false)]//Deactivate Transmitter
         public void DeactivateTransmitter()
         {
             if (relay) return;
@@ -254,7 +257,7 @@ namespace FNPlugin.Beamedpower
             IsEnabled = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ActivateRelay", active = false)]//Activate Relay
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ActivateRelay", active = false)]//Activate Relay
         public void ActivateRelay()
         {
             if (IsEnabled || relay) return;
@@ -278,7 +281,7 @@ namespace FNPlugin.Beamedpower
             relay = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_DeactivateRelay", active = false)]//Deactivate Relay
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_DeactivateRelay", active = false)]//Deactivate Relay
         public void DeactivateRelay()
         {
             if (!relay) return;

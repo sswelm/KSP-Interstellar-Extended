@@ -26,7 +26,7 @@ namespace FNPlugin.Refinery
         public double productionRate;
         [KSPField]
         public double efficiencyMultiplier = 10;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterFactory_MaximumPowercapacity", guiUnits = " MW")]//Maximum Power capacity
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterFactory_MaximumPowercapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Maximum Power capacity
         public double powerCapacity = 1000;
         [KSPField]
         public string resourceName = "Positrons";

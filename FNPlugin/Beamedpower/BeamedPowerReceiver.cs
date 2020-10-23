@@ -75,39 +75,41 @@ namespace FNPlugin
     [KSPModule("#LOC_KSPIE_BeamPowerReceiver_ModulueName17")]//Beamed Power Receiver
     class BeamedPowerReceiver : ResourceSuppliableModule, IFNPowerSource, IElectricPowerGeneratorSource, IBeamedPowerReceiver // tweakscales with exponent 2.5
     {
+        public const string GROUP = "BeamedPowerReceiver";
+        public const string GROUP_TITLE = "#LOC_KSPIE_BeamPowerReceiver_groupName";
+
         //Persistent True
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_Bandwidth")]//Bandwidth
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_Bandwidth")]//Bandwidth
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedBandwidthConfiguration = 0;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_BeamPowerReceiver_TargetWavelength")]
+        public string bandWidthName;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_EnabledReceiver")]//Enabled
-        public bool receiverIsEnabled;
         [KSPField(isPersistant = true)]
         public double storedTemp;
-
         [KSPField(isPersistant = true)]
         public bool animatonDeployed = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_LinkedforRelay")]//Linked for Relay
+
+        // Control
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "Minimum Consumption %"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
+        public float minimumConsumptionPercentage = 0;
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "Maximum Consumption %"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
+        public float maximumConsumptionPercentage = 100;
+
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_EnabledReceiver")]//Enabled
+        public bool receiverIsEnabled;
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_LinkedforRelay")]//Linked for Relay
         public bool linkedForRelay;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_PowerMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_ElectricMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_ThermalMode")]//Power Mode--Electric--Thermal
-        public bool thermalMode = false;
-        [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_RadiatorMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_BeamedPowerMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_RadiatorMode")]//Function--Beamed Power--Radiator
-        public bool radiatorMode = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarPowerMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_BeamedPowerMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_SolarMode")]//Power Mode--Beamed Power--Solar Only
-        public bool solarPowerMode = true;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ShowWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowHide", enabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowShow")]//Power Reciever Interface--Hidden--Shown
-        public bool showWindow;
 
         [KSPField(isPersistant = true)]
         public float windowPositionX = 200;
         [KSPField(isPersistant = true)]
         public float windowPositionY = 100;
 
-        [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_TargetWavelength", guiFormat = "F5")]//Target Wavelength
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_TargetWavelength", guiFormat = "F5")]//Target Wavelength
         public double targetWavelength = 0;
         [KSPField(isPersistant = true)]
         public bool forceActivateAtStartup = false;
-
 
         [KSPField(isPersistant = true)]
         protected double total_sat_efficiency_fraction = 0;
@@ -130,18 +132,18 @@ namespace FNPlugin
         [KSPField]
         public int supportedPropellantTypes = 127;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_ElectricWasteheatExponent")]//Electric Wasteheat Exponent
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_ElectricWasteheatExponent")]//Electric Wasteheat Exponent
         public double electricWasteheatExponent = 1;
         [KSPField]
         public double electricMaxEfficiency = 1;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_WasteheatRatio", guiFormat = "F6")]//Wasteheat Ratio
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_WasteheatRatio", guiFormat = "F6")]//Wasteheat Ratio
         public double wasteheatRatio;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_WasteheatElectricEfficiency", guiFormat = "F6")]//Wasteheat Electric Efficiency
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_WasteheatElectricEfficiency", guiFormat = "F6")]//Wasteheat Electric Efficiency
         public double wasteheatElectricConversionEfficiency;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_BeamedElectricEfficiency", guiFormat = "F6")]//Beamed Electric Efficiency
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_BeamedElectricEfficiency", guiFormat = "F6")]//Beamed Electric Efficiency
         public double effectiveBeamedPowerElectricEfficiency;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarElectricEfficiency", guiFormat = "F6")]//Solar Electric Efficiency
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarElectricEfficiency", guiFormat = "F6")]//Solar Electric Efficiency
         public double effectiveSolarThermalElectricEfficiency;
 
         [KSPField]
@@ -175,29 +177,29 @@ namespace FNPlugin
         [KSPField]
         public string animGenericName = "";
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_ReceiverDiameter", guiFormat = "F3", guiUnits = " m")]//Receiver Diameter
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_ReceiverDiameter", guiFormat = "F3", guiUnits = " m")]//Receiver Diameter
         public double diameter = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver = false;
         [KSPField(isPersistant = false)]
         public bool isEnergyReceiver = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_IsThermalReceiverSlave")]//Is Slave
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_IsThermalReceiverSlave")]//Is Slave
         public bool isThermalReceiverSlave = false;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_InputPower", guiFormat = "F3", guiUnits = " MJ")]//Input Power
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_InputPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Input Power
         public double powerInputMegajoules = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaxInputPower", guiFormat = "F3", guiUnits = " MJ")]//Max Input Power
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaxInputPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Max Input Power
         public double powerInputMegajoulesMax = 0;
 
-        [KSPField(guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ThermalPower", guiFormat = "F3", guiUnits = " MJ")]//Thermal Power
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ThermalPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Thermal Power
         public double ThermalPower;
-        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Radius", guiUnits = " m")]//Radius
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Radius", guiFormat = "F2", guiUnits = " m")]//Radius
         public double radius = 2.5;
         [KSPField]
         public float alternatorRatio = 1;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MinWavelength")]//min Wavelength
+        [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MinWavelength")]//min Wavelength
         public double minimumWavelength = 0.00000001;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaxWavelength")]//max Wavelength
+        [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaxWavelength")]//max Wavelength
         public double maximumWavelength = 1;
 
         [KSPField]
@@ -215,9 +217,9 @@ namespace FNPlugin
         [KSPField]
         public double powerHeatExponent = 0.7;
 
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotbathTechLevel")]//Hotbath TechLevel
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotbathTechLevel")]//Hotbath TechLevel
         public int hothBathtechLevel;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotBathTemperature", guiUnits = " K")]//HotBath Temperature
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotBathTemperature", guiUnits = " K")]//HotBath Temperature
         public double hothBathTemperature = 3200;
 
         [KSPField]
@@ -271,8 +273,6 @@ namespace FNPlugin
         [KSPField]
         public bool canSwitchBandwidthInFlight = false;
         [KSPField]
-        public string bandWidthName;
-        [KSPField]
         public int connectStackdepth = 4;
         [KSPField]
         public int connectParentdepth = 2;
@@ -281,54 +281,56 @@ namespace FNPlugin
         [KSPField]
         public bool maintainResourceBuffers = true;
 
-        // Control
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Minimum Consumption %"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
-        public float minimumConsumptionPercentage = 0;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Maximum Consumption %"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
-        public float maximumConsumptionPercentage = 100;
-
         //GUI
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_CoreTemperature")]//Core Temperature
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_CoreTemperature")]//Core Temperature
         public string coreTempererature;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ProducedPower")]//Produced Power
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ProducedPower")]//Produced Power
         public string beamedpower;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SatellitesConnected")]//Satellites Connected
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SatellitesConnected")]//Satellites Connected
         public string connectedsats;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_RelaysConnected")]//Relays Connected
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_RelaysConnected")]//Relays Connected
         public string connectedrelays;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_NetworkDepth")]//Network Depth
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_NetworkDepth")]//Network Depth
         public string networkDepthString;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SlavesAmount")]//Connected Slaves
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SlavesAmount")]//Connected Slaves
         public int slavesAmount;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SlavesPower", guiUnits = " MW", guiFormat = "F3")]//Slaves Power
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SlavesPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Slaves Power
         public double slavesPower;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_AvailableThermalPower", guiUnits = " MW", guiFormat = "F2")]//Available Thermal Power
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_AvailableThermalPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Available Thermal Power
         public double total_thermal_power_available;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_AvailableThermalPower", guiUnits = " MW", guiFormat = "F2")]//Thermal Power Supply
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_AvailableThermalPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Thermal Power Supply
         public double total_thermal_power_provided;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaxThermalPowerSupply", guiUnits = " MW", guiFormat = "F2")]//Max Thermal Power Supply
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaxThermalPowerSupply", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Max Thermal Power Supply
         public double total_thermal_power_provided_max;
 
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumInputPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Input Power
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumInputPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Maximum Input Power
         public double maximumPower = 0;
         [KSPField]
         public double maximumElectricPower = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumElectricPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Electric Power
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumElectricPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Maximum Electric Power
         public double maximumElectricPowerScaled;
         [KSPField]
         public double maximumThermalPower = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumThermalPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Thermal Power
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumThermalPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Maximum Thermal Power
         public double maximumThermalPowerScaled;
 
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Dissipation", guiUnits = " MW", guiFormat = "F3")]//Dissipation
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Dissipation", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Dissipation
         public double dissipationInMegaJoules;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarFacingFactor", guiFormat = "F4")]//Sun Facing Factor
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarFacingFactor", guiFormat = "F4")]//Sun Facing Factor
         public double solarFacingFactor;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarFlux", guiFormat = "F4")]//Solar Flux
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarFlux", guiFormat = "F4")]//Solar Flux
         public double solarFlux;
 
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW")]//Offscreen Power Generation
+        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW")]//Offscreen Power Generation
         public double initialGeneratorPowerEC;
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_PowerMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_ElectricMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_ThermalMode")]//Power Mode--Electric--Thermal
+        public bool thermalMode = false;
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_RadiatorMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_BeamedPowerMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_RadiatorMode")]//Function--Beamed Power--Radiator
+        public bool radiatorMode = false;
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarPowerMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_BeamedPowerMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_SolarMode")]//Power Mode--Beamed Power--Solar Only
+        public bool solarPowerMode = true;
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ShowWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowHide", enabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowShow")]//Power Reciever Interface--Hidden--Shown
+        public bool showWindow;
 
         [KSPField(guiFormat = "F2")]
         public double thermal_power_ratio;
@@ -775,7 +777,7 @@ namespace FNPlugin
 
         public double MaximumPower { get { return MaximumThermalPower; } }
 
-        public double MaximumThermalPower { get { return HighLogic.LoadedSceneIsEditor ? maximumThermalPower : ThermalPower; } }
+        public double MaximumThermalPower { get { return HighLogic.LoadedSceneIsEditor ? maximumThermalPower * powerMult : ThermalPower; } }
 
         public double NormalisedMaximumPower { get { return ThermalPower; } }
 
@@ -788,29 +790,6 @@ namespace FNPlugin
         public bool IsActive { get { return receiverIsEnabled; } }
 
         public bool IsNuclear { get { return false; } }
-
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_LinkReceiver", active = true)]//Link Receiver for Relay
-        public void LinkReceiver()
-        {
-            linkedForRelay = true;
-
-            ShowDeployAnimation(true);
-        }
-
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_UnlinkReceiver", active = true)]//Unlink Receiver for Relay
-        public void UnlinkReceiver()
-        {
-            linkedForRelay = false;
-
-            ShowUndeployAnimation(true);
-        }
-
-
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ActivateReceiver", active = true)]//Activate Receiver
-        public void ActivateReceiver()
-        {
-            ActivateRecieverState();
-        }
 
         [KSPAction("Toggle Receiver Interface")]
         public void ToggleWindow()
@@ -858,12 +837,6 @@ namespace FNPlugin
                 fnRadiator.ModuleActiveRadiator.Activate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_DisableReceiver", active = true)]//Disable Receiver
-        public void DisableReceiver()
-        {
-            DeactivateRecieverState();
-        }
-
         private void DeactivateRecieverState(bool forced = false)
         {
             receiverIsEnabled = false;
@@ -895,6 +868,34 @@ namespace FNPlugin
 
             if (fnRadiator != null && fnRadiator.ModuleActiveRadiator != null)
                 fnRadiator.ModuleActiveRadiator.Shutdown();
+        }
+
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_LinkReceiver", active = true)]//Link Receiver for Relay
+        public void LinkReceiver()
+        {
+            linkedForRelay = true;
+
+            ShowDeployAnimation(true);
+        }
+
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_UnlinkReceiver", active = true)]//Unlink Receiver for Relay
+        public void UnlinkReceiver()
+        {
+            linkedForRelay = false;
+
+            ShowUndeployAnimation(true);
+        }
+
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ActivateReceiver", active = true)]//Activate Receiver
+        public void ActivateReceiver()
+        {
+            ActivateRecieverState();
+        }
+
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_DisableReceiver", active = true)]//Disable Receiver
+        public void DisableReceiver()
+        {
+            DeactivateRecieverState();
         }
 
         [KSPAction("Activate Receiver")]
@@ -1122,87 +1123,84 @@ namespace FNPlugin
                 isInRatiatorMode.guiActiveEditor = fnRadiator != null;
             }
 
-            if (state == StartState.Editor)
+            if (state != StartState.Editor)
             {
-                CalculateInputPower();
-                return;
-            }
+                windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidthWide * 1 + ValueWidthNormal * 10, 100);
 
-            windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidthWide * 1 + ValueWidthNormal * 10, 100);
+                // create the id for the GUI window
+                windowID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
-            // create the id for the GUI window
-            windowID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
+                localStar = GetCurrentStar();
 
-            localStar = GetCurrentStar();
+                // compensate for stock solar initialisation heating bug
+                initializationCountdown = 10;
 
-            // compensate for stock solar initialisation heating bug
-            initializationCountdown = 10;
-
-            if (forceActivateAtStartup)
-            {
-                Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
-                part.force_activate();
-            }
-
-            if (isThermalReceiverSlave)
-            {
-                var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is BeamedPowerReceiver && (BeamedPowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
-
-                if (result == null || result.Source == null)
-                    Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
-                else
-                    ((BeamedPowerReceiver)result.Source).RegisterAsSlave(this);
-            }
-
-            if (maintainResourceBuffers)
-            {
-                _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
-                _resourceBuffers.Init(part);
-            }
-
-            // look for any transmitter partModule
-            part_transmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
-            if (part_transmitter != null)
-            {
-                has_transmitter = true;
-            }
-
-            deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
-            if (deployableRadiator != null)
-            {
-                try
+                if (forceActivateAtStartup)
                 {
-                    deployableRadiator.Events["Extend"].guiActive = false;
+                    Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
+                    part.force_activate();
                 }
-                catch (Exception e)
+
+                if (isThermalReceiverSlave)
                 {
-                    Debug.LogError("[KSPI]: Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
-                }
-            }
+                    var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is BeamedPowerReceiver && (BeamedPowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
 
-            if (!string.IsNullOrEmpty(animTName))
-            {
-                animT = part.FindModelAnimators(animTName).FirstOrDefault();
-                if (animT != null)
+                    if (result == null || result.Source == null)
+                        Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
+                    else
+                        ((BeamedPowerReceiver)result.Source).RegisterAsSlave(this);
+                }
+
+                if (maintainResourceBuffers)
                 {
-                    animT[animTName].enabled = true;
-                    animT[animTName].layer = 1;
-                    animT[animTName].normalizedTime = 0;
-                    animT[animTName].speed = 0.001f;
-
-                    animT.Sample();
+                    _resourceBuffers = new ResourceBuffers();
+                    _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+                    _resourceBuffers.Init(part);
                 }
-            }
 
-            genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
+                // look for any transmitter partModule
+                part_transmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
+                if (part_transmitter != null)
+                {
+                    has_transmitter = true;
+                }
+
+                deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
+                if (deployableRadiator != null)
+                {
+                    try
+                    {
+                        deployableRadiator.Events["Extend"].guiActive = false;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("[KSPI]: Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(animTName))
+                {
+                    animT = part.FindModelAnimators(animTName).FirstOrDefault();
+                    if (animT != null)
+                    {
+                        animT[animTName].enabled = true;
+                        animT[animTName].layer = 1;
+                        animT[animTName].normalizedTime = 0;
+                        animT[animTName].speed = 0.001f;
+
+                        animT.Sample();
+                    }
+                }
+
+                genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
+            }
         }
 
         private void UpdateBuffers()
@@ -1556,31 +1554,21 @@ namespace FNPlugin
 
         private double GetSolarFacingFactor(CelestialBody localStar, Vector3 vesselPosition)
         {
-            try
-            {
-                if (localStar == null) return 0;
+            if (localStar == null) return 0;
 
-                Vector3d solarDirectionVector = (localStar.transform.position - vesselPosition).normalized;
+            Vector3d solarDirectionVector = (localStar.transform.position - vesselPosition).normalized;
 
-                if (receiverType == 9)
-                    return 1;
-                else if (receiverType == 3)
-                    return Math.Max(0, 1 - Vector3d.Dot(part.transform.forward, solarDirectionVector)) / 2;
-                else
-                    return Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector));
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in GetSolarFacingFactor " + e.Message + " at " + e.StackTrace);
-                return 0; 
-            }
+            if (receiverType == 9)
+                return 1;
+            else if (receiverType == 3)
+                return Math.Max(0, 1 - Vector3d.Dot(part.transform.forward, solarDirectionVector)) / 2;
+            else
+                return Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector));
         }
 
         public void FixedUpdate()
         {
-            if (HighLogic.LoadedSceneIsEditor) return;
-
-            if (!part.enabled)
+            if (!HighLogic.LoadedSceneIsEditor && !part.enabled)
                 base.OnFixedUpdate();
         }
 
@@ -1603,11 +1591,11 @@ namespace FNPlugin
             GUILayout.BeginVertical();
 
             PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel1"), part.partInfo.title, bold_black_style, text_black_style, 200, 400);//"Receiver Type"
-            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel2"), diameter.ToString("0.0000"), bold_black_style, text_black_style, 200, 400);//"Receiver Diameter"
+            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel2"), diameter.ToString("0.00"), bold_black_style, text_black_style, 200, 400);//"Receiver Diameter"
             PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel3"), part.vessel.mainBody.name + " @ " + DistanceToText(part.vessel.altitude), bold_black_style, text_black_style, 200, 400);//"Receiver Location"
             PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel4"), (powerCapacityEfficiency * 100).ToString("0.0") + "%", bold_black_style, text_black_style, 200, 400);//"Power Capacity Efficiency"
-            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel5"), total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200, 400);//"Total Current Beamed Power"
-            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel6"), total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200, 400);//"Total Maximum Beamed Power"
+            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel5"), total_beamed_power.ToString("0.000") + " MW", bold_black_style, text_black_style, 200, 400);//"Total Current Beamed Power"
+            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel6"), total_beamed_power_max.ToString("0.000") + " MW", bold_black_style, text_black_style, 200, 400);//"Total Maximum Beamed Power"
             PrintToGUILayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel7"), total_beamed_wasteheat.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200, 400);//"Total Wasteheat Production"
 
             GUILayout.BeginHorizontal();

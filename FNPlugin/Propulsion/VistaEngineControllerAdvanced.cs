@@ -16,7 +16,7 @@ namespace FNPlugin
         const float steps = (maxIsp - minIsp) / 100f;
 
         // Persistant setting
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_SelectedIsp"), UI_FloatRange(stepIncrement = steps, maxValue = maxIsp, minValue = minIsp)]//Selected Isp
+        [KSPField(groupName = VistaEngineController.GROUP, groupDisplayName = VistaEngineController.GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_SelectedIsp"), UI_FloatRange(stepIncrement = steps, maxValue = maxIsp, minValue = minIsp)]//Selected Isp
         public float localIsp = minIsp;
 
         // settings
@@ -51,9 +51,9 @@ namespace FNPlugin
         public float minThrottleRatioMk5 = 0.05f;
 
         // None Persistant
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_RadiationHazard")]//Radiation Hazard To
+        [KSPField(groupName = VistaEngineController.GROUP, groupDisplayName = VistaEngineController.GROUP_TITLE, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_RadiationHazard")]//Radiation Hazard To
         public string radhazardstr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_Temperature")]//Temperature
+        [KSPField(groupName = VistaEngineController.GROUP, groupDisplayName = VistaEngineController.GROUP_TITLE, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_Temperature")]//Temperature
         public string temperatureStr = "";
 
         [KSPField(isPersistant = false)]
@@ -120,30 +120,30 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName= "#LOC_KSPIE_VistaEngineControllerAdv_upgradetech1")]//upgrade tech 1
+        [KSPField(groupName = VistaEngineController.GROUP, groupDisplayName = VistaEngineController.GROUP_TITLE, isPersistant = false, guiActive = false, guiActiveEditor = true, guiName= "#LOC_KSPIE_VistaEngineControllerAdv_upgradetech1")]//upgrade tech 1
         public string upgradeTechReq = "advFusionReactions";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_upgradetech2")]//upgrade tech 2
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_upgradetech2")]//upgrade tech 2
         public string upgradeTechReq2 = "exoticReactions";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_MaxThrust", guiUnits = " kN")]//Max Thrust
+        [KSPField(groupName = VistaEngineController.GROUP, groupDisplayName = VistaEngineController.GROUP_TITLE, isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_MaxThrust", guiUnits = " kN")]//Max Thrust
         public float maximumThrust;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_CurrentThrotle", guiFormat = "F2")]//Current Throtle
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_CurrentThrotle", guiFormat = "F2")]//Current Throtle
         public float throttle;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_FusionRatio", guiFormat = "F2")]//Fusion Ratio
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_FusionRatio", guiFormat = "F2")]//Fusion Ratio
         public double fusionRatio;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_PowerRequirement", guiFormat = "F2", guiUnits = " MW")]//Power Requirement
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_PowerRequirement", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Power Requirement
         public float enginePowerRequirement;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_LaserWasteheat", guiFormat = "F2", guiUnits = " MW")]//Laser Wasteheat
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_LaserWasteheat", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Laser Wasteheat
         public double laserWasteheat;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_AbsorbedWasteheat", guiFormat = "F2", guiUnits = " MW")]//Absorbed Wasteheat
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_AbsorbedWasteheat", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Absorbed Wasteheat
         public double absorbedWasteheat;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_RadiatorTemp")]//Radiator Temp
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_RadiatorTemp")]//Radiator Temp
         public double coldBathTemp;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_MaxRadiatorTemp")]//Max Radiator Temp
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_MaxRadiatorTemp")]//Max Radiator Temp
         public double maxTempatureRadiators;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_PerformanceRadiators")]//Performance Radiators
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_PerformanceRadiators")]//Performance Radiators
         public double radiatorPerformance;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_Emisiveness")]//Emisiveness
+        [KSPField(groupName = VistaEngineController.GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_Emisiveness")]//Emisiveness
         public double partEmissiveConstant;
 
 
@@ -165,13 +165,13 @@ namespace FNPlugin
 
         public GenerationType EngineGenerationType { get; private set; }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_DeactivateRadSafety", active = true)]//Disable Radiation Safety
+        [KSPEvent(groupName = VistaEngineController.GROUP, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_DeactivateRadSafety", active = true)]//Disable Radiation Safety
         public void DeactivateRadSafety() 
         {
             rad_safety_features = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_ActivateRadSafety", active = false)]//Activate Radiation Safety
+        [KSPEvent(groupName = VistaEngineController.GROUP, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineControllerAdv_ActivateRadSafety", active = false)]//Activate Radiation Safety
         public void ActivateRadSafety() 
         {
             rad_safety_features = true;

@@ -17,7 +17,10 @@ namespace FNPlugin.Microwave
     [KSPModule("Beam Generator")]//#LOC_KSPIE_BeamGenerator_ModuleName2
     class BeamGenerator : PartModule, IPartMassModifier, IRescalable<BeamGenerator>
     {
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_Wavelength")]//Wavelength
+        public const string GROUP = "BeamGenerator";
+        public const string GROUP_TITLE = "#LOC_KSPIE_BeamGenerator_groupName";
+
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_Wavelength")]//Wavelength
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedBeamConfiguration;
         
@@ -26,27 +29,27 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = true)]
         public double maximumPower;
 
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_GeneratorType")]//Generator Type
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_GeneratorType")]//Generator Type
         public string beamTypeName = "";
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WavelengthName")]//Wavelength Name
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WavelengthName")]//Wavelength Name
         public string beamWaveName = "";
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_Wavelengthinmeter", guiFormat = "F9", guiUnits = " m")]//Wavelength in meter
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_BeamGenerator_Wavelengthinmeter", guiFormat = "F9", guiUnits = " m")]//Wavelength in meter
         public double wavelength;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WaveLengthinSI")]//WaveLength in SI
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WaveLengthinSI")]//WaveLength in SI
         public string wavelengthText;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_AtmosphericAbsorption", guiFormat = "F3", guiUnits = "%")]//Atmospheric Absorption
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_AtmosphericAbsorption", guiFormat = "F3", guiUnits = "%")]//Atmospheric Absorption
         public double atmosphericAbsorptionPercentage = 10;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WaterAbsorption", guiFormat = "F3", guiUnits = "%")]//Water Absorption
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WaterAbsorption", guiFormat = "F3", guiUnits = "%")]//Water Absorption
         public double waterAbsorptionPercentage = 10;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_EfficiencyPercentage", guiFormat = "F0", guiUnits = "%")]//Power to Beam Efficiency
+        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_EfficiencyPercentage", guiFormat = "F0", guiUnits = "%")]//Power to Beam Efficiency
         public double efficiencyPercentage = 90;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_StoredMass")]//Stored Mass
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_StoredMass")]//Stored Mass
         public double storedMassMultiplier;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_InitialMass", guiUnits = " t")]//Initial Mass
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_InitialMass", guiUnits = " t")]//Initial Mass
         public double initialMass;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_TargetMass", guiUnits = " t")]//Target Mass
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_TargetMass", guiUnits = " t")]//Target Mass
         public double targetMass = 1;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_PartMass", guiUnits = " t")]//Part Mass
+        [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_PartMass", guiUnits = " t")]//Part Mass
         public float partMass;
 
         [KSPField]
@@ -463,10 +466,9 @@ namespace FNPlugin.Microwave
         {
             var sb = StringBuilderCache.Acquire();
 
-            sb.Append("<size=10>");
             sb.Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_Type")).Append(": ").AppendLine(beamTypeName);//Type
-            sb.Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_CanSwitch")).Append(": ").AppendLine(RUIutils.GetYesNoUIString(canSwitchWavelengthInFlight));//Can Switch In Flight
-            sb.AppendLine("</size>");
+            sb.Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_CanSwitch")).Append(": ");
+            sb.AppendLine(RUIutils.GetYesNoUIString(canSwitchWavelengthInFlight)).AppendLine();//Can Switch In Flight
 
             if (!string.IsNullOrEmpty(techLevelMk2))
             {
@@ -486,18 +488,19 @@ namespace FNPlugin.Microwave
 
             if (_inlineConfigurations.Count <= 0) return sb.ToString();
 
-            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_atmosphericAbsorbtion")).AppendLine(":</color>");
+            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_atmosphericAbsorbtion")).AppendLine(":</color><size=10>");
             foreach (var beamConfiguration in _inlineConfigurations)
             {
-                sb.Append("<size=10>").Append(ExtendWithSpace(beamConfiguration.atmosphericAbsorptionPercentage + "%", 4));
+                sb.Append(ExtendWithSpace(beamConfiguration.atmosphericAbsorptionPercentage + "%", 4));
                 sb.Append(" / ").Append(ExtendWithSpace(beamConfiguration.waterAbsorptionPercentage + "%", 4));
-                sb.Append("<color=#00ff00ff> ").Append(beamConfiguration.beamWaveName).AppendLine("</color></size>");
+                sb.Append("<color=#00ff00ff> ").Append(beamConfiguration.beamWaveName).AppendLine("</color>");
             }
+            sb.AppendLine("</size>");
 
-            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies")).AppendLine(":</color>");            
+            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies")).AppendLine(":</color><size=10>");            
             foreach (var beamConfiguration in _inlineConfigurations)
             {
-                sb.Append("<size=10><color=#00ff00ff>").Append(beamConfiguration.beamWaveName).Append("</color>");
+                sb.Append("<color=#00ff00ff>").Append(beamConfiguration.beamWaveName).Append("</color>");
                 sb.Append("<color=#00e600ff> (").Append(WavelenthToText(beamConfiguration.wavelength)).AppendLine(")</color>  ");
                 if (beamConfiguration.efficiencyPercentage0 > 0)
                     sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement0)).Append("Mk").
@@ -515,8 +518,9 @@ namespace FNPlugin.Microwave
                     sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement3)).Append("Mk").
                         Append(GetTechLevelFromTechId(beamConfiguration.techRequirement3)).Append(":</color> ").
                         Append(beamConfiguration.efficiencyPercentage3).Append("% ");
-                sb.AppendLine("</size>");
+                sb.AppendLine();
             }
+            sb.Append("</size>");
 
             return sb.ToStringAndRelease();
         }

@@ -15,12 +15,15 @@ namespace FNPlugin.Collectors
 
     class UniversalCrustExtractor : ResourceSuppliableModule
     {
+        public const string GROUP = "UniversalCrustExtractor";
+        public const string GROUP_TITLE = "#LOC_KSPIE_UniversalCrustExtractor_groupName";
+
         List<CrustalResource> localResources; // list of resources
 
         // state of the extractor
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillEnabled")]//Drill Enabled
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillEnabled")]//Drill Enabled
         public bool bIsEnabled = false;
-        [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillDeployed")]//Deployed
+        [KSPField(groupName = GROUP, isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillDeployed")]//Deployed
         public bool isDeployed;
 
         // previous data
@@ -35,23 +38,23 @@ namespace FNPlugin.Collectors
         public float windowPositionY = 20;
 
         // drill properties, need to be adressed in the cfg file of the part
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_Drillsize", guiUnits = " m\xB3")]//Drill size
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_Drillsize", guiUnits = " m\xB3")]//Drill size
         public double drillSize = 5; // Volume of the collector's drill. Raise in part config (for larger drills) to make collecting faster.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillEffectiveness", guiFormat = "P1")]//Drill effectiveness
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillEffectiveness", guiFormat = "P1")]//Drill effectiveness
         public double effectiveness = 1; // Effectiveness of the drill. Lower in part config (to a 0.5, for example) to slow down resource collecting.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_MWRequirements", guiUnits = " MW")]//MW Requirements
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_MWRequirements", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//MW Requirements
         public double mwRequirements = 1; // MW requirements of the drill. Affects heat produced.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_WasteHeatModifier", guiFormat = "P1")]//Waste Heat Modifier
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_WasteHeatModifier", guiFormat = "P1")]//Waste Heat Modifier
         public double wasteHeatModifier = 0.25; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillReach", guiUnits = " m\xB3")]//Drill reach
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillReach", guiUnits = " m\xB3")]//Drill reach
         public float drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false)]
         public string loopingAnimationName = "";
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false)]
         public string deployAnimationName = "";
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false)]
         public float animationState;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ReasonNotCollecting")]//Reason Not Collecting
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ReasonNotCollecting")]//Reason Not Collecting
         public string reasonNotCollecting;
 
         private int powerCountdown;
@@ -95,7 +98,7 @@ namespace FNPlugin.Collectors
 
 
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DeployDrill", active = true)]//Deploy Drill
+        [KSPEvent(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DeployDrill", active = true)]//Deploy Drill
         public void DeployDrill()
         {
             isDeployed = true;
@@ -106,7 +109,7 @@ namespace FNPlugin.Collectors
             deployAnimation.Blend(deployAnimationName);
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_RetractDrill", active = true)]//Retract Drill
+        [KSPEvent(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_RetractDrill", active = true)]//Retract Drill
         public void RetractDrill()
         {
             bIsEnabled = false;
@@ -130,7 +133,7 @@ namespace FNPlugin.Collectors
 
 
         // *** KSP Events ***
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ActivateDrill", active = true)]//Activate Drill
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ActivateDrill", active = true)]//Activate Drill
         public void ActivateCollector()
         {
             powerCountdown = powerCountdownMax;
@@ -139,14 +142,14 @@ namespace FNPlugin.Collectors
             OnFixedUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DisableDrill", active = true)]//Disable Drill
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DisableDrill", active = true)]//Disable Drill
         public void DisableCollector()
         {
             bIsEnabled = false;
             OnFixedUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ToggleMiningInterface", active = false)]//Toggle Mining Interface
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ToggleMiningInterface", active = false)]//Toggle Mining Interface
         public void ToggleWindow()
         {
             _render_window = !_render_window;

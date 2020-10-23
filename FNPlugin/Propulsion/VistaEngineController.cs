@@ -11,18 +11,21 @@ namespace FNPlugin
 {
     class VistaEngineController : ResourceSuppliableModule, IUpgradeableModule 
     {
+        public const string GROUP = "VistaEngineController";
+        public const string GROUP_TITLE = "#LOC_KSPIE_VistaEngineController_groupName";
+
         // Persistant
         [KSPField(isPersistant = true)]
         bool IsEnabled;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_VistaEngineController_Upgraded")]//Upgraded
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_VistaEngineController_Upgraded")]//Upgraded
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         bool rad_safety_features = true;
 
         // None Persistant
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_RadiationHazard")]//Radiation Hazard To
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_RadiationHazard")]//Radiation Hazard To
         public string radhazardstr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Temperature")]//Temperature
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Temperature")]//Temperature
         public string temperatureStr = "";
 
         [KSPField(isPersistant = false)]
@@ -60,18 +63,18 @@ namespace FNPlugin
         public string upgradedName = "DT Vista Engine";
 
         // Gui
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Type")]//Type
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Type")]//Type
         public string engineType = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName= "#LOC_KSPIE_VistaEngineController_upgradetech")]//upgrade tech
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName= "#LOC_KSPIE_VistaEngineController_upgradetech")]//upgrade tech
         public string upgradeTechReq = null;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_RadiatorTemp")]//Radiator Temp
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_RadiatorTemp")]//Radiator Temp
         public float coldBathTemp;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_MaxRadiatorTemp")]//Max Radiator Temp
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_MaxRadiatorTemp")]//Max Radiator Temp
         public float maxTempatureRadiators;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_PerformanceRadiators")]//Performance Radiators
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_PerformanceRadiators")]//Performance Radiators
         public float radiatorPerformance;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_Emisiveness")]//Emisiveness
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_VistaEngineController_Emisiveness")]//Emisiveness
         public float partEmissiveConstant;
 
         protected bool hasrequiredupgrade = false;
@@ -83,19 +86,19 @@ namespace FNPlugin
         protected ModuleEngines curEngineT;
         protected ResourceBuffers resourceBuffers;
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_DeactivateRadSafety", active = true)]//Disable Radiation Safety
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_DeactivateRadSafety", active = true)]//Disable Radiation Safety
         public void DeactivateRadSafety() 
         {
             rad_safety_features = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_ActivateRadSafety", active = false)]//Activate Radiation Safety
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_ActivateRadSafety", active = false)]//Activate Radiation Safety
         public void ActivateRadSafety() 
         {
             rad_safety_features = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Retrofit", active = true)]//Retrofit
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_Retrofit", active = true)]//Retrofit
         public void RetrofitEngine()
         {
             if (ResearchAndDevelopment.Instance == null || isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;

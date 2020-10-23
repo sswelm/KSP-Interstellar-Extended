@@ -12,9 +12,9 @@ namespace FNPlugin
     [KSPModule("Generator Adapter")]
     class FNGeneratorAdapterVariable : ResourceSuppliableModule
     {
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Powerinput", guiUnits = " MW", guiFormat = "F6")]//Power input
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Powerinput", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F6")]//Power input
         public double powerGeneratorPowerInput;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Poweroutput", guiUnits = " MW", guiFormat = "F6")]//Power output
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Poweroutput", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F6")]//Power output
         public double powerGeneratorPowerOutput;
 
         [KSPField(isPersistant = true)]
@@ -212,52 +212,6 @@ namespace FNPlugin
                 throw;
             }
         }
-
-        //private void InitializePartModule()
-        //{
-        //    if (PartLoader.LoadedPartsList == null)
-        //    {
-        //        Debug.LogError("[KSPI]: FNGeneratorAdapter: PartLoader.LoadedPartsList == null");
-        //        return;
-        //    }
-        //    List<AvailablePart> available_parts = PartLoader.LoadedPartsList;
-        //    Debug.Log("[KSPI]: FNGeneratorAdapter: available_parts " + available_parts.Count);
-        //    availablePart = available_parts.FirstOrDefault(m => m.name == "CDTcore");
-
-        //    if (availablePart == null)
-        //    {
-        //        Debug.LogError("[KSPI]: FNGeneratorAdapter: Failed to find available part");
-        //        return;
-        //    }
-        //    prefab_available_part = availablePart.partPrefab;
-        //    if (prefab_available_part == null)
-        //    {
-        //        Debug.LogError("[KSPI]: FNGeneratorAdapter: partPrefab = null");
-        //        return;
-        //    }
-        //    prefab_generator_module = prefab_available_part.Modules.GetModule<FNGeneratorAdapterVariable>();
-        //    if (prefab_generator_module == null)
-        //    {
-        //        Debug.LogError("[KSPI]: FNGeneratorAdapter: prefab_generator = null");
-        //        return;
-        //    }
-        //    Debug.Log("[KSPI]: FNGeneratorAdapter: prefab_generator_module found");
-        //}
-
-        //[KSPEvent(guiActive = true, guiName = "Save InputOutput", active = true)]
-        //public void SaveCurrentInputOutput()
-        //{
-        //    moduleGenerator.Shutdown();
-        //    var newResourcesConfigNode = new ConfigNode();
-        //    var inputConfigNode = newResourcesConfigNode.AddNode("INPUT_RESOURCE");
-        //    inputConfigNode.AddValue("name", "Megajoules");
-        //    inputConfigNode.AddValue("ratio", generatorInputRate);
-        //    var outConfigNode = newResourcesConfigNode.AddNode("OUTPUT_RESOURCE");
-        //    inputConfigNode.AddValue("name", "Megajoules");
-        //    inputConfigNode.AddValue("ratio", generatorOutputRateInElectricCharge);
-        //    prefab_generator_module.Load(newResourcesConfigNode);
-        //    moduleGenerator.Activate();
-        //}
 
         /// <summary>
         /// Is called by KSP while the part is active
