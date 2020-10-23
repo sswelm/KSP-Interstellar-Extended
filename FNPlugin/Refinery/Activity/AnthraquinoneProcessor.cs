@@ -53,10 +53,10 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _oxygenResourceName = InterstellarResourcesConfiguration.Instance.LqdOxygen;
             _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
@@ -126,7 +126,7 @@ namespace FNPlugin.Refinery.Activity
         public override void UpdateGUI()
         {
             base.UpdateGUI();
-            
+
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
@@ -178,7 +178,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_statumsg3");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources() 
+        public void PrintMissingResources()
         {
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.Hydrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing

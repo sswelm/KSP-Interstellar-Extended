@@ -64,7 +64,7 @@ namespace FNPlugin.Refinery.Activity
         }
 
         /* This is just a short cycle that goes through the air intakes on the vessel, looks at which ones are submerged and multiplies the percentage of the part's submersion
-         * with the amount of air it can intake (I'm taking the simplification that air intakes can also intake liquids and running with it). 
+         * with the amount of air it can intake (I'm taking the simplification that air intakes can also intake liquids and running with it).
          * This value is later stored in the persistent totalAirValue, so that this process can access it when offline collecting.
          * tempLqd is just a variable used to temporarily hold the total amount while cycling through parts, then gets reset at every engine update.
          */
@@ -126,10 +126,10 @@ namespace FNPlugin.Refinery.Activity
 
             foreach (OceanicResource resource in _localResources)
             {
-                if (resource.ResourceName == null) 
+                if (resource.ResourceName == null)
                     continue; // this resource does not interest us anymore
 
-                if (resource.Definition == null) 
+                if (resource.Definition == null)
                     continue; // this resource is missing a resource definition
 
                 // determine the spare room - gets parts that contain the current resource, gets the sum of their maxAmount - (current)amount and multiplies by density of resource
@@ -249,7 +249,7 @@ namespace FNPlugin.Refinery.Activity
 
             if (productionRate > 0)
             {
-                GUILayout.Label(GetValueText(productionRate) + " U/s", _value_label, GUILayout.Width(valueWidth)); 
+                GUILayout.Label(GetValueText(productionRate) + " U/s", _value_label, GUILayout.Width(valueWidth));
                 GUILayout.Label(GetValueText(productionRate * GameConstants.SECONDS_IN_HOUR) + " U/h", _value_label, GUILayout.Width(valueWidth));
             }
             else

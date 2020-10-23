@@ -84,10 +84,10 @@ namespace FNPlugin.Refinery
         public string Status => string.Copy(_status);
 
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _solarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
 
@@ -244,19 +244,19 @@ namespace FNPlugin.Refinery
                 var fixedMaxPossibleNeonRate = allowOverflow ? fixedMaxNeonRate : Math.Min(_spareRoomNeonMass, fixedMaxNeonRate);
 
                 // finds the minimum of these five numbers (fixedMaxPossibleZZRate / fixedMaxZZRate), adapted from water electrolyser. Could be more pretty with a custom Min5() function, but eh.
-                var consumptionStorageRatios = new[] 
-                { 
-                    fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, 
-                    fixedMaxPossibleDeuteriumRate / fixedMaxDeuteriumRate,  
-                    fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate, 
-                    fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate, 
-                    fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate, 
-                    fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate, 
-                    fixedMaxPossibleNeonRate / fixedMaxNeonRate 
+                var consumptionStorageRatios = new[]
+                {
+                    fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate,
+                    fixedMaxPossibleDeuteriumRate / fixedMaxDeuteriumRate,
+                    fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate,
+                    fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate,
+                    fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate,
+                    fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate,
+                    fixedMaxPossibleNeonRate / fixedMaxNeonRate
                 };
 
                 double minConsumptionStorageRatio = consumptionStorageRatios.Min();
-                               
+
                 // this consumes the resource
                 _solarWindConsumptionRate = _part.RequestResource(_solarWindResourceName, minConsumptionStorageRatio * _fixedConsumptionRate / _solarWindDensity) / fixedDeltaTime * _solarWindDensity;
 
@@ -268,7 +268,7 @@ namespace FNPlugin.Refinery
                 var monoxideRateTemp = _solarWindConsumptionRate * _monoxideMassByFraction;
                 var nitrogenRateTemp = _solarWindConsumptionRate * _nitrogenMassByFraction;
                 var neonRateTemp = _solarWindConsumptionRate * _neonMassByFraction;
-                
+
                 _hydrogenProductionRate = -_part.RequestResource(_hydrogenGasResourceName, -hydrogenRateTemp * fixedDeltaTime / _hydrogenGasDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogenGasDensity;
                 _hydrogenProductionRate += -_part.RequestResource(_hydrogenLiquidResourceName, -(hydrogenRateTemp - _hydrogenProductionRate) * fixedDeltaTime / _hydrogenLiquidDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogenLiquidDensity;
 
@@ -426,7 +426,7 @@ namespace FNPlugin.Refinery
             return value == 0 ? "-" : value < 1 ? (value * 1000).ToString(format) + " mg/hour" : value.ToString(format) + " g/hour";
         }
 
-        public void PrintMissingResources() 
+        public void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.SolarWind, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

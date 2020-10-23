@@ -61,10 +61,10 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _ammoniaResourceName = InterstellarResourcesConfiguration.Instance.Ammonia;
             _hydrazineResourceName = InterstellarResourcesConfiguration.Instance.Hydrazine;
@@ -235,7 +235,7 @@ namespace FNPlugin.Refinery.Activity
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg1", InterstellarResourcesConfiguration.Instance.HydrogenPeroxide), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " +  + " (Hydrogen Peroxide)"
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg2", InterstellarResourcesConfiguration.Instance.Ammonia), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " + 
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg2", InterstellarResourcesConfiguration.Instance.Ammonia), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " +
         }
     }
 }

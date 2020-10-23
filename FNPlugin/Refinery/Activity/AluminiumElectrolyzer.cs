@@ -32,10 +32,10 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
             _aluminaDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Alumina).density;
             _aluminiumDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Aluminium).density;
             _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;

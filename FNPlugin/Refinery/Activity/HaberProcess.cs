@@ -36,7 +36,7 @@ namespace FNPlugin.Refinery.Activity
 
         public bool HasActivityRequirements ()
         {
-            return HasAccessToHydrogen() & HasAccessToNitrogen() & HasSpareCapacityAmmonia();  
+            return HasAccessToHydrogen() & HasAccessToNitrogen() & HasSpareCapacityAmmonia();
         }
 
         private bool HasAccessToHydrogen()
@@ -64,10 +64,10 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _definitionAmmonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia);
             _definitionHydrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
@@ -118,7 +118,7 @@ namespace FNPlugin.Refinery.Activity
                     ScreenMessages.PostScreenMessage(message, 20, ScreenMessageStyle.LOWER_CENTER);
                 }
             }
-            
+
             UpdateStatusMessage();
         }
 
@@ -169,7 +169,7 @@ namespace FNPlugin.Refinery.Activity
 
         private void UpdateStatusMessage()
         {
-            if (_ammoniaProductionRate > 0) 
+            if (_ammoniaProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_HaberProcess_Statumsg1");//"Haber Process Ongoing"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_HaberProcess_Statumsg2");//"Insufficient Power"

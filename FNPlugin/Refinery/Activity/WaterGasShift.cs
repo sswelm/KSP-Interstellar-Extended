@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class WaterGasShift : RefineryActivity, IRefineryActivity 
+    class WaterGasShift : RefineryActivity, IRefineryActivity
     {
         public WaterGasShift()
         {
@@ -59,10 +59,10 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _waterResourceName = InterstellarResourcesConfiguration.Instance.Water;
             _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
@@ -78,7 +78,7 @@ namespace FNPlugin.Refinery.Activity
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _allowOverflow = allowOverflow;
-            
+
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / EnergyPerTon;

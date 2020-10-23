@@ -49,15 +49,15 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _dioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
             _oxygenResourceName = InterstellarResourcesConfiguration.Instance.LqdOxygen;
             _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
-            
+
             _dioxideDensity = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;
             _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(_oxygenResourceName).density;
             _monoxideDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;

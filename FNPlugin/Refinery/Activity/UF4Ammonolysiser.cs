@@ -33,10 +33,10 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
             _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia).density;
             _uraniumTetrafluorideDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).density;
             _uraniumNitrideDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
@@ -46,10 +46,10 @@ namespace FNPlugin.Refinery.Activity
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / EnergyPerTon;
-            double uf4persec = _current_rate * 1.24597 / _uraniumTetrafluorideDensity;
-            double ammoniapersec = _current_rate * 0.901 / _ammoniaDensity;
-            _uraniumTetrafluorideConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4persec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _uraniumTetrafluorideDensity / fixedDeltaTime;
-            _ammoniaConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, ammoniapersec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _ammoniaDensity / fixedDeltaTime;
+            double uf4Fraction = _current_rate * 1.24597 / _uraniumTetrafluorideDensity;
+            double ammoniaFraction = _current_rate * 0.901 / _ammoniaDensity;
+            _uraniumTetrafluorideConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4Fraction * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _uraniumTetrafluorideDensity / fixedDeltaTime;
+            _ammoniaConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, ammoniaFraction * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _ammoniaDensity / fixedDeltaTime;
 
             if (_ammoniaConsumptionRate > 0 && _uraniumTetrafluorideConsumptionRate > 0)
                 _uraniumNitrideProductionRate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumNitride, -_uraniumTetrafluorideConsumptionRate / 1.24597 / _uraniumNitrideDensity * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _uraniumNitrideDensity;
@@ -87,7 +87,7 @@ namespace FNPlugin.Refinery.Activity
             } else if (CurrentPower <= 0.01*PowerRequirements)
             {
                 _status = Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_Statumsg2");//"Insufficient Power"
-            } 
+            }
             else
             {
                 if (_ammoniaConsumptionRate > 0 && _uraniumTetrafluorideConsumptionRate > 0)

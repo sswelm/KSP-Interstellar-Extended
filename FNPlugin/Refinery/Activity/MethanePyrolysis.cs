@@ -60,10 +60,10 @@ namespace FNPlugin.Refinery.Activity
         public string Status => string.Copy(_status);
 
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
             _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
@@ -117,7 +117,7 @@ namespace FNPlugin.Refinery.Activity
             // begin the pyrolysis process
             if (fixedConsumptionRate > 0 && (_spareRoomHydrogenMass > 0 || _spareRoomMonoxideMass > 0))
             {
-                
+
                 var fixedMaxMonoxideRate = fixedConsumptionRate * MonoxideMassByFraction;
                 var fixedMaxHydrogenRate = fixedConsumptionRate * HydrogenMassByFraction;
 
@@ -125,7 +125,7 @@ namespace FNPlugin.Refinery.Activity
                 var fixedMaxPossibleHydrogenRate = allowOverflow ? fixedMaxHydrogenRate : Math.Min(_spareRoomHydrogenMass, fixedMaxHydrogenRate);
 
                 var consumptionStorageRatio = Math.Min(fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate, fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate);
-                               
+
                 // this consumes the resources
                 _oxygenConsumptionRate = _part.RequestResource(_oxygenResourceName, OxygenMassByFraction * consumptionStorageRatio * fixedConsumptionRate / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
                 _methaneConsumptionRate = _part.RequestResource(_methaneResourceName, MethaneMassByFraction * consumptionStorageRatio * fixedConsumptionRate / _methaneDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _methaneDensity;

@@ -38,12 +38,12 @@ namespace FNPlugin.Refinery.Activity
         public string animName = "";
 
         /* Individual percentages of all consituents of the local atmosphere. These are bound to be found in different
-         * concentrations in all atmospheres. These are persistent because getting them every update through 
+         * concentrations in all atmospheres. These are persistent because getting them every update through
          * the functions (see way below) would be wasteful. I'm placing them up here to make them easier to spot.
          */
 
         [KSPField(isPersistant = true)]
-        protected double _ammoniaPercentage; 
+        protected double _ammoniaPercentage;
         [KSPField(isPersistant = true)]
         protected double _argonPercentage; // percentage of argon in the local atmosphere
         [KSPField(isPersistant = true)]
@@ -69,11 +69,11 @@ namespace FNPlugin.Refinery.Activity
         [KSPField(isPersistant = true)]
         protected double _oxygenPercentage;
         [KSPField(isPersistant = true)]
-        protected double _waterPercentage; 
+        protected double _waterPercentage;
         [KSPField(isPersistant = true)]
-        protected double _heavywaterPercentage; 
+        protected double _heavywaterPercentage;
         [KSPField(isPersistant = true)]
-        protected double _xenonPercentage; 
+        protected double _xenonPercentage;
         [KSPField(isPersistant = true)]
         protected double _deuteriumPercentage;
         [KSPField(isPersistant = true)]
@@ -102,7 +102,7 @@ namespace FNPlugin.Refinery.Activity
         private PartResourceDefinition _nitrogen;
         private PartResourceDefinition _nitrogen15;
         private PartResourceDefinition _oxygen;
-        private PartResourceDefinition _water; // water vapour can form a part of atmosphere as well
+        private PartResourceDefinition _water; // water vapour can form a localPart of atmosphere as well
         private PartResourceDefinition _heavyWater;
         private PartResourceDefinition _xenon;
         private PartResourceDefinition _deuterium;
@@ -178,15 +178,15 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
             _intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>();
 
             if (!string.IsNullOrEmpty(animName))
             {
-                _scoopAnimation = part.FindModelAnimators(animName).First();
+                _scoopAnimation = localPart.FindModelAnimators(animName).First();
 
                 if (_scoopAnimation != null)
                 {
@@ -219,7 +219,7 @@ namespace FNPlugin.Refinery.Activity
             _kryptonResourceName = InterstellarResourcesConfiguration._LIQUID_KRYPTON;
 
             _sodiumResourceName = InterstellarResourcesConfiguration.Instance.Sodium;
-            
+
             // get the densities of all relevant resources
             _atmosphere = PartResourceLibrary.Instance.GetDefinition(_atmosphereResourceName);
             _ammonia = PartResourceLibrary.Instance.GetDefinition(_ammoniaResourceName);
@@ -264,7 +264,7 @@ namespace FNPlugin.Refinery.Activity
         double _maxCapacityDeuteriumMass;
         double _maxCapacityKryptonMass;
         double _maxCapacitySodiumMass;
-       
+
         double _availableAtmosphereMass;
 
         double _spareRoomAtmosphereMass;
@@ -302,7 +302,7 @@ namespace FNPlugin.Refinery.Activity
          */
         public double GetTotalAirScoopedPerSecond()
         {
-             // add any atmosphere intake part on the vessel to our list
+             // add any atmosphere intake localPart on the vessel to our list
             double tempAir = 0; // reset tempAir before we go into the list
             foreach (AtmosphericIntake intake in _intakesList) // go through the list
             {
@@ -394,16 +394,16 @@ namespace FNPlugin.Refinery.Activity
                 _spareRoomMonoxideMass > 0 ||
                 _spareRoomNitrogenMass > 0 ||
                 _spareRoomNitrogen15Mass > 0 ||
-                _spareRoomDioxideMass > 0 || 
+                _spareRoomDioxideMass > 0 ||
                 _spareRoomMethaneMass > 0 ||
-                _spareRoomNeonMass > 0 || 
-                _spareRoomWaterMass > 0 || 
+                _spareRoomNeonMass > 0 ||
+                _spareRoomWaterMass > 0 ||
                 _spareRoomHeavyWaterMass > 0 ||
                 _spareRoomOxygenMass > 0 ||
                 _spareRoomXenonMass > 0 ||
                 _spareRoomDeuteriumMass > 0 ||
                 _spareRoomKryptonMass > 0 ||
-                _spareRoomSodiumMass > 0 )) 
+                _spareRoomSodiumMass > 0 ))
             {
                 /* Now to get the actual percentages from AtmosphericResourceHandler Freethinker extended.
                  * Calls getAtmosphericResourceContent which calls getAtmosphericCompositionForBody which (if there's no definition, i.e. we're using a custom solar system
@@ -514,7 +514,7 @@ namespace FNPlugin.Refinery.Activity
                     var kryptonRatio = (fixedMaxKryptonRate == 0) ? 0 : fixedMaxPossibleKryptonRate / fixedMaxKryptonRate;
                     var sodiumRatio = (fixedMaxSodiumRate == 0) ? 0 : fixedMaxPossibleSodiumRate / fixedMaxSodiumRate;
 
-                    /* finds a non-zero minimum of all the ratios (calculated above, as fixedMaxPossibleZZRate / fixedMaxZZRate). It needs to be non-zero 
+                    /* finds a non-zero minimum of all the ratios (calculated above, as fixedMaxPossibleZZRate / fixedMaxZZRate). It needs to be non-zero
                     * so that the collecting works even when some of consitutents are absent from the local atmosphere (ie. when their definition is zero).
                     * Otherwise the consumptionStorageRatio would be zero and thus no atmosphere would be consumed. */
                     _consumptionStorageRatio = new [] { ammRatio, arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, nitro15Ratio, oxyRatio, waterRatio, heavywaterRatio, xenonRatio, deuteriumRatio, kryptonRatio, sodiumRatio }.Where(x => x > 0).Min();
@@ -530,7 +530,7 @@ namespace FNPlugin.Refinery.Activity
                     // add the consumed atmosphere total atmospheric consumption rate
                     _atmosphereConsumptionRate += _part.RequestResource(_atmosphereResourceName, remainingConsumptionNeeded / _atmosphere.density) / fixedDeltaTime * _atmosphere.density;
                 }
-                
+
                 // produce the resources
                 _ammoniaProductionRate = _ammoniaPercentage <= 0 ? 0 : -_part.RequestResource(_ammoniaResourceName, -_atmosphereConsumptionRate * _ammoniaPercentage * fixedDeltaTime / _atmosphere.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _atmosphere.density;
                 _argonProductionRate = _argonPercentage <= 0 ? 0 : -_part.RequestResource(_argonResourceName, -_atmosphereConsumptionRate * _argonPercentage * fixedDeltaTime / _argon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _argon.density;
@@ -690,7 +690,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg5");//"Insufficient Storage, try allowing overflow"
         }
 
-        public void PrintMissingResources() 
+        public void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + InterstellarResourcesConfiguration._INTAKEATMOSPHERE, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

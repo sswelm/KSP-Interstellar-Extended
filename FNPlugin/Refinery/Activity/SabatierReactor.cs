@@ -52,7 +52,7 @@ namespace FNPlugin.Refinery.Activity
 
         private double _fixedCombinedConsumptionRate;
         private double _combinedConsumptionRate;
-     
+
         public RefineryType RefineryType => RefineryType.Synthesize;
 
         public bool HasActivityRequirements()
@@ -63,10 +63,10 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _carbonDioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
             _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
@@ -101,8 +101,8 @@ namespace FNPlugin.Refinery.Activity
             _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygenDensity;
 
             var fixedMaxCarbonDioxideConsumptionRate = _current_rate * CarbonDioxideMassByFraction * fixedDeltaTime;
-            var carbonDioxideConsumptionRatio = fixedMaxCarbonDioxideConsumptionRate > 0 
-                ? Math.Min(fixedMaxCarbonDioxideConsumptionRate, _availableCarbonDioxideMass) / fixedMaxCarbonDioxideConsumptionRate 
+            var carbonDioxideConsumptionRatio = fixedMaxCarbonDioxideConsumptionRate > 0
+                ? Math.Min(fixedMaxCarbonDioxideConsumptionRate, _availableCarbonDioxideMass) / fixedMaxCarbonDioxideConsumptionRate
                 : 0;
 
             var fixedMaxHydrogenConsumptionRate = _current_rate * HydrogenMassByFraction * fixedDeltaTime;

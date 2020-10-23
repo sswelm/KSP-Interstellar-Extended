@@ -28,6 +28,6 @@
 
         void PrintMissingResources();
 
-        void Initialize(Part part);
+        void Initialize(Part localPart);
     }
 }

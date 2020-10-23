@@ -19,7 +19,7 @@ namespace FNPlugin.Refinery.Activity
         private double _fixedCurrentRate;
         private double _remainingToReprocess;
         private double _remainingSeconds;
-        
+
         public RefineryType RefineryType => RefineryType.Synthesize;
 
 
@@ -30,13 +30,13 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false) 
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
 
@@ -78,12 +78,12 @@ namespace FNPlugin.Refinery.Activity
             GUILayout.EndHorizontal();
         }
 
-        public double getActinidesRemovedPerHour() 
+        public double getActinidesRemovedPerHour()
         {
             return _current_rate * 3600.0;
         }
 
-        public double getRemainingAmountToReprocess() 
+        public double getRemainingAmountToReprocess()
         {
             return _remainingToReprocess;
         }

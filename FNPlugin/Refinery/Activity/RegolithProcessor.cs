@@ -70,10 +70,10 @@ namespace FNPlugin.Refinery.Activity
 
         protected PartResourceDefinition deuteriumDefinition;
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
             _strHydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
@@ -143,7 +143,7 @@ namespace FNPlugin.Refinery.Activity
 
         private double GetTotalExtractedPerSecond()
         {
-            var collectorsList = _vessel.FindPartModulesImplementing<RegolithCollector>(); // add any atmo intake part on the vessel to our list
+            var collectorsList = _vessel.FindPartModulesImplementing<RegolithCollector>(); // add any atmo intake localPart on the vessel to our list
             return collectorsList.Where(m => m.bIsEnabled).Sum(m => m.resourceProduction);
         }
 
@@ -206,14 +206,14 @@ namespace FNPlugin.Refinery.Activity
 
             // begin the regolith processing
             if (_dFixedConsumptionRate > 0 && (
-                dSpareRoomHydrogenMass > 0 || 
-                dSpareRoomDeuteriumMass > 0 ||  
-                dSpareRoomHelium3Mass > 0 || 
-                dSpareRoomHelium4Mass > 0 || 
+                dSpareRoomHydrogenMass > 0 ||
+                dSpareRoomDeuteriumMass > 0 ||
+                dSpareRoomHelium3Mass > 0 ||
+                dSpareRoomHelium4Mass > 0 ||
                 dSpareRoomMonoxideMass > 0 ||
                 dSpareRoomDioxideMass > 0 ||
                 dSpareRoomMethaneMass > 0 ||
-                dSpareRoomNitrogenMass > 0 || 
+                dSpareRoomNitrogenMass > 0 ||
                 dSpareRoomWaterMass > 0)) // check if there is anything to consume and spare room for at least one of the products
             {
 
@@ -237,15 +237,15 @@ namespace FNPlugin.Refinery.Activity
                 double dFixedMaxPossibleNitrogenRate  = Math.Min(dSpareRoomNitrogenMass,  dFixedMaxNitrogenRate);
                 double dFixedMaxPossibleWaterRate     = Math.Min(dSpareRoomWaterMass,     dFixedMaxWaterRate);
 
-                var ratios = new List<double> { 
-                    dFixedMaxPossibleHydrogenRate / dFixedMaxHydrogenRate, 
-                    dFixedMaxPossibleDeuteriumRate / dFixedMaxDeuteriumRate, 
+                var ratios = new List<double> {
+                    dFixedMaxPossibleHydrogenRate / dFixedMaxHydrogenRate,
+                    dFixedMaxPossibleDeuteriumRate / dFixedMaxDeuteriumRate,
                     dFixedMaxPossibleHelium3Rate / dFixedMaxHelium3Rate,
-                    dFixedMaxPossibleHelium4Rate / dFixedMaxHelium4Rate, 
-                    dFixedMaxPossibleMonoxideRate / dFixedMaxMonoxideRate, 
-                    dFixedMaxPossibleNitrogenRate / dFixedMaxNitrogenRate, 
-                    dFixedMaxPossibleWaterRate / dFixedMaxWaterRate, 
-                    dFixedMaxPossibleDioxideRate / dFixedMaxDioxideRate, 
+                    dFixedMaxPossibleHelium4Rate / dFixedMaxHelium4Rate,
+                    dFixedMaxPossibleMonoxideRate / dFixedMaxMonoxideRate,
+                    dFixedMaxPossibleNitrogenRate / dFixedMaxNitrogenRate,
+                    dFixedMaxPossibleWaterRate / dFixedMaxWaterRate,
+                    dFixedMaxPossibleDioxideRate / dFixedMaxDioxideRate,
                     dFixedMaxPossibleMethaneRate / dFixedMaxMethaneRate };
 
                 _dConsumptionStorageRatio =  allowOverflow ? ratios.Max(m => m) : ratios.Min(m => m);

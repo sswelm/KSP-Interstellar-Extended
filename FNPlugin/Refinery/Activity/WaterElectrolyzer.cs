@@ -21,18 +21,20 @@ namespace FNPlugin.Refinery.Activity
         private const double OxygenAtomicMass = 15.999;
         private const double HydrogenMassByFraction = (2 * ProtiumAtomicMass) / (OxygenAtomicMass + (2 * ProtiumAtomicMass)); // 0.1119067
         private const double OxygenMassByFraction = 1 - HydrogenMassByFraction;
-        
+
         private double _waterConsumptionRate;
         private double _hydrogenProductionRate;
         private double _oxygenProductionRate;
         private double _fixedMaxConsumptionWaterRate;
         private double _consumptionStorageRatio;
 
-        private double _waterDensity;
-        private double _oxygenDensity;
-        private double _hydrogenDensity;
+        private PartResourceDefinition _water;
+        private PartResourceDefinition _lqdWater;
+        private PartResourceDefinition _oxygen;
+        private PartResourceDefinition _hydrogen;
 
         private double _availableWaterMass;
+        private double _availableLqdWaterMass;
         private double _spareRoomOxygenMass;
         private double _spareRoomHydrogenMass;
 
@@ -42,18 +44,23 @@ namespace FNPlugin.Refinery.Activity
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() {  return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Water).Any(rs => rs.amount > 0);  }
+        public bool HasActivityRequirements()
+        {
+            return _part.GetConnectedResources(_water.name).Any(rs => rs.amount > 0)
+                   || _part.GetConnectedResources(_lqdWater.name).Any(rs => rs.amount > 0);
+        }
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
+            _part = localPart;
 
-            _vessel = part.vessel;
-            _waterDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Water).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
-            _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+            _vessel = localPart.vessel;
+            _water = PartResourceLibrary.Instance.GetDefinition("Water");
+            _lqdWater = PartResourceLibrary.Instance.GetDefinition("LqdWater");
+            _oxygen = PartResourceLibrary.Instance.GetDefinition("Oxygen");
+            _hydrogen = PartResourceLibrary.Instance.GetDefinition("Hydrogen");
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -64,22 +71,27 @@ namespace FNPlugin.Refinery.Activity
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / EnergyPerTon;
 
-            var partsThatContainWater = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Water).ToList();
-            var partsThatContainOxygen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).ToList();
-            var partsThatContainHydrogen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).ToList();
+            var partsThatContainWater = _part.GetConnectedResources(_water.name).ToList();
+            var partsThatContainLqdWater = _part.GetConnectedResources(_lqdWater.name).ToList();
+            var partsThatContainOxygen = _part.GetConnectedResources(_oxygen.name).ToList();
+            var partsThatContainHydrogen = _part.GetConnectedResources(_hydrogen.name).ToList();
 
-            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _waterDensity;
-            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygenDensity;
-            _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogenDensity;
+            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _water.density
+                                    + partsThatContainLqdWater.Sum(p => p.maxAmount) * _lqdWater.density;
 
-            _availableWaterMass = partsThatContainWater.Sum(p => p.amount) * _waterDensity;
-            _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygenDensity;
-            _spareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * _hydrogenDensity;
+            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygen.density;
+            _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogen.density;
+
+            _availableWaterMass = partsThatContainWater.Sum(p => p.amount) * _water.density;
+            _availableLqdWaterMass = partsThatContainWater.Sum(p => p.amount) * _lqdWater.density;
+            _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen.density;
+            _spareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * _hydrogen.density;
 
             // determine how much water we can consume
-            _fixedMaxConsumptionWaterRate = Math.Min(_current_rate * fixedDeltaTime, _availableWaterMass);
+            _fixedMaxConsumptionWaterRate = Math.Min(_current_rate * fixedDeltaTime, _availableWaterMass + _availableLqdWaterMass);
 
-            if (_fixedMaxConsumptionWaterRate > 0 && (_spareRoomOxygenMass > 0 || _spareRoomHydrogenMass > 0))
+            if (_fixedMaxConsumptionWaterRate > 0 && (_spareRoomOxygenMass > 0 && _spareRoomHydrogenMass > 0
+                                                      || allowOverflow && (_spareRoomOxygenMass > 0 || _spareRoomHydrogenMass > 0)) )
             {
                 // calculate consumptionStorageRatio
                 var fixedMaxHydrogenRate = _fixedMaxConsumptionWaterRate * HydrogenMassByFraction;
@@ -92,14 +104,32 @@ namespace FNPlugin.Refinery.Activity
                 var fixedMaxPossibleOxygenRatio = fixedMaxPossibleOxygenRate / fixedMaxOxygenRate;
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrogenRatio, fixedMaxPossibleOxygenRatio);
 
-                // now we do the real electrolysis
-                _waterConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Water, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _waterDensity) / fixedDeltaTime * _waterDensity;
+                //  consume lqdWater before we consume drinking water
+                var waterRequested = _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _lqdWater.density;
+                var fixedWaterConsumptionRate = _part.RequestResource(_lqdWater.name, waterRequested) * _lqdWater.density;
+                if (fixedWaterConsumptionRate < _fixedMaxConsumptionWaterRate)
+                {
+                    var lqdWaterRequested = _consumptionStorageRatio * (_fixedMaxConsumptionWaterRate - fixedWaterConsumptionRate) / _water.density;
+                    fixedWaterConsumptionRate += _part.RequestResource(_water.name, lqdWaterRequested) * _water.density;
+                }
 
+                // now we do the real electrolysis
+                _waterConsumptionRate = fixedWaterConsumptionRate / fixedDeltaTime;
                 var hydrogenRateTemp = _waterConsumptionRate * HydrogenMassByFraction;
                 var oxygenRateTemp = _waterConsumptionRate * OxygenMassByFraction;
 
-                _hydrogenProductionRate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogenRateTemp * fixedDeltaTime / _hydrogenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogenDensity;
-                _oxygenProductionRate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdOxygen, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
+                var hydrogenProductionAmount = -_part.RequestResource(
+                    resourceName: InterstellarResourcesConfiguration.Instance.Hydrogen,
+                    demand: -hydrogenRateTemp * fixedDeltaTime / _hydrogen.density,
+                    flowMode: ResourceFlowMode.ALL_VESSEL);
+
+                var oxygenProductionAmount = -_part.RequestResource(
+                    resourceName: InterstellarResourcesConfiguration.Instance.LqdOxygen,
+                    demand: -oxygenRateTemp * fixedDeltaTime / _oxygen.density,
+                    flowMode: ResourceFlowMode.ALL_VESSEL);
+
+                _hydrogenProductionRate = hydrogenProductionAmount / fixedDeltaTime * _hydrogen.density;
+                _oxygenProductionRate = oxygenProductionAmount / fixedDeltaTime * _oxygen.density;
             }
             else
             {
@@ -163,18 +193,18 @@ namespace FNPlugin.Refinery.Activity
             else if (_fixedMaxConsumptionWaterRate <= 0.0000000001)
                 _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg2");//"Out of water"
             else if (_hydrogenProductionRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg3", InterstellarResourcesConfiguration.Instance.LqdOxygen);//"Insufficient " +  + " Storage"
+                _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg3", _oxygen.name);//"Insufficient " +  + " Storage"
             else if (_oxygenProductionRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg3", InterstellarResourcesConfiguration.Instance.Hydrogen);//"Insufficient " +  + " Storage"
+                _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg3", _hydrogen.name);//"Insufficient " +  + " Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg4");//"Insufficient Power"
             else
                 _status = Localizer.Format("#LOC_KSPIE_WaterElectroliser_Statumsg5");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources() 
+        public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterElectroliser_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.Water, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterElectroliser_Postmsg") +" " + _water.name, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

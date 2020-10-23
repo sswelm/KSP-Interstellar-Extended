@@ -20,7 +20,7 @@ namespace FNPlugin.Refinery.Activity
         private const double MonoxideMassByFraction = 1 - WaterMassByFraction;
         private const double HydrogenMassByFraction = (2 * 1.008) / (44.01 + (2 * 1.008));
         private const double DioxideMassByFraction = 1 - HydrogenMassByFraction;
-        
+
         private double _fixedConsumptionRate;
         private double _consumptionRate;
         private double _consumptionStorageRatio;
@@ -60,10 +60,10 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
-            _vessel = part.vessel;
+            _part = localPart;
+            _vessel = localPart.vessel;
 
             _waterResourceName = InterstellarResourcesConfiguration.Instance.Water;
             _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
@@ -79,7 +79,7 @@ namespace FNPlugin.Refinery.Activity
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _allowOverflow = allowOverflow;
-            
+
             // determine overall maximum production rate
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / EnergyPerTon;

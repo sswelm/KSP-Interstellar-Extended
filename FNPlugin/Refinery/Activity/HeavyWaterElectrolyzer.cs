@@ -21,7 +21,7 @@ namespace FNPlugin.Refinery.Activity
         private const double OxygenAtomicMass = 15.999;
         private const double DeuteriumMassByFraction = (2 * DeuteriumAtomicMass) / (OxygenAtomicMass + (2 * DeuteriumAtomicMass)); // 0.201136
         private const double OxygenMassByFraction = 1 - DeuteriumMassByFraction;
-        
+
         double _heavyWaterConsumptionRate;
         double _deuteriumProductionRate;
         double _oxygenProductionRate;
@@ -46,11 +46,11 @@ namespace FNPlugin.Refinery.Activity
 
         public string Status => string.Copy(_status);
 
-        public void Initialize(Part part)
+        public void Initialize(Part localPart)
         {
-            _part = part;
+            _part = localPart;
 
-            _vessel = part.vessel;
+            _vessel = localPart.vessel;
             _heavyWaterDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HeavyWater).density;
             _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
             _deuteriumDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
