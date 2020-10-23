@@ -51,6 +51,8 @@ namespace FNPlugin
         public float powerCapacity = 100;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxGeneratorEfficiency", guiFormat = "P1")]
+        public double maxEfficiency;
 
         [KSPField]
         public float powerCapacityMaxValue = 100;
@@ -121,8 +123,8 @@ namespace FNPlugin
         [KSPField]
         public string Mk9TechReq = "";
 
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxGeneratorEfficiency", guiFormat = "P1")]
-        public double maxEfficiency = 0;
+
+
         [KSPField]
         public string animName = "";
         [KSPField]
@@ -208,7 +210,7 @@ namespace FNPlugin
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_Generator_MaximumElectricPower")]//Maximum Electric Power
         public string MaxPowerStr;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_Generator_ElectricEfficiency")]//Electric Efficiency
-        public string OverallEfficiency;
+        public string overallEfficiencyStr;
         [KSPField]
         public string upgradeCostStr = "";
         [KSPField]
@@ -394,7 +396,7 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
+                Debug.Log("[KSPI]: FNGenerator.OnRescale called with " + factor.absolute.linear);
                 storedMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, 3);
                 initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
                 UpdateModuleGeneratorOutput();
@@ -407,7 +409,7 @@ namespace FNPlugin
 
         public void Refresh()
         {
-            Debug.Log("FNGenerator Refreshed");
+            Debug.Log("[KSPI]: FNGenerator Refreshed");
             UpdateTargetMass();
         }
 
@@ -606,21 +608,21 @@ namespace FNPlugin
 
                 if (outputModuleResource != null)
                 {
-                    moduleGeneratorShutdownBaseEvent = stockModuleGenerator.Events["Shutdown"];
+                    moduleGeneratorShutdownBaseEvent = stockModuleGenerator.Events[nameof(ModuleGenerator.Shutdown)];
                     if (moduleGeneratorShutdownBaseEvent != null)
                     {
                         moduleGeneratorShutdownBaseEvent.guiActive = false;
                         moduleGeneratorShutdownBaseEvent.guiActiveEditor = false;
                     }
 
-                    moduleGeneratorActivateBaseEvent = stockModuleGenerator.Events["Activate"];
+                    moduleGeneratorActivateBaseEvent = stockModuleGenerator.Events[nameof(ModuleGenerator.Activate)];
                     if (moduleGeneratorActivateBaseEvent != null)
                     {
                         moduleGeneratorActivateBaseEvent.guiActive = false;
                         moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
                     }
 
-                    moduleGeneratorEfficienctBaseField = stockModuleGenerator.Fields["efficiency"];
+                    moduleGeneratorEfficienctBaseField = stockModuleGenerator.Fields[nameof(ModuleGenerator.efficiency)];
                     if (moduleGeneratorEfficienctBaseField != null)
                     {
                         moduleGeneratorEfficienctBaseField.guiActive = false;
@@ -893,20 +895,20 @@ namespace FNPlugin
         /// </summary>
         public override void OnUpdate()
         {
-            Events["ActivateGenerator"].active = !IsEnabled && showSpecialisedUI;
-            Events["DeactivateGenerator"].active = IsEnabled && showSpecialisedUI;
-            Fields["efficiency"].guiActive = showDetailedInfo && IsEnabled;
-            Fields["MaxPowerStr"].guiActive = showDetailedInfo && IsEnabled;
-            Fields["coldBathTempDisplay"].guiActive = showDetailedInfo && !chargedParticleMode;
-            Fields["hotBathTemp"].guiActive = showDetailedInfo && !chargedParticleMode;
+            Events[nameof(ActivateGenerator)].active = !IsEnabled && showSpecialisedUI;
+            Events[nameof(DeactivateGenerator)].active = IsEnabled && showSpecialisedUI;
+            Fields[nameof(overallEfficiencyStr)].guiActive = showDetailedInfo && IsEnabled;
+            Fields[nameof(MaxPowerStr)].guiActive = showDetailedInfo && IsEnabled;
+            Fields[nameof(coldBathTempDisplay)].guiActive = showDetailedInfo && !chargedParticleMode;
+            Fields[nameof(hotBathTemp)].guiActive = showDetailedInfo && !chargedParticleMode;
 
             if (ResearchAndDevelopment.Instance != null)
             {
-                Events["RetrofitGenerator"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+                Events[nameof(RetrofitGenerator)].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science.ToString("0") + " / " + upgradeCost;
             }
             else
-                Events["RetrofitGenerator"].active = false;
+                Events[nameof(RetrofitGenerator)].active = false;
 
             if (IsEnabled)
             {
@@ -937,7 +939,7 @@ namespace FNPlugin
                 var outputPowerReport = -outputPower;
 
                 OutputPower = PluginHelper.getFormattedPowerString(outputPowerReport, "0.0", "0.000");
-                OverallEfficiency = percentOutputPower.ToString("0.00") + "%";
+                overallEfficiencyStr = percentOutputPower.ToString("0.00") + "%";
 
                 maximumElectricPower = (_totalEff >= 0)
                     ? !chargedParticleMode
@@ -1060,7 +1062,7 @@ namespace FNPlugin
 
             UpdateTargetMass();
 
-            Fields["targetMass"].guiActive = attachedPowerSource != null && attachedPowerSource.Part != this.part;
+            Fields[nameof(targetMass)].guiActive = attachedPowerSource != null && attachedPowerSource.Part != this.part;
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
