@@ -410,7 +410,9 @@ namespace FNPlugin.Microwave
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return (float)(fixedMass ? 0.0 : targetMass - initialMass);
+            var moduleMassDelta = fixedMass ? 0 : targetMass - initialMass;
+
+            return (float)moduleMassDelta;
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()

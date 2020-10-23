@@ -319,7 +319,7 @@ namespace FNPlugin
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             if (!calculatedMass)
-                return 0.0f;
+                return 0;
 
             moduleMassDelta = (float)(targetMass - initialMass);
 

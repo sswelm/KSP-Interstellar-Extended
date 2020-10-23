@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin 
+namespace FNPlugin
 {
     enum ResourceType
     {
@@ -73,7 +73,6 @@ namespace FNPlugin
         private BaseField _fieldKerbalismPanelStatus;
 
         private ModuleResource _outputResource;
-        //private ModuleResource _mockInputResource;
         private PartModule _solarPanelFixer;
 
         private bool _active;
@@ -84,8 +83,8 @@ namespace FNPlugin
         {
             if (state == StartState.Editor) return;
 
-            _megaJouleSolarPowerSupplyField = Fields["megaJouleSolarPowerSupply"];
-            _solarMaxSupplyField = Fields["solarMaxSupply"];
+            _megaJouleSolarPowerSupplyField = Fields[nameof(megaJouleSolarPowerSupply)];
+            _solarMaxSupplyField = Fields[nameof(solarMaxSupply)];
 
             if (part.Modules.Contains("SolarPanelFixer"))
             {
@@ -101,7 +100,7 @@ namespace FNPlugin
 
             _microwavePowerReceiver = part.FindModuleImplementing<BeamedPowerReceiver>();
 
-            _solarPanel = this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
+            _solarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (_solarPanel == null || _solarPanel.chargeRate <= 0) return;
 
             if (part.FindModuleImplementing<ModuleJettison>() == null)
@@ -115,16 +114,6 @@ namespace FNPlugin
             base.OnStart(state);
 
             _outputResource = _solarPanel.resHandler.outputResources.FirstOrDefault();
-
-            //if (_outputResource != null)
-            //{
-            //    _mockInputResource = new ModuleResource
-            //    {
-            //        name = _outputResource.name, id = _outputResource.name.GetHashCode()
-            //    };
-
-            //    _solarPanel.resHandler.inputResources.Add(_mockInputResource);
-            //}
 
             resourceName = _solarPanel.resourceName;
 
@@ -219,10 +208,10 @@ namespace FNPlugin
             efficiencyMult = _solarPanel.efficiencyMult;
             _efficMult = _solarPanel._efficMult;
 
-            calculatedEfficency = _solarPanel._efficMult > 0 
+            calculatedEfficency = _solarPanel._efficMult > 0
                 ? _solarPanel._efficMult
                 : _solarPanel.temperatureEfficCurve.Evaluate((float)part.skinTemperature) * _solarPanel.timeEfficCurve.Evaluate((float)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * _solarPanel.efficiencyMult;
-            
+
             maxSupply = 0;
             solarRate = 0;
             sunAOA = 0;
@@ -305,6 +294,6 @@ namespace FNPlugin
             var distanceToSurfaceStar = (vessel.CoMD - star.position).magnitude - star.Radius;
             var distanceInAu = distanceToSurfaceStar / astronomicalUnit;
             return 1d / (distanceInAu * distanceInAu);
-        }      
+        }
     }
 }

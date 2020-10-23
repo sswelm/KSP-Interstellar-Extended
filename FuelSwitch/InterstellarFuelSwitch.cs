@@ -174,9 +174,9 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool showInfo = true;    // if false, does not feed info to the part list pop up info menu
         [KSPField]
-        public string moduleInfoTemplate;      
+        public string moduleInfoTemplate;
         [KSPField]
-        public string moduleInfoParams;         
+        public string moduleInfoParams;
         [KSPField]
         public string resourcesFormat = "0.000";
         [KSPField]
@@ -336,9 +336,9 @@ namespace InterstellarFuelSwitch
             if (selectedTankSetup == -1 && !string.IsNullOrEmpty(defaultTank))
                 selectedTankSetupTxt = Localizer.Format(defaultTank);
 
-            var matchingGuiTank = 
+            var matchingGuiTank =
                 _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) ??
-                _modularTankList.FirstOrDefault(t => t.SwitchName == selectedTankSetupTxt) ?? 
+                _modularTankList.FirstOrDefault(t => t.SwitchName == selectedTankSetupTxt) ??
                 _modularTankList.FirstOrDefault(t => t.Composition == selectedTankSetupTxt);
 
             if (matchingGuiTank != null)
@@ -421,9 +421,9 @@ namespace InterstellarFuelSwitch
                     }
                     else if (state == StartState.Editor)
                     {
-                        var desiredTank = 
+                        var desiredTank =
                             _modularTankList.FirstOrDefault(m => m.GuiName == defaultTank) ??
-                            _modularTankList.FirstOrDefault(m => m.SwitchName == defaultTank) ?? 
+                            _modularTankList.FirstOrDefault(m => m.SwitchName == defaultTank) ??
                             _modularTankList.FirstOrDefault(m => m.Composition == defaultTank);
 
                         if (desiredTank == null)
@@ -508,7 +508,7 @@ namespace InterstellarFuelSwitch
                 InitializeData();
 
                 var desiredTank = _modularTankList.FirstOrDefault(m => m.GuiName == newTankName) ??
-                                  _modularTankList.FirstOrDefault(m => m.SwitchName == newTankName) ?? 
+                                  _modularTankList.FirstOrDefault(m => m.SwitchName == newTankName) ??
                                   _modularTankList.FirstOrDefault(m => m.Composition == newTankName);
 
                 if (desiredTank == null)
@@ -822,7 +822,7 @@ namespace InterstellarFuelSwitch
 
                 newResourceNodes.Add(newResourceNode);
             }
-                
+
             foreach (var resource in currentPart.Resources)
             {
                 if (!activeResourceList.Contains(resource.resourceName))
@@ -1124,7 +1124,7 @@ namespace InterstellarFuelSwitch
                 massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
 
             maxWetDryMass = string.Format("{0} / {1}", FormatMassStr(dryMass), FormatMassStr(wetMass));
-            crewCapacityStr = string.Format("{0} / {1}", part.protoModuleCrew.Count, part.CrewCapacity); 
+            crewCapacityStr = string.Format("{0} / {1}", part.protoModuleCrew.Count, part.CrewCapacity);
         }
 
         private string ToRoundedString(double value)
@@ -1198,7 +1198,7 @@ namespace InterstellarFuelSwitch
             var initialResourceList = new List<List<double>>();
             var boilOffTempList = new List<List<double>>();
             var latendHeatVaporationList = new List<List<double>>();
-                
+
             var resourceTankAbsoluteAmountArray = resourceAmounts.Split(';');
             var resourceTankRatioAmountArray = resourceRatios.Split(';');
             var initialResourceTankArray = initialResourceAmounts.Split(';');
@@ -1369,9 +1369,7 @@ namespace InterstellarFuelSwitch
             this.defaultMass = defaultMass;
 
             if (returnDryMass)
-            {
-                return (float)dryMass - defaultMass;
-            }
+                return (float)dryMass;
             else
             {
                 UpdateDryMass();
@@ -1557,7 +1555,7 @@ namespace InterstellarFuelSwitch
                 if (module.moduleName == "Habitat")
                 {
                     found = true;
-                    habitatModule = module;                   
+                    habitatModule = module;
                     habitatVolumeField = module.Fields["volume"];
                     habitatSurfaceField = module.Fields["surface"];
                     habitatStateField = module.Fields["state"];

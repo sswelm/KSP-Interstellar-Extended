@@ -223,11 +223,11 @@ namespace PhotonSail
         [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_KSCCentralSpotEnergyRatio")]//KCS Laser Central Spot Ratio
         public double kscCentralSpotEnergyRatio = 0.7;    // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
         [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_KSCSideSpotEnergyRatio")]//KCS Laser Side Spot Ratio
-        public double kscSideSpotEnergyRatio = 0.25; 
+        public double kscSideSpotEnergyRatio = 0.25;
         [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_KSCLaserMinElevationAngle")]//KCS Laser Min Elevation Angle
         public double kscLaserMinElevationAngle = 70;
 
-        [KSPField] 
+        [KSPField]
         public int animatedRays = 400;
         [KSPField]
         public double kscAtmosphereAbsorbtionRatio = 0.11;
@@ -328,7 +328,7 @@ namespace PhotonSail
         [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_HasLineOfSightToKSC")]//Can See KCS
         public bool hasLineOfSightToKtc;
 
-        [KSPField(guiActive = true)] 
+        [KSPField(guiActive = true)]
         public double specularRatio;
 
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Acceleration", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = -100)]
@@ -526,7 +526,7 @@ namespace PhotonSail
 
         private void DeterminePhotovoltaicEfficiency()
         {
-            solarPhotovoltaicTechLevel = ResearchAndDevelopment.Instance == null ? 3 
+            solarPhotovoltaicTechLevel = ResearchAndDevelopment.Instance == null ? 3
                 : HasTech(solarPhotovoltaicTech1, 1) + HasTech(solarPhotovoltaicTech2, 1) + HasTech(solarPhotovoltaicTech3, 1);
 
             if (solarPhotovoltaicTechLevel >= 3)
@@ -602,7 +602,7 @@ namespace PhotonSail
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return (float)(initialMass * (massTechMultiplier - 1.0));
+            return (float)(initialMass * massTechMultiplier - initialMass);
         }
 
         private void CreateBeamArray()
@@ -622,7 +622,7 @@ namespace PhotonSail
             beam.solar_effect.transform.localScale = Vector3.zero;
             beam.solar_effect.transform.position = Vector3.zero;
             beam.solar_effect.transform.rotation = part.transform.rotation;
-           
+
             beam.solar_effect_collider = beam.solar_effect.GetComponent<Collider>();
             beam.solar_effect_collider.enabled = false;
 
@@ -699,7 +699,7 @@ namespace PhotonSail
                 beamedPowerData.Route = routeRelayData.Key;
                 beamedPowerData.Distance = beamedPowerData.Route.Distance;
                 beamedPowerData.UpdateCounter = updateCounter;
- 
+
                 foreach(var wavelengthData in transmitter.SupportedTransmitWavelengths)
                 {
                     var transmittedPower = (wavelengthData.nuclearPower + wavelengthData.solarPower) * 0.001;
@@ -710,7 +710,7 @@ namespace PhotonSail
 
                     var currentWavelengthBeamedPower = transmittedPower * beamedPowerData.Route.Efficiency;
 
-                    beamedPowerData.AvailablePower += currentWavelengthBeamedPower; 
+                    beamedPowerData.AvailablePower += currentWavelengthBeamedPower;
                 }
             }
 
@@ -748,10 +748,10 @@ namespace PhotonSail
             Fields[nameof(specularSailDragInNewton)].guiActive = specularSailDragInNewton > 0;
 
             var relevantOrbitalData =
-                (vessel.situation & Vessel.Situations.SPLASHED) != Vessel.Situations.SPLASHED && 
+                (vessel.situation & Vessel.Situations.SPLASHED) != Vessel.Situations.SPLASHED &&
                 (vessel.situation & Vessel.Situations.LANDED) != Vessel.Situations.LANDED &&
-                (vessel.situation & Vessel.Situations.PRELAUNCH) != Vessel.Situations.PRELAUNCH && 
-                (vessel.situation & Vessel.Situations.FLYING) != Vessel.Situations.FLYING; 
+                (vessel.situation & Vessel.Situations.PRELAUNCH) != Vessel.Situations.PRELAUNCH &&
+                (vessel.situation & Vessel.Situations.FLYING) != Vessel.Situations.FLYING;
 
             Fields[nameof(periapsisChange)].guiActive = relevantOrbitalData;
             Fields[nameof(apapsisChange)].guiActive = relevantOrbitalData;
@@ -784,7 +784,7 @@ namespace PhotonSail
             beamedSailForce = 0;
             beamed_acc_d = 0;
             absorbedPhotonHeatInWatt = 0;
-            dissipationInMegaJoules = 0;            
+            dissipationInMegaJoules = 0;
 
             beamRays.Clear();
             receivedBeamedPowerList.Clear();
@@ -794,7 +794,7 @@ namespace PhotonSail
 
             UpdateChangeGui();
 
-            ResetBeams();            
+            ResetBeams();
 
             var vesselMassInKg = vessel.totalMass * 1000;
             var universalTime = Planetarium.GetUniversalTime();
@@ -837,7 +837,7 @@ namespace PhotonSail
                 double photovoltaicEfficiency = 0;
                 GetPhotonStatisticsForWavelength(receivedPowerData.Route.WaveLength, ref photonReflection, ref photovoltaicEfficiency);
 
-                var availableTransmitterPowerInWatt = CheatOptions.IgnoreMaxTemperature 
+                var availableTransmitterPowerInWatt = CheatOptions.IgnoreMaxTemperature
                     ? receivedPowerData.AvailablePower * 1e+6
                     : Math.Min(receivedPowerData.AvailablePower * 1e+6, Math.Max(0, (maxSailHeatDissipationInWatt - absorbedPhotonHeatInWatt - dragHeatInJoule) / (1 - photonReflection)));
 
@@ -898,7 +898,7 @@ namespace PhotonSail
                 var kscAtmosphereMultiplier = kscLaserElevationAngleInRadian > 0 ? 1 / kscLaserElevationAngleInRadian : 0;
                 var atmosphereAbsorptionEfficiency = Math.Max(0, 1 - kscAtmosphereMultiplier * kscAtmosphereAbsorbtionRatio);
 
-                var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature || kscPhotonReflection == 1 
+                var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature || kscPhotonReflection == 1
                     ? kscLaserPowerInWatt
                     : Math.Min(kscLaserPowerInWatt, Math.Max(0, (maxSailHeatDissipationInWatt - receivedHeatInWatt - dragHeatInJoule) / (1 - kscPhotonReflection)));
 
@@ -968,7 +968,7 @@ namespace PhotonSail
 
         private void ProcessThermalDynamics(double absorbedPhotonHeatInWatt)
         {
-            var thermalMassPerKilogram = (double)(decimal)part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;            
+            var thermalMassPerKilogram = (double)(decimal)part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
             // calculate heating
             solarfluxWasteheatInMegaJoules = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ * Math.Max(0, 1 - vessel.atmDensity);
@@ -982,7 +982,7 @@ namespace PhotonSail
 
                 var relaxedSailHeatingInMegajoules = updateCounter > 10 ? currentSailHeatingInMegajoules : currentSailHeatingInMegajoules * (updateCounter * 0.1);
 
-                var temperatureChange = (relaxedSailHeatingInMegajoules - dissipationInMegaJoules) / thermalMassPerKilogram; 
+                var temperatureChange = (relaxedSailHeatingInMegajoules - dissipationInMegaJoules) / thermalMassPerKilogram;
 
                 var modifiedTemperature = part.skinTemperature + temperatureChange;
 
@@ -1041,7 +1041,7 @@ namespace PhotonSail
             var effectiveSpeedForDrag = Math.Max(0, vessel.obt_speed - siderealSpeed * lowOrbitModifier);
             var dragForcePerSquareMeter = atmosphericGasKgPerSquareMeter * 0.5 * effectiveSpeedForDrag * effectiveSpeedForDrag;
             maximumDragPerSquareMeter = (float)(dragForcePerSquareMeter * maximumDragCoefficient);
-            
+
             // calculate specular Drag
             Vector3d vesselNormal = vessel.transform.up;
             if (cosOrbitRaw < 0)
@@ -1093,7 +1093,7 @@ namespace PhotonSail
             // calculate vector between vessel and star transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
 
-            // take part vector 
+            // take part vector
             Vector3d vesselNormal = vessel.transform.up;
             var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
 
@@ -1132,8 +1132,8 @@ namespace PhotonSail
                     return 0;
 
                 energyOnSailnWatt = availableEnergyInWatt * sailSurfaceModifier;
-                doorsPhotovoltaicKiloWatt = sailSurfaceModifier > 0 && cosConeAngleIsNegative 
-                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.001 * 0.9 * Math.Max(0.05, cosConeAngle) * Math.Sqrt(photovoltaicEfficiency): 0; 
+                doorsPhotovoltaicKiloWatt = sailSurfaceModifier > 0 && cosConeAngleIsNegative
+                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.001 * 0.9 * Math.Max(0.05, cosConeAngle) * Math.Sqrt(photovoltaicEfficiency): 0;
             }
 
             // generate Photovoltaic power
@@ -1151,7 +1151,7 @@ namespace PhotonSail
             // calculate effective radiation pressure on SolarSail
             var reflectedRadiationPressureOnSail = isSun ? maxReflectedRadiationPressure * cosConeAngle : maxReflectedRadiationPressure;
 
-            // register force 
+            // register force
             if (isSun)
                 totalForceInNewtonFromSolarEnergy += maximumPhotonForceInNewton * Sign(cosConeAngleIsNegative);
             else
@@ -1173,7 +1173,7 @@ namespace PhotonSail
                     if (totalEnergy > 0)
                     {
                         ray.spotsize = totalEnergy > 0
-                            ? (ray.spotsize * (ray.energyInGigaWatt / totalEnergy)) + (beamSpotSize * (availableEnergyInGigaWatt / totalEnergy)) 
+                            ? (ray.spotsize * (ray.energyInGigaWatt / totalEnergy)) + (beamSpotSize * (availableEnergyInGigaWatt / totalEnergy))
                             : 0;
                     }
 
@@ -1181,12 +1181,12 @@ namespace PhotonSail
                 }
                 else
                 {
-                    beamRays.Add(new BeamRay() 
-                    { 
-                        energyInGigaWatt = availableEnergyInGigaWatt, 
-                        cosConeAngle = cosConeAngle, 
-                        spotsize = beamSpotSize, 
-                        powerSourceToVesselVector = powerSourceToVesselVector 
+                    beamRays.Add(new BeamRay()
+                    {
+                        energyInGigaWatt = availableEnergyInGigaWatt,
+                        cosConeAngle = cosConeAngle,
+                        spotsize = beamSpotSize,
+                        powerSourceToVesselVector = powerSourceToVesselVector
                     });
                 }
             }
@@ -1196,7 +1196,7 @@ namespace PhotonSail
 
             // calculate the vector at 90 degree angle in the direction of the vector
             //var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
-            // new F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
+            // new F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t]
             // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficient
             //var effectiveForce = radiationPressureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
 
@@ -1265,8 +1265,8 @@ namespace PhotonSail
             periapsisChangeQueue.Enqueue((vessel.orbit.PeA - previousPeA) / averageFixedDeltaTime);
             if (periapsisChangeQueue.Count > 30)
                 periapsisChangeQueue.Dequeue();
-            periapsisChange = periapsisChangeQueue.Count > 20 
-                ?  periapsisChangeQueue.OrderBy(m => m).Skip(5).Take(20).Average() 
+            periapsisChange = periapsisChangeQueue.Count > 20
+                ?  periapsisChangeQueue.OrderBy(m => m).Skip(5).Take(20).Average()
                 : periapsisChangeQueue.Average();
 
             apapsisChangeQueue.Enqueue((vessel.orbit.ApA - previousAeA) / averageFixedDeltaTime);

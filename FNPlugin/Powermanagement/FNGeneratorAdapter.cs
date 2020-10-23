@@ -20,13 +20,13 @@ namespace FNPlugin
         [KSPField]
         public bool active;
 
-        private ModuleGenerator moduleGenerator;
-        private ResourceType outputType = 0;
-        private ResourceBuffers resourceBuffers;
-        private ModuleResource mockInputResource;
-        private ModuleResource moduleOutputResource;
-        private BaseField efficiencyField;
-        private BaseField displayStatusField;
+        private ModuleGenerator _moduleGenerator;
+        private ResourceType _outputType = 0;
+        private ResourceBuffers _resourceBuffers;
+        private ModuleResource _mockInputResource;
+        private ModuleResource _moduleOutputResource;
+        private BaseField _efficiencyField;
+        private BaseField _displayStatusField;
 
         public override void OnStart(StartState state)
         {
@@ -50,52 +50,52 @@ namespace FNPlugin
 
                 var modules = part.FindModulesImplementing<ModuleGenerator>();
 
-                moduleGenerator = modules.Count > index ? modules[index] : null;
+                _moduleGenerator = modules.Count > index ? modules[index] : null;
 
-                if (moduleGenerator == null)
+                if (_moduleGenerator == null)
                 {
                     Debug.LogWarning("[KSPI]: disabling FNGeneratorAdapter, failed to find ModuleGenerator");
                     return;
                 }
 
-                string[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
-                this.resources_to_supply = resources_to_supply;
+                string[] resourcesToSupply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+                this.resources_to_supply = resourcesToSupply;
                 base.OnStart(state);
 
                 if (maintainsBuffer)
-                    resourceBuffers = new ResourceBuffers();
+                    _resourceBuffers = new ResourceBuffers();
 
-                outputType = ResourceType.other;
-                foreach (ModuleResource moduleResource in moduleGenerator.resHandler.outputResources)
+                _outputType = ResourceType.other;
+                foreach (ModuleResource moduleResource in _moduleGenerator.resHandler.outputResources)
                 {
                     if (moduleResource.name != ResourceManager.FNRESOURCE_MEGAJOULES && (moduleResource.name != ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE))
                         continue;
 
                     // assuming only one of those two is present
-                    if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
-                        outputType = ResourceType.megajoule;
-                    else
-                        outputType = ResourceType.electricCharge;
+                    _outputType = moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES ? ResourceType.megajoule : ResourceType.electricCharge;
 
                     if (maintainsBuffer)
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(moduleResource.name, 50));
+                        _resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(moduleResource.name, 50));
 
-                    mockInputResource = new ModuleResource();
-                    mockInputResource.name = moduleResource.name;
-                    mockInputResource.id = moduleResource.name.GetHashCode();
-                    moduleGenerator.resHandler.inputResources.Add(mockInputResource);
-                    moduleOutputResource = moduleResource;
+                    _mockInputResource = new ModuleResource
+                    {
+                        name = moduleResource.name,
+                        id = moduleResource.name.GetHashCode()
+                    };
+
+                    _moduleGenerator.resHandler.inputResources.Add(_mockInputResource);
+                    _moduleOutputResource = moduleResource;
                     break;
                 }
 
                 if (maintainsBuffer)
-                    resourceBuffers.Init(this.part);
+                    _resourceBuffers.Init(part);
 
-                efficiencyField = moduleGenerator.Fields["efficiency"];
-                displayStatusField = moduleGenerator.Fields["displayStatus"];
+                _efficiencyField = _moduleGenerator.Fields[nameof(ModuleGenerator.efficiency)];
+                _displayStatusField = _moduleGenerator.Fields[nameof(ModuleGenerator.displayStatus)];
 
-                efficiencyField.guiActive = showEfficiency;
-                displayStatusField.guiActive = showDisplayStatus;
+                _efficiencyField.guiActive = showEfficiency;
+                _displayStatusField.guiActive = showDisplayStatus;
             }
             catch (Exception e)
             {
@@ -110,7 +110,7 @@ namespace FNPlugin
             {
                 if (!HighLogic.LoadedSceneIsFlight) return;
 
-                if (moduleGenerator == null) return;
+                if (_moduleGenerator == null) return;
 
                 active = true;
                 base.OnFixedUpdate();
@@ -129,7 +129,7 @@ namespace FNPlugin
             {
                 if (!HighLogic.LoadedSceneIsFlight) return;
 
-                if (moduleGenerator == null) return;
+                if (_moduleGenerator == null) return;
 
                 if (!active)
                     base.OnFixedUpdate();
@@ -156,17 +156,17 @@ namespace FNPlugin
         {
             try
             {
-                if (moduleGenerator == null) return;
+                if (_moduleGenerator == null) return;
 
-                if (outputType == ResourceType.other) return;
+                if (_outputType == ResourceType.other) return;
 
-                var generatorRate = moduleOutputResource.rate;
-                mockInputResource.rate = generatorRate;
+                var generatorRate = _moduleOutputResource.rate;
+                _mockInputResource.rate = generatorRate;
 
-                double generatorSupply = outputType == ResourceType.megajoule ? generatorRate : generatorRate / 1000;
+                double generatorSupply = _outputType == ResourceType.megajoule ? generatorRate : generatorRate / 1000;
 
                 if (maintainsBuffer)
-                    resourceBuffers.UpdateBuffers();
+                    _resourceBuffers.UpdateBuffers();
 
                 megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
             }

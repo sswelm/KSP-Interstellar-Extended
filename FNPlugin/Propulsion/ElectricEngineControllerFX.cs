@@ -89,7 +89,7 @@ namespace FNPlugin
         public bool ignoreWasteheat = false;
         [KSPField]
         public double GThreshold = 9;
-        [KSPField] 
+        [KSPField]
         public double maxEffectPowerRatio = 0.75;
 
         [KSPField]
@@ -213,7 +213,7 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         public double simulatedPowerReceived;
 
-        [KSPField] 
+        [KSPField]
         protected double maximumAvailablePowerForEngine;
         [KSPField]
         protected double currentAvailablePowerForEngine;
@@ -377,8 +377,8 @@ namespace FNPlugin
                 }
                 else if (type == (int)ElectricEngineType.VASIMR)
                 {
-                    var ionizationEnergyRatio = _attachedEngine.currentThrottle > 0 
-                        ? minimumIonisationRatio + (_attachedEngine.currentThrottle * ionisationMultiplier) 
+                    var ionizationEnergyRatio = _attachedEngine.currentThrottle > 0
+                        ? minimumIonisationRatio + (_attachedEngine.currentThrottle * ionisationMultiplier)
                         : minimumIonisationRatio;
 
                     ionizationEnergyRatio = Math.Min(1, ionizationEnergyRatio);
@@ -437,7 +437,7 @@ namespace FNPlugin
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return (float)desiredMass - defaultMass;
+            return (float)desiredMass;
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
@@ -794,8 +794,8 @@ namespace FNPlugin
             effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
             availableMaximumPower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-            availableCurrentPower = CheatOptions.InfiniteElectricity 
-                ? availableMaximumPower 
+            availableCurrentPower = CheatOptions.InfiniteElectricity
+                ? availableMaximumPower
                 : getAvailablePrioritisedCurrentSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             maximumAvailablePowerForEngine = availableMaximumPower * _electricalShareF;
@@ -1025,7 +1025,7 @@ namespace FNPlugin
 
             if (thrust > 0.0000005 && fuelRatio < 0.999999 && _isFullyStarted)
             {
-                message = Localizer.Format("#LOC_KSPIE_ElectricEngineController_PostMsg2", fuelRatio, thrust);// "Thrust warp stopped - " + + " propellant depleted thust: " + 
+                message = Localizer.Format("#LOC_KSPIE_ElectricEngineController_PostMsg2", fuelRatio, thrust);// "Thrust warp stopped - " + + " propellant depleted thust: " +
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);

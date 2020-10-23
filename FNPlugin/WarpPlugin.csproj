@@ -192,6 +192,7 @@
     <Compile Include="Science\FNLCMassSpectrometer.cs" />
     <Compile Include="Science\FNMassSpectrometer.cs" />
     <Compile Include="Storage\FNModuleCryostat.cs" />
+    <Compile Include="Wasteheat\FNFissionReactorAdapter.cs" />
     <Compile Include="Wasteheat\FNFissionGeneratorAdapter.cs" />
     <Compile Include="Wasteheat\FNModulePreecooler.cs" />
     <Compile Include="Science\DTMagnetometer.cs" />

@@ -1,11 +1,7 @@
 ﻿using FNPlugin.Power;
-using System;
-using System.Linq;
-using UnityEngine;
 using KSP.Localization;
-
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using UnityEngine;
 
 namespace FNPlugin
 {
@@ -59,11 +55,11 @@ namespace FNPlugin
 
         [KSPField]
         private double generatorOutputRateInElectricCharge;
-       
-        private ModuleGenerator moduleGenerator;       
+
+        private ModuleGenerator moduleGenerator;
         private ResourceBuffers resourceBuffers;
 
-        private ModuleResource mockInputResource;        
+        private ModuleResource mockInputResource;
         private ModuleResource moduleInputResource;
         private ModuleResource moduleOutputResource;
 
@@ -72,13 +68,13 @@ namespace FNPlugin
         private BaseField powerGeneratorPowerInputField;
         private BaseField powerGeneratorPowerOutputField;
         private BaseField moduleGeneratorEfficienctBaseField;
-        
+
         private ResourceType outputType = 0;
         private ResourceType inputType = 0;
 
         private double generatorInputRate;
 
-        private bool active = false;
+        private bool active;
 
         //private AvailablePart availablePart;
         //private Part prefab_available_part;
@@ -98,8 +94,8 @@ namespace FNPlugin
 
                 if (moduleGenerator == null) return;
 
-                String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
-                this.resources_to_supply = resources_to_supply;
+                string[] resourcesToSupply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+                this.resources_to_supply = resourcesToSupply;
                 base.OnStart(state);
 
                 if (maintainsBuffer)
@@ -182,14 +178,14 @@ namespace FNPlugin
                         {
                             moduleGeneratorEfficienctBaseField.guiActive = false;
                             moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
-                        }  
+                        }
 
                         break;
                     }
                 }
 
                 if (maintainsBuffer)
-                    resourceBuffers.Init(this.part);
+                    resourceBuffers.Init(part);
 
                 efficiencyField = moduleGenerator.Fields["efficiency"];
                 displayStatusField = moduleGenerator.Fields["displayStatus"];
@@ -307,10 +303,7 @@ namespace FNPlugin
 
                 if (moduleInputResource != null)
                 {
-                    if (currentMegajoulesSupply > 0)
-                        moduleInputResource.rate = currentMegajoulesSupply;
-                    else
-                        moduleInputResource.rate = initialInputAmount;
+                    moduleInputResource.rate = currentMegajoulesSupply > 0 ? currentMegajoulesSupply : initialInputAmount;
 
                     part.GetConnectedResourceTotals(moduleInputResource.id, out inputAmount, out inputMaxAmount);
 
@@ -325,7 +318,7 @@ namespace FNPlugin
 
                 if (moduleOutputResource != null)
                 {
-                    generatorOutputRateInElectricCharge = maximumPowerGeneration > 0 
+                    generatorOutputRateInElectricCharge = maximumPowerGeneration > 0
                         ? currentMegajoulesSupply * (outputType == ResourceType.megajoule ? 1 : 1000 )
                         : initialOutputAmount;
 
