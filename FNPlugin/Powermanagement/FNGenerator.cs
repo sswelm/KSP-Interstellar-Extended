@@ -339,7 +339,7 @@ namespace FNPlugin
         private Animation anim;
         private Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
 
-        private ResourceBuffers resourceBuffers;
+        private ResourceBuffers _resourceBuffers;
         private ModuleGenerator stockModuleGenerator;
         private ModuleResource mockInputResource;
         private ModuleResource outputModuleResource;
@@ -490,18 +490,18 @@ namespace FNPlugin
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
 
-            resourceBuffers = new ResourceBuffers();
+            _resourceBuffers = new ResourceBuffers();
 
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 1000 / powerOutputMultiplier));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 1000 / powerOutputMultiplier));
 
             if (controlWasteHeatBuffer)
             {
-                resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+5, true));
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+5, true));
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             }
 
-            resourceBuffers.Init(this.part);
+            _resourceBuffers.Init(this.part);
 
             base.OnStart(state);
 
@@ -895,7 +895,7 @@ namespace FNPlugin
         {
             Events["ActivateGenerator"].active = !IsEnabled && showSpecialisedUI;
             Events["DeactivateGenerator"].active = IsEnabled && showSpecialisedUI;
-            Fields["OverallEfficiency"].guiActive = showDetailedInfo && IsEnabled;
+            Fields["efficiency"].guiActive = showDetailedInfo && IsEnabled;
             Fields["MaxPowerStr"].guiActive = showDetailedInfo && IsEnabled;
             Fields["coldBathTempDisplay"].guiActive = showDetailedInfo && !chargedParticleMode;
             Fields["hotBathTemp"].guiActive = showDetailedInfo && !chargedParticleMode;
@@ -1317,7 +1317,7 @@ namespace FNPlugin
                 return;
 
             if (controlWasteHeatBuffer)
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
 
             if (maxStableMegaWattPower > 0)
             {
@@ -1330,11 +1330,11 @@ namespace FNPlugin
                 powerBufferBonus = attachedPowerSource.PowerBufferBonus;
 
                 megawattBufferAmount = (minimumBufferSize * 50) + (powerBufferBonus + 1) * stablePowerForBuffer;
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
-                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
             }
 
-            resourceBuffers.UpdateBuffers();
+            _resourceBuffers.UpdateBuffers();
         }
 
         private double CalculateElectricalPowerCurrentlyNeeded()
@@ -1373,11 +1373,11 @@ namespace FNPlugin
             }
 
             if (controlWasteHeatBuffer)
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
 
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
-            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
-            resourceBuffers.UpdateBuffers();
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
+            _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
+            _resourceBuffers.UpdateBuffers();
         }
 
         public override string GetInfo()

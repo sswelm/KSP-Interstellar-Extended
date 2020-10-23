@@ -11,16 +11,19 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_NFFAdapter_Currentpower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F5")]//Generator current power
         public double megaJouleGeneratorPowerSupply;
         [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_NFFAdapter_Efficiency")]//Efficiency
-        public string OverallEfficiency;
+        public string efficiency;
+
+        [KSPField]
+        public float wasteHeatMultiplier = 0.01f;
 
         private PartModule moduleGenerator;
         private BaseField _field_status;
         private BaseField _field_generated;
-        private BaseField _field_addedToTanks;
+        private BaseField _field_efficiency;
         private BaseField _field_max;
 
-        private bool active = false;
-        private ResourceBuffers resourceBuffers;
+        private bool active;
+        private ResourceBuffers _resourceBuffers;
 
         public override void OnStart(StartState state)
         {
@@ -33,23 +36,22 @@ namespace FNPlugin
                     moduleGenerator = part.Modules["FissionGenerator"];
                     _field_status = moduleGenerator.Fields["Status"];
                     _field_generated = moduleGenerator.Fields["CurrentGeneration"];
-                    _field_addedToTanks = moduleGenerator.Fields["AddedToFuelTanks"];
+                    _field_efficiency = moduleGenerator.Fields["Efficiency"];
                     _field_max = moduleGenerator.Fields["PowerGeneration"];
                 }
 
                 if (moduleGenerator == null) return;
 
-                OverallEfficiency = "10%";
-
-                String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
-                this.resources_to_supply = resources_to_supply;
+                string[] resourcesToSupply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
+                this.resources_to_supply = resourcesToSupply;
                 base.OnStart(state);
 
-                resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
-                resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(1, 2.0e+5, true));
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, (double)(decimal)this.part.mass);
-                resourceBuffers.Init(this.part);
+                _resourceBuffers = new ResourceBuffers();
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
+                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+5, true));
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+                _resourceBuffers.Init(part);
             }
             catch (Exception e)
             {
@@ -75,7 +77,6 @@ namespace FNPlugin
                 throw;
             }
         }
-
 
         public void FixedUpdate()
         {
@@ -118,20 +119,30 @@ namespace FNPlugin
 
                 float generatorRate = status ? _field_generated.GetValue<float>(moduleGenerator) : 0;
                 float generatorMax = _field_max.GetValue<float>(moduleGenerator);
+                float generatorEfficiency = _field_efficiency.GetValue<float>(moduleGenerator);
 
-                // extract power otherwise we end up with double power
-                if (_field_addedToTanks != null)
-                {
-                    part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)_field_addedToTanks.GetValue<float>(moduleGenerator));
-                }
+                efficiency = (generatorEfficiency * 100).ToString("F2") + " %";
 
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-                resourceBuffers.UpdateBuffers();
+                //extract power otherwise we end up with double power
+                part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorRate * fixedDeltaTime);
 
-                megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorRate / 1000, generatorMax / 1000, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var megajoulesRate = generatorRate / 1000;
+                var maxMegajoulesRate = generatorMax / 1000;
+
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorRate);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megajoulesRate);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+                _resourceBuffers.UpdateBuffers();
+
+                megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                var maxWasteheat = generatorEfficiency > 0 ? maxMegajoulesRate / generatorEfficiency : maxMegajoulesRate;
 
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecond(generatorRate / 10000.0d, ResourceManager.FNRESOURCE_WASTEHEAT);
+                {
+                    supplyFNResourcePerSecondWithMax(maxWasteheat, maxWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(maxWasteheat * generatorEfficiency, ResourceManager.FNRESOURCE_WASTEHEAT);
+                }
             }
             catch (Exception e)
             {
