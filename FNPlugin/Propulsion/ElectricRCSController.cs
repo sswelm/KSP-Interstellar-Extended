@@ -54,7 +54,7 @@ namespace FNPlugin
         public float baseThrust = 0;
         [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_CurrentTotalThrust", guiUnits = " kN")]//Current Total Thrust
         public float currentThrust;
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_Mass", guiUnits = " t")]//Mass
+        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_Mass", guiFormat = "F3", guiUnits = " t")]//Mass
         public float partMass = 0;
 
         [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Consumption")]//Consumption

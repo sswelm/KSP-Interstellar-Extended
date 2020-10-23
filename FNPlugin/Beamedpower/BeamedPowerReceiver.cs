@@ -192,7 +192,7 @@ namespace FNPlugin
 
         [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ThermalPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Thermal Power
         public double ThermalPower;
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Radius", guiUnits = " m")]//Radius
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Radius", guiFormat = "F2", guiUnits = " m")]//Radius
         public double radius = 2.5;
         [KSPField]
         public float alternatorRatio = 1;
@@ -1123,87 +1123,84 @@ namespace FNPlugin
                 isInRatiatorMode.guiActiveEditor = fnRadiator != null;
             }
 
-            if (state == StartState.Editor)
+            if (state != StartState.Editor)
             {
-                CalculateInputPower();
-                return;
-            }
+                windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidthWide * 1 + ValueWidthNormal * 10, 100);
 
-            windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidthWide * 1 + ValueWidthNormal * 10, 100);
+                // create the id for the GUI window
+                windowID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
-            // create the id for the GUI window
-            windowID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
+                localStar = GetCurrentStar();
 
-            localStar = GetCurrentStar();
+                // compensate for stock solar initialisation heating bug
+                initializationCountdown = 10;
 
-            // compensate for stock solar initialisation heating bug
-            initializationCountdown = 10;
-
-            if (forceActivateAtStartup)
-            {
-                Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
-                part.force_activate();
-            }
-
-            if (isThermalReceiverSlave)
-            {
-                var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is BeamedPowerReceiver && (BeamedPowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
-
-                if (result == null || result.Source == null)
-                    Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
-                else
-                    ((BeamedPowerReceiver)result.Source).RegisterAsSlave(this);
-            }
-
-            if (maintainResourceBuffers)
-            {
-                _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
-                _resourceBuffers.Init(part);
-            }
-
-            // look for any transmitter partModule
-            part_transmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
-            if (part_transmitter != null)
-            {
-                has_transmitter = true;
-            }
-
-            deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
-            if (deployableRadiator != null)
-            {
-                try
+                if (forceActivateAtStartup)
                 {
-                    deployableRadiator.Events["Extend"].guiActive = false;
+                    Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
+                    part.force_activate();
                 }
-                catch (Exception e)
+
+                if (isThermalReceiverSlave)
                 {
-                    Debug.LogError("[KSPI]: Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
-                }
-            }
+                    var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is BeamedPowerReceiver && (BeamedPowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
 
-            if (!string.IsNullOrEmpty(animTName))
-            {
-                animT = part.FindModelAnimators(animTName).FirstOrDefault();
-                if (animT != null)
+                    if (result == null || result.Source == null)
+                        Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
+                    else
+                        ((BeamedPowerReceiver)result.Source).RegisterAsSlave(this);
+                }
+
+                if (maintainResourceBuffers)
                 {
-                    animT[animTName].enabled = true;
-                    animT[animTName].layer = 1;
-                    animT[animTName].normalizedTime = 0;
-                    animT[animTName].speed = 0.001f;
-
-                    animT.Sample();
+                    _resourceBuffers = new ResourceBuffers();
+                    _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+                    _resourceBuffers.Init(part);
                 }
-            }
 
-            genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
+                // look for any transmitter partModule
+                part_transmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
+                if (part_transmitter != null)
+                {
+                    has_transmitter = true;
+                }
+
+                deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
+                if (deployableRadiator != null)
+                {
+                    try
+                    {
+                        deployableRadiator.Events["Extend"].guiActive = false;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("[KSPI]: Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(animTName))
+                {
+                    animT = part.FindModelAnimators(animTName).FirstOrDefault();
+                    if (animT != null)
+                    {
+                        animT[animTName].enabled = true;
+                        animT[animTName].layer = 1;
+                        animT[animTName].normalizedTime = 0;
+                        animT[animTName].speed = 0.001f;
+
+                        animT.Sample();
+                    }
+                }
+
+                genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
+            }
         }
 
         private void UpdateBuffers()

@@ -129,7 +129,7 @@ namespace FNPlugin
         public string upgradeTechReq = "";
         [KSPField]
         public float upgradeCost = 1;
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_radius")]
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiFormat = "F2", guiName = "#LOC_KSPIE_Generator_radius", guiUnits = " m")]
         public double radius = 2.5;
         [KSPField]
         public string altUpgradedName = "";

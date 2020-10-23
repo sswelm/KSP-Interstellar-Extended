@@ -46,7 +46,7 @@ namespace FNPlugin
         public string thrustStr;
         [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_RCSModule_CurrentThrust", guiUnits = " kN")]//Current Thrust
         public float currentThrust;
-        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_RCSModule_Mass", guiUnits = " t")]//Mass
+        [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_RCSModule_Mass", guiFormat = "F3", guiUnits = " t")]//Mass
         public float partMass = 0;
 
         // GUI

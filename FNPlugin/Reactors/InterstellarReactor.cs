@@ -381,7 +381,7 @@ namespace FNPlugin.Reactors
         public string originalName = "";
         [KSPField]
         public float upgradeCost = 0;
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_Reactor_connectionRadius")]
+        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiFormat = "F2", guiName = "#LOC_KSPIE_Reactor_connectionRadius")]
         public double radius = 2.5;
         [KSPField]
         public double minimumThrottle = 0;
@@ -580,7 +580,7 @@ namespace FNPlugin.Reactors
         public float massDifference = 0;
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_CalibratedMass", guiUnits = " t")]//calibrated mass
         public float partMass = 0;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiUnits = " t")]
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiFormat = "F3", guiUnits = " t")]
         public float currentMass = 0;
         [KSPField]
         public double maximumThermalPowerEffective = 0;

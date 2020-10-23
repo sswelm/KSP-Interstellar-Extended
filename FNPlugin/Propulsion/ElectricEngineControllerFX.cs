@@ -178,7 +178,7 @@ namespace FNPlugin
 
         [KSPField(guiActive = false)]
         public double currentPropellantEfficiency;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiUnits = " t")]
+        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiFormat = "F3", guiUnits = " t")]
         public float partMass = 0;
 
         [KSPField]
