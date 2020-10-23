@@ -194,42 +194,42 @@ namespace FNPlugin.Wasteheat
             pumpSpeed = (float)defaultPumpSpeed * part.rescaleFactor;
 
             // pump speed is used as a direct multiplier
-            if (hasPumpUpgradeMk1) pumpSpeed += 10;
-            if (hasPumpUpgradeMk2) pumpSpeed += 10;
-            if (hasPumpUpgradeMk3) pumpSpeed += 20;
-            if (hasPumpUpgradeMk4) pumpSpeed += 50;
+            if (hasPumpUpgradeMk1) pumpSpeed += 59;
+            if (hasPumpUpgradeMk2) pumpSpeed += 120;
+            if (hasPumpUpgradeMk3) pumpSpeed += 150;
+            if (hasPumpUpgradeMk4) pumpSpeed += 270;
 
             var storage = defaultLqdStorage * part.rescaleFactor;
 
             // used to calculate coolant total, used as an indirect multiplier
-            if (hasStorageUpgradeMk1) storage += 10;
-            if (hasStorageUpgradeMk2) storage += 50;
-            if (hasStorageUpgradeMk3) storage += 100;
-            if (hasStorageUpgradeMk4) storage += 100;
+            if (hasStorageUpgradeMk1) storage += 2499;
+            if (hasStorageUpgradeMk2) storage += 2500;
+            if (hasStorageUpgradeMk3) storage += 5000;
+            if (hasStorageUpgradeMk4) storage += 10000;
 
             var surface = defaultSurfaceArea * part.rescaleFactor;
             var externalTemp = defaultMaxExternalTemp;
 
             if (hasSurfaceUpgradeMk1)
             {
-                surface += 5;
+                surface += 49;
                 externalTemp += 225;
             }
 
             if (hasSurfaceUpgradeMk2)
             {
-                surface += 10;
+                surface += 75;
                 externalTemp += 225;
             }
 
             if (hasSurfaceUpgradeMk3)
             {
-                surface += 15;
+                surface += 125;
                 externalTemp += 225;
             }
             if (hasSurfaceUpgradeMk4)
             {
-                surface += 20;
+                surface += 250;
                 externalTemp += 225;
             }
 
