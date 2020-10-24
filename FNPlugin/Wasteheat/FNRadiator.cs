@@ -6,9 +6,7 @@ using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace FNPlugin.Wasteheat
 {
@@ -78,14 +76,15 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = false, guiActive = false, guiName = "Steam Coolant Total", guiFormat = "F2", guiUnits = "")]
         public double steamCoolantTotal;
 
-        private const double pumpSpeedSqrt = 10;
-
-        private const double powerDrawInJoules = 1; // How much power needed to run fans / etc. in joules.
 
         // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
         // forced convection case
-        private const double airHeatTransferCoefficient = 0.002;
-        private const double lqdHeatTransferCoefficient = 0.03;
+        [KSPField]
+        public double airHeatTransferCoefficient = 0.002;
+        [KSPField]
+        public double lqdHeatTransferCoefficient = 0.03;
+        [KSPField]
+        public double powerDrawInJoules = 1; // How much power needed to run fans / etc. in joules.
 
         private int intakeLqdID;
         private int intakeAtmID;
@@ -129,10 +128,15 @@ namespace FNPlugin.Wasteheat
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Max External Temp")] public double maxExternalTemp;
 
-        private const double defaultMaxExternalTemp = 900;
-        private const double defaultPumpSpeed = 1;
-        private const double defaultLqdStorage = 1;
-        private const double defaultSurfaceArea = 1;
+        [KSPField] public double defaultMaxExternalTemp = 900;
+        [KSPField] public double defaultPumpSpeed = 1;
+        [KSPField] public double defaultLqdStorage = 1;
+        [KSPField] public double defaultSurfaceArea = 1;
+
+        [KSPField] public float surfaceAreaUpgradeMassCost = 0.005F;
+        [KSPField] public float pumpSpeedUpgradeMassCost = 0.01F;
+        [KSPField] public float surfaceAreaUpgradePriceCost = 1000F;
+        [KSPField] public float pumpSpeedUpgradePriceCost = 500F;
 
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Show debug information", active = true)]
         public void ToggleHeatPumpDebugAction()
@@ -255,13 +259,6 @@ namespace FNPlugin.Wasteheat
             return ModifierChangeWhen.CONSTANTLY;
         }
 
-        private const float surfaceAreaUpgradeMassCost = 0.005F;
-        private const float pumpSpeedUpgradeMassCost = 0.01F;
-
-        private const float surfaceAreaUpgradePriceCost = 1000F;
-        private const float pumpSpeedUpgradePriceCost = 500F;
-
-
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             return (surfaceAreaUpgradeMassCost * surfaceAreaUpgrade) + (pumpSpeedUpgradeMassCost * pumpSpeedUpgrade);
@@ -300,7 +297,7 @@ namespace FNPlugin.Wasteheat
             intakeLqdDensity = intakeLqdDefinition.density;
         }
 
-        private double drawPower()
+        private double DrawPower()
         {
             // what does electricity look like, anyways?
 
@@ -325,7 +322,7 @@ namespace FNPlugin.Wasteheat
             if (intakeAtmAmount == 0 && intakeLqdAmount == 0) return;
 
             /* reduce the efficiency of the transfer if there is not enough power to run at 100% */
-            var efficiency = drawPower();
+            var efficiency = DrawPower();
             if (efficiency == 0) return;
 
             var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
@@ -351,12 +348,12 @@ namespace FNPlugin.Wasteheat
 
                 /*
                  * "Don't mind me, I'm just keeping your reactors cool!"
-                 * 
+                 *
                  * /\/\
                  *   \_\  _..._
                  *   (" )(_..._)
                  *    ^^  // \\
-                 *   
+                 *
                  * What kind of ant is good at adding things up? An accountant.
                  */
 
@@ -441,9 +438,9 @@ namespace FNPlugin.Wasteheat
              *  LGB   ||    _.-_/|            ||      |\_.-_
              *    _.-_/|   /_.-._/            |\_.-_  \_.-._\
              *   /_.-._/                      \_.-._\
-             *   
-             *   "I expected cool ants. Where are the cool ants?!". That ant, probably. 
-             *   
+             *
+             *   "I expected cool ants. Where are the cool ants?!". That ant, probably.
+             *
              *   What is the second biggest ant in the world? An elephant.
              *   What ant is bigger than that? A giant.
              */
@@ -454,7 +451,7 @@ namespace FNPlugin.Wasteheat
             if (maxSupplyOfHeat < heatTransferrable)
             {
                 // To avoid the KSPIE screen saying that we're demanding far more WasteHeat than
-                // it can supply, we cap the max amount of heat here so it looks like 
+                // it can supply, we cap the max amount of heat here so it looks like
                 // input == output on the screen.
                 actuallyReduced = maxSupplyOfHeat;
 
@@ -464,8 +461,8 @@ namespace FNPlugin.Wasteheat
 
                 /*
                  *  \       /
-                 *   \     /  
-                 *    \.-./ 
+                 *   \     /
+                 *    \.-./
                  *   (o\^/o)  _   _   _     __
                  *    ./ \.\ ( )-( )-( ) .-'  '-.
                  *     {-} \(//  ||   \\/ (   )) '-.
@@ -473,7 +470,7 @@ namespace FNPlugin.Wasteheat
                  *         (/    ()     \)'-._.-'
                  *         ||    ||      \\
                  * MJP     ('    ('       ')
-                 * 
+                 *
                  * How do you tell a girl ant and a boy ant apart?
                  * If it sinks, it's a girl ant. If it floats, it's
                  * a bouyant.
@@ -514,12 +511,12 @@ namespace FNPlugin.Wasteheat
 
             /* This little bit will fire a ray from the part, straight down, in the distance that the part should be able to reach.
              * It returns the resulting RayCastHit.
-             * 
-             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact 
-             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing 
-             * this module in a difficult terrain, it just doesn't work properly. (I blame KSP planet meshes + Unity problems with accuracy further away from origin). 
+             *
+             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact
+             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing
+             * this module in a difficult terrain, it just doesn't work properly. (I blame KSP planet meshes + Unity problems with accuracy further away from origin).
             */
-            Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
+            Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask
 
             // hit anything?
             if (hit.collider == null) return false;
@@ -539,9 +536,17 @@ namespace FNPlugin.Wasteheat
         [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "Radiator effective size", guiFormat = "F2", guiUnits = "m")]
         public double effectiveSize;
 
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")] public double coolTemp;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")] public double hotTemp;
-        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "Underground Temp", guiFormat = "F2", guiUnits = "K")] public double undergroundTemp;
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false)]
+        public double meanGroundTempDistance = 10;
+
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")]
+        public double coolTemp;
+
+        [KSPField(groupName = GROUP, guiActive = false, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")]
+        public double hotTemp;
+
+        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "Underground Temp", guiFormat = "F2", guiUnits = "K")]
+        public double undergroundTemp;
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiActiveEditor = false, guiName = "Toggle Heat Pump Information", active = true)]
         public void ToggleHeatPumpDebugAction()
@@ -555,8 +560,7 @@ namespace FNPlugin.Wasteheat
             coolTempField.guiActive = hotTempField.guiActive = effectiveSizeField.guiActive = status;
         }
 
-        private const double meanGroundTempDistance = 10;
-        private int frameSkipper;
+        private int _frameSkipper;
 
         private void UpdateEffectiveSize()
         {
@@ -604,7 +608,7 @@ namespace FNPlugin.Wasteheat
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
-            if ((++frameSkipper % 10) == 0)
+            if ((++_frameSkipper % 10) == 0)
             {
                 // This code does not need to run all the time.
                 var undergroundTempField = Fields[nameof(undergroundTemp)];
@@ -643,17 +647,12 @@ namespace FNPlugin.Wasteheat
         public const string GROUP = "FNRadiator";
         public const string GROUP_TITLE = "#LOC_KSPIE_Radiator_groupName";
 
-        // persitant
-        [KSPField(isPersistant = false)]
-        public bool canRadiateHeat = true;
-        [KSPField(isPersistant = true)]
-        public bool radiatorInit;
-        [KSPField(isPersistant = true)]
-        public bool showRetractButton = false;
-        [KSPField(isPersistant = true)]
-        public bool showControls = true;
-        [KSPField(isPersistant = true)]
-        public double currentRadTemp;
+        // persitent
+        [KSPField(isPersistant = true)] public bool radiatorInit;
+        [KSPField(isPersistant = true)] public bool showRetractButton = false;
+        [KSPField(isPersistant = true)] public bool showControls = true;
+        [KSPField(isPersistant = true)] public double currentRadTemp;
+
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_Cooling"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Radiator Cooling--Off--On
         public bool radiatorIsEnabled;
         [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_Automated"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Automated-Off-On
@@ -686,58 +685,47 @@ namespace FNPlugin.Wasteheat
         public double atmosphere_modifier;
         [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
         public double radiatorArea = 1;
-        [KSPField]
-        public string radiatorTypeMk1 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk1");//NaK Loop Radiator
-        [KSPField]
-        public string radiatorTypeMk2 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk2");//Mo Li Heat Pipe Mk1
-        [KSPField]
-        public string radiatorTypeMk3 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk3");//"Mo Li Heat Pipe Mk2"
-        [KSPField]
-        public string radiatorTypeMk4 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk4");//"Graphene Radiator Mk1"
-        [KSPField]
-        public string radiatorTypeMk5 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk5");//"Graphene Radiator Mk2"
-        [KSPField]
-        public string radiatorTypeMk6 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk6");//"Graphene Radiator Mk3"
-        [KSPField]
-        public bool showColorHeat = true;
-        [KSPField]
-        public string surfaceAreaUpgradeTechReq = null;
-        [KSPField]
-        public double surfaceAreaUpgradeMult = 1.6;
-        [KSPField]
-        public bool isDeployable = false;
-        [KSPField]
-        public bool isPassive = false;
-        [KSPField]
-        public string animName = "";
-        [KSPField]
-        public string thermalAnim = "";
-        [KSPField]
-        public string originalName = "";
-        [KSPField]
-        public float upgradeCost = 100;
-        [KSPField]
-        public bool maintainResourceBuffers = true;
-        [KSPField]
-        public float emissiveColorPower = 3;
-        [KSPField]
-        public float colorRatioExponent = 1;
-        [KSPField]
-        public double wasteHeatMultiplier = 1;
-        [KSPField]
-        public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
-        [KSPField]
-        public string colorHeat = "_EmissiveColor";
-        [KSPField]
-        public string emissiveTextureLocation = "";
-        [KSPField]
-        public string bumpMapTextureLocation = "";
+
+        [KSPField] public string radiatorTypeMk1 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk1");//NaK Loop Radiator
+        [KSPField] public string radiatorTypeMk2 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk2");//Mo Li Heat Pipe Mk1
+        [KSPField] public string radiatorTypeMk3 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk3");//"Mo Li Heat Pipe Mk2"
+        [KSPField] public string radiatorTypeMk4 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk4");//"Graphene Radiator Mk1"
+        [KSPField] public string radiatorTypeMk5 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk5");//"Graphene Radiator Mk2"
+        [KSPField] public string radiatorTypeMk6 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk6");//"Graphene Radiator Mk3"
+
+        [KSPField] public bool canRadiateHeat = true;
+        [KSPField] public bool showColorHeat = true;
+        [KSPField] public string surfaceAreaUpgradeTechReq = null;
+        [KSPField] public double surfaceAreaUpgradeMult = 1.6;
+        [KSPField] public bool isDeployable = false;
+        [KSPField] public bool isPassive = false;
+        [KSPField] public string animName = "";
+        [KSPField] public string thermalAnim = "";
+        [KSPField] public string originalName = "";
+        [KSPField] public float upgradeCost = 100;
+        [KSPField] public bool maintainResourceBuffers = true;
+        [KSPField] public float emissiveColorPower = 3;
+        [KSPField] public float colorRatioExponent = 1;
+        [KSPField] public double wasteHeatMultiplier = 1;
+        [KSPField] public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
+        [KSPField] public string colorHeat = "_EmissiveColor";
+        [KSPField] public string emissiveTextureLocation = "";
+        [KSPField] public string bumpMapTextureLocation = "";
+        [KSPField] public double areaMultiplier = 1;
+
+        // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
+        [KSPField] public double airHeatTransferCoefficient = 0.001; // 100W/m2/K, range: 10 - 100, "Air"
+        [KSPField] public double lqdHeatTransferCoefficient = 0.01; // 1000/m2/K, range: 100-1200, "Water in Free Convection"
+
+        [KSPField] public string kspShaderLocation = "KSP/Emissive/Bumped Specular";
+        [KSPField] public int RADIATOR_DELAY = 20;
+        [KSPField] public int DEPLOYMENT_DELAY = 6;
+        [KSPField] public float drapperPoint = 500; // 798
+
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_RadiatorTemp")]//Rad Temp
         public string radiatorTempStr;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PartTemp")]//Part Temp
         public string partTempStr;
-        [KSPField]
-        public double areaMultiplier = 1;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PowerRadiated")]//Power Radiated
         public string thermalPowerDissipStr;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PowerConvected")]//Power Convected
@@ -746,8 +734,6 @@ namespace FNPlugin.Wasteheat
         public string upgradeCostStr;
         [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_Radiator_RadiatorStartTemp")]//Radiator Start Temp
         public double radiator_temperature_temp_val;
-        [KSPField]
-        public double instantaneous_rad_temp;
         [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_Radiator_DynamicPressureStress", guiActive = true, guiFormat = "P2")]//Dynamic Pressure Stress
         public double dynamicPressureStress;
         [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_Radiator_MaxEnergyTransfer", guiFormat = "F2")]//Max Energy Transfer
@@ -756,26 +742,20 @@ namespace FNPlugin.Wasteheat
         [KSPField(groupName = GROUP, guiActive = false, guiName = "Part Rotation Distance", guiFormat = "F2", guiUnits = "m/s")] public double partRotationDistance;
         [KSPField(groupName = GROUP, guiActive = false, guiName = "vessel.atmDensity", guiFormat = "F4", guiUnits = "")] public double atmDensity;
 
-        [KSPField] public int nrAvailableUpgradeTechs;
-        [KSPField] public bool hasSurfaceAreaUpgradeTechReq;
-        [KSPField] public float atmosphereToleranceModifier = 1;
-        [KSPField] public double atmosphericMultiplier;
-        [KSPField] public float displayTemperature;
-        [KSPField] public float colorRatio;
-        [KSPField] public double deltaTemp;
-        [KSPField] public double verticalSpeed;
-        [KSPField] public double spaceRadiatorModifier;
-        [KSPField] public double oxidationModifier;
-        [KSPField] public double temperatureDifference;
-        [KSPField] public double submergedModifier;
-        [KSPField] public bool clarifyFunction;
-        [KSPField] public double sphericalCowInAVaccum;
-
-        const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
-        const int RADIATOR_DELAY = 20;
-        const int DEPLOYMENT_DELAY = 6;
-
-        private const float drapperPoint = 500; // 798
+        private double instantaneous_rad_temp;
+        private int nrAvailableUpgradeTechs;
+        private bool hasSurfaceAreaUpgradeTechReq;
+        private double atmosphericMultiplier;
+        private float displayTemperature;
+        private float colorRatio;
+        private double deltaTemp;
+        private double verticalSpeed;
+        private double spaceRadiatorModifier;
+        private double oxidationModifier;
+        private double temperatureDifference;
+        private double submergedModifier;
+        private bool clarifyFunction;
+        private double sphericalCowInAVaccum;
 
         static float _maximumRadiatorTempInSpace = 4500;
         static float maximumRadiatorTempAtOneAtmosphere = 1200;
@@ -819,10 +799,6 @@ namespace FNPlugin.Wasteheat
         private static AnimationCurve redTempColorChannel;
         private static AnimationCurve greenTempColorChannel;
         private static AnimationCurve blueTempColorChannel;
-
-        // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
-        private const double airHeatTransferCoefficient = 0.001; // 100W/m2/K, range: 10 - 100, "Air"
-        private const double lqdHeatTransferCoefficient = 0.01; // 1000/m2/K, range: 100-1200, "Water in Free Convection"
 
         private double intakeLqdDensity;
         private double intakeAtmDensity;
@@ -910,15 +886,9 @@ namespace FNPlugin.Wasteheat
 
         public GenerationType CurrentGenerationType { get; private set; }
 
-        public ModuleActiveRadiator ModuleActiveRadiator { get { return _moduleActiveRadiator; } }
+        public ModuleActiveRadiator ModuleActiveRadiator => _moduleActiveRadiator;
 
-        public double MaxRadiatorTemperature
-        {
-            get
-            {
-                return GetMaximumTemperatureForGen(CurrentGenerationType);
-            }
-        }
+        public double MaxRadiatorTemperature => GetMaximumTemperatureForGen(CurrentGenerationType);
 
         private double GetMaximumTemperatureForGen(GenerationType generationType)
         {
@@ -972,7 +942,7 @@ namespace FNPlugin.Wasteheat
 
         private void DetermineGenerationType()
         {
-            // check if we have SurfaceAreaUpgradeTechReq 
+            // check if we have SurfaceAreaUpgradeTechReq
             hasSurfaceAreaUpgradeTechReq = PluginHelper.UpgradeAvailable(surfaceAreaUpgradeTechReq);
 
             // determine number of upgrade techs
@@ -1033,17 +1003,17 @@ namespace FNPlugin.Wasteheat
 
         public static double getAverageRadiatorTemperatureForVessel(Vessel vess)
         {
-            var radiator_vessel = GetRadiatorsForVessel(vess);
+            var radiatorVessel = GetRadiatorsForVessel(vess);
 
-            if (!radiator_vessel.Any())
+            if (!radiatorVessel.Any())
                 return _maximumRadiatorTempInSpace;
 
-            if (radiator_vessel.Any())
+            if (radiatorVessel.Any())
             {
-                var maxRadiatorTemperature = radiator_vessel.Max(r => r.MaxRadiatorTemperature);
-                var totalRadiatorsMass = radiator_vessel.Sum(r => (double)(decimal)r.part.mass);
+                var maxRadiatorTemperature = radiatorVessel.Max(r => r.MaxRadiatorTemperature);
+                var totalRadiatorsMass = radiatorVessel.Sum(r => (double)(decimal)r.part.mass);
 
-                return radiator_vessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperature) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
+                return radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperature) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
             }
             else
                 return _maximumRadiatorTempInSpace;
@@ -1077,8 +1047,6 @@ namespace FNPlugin.Wasteheat
         {
             isAutomated = false;
 
-            //Debug.Log("[KSPI]: DeployRadiator Called");
-
             Deploy();
         }
 
@@ -1088,8 +1056,6 @@ namespace FNPlugin.Wasteheat
             {
                 return;
             }
-
-            //Debug.Log("[KSPI]: Deploy Called");
 
             if (_moduleDeployableRadiator != null)
                 _moduleDeployableRadiator.Extend();
@@ -1315,18 +1281,18 @@ namespace FNPlugin.Wasteheat
             if (_moduleDeployableRadiator != null)
                 _radiatorState = _moduleDeployableRadiator.deployState;
 
-            var radiatorfield = Fields[nameof(radiatorIsEnabled)];
-            radiatorfield.guiActive = showControls;
-            radiatorfield.guiActiveEditor = showControls;
-            radiatorfield.OnValueModified += radiatorIsEnabled_OnValueModified;
+            var radiatorField = Fields[nameof(radiatorIsEnabled)];
+            radiatorField.guiActive = showControls;
+            radiatorField.guiActiveEditor = showControls;
+            radiatorField.OnValueModified += radiatorIsEnabled_OnValueModified;
 
-            var automatedfield = Fields[nameof(isAutomated)];
-            automatedfield.guiActive = showControls;
-            automatedfield.guiActiveEditor = showControls;
+            var automatedField = Fields[nameof(isAutomated)];
+            automatedField.guiActive = showControls;
+            automatedField.guiActiveEditor = showControls;
 
-            var pivotfield = Fields[nameof(pivotEnabled)];
-            pivotfield.guiActive = showControls;
-            pivotfield.guiActiveEditor = showControls;
+            var pivotField = Fields[nameof(pivotEnabled)];
+            pivotField.guiActive = showControls;
+            pivotField.guiActiveEditor = showControls;
 
             if (_moduleActiveRadiator != null)
             {
@@ -1420,8 +1386,6 @@ namespace FNPlugin.Wasteheat
 
         void radiatorIsEnabled_OnValueModified(object arg1)
         {
-            //Debug.Log("[KSPI]: radiatorIsEnabled_OnValueModified " + arg1);
-
             isAutomated = false;
 
             if (radiatorIsEnabled)
@@ -1446,7 +1410,6 @@ namespace FNPlugin.Wasteheat
 
         public override void OnUpdate() // is called while in flight
         {
-
             _radiatorDeployDelay++;
 
             if (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
@@ -1455,7 +1418,6 @@ namespace FNPlugin.Wasteheat
                 if (_radiatorState != _moduleDeployableRadiator.deployState)
                 {
                     part.SendMessage("GeometryPartModuleRebuildMeshData");
-                    //Debug.Log("[KSPI]: Updating geometry mesh due to radiator deployment.");
                 }
                 _radiatorState = _moduleDeployableRadiator.deployState;
             }
@@ -1679,7 +1641,6 @@ namespace FNPlugin.Wasteheat
 
                     if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls || _radiatorDeployDelay < DEPLOYMENT_DELAY) return;
 
-                    //Debug.Log("[KSPI]: FixedUpdate Automated Deployment ");
                     Deploy();
                 }
 
