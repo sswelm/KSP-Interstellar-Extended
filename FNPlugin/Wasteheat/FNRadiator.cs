@@ -258,6 +258,16 @@ namespace FNPlugin.Wasteheat
 
             this.surfaceArea = (float)surface;
 
+            var intakeatm = part.FindModuleImplementing<AtmosphericIntake>();
+            var intakelqd = part.FindModuleImplementing<ModuleResourceIntake>();
+            if(intakeatm == null || intakelqd == null)
+            {
+                Debug.Log("ActiveCoolingSystem - can't find atmospheric intake or intake lqd module");
+                return;
+            }
+
+            intakeatm.intakeSpeed = pumpSpeed;
+            intakelqd.intakeSpeed = pumpSpeed;
         }
 
         public ModifierChangeWhen GetModuleCostChangeWhen()
