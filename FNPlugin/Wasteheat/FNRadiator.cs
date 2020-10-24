@@ -78,8 +78,6 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = false, guiActive = false, guiName = "Steam Coolant Total", guiFormat = "F2", guiUnits = "")]
         public double steamCoolantTotal;
 
-        private const double pumpSpeedSqrt = 10;
-
         private const double powerDrawInJoules = 1; // How much power needed to run fans / etc. in joules.
 
         // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
@@ -177,7 +175,7 @@ namespace FNPlugin.Wasteheat
 
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Recalculate upgrades", active = true)]
+        [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "Recalculate upgrades", active = true)]
         public void Recalculate()
         {
             processUpgrades();
