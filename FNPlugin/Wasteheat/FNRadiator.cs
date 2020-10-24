@@ -27,7 +27,7 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Power Priority", guiFormat = "F0", guiUnits = ""), UI_FloatRange(stepIncrement = 1.0F, maxValue = 5F, minValue = 0F)]
         public float powerPriority = 5;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Surface Area", guiFormat = "F0"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 1F)]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Surface Area", guiFormat = "F0"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 1F)]
         public float surfaceArea = 1;
 
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Surface Area Upgrade", guiFormat = "F0", guiUnits = " m2"), UI_FloatRange(stepIncrement = 1F, maxValue = 128F, minValue = 0F)]
@@ -36,7 +36,7 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Pump Speed Upgrade", guiFormat = "F0", guiUnits = " m/s"), UI_FloatRange(stepIncrement = 1F, maxValue = 1024F, minValue = 0F)]
         public float pumpSpeedUpgrade;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 0F)]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 0F)]
         public float pumpSpeed = 1;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "intakeAtmSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
@@ -94,7 +94,7 @@ namespace FNPlugin.Wasteheat
 
         private double waterBoilPointInKelvin = 400; // at some stage, calculate it properly
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Upgrades applied")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Upgrades applied")]
         public string upgradeInformation;
 
         [KSPField] public string surfaceAreaUpgradeMk1;
@@ -112,20 +112,20 @@ namespace FNPlugin.Wasteheat
         [KSPField] public string storageTechUpgradeMk3;
         [KSPField] public string storageTechUpgradeMk4;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasSurfaceUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk1;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasSurfaceUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk2;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasSurfaceUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk3;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasSurfaceUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk4;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasSurfaceUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk1;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasSurfaceUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk2;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasSurfaceUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk3;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasSurfaceUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasSurfaceUpgradeMk4;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasFanUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk1;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasFanUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk2;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasFanUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk3;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasFanUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk4;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasFanUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk1;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasFanUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk2;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasFanUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk3;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasFanUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasPumpUpgradeMk4;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk1;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk2;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk3;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "hasStorageUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk4;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasStorageUpgradeMk1"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk1;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasStorageUpgradeMk2"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk2;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasStorageUpgradeMk3"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk3;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "hasStorageUpgradeMk4"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)] public bool hasStorageUpgradeMk4;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Max External Temp")] public double maxExternalTemp;
 
@@ -153,6 +153,19 @@ namespace FNPlugin.Wasteheat
                 Fields[nameof(airHeatTransferrable)],
                 Fields[nameof(waterHeatTransferrable)],
                 Fields[nameof(steamHeatTransferrable)],
+                Fields[nameof(hasSurfaceUpgradeMk1)],
+                Fields[nameof(hasSurfaceUpgradeMk2)],
+                Fields[nameof(hasSurfaceUpgradeMk3)],
+                Fields[nameof(hasSurfaceUpgradeMk4)],
+                Fields[nameof(hasPumpUpgradeMk1)],
+                Fields[nameof(hasPumpUpgradeMk2)],
+                Fields[nameof(hasPumpUpgradeMk3)],
+                Fields[nameof(hasPumpUpgradeMk4)],
+                Fields[nameof(hasStorageUpgradeMk1)],
+                Fields[nameof(hasStorageUpgradeMk2)],
+                Fields[nameof(hasStorageUpgradeMk3)],
+                Fields[nameof(hasStorageUpgradeMk4)],
+                Fields[nameof(upgradeInformation)],
             };
 
             var status = !debugFields[0].guiActive;
@@ -194,6 +207,7 @@ namespace FNPlugin.Wasteheat
             upgradeInformation = $"{hasSurfaceUpgradeMk1}/{hasSurfaceUpgradeMk2}/{hasSurfaceUpgradeMk3}/{hasSurfaceUpgradeMk4}, {hasPumpUpgradeMk1}/{hasPumpUpgradeMk2}/{hasPumpUpgradeMk3}/{hasPumpUpgradeMk4}, {hasStorageUpgradeMk1}/{hasStorageUpgradeMk2}/{hasStorageUpgradeMk3}/{hasStorageUpgradeMk4}";
 
             pumpSpeed = (float)defaultPumpSpeed * part.rescaleFactor;
+            pumpSpeed += pumpSpeedUpgrade;
 
             // pump speed is used as a direct multiplier
             if (hasPumpUpgradeMk1) pumpSpeed += 59;
@@ -202,6 +216,7 @@ namespace FNPlugin.Wasteheat
             if (hasPumpUpgradeMk4) pumpSpeed += 270;
 
             var storage = defaultLqdStorage * part.rescaleFactor;
+          
 
             // used to calculate coolant total, used as an indirect multiplier
             if (hasStorageUpgradeMk1) storage += 2499;
@@ -210,6 +225,8 @@ namespace FNPlugin.Wasteheat
             if (hasStorageUpgradeMk4) storage += 10000;
 
             var surface = defaultSurfaceArea * part.rescaleFactor;
+            surface += surfaceAreaUpgrade;
+
             var externalTemp = defaultMaxExternalTemp;
 
             if (hasSurfaceUpgradeMk1)
