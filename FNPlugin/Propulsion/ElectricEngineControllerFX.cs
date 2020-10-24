@@ -437,7 +437,7 @@ namespace FNPlugin
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            return (float)desiredMass;
+            return 0.0f;
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
