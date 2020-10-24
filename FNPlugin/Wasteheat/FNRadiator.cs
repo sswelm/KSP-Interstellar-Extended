@@ -730,7 +730,7 @@ namespace FNPlugin.Wasteheat
         public string emissiveTextureLocation = "";
         [KSPField]
         public string bumpMapTextureLocation = "";
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_Radiator_RadiatorTemp")]//Rad Temp
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_RadiatorTemp")]//Rad Temp
         public string radiatorTempStr;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PartTemp")]//Part Temp
         public string partTempStr;
