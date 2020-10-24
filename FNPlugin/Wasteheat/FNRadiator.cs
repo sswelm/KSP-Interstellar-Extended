@@ -82,8 +82,10 @@ namespace FNPlugin.Wasteheat
 
         private const double powerDrawInJoules = 1; // How much power needed to run fans / etc. in joules.
 
-        private const double airHeatTransferCoefficient = 0.0005; // 500W/m2/K, from FNRadiator.
-        private const double lqdHeatTransferCoefficient = 0.0007; // From AntaresMC
+        // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
+        // forced convection case
+        private const double airHeatTransferCoefficient = 0.002;
+        private const double lqdHeatTransferCoefficient = 0.03;
 
         private int intakeLqdID;
         private int intakeAtmID;
@@ -316,7 +318,7 @@ namespace FNPlugin.Wasteheat
             intakeAtmAmount = intakeLqdAmount = 0;
 
             if (null == vessel || null == part) return;
-            
+
             part.GetConnectedResourceTotals(intakeAtmID, out intakeAtmAmount, out _);
             part.GetConnectedResourceTotals(intakeLqdID, out intakeLqdAmount, out _);
 
@@ -365,7 +367,7 @@ namespace FNPlugin.Wasteheat
                 airHeatTransferrable = airHeatTransferCoefficient * efficiency * airCoolantTotal * pumpSpeed * deltaT * surfaceArea;
             }
 
-            if(intakeLqdAmount > 0)
+            if (intakeLqdAmount > 0)
             {
                 bool producesSteam = (hotTemp >= waterBoilPointInKelvin);
 
@@ -389,13 +391,13 @@ namespace FNPlugin.Wasteheat
 
                     waterHeatTransferrable = lqdHeatTransferCoefficient * efficiency * waterCoolantTotal * pumpSpeed * deltaT * surfaceArea;
                 }
-                
+
                 /*
                  * Child: I saw some ants on the way to school today.
                  * Dad: How did you know they were going to school?
                  */
 
-                if(producesSteam)
+                if (producesSteam)
                 {
                     double deltaT = hotTemp - Math.Max(waterBoilPointInKelvin, coldTemp);
 
@@ -560,7 +562,7 @@ namespace FNPlugin.Wasteheat
         {
             effectiveSize = drillReach;
             undergroundAmount = 0;
-            
+
             // require the drill to be deployed
             if (_radiatorState != ModuleDeployablePart.DeployState.EXTENDED) return;
             // require the drill to be underground
@@ -568,7 +570,7 @@ namespace FNPlugin.Wasteheat
             if (undergroundAmount == 0) return;
 
             // reduced effectiveness in space
-            if(vessel && vessel.atmDensity == 0)
+            if (vessel && vessel.atmDensity == 0)
             {
                 // do not convect above ground in a vacuum
                 effectiveSize -= (drillReach - undergroundAmount);
@@ -585,10 +587,10 @@ namespace FNPlugin.Wasteheat
 
             effectiveSize = Math.Round(effectiveSize);
         }
-        
+
         protected override double ExternalTemp()
         {
-            if(coolTemp == 0 || hotTemp == 0)
+            if (coolTemp == 0 || hotTemp == 0)
             {
                 return base.ExternalTemp();
             }
@@ -818,8 +820,9 @@ namespace FNPlugin.Wasteheat
         private static AnimationCurve greenTempColorChannel;
         private static AnimationCurve blueTempColorChannel;
 
-        private const double airHeatTransferCoefficient = 0.0005; // 500W/m2/K, from FNRadiator.
-        private const double lqdHeatTransferCoefficient = 0.0007; // From AntaresMC
+        // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
+        private const double airHeatTransferCoefficient = 0.001; // 100W/m2/K, range: 10 - 100, "Air"
+        private const double lqdHeatTransferCoefficient = 0.01; // 1000/m2/K, range: 100-1200, "Water in Free Convection"
 
         private double intakeLqdDensity;
         private double intakeAtmDensity;
@@ -1250,7 +1253,7 @@ namespace FNPlugin.Wasteheat
             _kspShader = Shader.Find(kspShaderLocation);
             maxRadiatorTemperature = (float)MaxRadiatorTemperature;
 
-            part.heatConvectiveConstant = 2;
+            part.heatConvectiveConstant = convectiveBonus;
             if (hasSurfaceAreaUpgradeTechReq)
                 part.emissiveConstant = 1.6;
 
@@ -1646,8 +1649,9 @@ namespace FNPlugin.Wasteheat
                     atmDensity = vessel.atmDensity;
 
                     // density * exposed surface area * specific heat capacity
-                    bonusCalculation = (1 + (intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
-                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
+                    bonusCalculation = (1 + (intakeLqdDensity * (effectiveRadiatorArea) * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
+                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * (effectiveRadiatorArea) * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
+
 
                     partRotationDistance = PartRotationDistance();
                     atmosphere_modifier = bonusCalculation * Math.Min(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
@@ -1656,7 +1660,7 @@ namespace FNPlugin.Wasteheat
 
                     // 700W/m2/K for water, 500W/m2/K for air
                     double heatTransferCoefficient = (part.submergedPortion > 0) ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
-                    
+
                     var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient;
 
                     if (!radiatorIsEnabled)
