@@ -827,10 +827,6 @@ namespace FNPlugin.Wasteheat
         private static AnimationCurve greenTempColorChannel;
         private static AnimationCurve blueTempColorChannel;
 
-        // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
-        private const double airHeatTransferCoefficient = 0.001; // 100W/m2/K, range: 10 - 100, "Air"
-        private const double lqdHeatTransferCoefficient = 0.01; // 1000/m2/K, range: 100-1200, "Water in Free Convection"
-
         private double intakeLqdDensity;
         private double intakeAtmDensity;
         private double intakeAtmSpecificHeatCapacity;
@@ -1651,13 +1647,19 @@ namespace FNPlugin.Wasteheat
 
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
 
-                    // 700W/m2/K for water, 500W/m2/K for air
                     double heatTransferCoefficient = (part.submergedPortion > 0) ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
 
                     var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient;
 
                     if (!radiatorIsEnabled)
                         convPowerDissipation *= 0.25;
+
+                    if(_isGraphene)
+                    {
+                        // Per AntaresMC and others in #development, graphene is chemically unstable in an atmosphere,
+                        // prone to oxidation etc which reduces its effectiveness. 
+                        convPowerDissipation *= 0.10;
+                    }
 
                     _convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager) : 0;
 
