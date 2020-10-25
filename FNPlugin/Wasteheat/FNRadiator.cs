@@ -827,10 +827,6 @@ namespace FNPlugin.Wasteheat
         private static AnimationCurve greenTempColorChannel;
         private static AnimationCurve blueTempColorChannel;
 
-        // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
-        private const double airHeatTransferCoefficient = 0.001; // 100W/m2/K, range: 10 - 100, "Air"
-        private const double lqdHeatTransferCoefficient = 0.01; // 1000/m2/K, range: 100-1200, "Water in Free Convection"
-
         private double intakeLqdDensity;
         private double intakeAtmDensity;
         private double intakeAtmSpecificHeatCapacity;
