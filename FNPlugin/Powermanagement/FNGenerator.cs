@@ -1012,7 +1012,7 @@ namespace FNPlugin
                         ? plasmaTemperature
                         : plasmaTemperature * chargedPowerModifier + (1 - chargedPowerModifier) * attachedPowerSource.HotBathTemperature;	// for fusion reactors connected to MHD
 
-                averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel));
+                averageRadiatorTemperatureQueue.Enqueue(FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel));
 
                 while (averageRadiatorTemperatureQueue.Count > 10)
                     averageRadiatorTemperatureQueue.Dequeue();
@@ -1067,7 +1067,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            if (IsEnabled && attachedPowerSource != null && FNRadiator.hasRadiatorsForVessel(vessel))
+            if (IsEnabled && attachedPowerSource != null && FNRadiator.HasRadiatorsForVessel(vessel))
             {
                 applies_balance = attachedPowerSource.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal);
 
@@ -1253,7 +1253,7 @@ namespace FNPlugin
                         ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         PowerDown();
                     }
-                    else if ( !FNRadiator.hasRadiatorsForVessel(vessel))
+                    else if ( !FNRadiator.HasRadiatorsForVessel(vessel))
                     {
                         IsEnabled = false;
                         var message = Localizer.Format("#LOC_KSPIE_Generator_Msg2");//"Generator Shutdown: No radiators available!"

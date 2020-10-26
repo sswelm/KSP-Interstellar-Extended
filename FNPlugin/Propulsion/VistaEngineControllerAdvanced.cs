@@ -479,8 +479,8 @@ namespace FNPlugin
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate / rateMultplier);
             }
 
-            coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
-            maxTempatureRadiators = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+            coldBathTemp = FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel);
+            maxTempatureRadiators = FNRadiator.GetAverageMaximumRadiatorTemperatureForVessel(vessel);
             radiatorPerformance = Math.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001);
             partEmissiveConstant = part.emissiveConstant;
         }

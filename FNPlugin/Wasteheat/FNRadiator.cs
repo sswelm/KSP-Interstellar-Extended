@@ -828,6 +828,8 @@ namespace FNPlugin.Wasteheat
         private readonly Queue<double> _radTempQueue = new Queue<double>(20);
         private readonly Queue<double> _externalTempQueue = new Queue<double>(20);
 
+        private static readonly Dictionary<Vessel, List<FNRadiator>> RadiatorsByVessel = new Dictionary<Vessel, List<FNRadiator>>();
+
         private static AnimationCurve redTempColorChannel;
         private static AnimationCurve greenTempColorChannel;
         private static AnimationCurve blueTempColorChannel;
@@ -836,6 +838,13 @@ namespace FNPlugin.Wasteheat
         private double intakeAtmDensity;
         private double intakeAtmSpecificHeatCapacity;
         private double intakeLqdSpecificHeatCapacity;
+
+
+        public GenerationType CurrentGenerationType { get; private set; }
+
+        public ModuleActiveRadiator ModuleActiveRadiator => _moduleActiveRadiator;
+
+        public double MaxRadiatorTemperature => GetMaximumTemperatureForGen(CurrentGenerationType);
 
         public static void InitializeTemperatureColorChannels()
         {
@@ -903,24 +912,16 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        private static Dictionary<Vessel, List<FNRadiator>> radiators_by_vessel = new Dictionary<Vessel, List<FNRadiator>>();
-
         private static List<FNRadiator> GetRadiatorsForVessel(Vessel vessel)
         {
-            if (radiators_by_vessel.TryGetValue(vessel, out var vesselRadiator))
+            if (RadiatorsByVessel.TryGetValue(vessel, out var vesselRadiator))
                 return vesselRadiator;
 
             vesselRadiator = vessel.FindPartModulesImplementing<FNRadiator>().ToList();
-            radiators_by_vessel.Add(vessel, vesselRadiator);
+            RadiatorsByVessel.Add(vessel, vesselRadiator);
 
             return vesselRadiator;
         }
-
-        public GenerationType CurrentGenerationType { get; private set; }
-
-        public ModuleActiveRadiator ModuleActiveRadiator => _moduleActiveRadiator;
-
-        public double MaxRadiatorTemperature => GetMaximumTemperatureForGen(CurrentGenerationType);
 
         private double GetMaximumTemperatureForGen(GenerationType generationType)
         {
@@ -949,15 +950,11 @@ namespace FNPlugin.Wasteheat
                     clarifyFunction = true;
 
                     if (MeshRadiatorSize(out var size) == true)
-                    {
                         radiatorArea = Math.Round(size);
-                    }
 
+                    // The Liquid Metal Cooled Reactor shows a tiny surface space, so this should not be an else statement
                     if (radiatorArea == 0)
-                    {
-                        // The Liquid Metal Cooled Reactor shows a tiny surface space, so this should not be an else statement
                         radiatorArea = 1;
-                    }
                 }
 
                 double effectiveRadiativeArea = PluginHelper.RadiatorAreaMultiplier * areaMultiplier * radiatorArea;
@@ -1025,15 +1022,15 @@ namespace FNPlugin.Wasteheat
 
         public static void Reset()
         {
-            radiators_by_vessel.Clear();
+            RadiatorsByVessel.Clear();
         }
 
-        public static bool hasRadiatorsForVessel(Vessel vess)
+        public static bool HasRadiatorsForVessel(Vessel vess)
         {
             return GetRadiatorsForVessel(vess).Any();
         }
 
-        public static double getAverageRadiatorTemperatureForVessel(Vessel vess)
+        public static double GetAverageRadiatorTemperatureForVessel(Vessel vess)
         {
             var radiatorVessel = GetRadiatorsForVessel(vess);
 
@@ -1051,7 +1048,7 @@ namespace FNPlugin.Wasteheat
                 return _maximumRadiatorTempInSpace;
         }
 
-        public static float getAverageMaximumRadiatorTemperatureForVessel(Vessel vess)
+        public static float GetAverageMaximumRadiatorTemperatureForVessel(Vessel vess)
         {
             var radiatorVessel = GetRadiatorsForVessel(vess);
 
@@ -1561,7 +1558,9 @@ namespace FNPlugin.Wasteheat
             // and then distance traveled.
             double distanceTraveled = effectiveRadiatorArea * tmpVelocity;
 
-            return Math.Round(distanceTraveled, 2) * TimeWarp.fixedDeltaTime;
+            partRotationDistance = Math.Round(distanceTraveled, 2) * TimeWarp.fixedDeltaTime;
+
+            return partRotationDistance;
         }
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
@@ -1613,7 +1612,7 @@ namespace FNPlugin.Wasteheat
                     if (double.IsNaN(_thermalPowerDissipationPerSecond))
                         Debug.LogWarning("[KSPI]: FNRadiator: FixedUpdate Double.IsNaN detected in _thermalPowerDissipationPerSecond");
 
-                    _radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(_thermalPowerDissipationPerSecond, wasteheatManager) : 0;
+                    _radiatedThermalPower = canRadiateHeat ? ConsumeWasteHeatPerSecond(_thermalPowerDissipationPerSecond, wasteheatManager) : 0;
 
                     if (double.IsNaN(_radiatedThermalPower))
                         Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Double.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + _thermalPowerDissipationPerSecond + ")");
@@ -1629,7 +1628,7 @@ namespace FNPlugin.Wasteheat
                 {
                     _thermalPowerDissipationPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * _stefanArea * 0.5;
 
-                    _radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(_thermalPowerDissipationPerSecond, wasteheatManager) : 0;
+                    _radiatedThermalPower = canRadiateHeat ? ConsumeWasteHeatPerSecond(_thermalPowerDissipationPerSecond, wasteheatManager) : 0;
 
                     instantaneous_rad_temp = CalculateInstantaneousRadTemp();
 
@@ -1644,14 +1643,13 @@ namespace FNPlugin.Wasteheat
                     var heatTransferModifier = intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity * part.submergedPortion;
                     heatTransferModifier += atmDensity * (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
 
-                    partRotationDistance = PartRotationDistance();
                     var staticConvection = heatTransferModifier * convectiveBonus;
-                    var dynamicConvection = heatTransferModifier * Math.Max(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
+                    var dynamicConvection = heatTransferModifier * Math.Max(1, vessel.speed.Sqrt() + PartRotationDistance().Sqrt());
                     atmosphere_modifier = staticConvection + dynamicConvection;
 
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
 
-                    double heatTransferCoefficient = (part.submergedPortion > 0) ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
+                    var heatTransferCoefficient = (part.submergedPortion > 0) ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
 
                     var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient;
 
@@ -1665,7 +1663,7 @@ namespace FNPlugin.Wasteheat
                         convPowerDissipation *= 0.10;
                     }
 
-                    _convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager) : 0;
+                    _convectedThermalPower = canRadiateHeat ? ConsumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager) : 0;
 
                     if (_radiatorDeployDelay >= DEPLOYMENT_DELAY)
                         DeploymentControl();
@@ -1741,7 +1739,7 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        private double consumeWasteHeatPerSecond(double wasteheatToConsume, ResourceManager wasteheatManager)
+        private double ConsumeWasteHeatPerSecond(double wasteheatToConsume, ResourceManager wasteheatManager)
         {
             if (!radiatorIsEnabled) return 0;
 
