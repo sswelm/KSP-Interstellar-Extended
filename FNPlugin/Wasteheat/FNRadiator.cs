@@ -1641,12 +1641,12 @@ namespace FNPlugin.Wasteheat
                     atmDensity = AtmDensity();
 
                     // density * exposed surface area * specific heat capacity
-                    var bonusCalculation = intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity * part.submergedPortion;
-                    bonusCalculation += atmDensity * (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
+                    var heatTransferModifier = intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity * part.submergedPortion;
+                    heatTransferModifier += atmDensity * (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
 
                     partRotationDistance = PartRotationDistance();
-                    var staticConvection = bonusCalculation * convectiveBonus;
-                    var dynamicConvection = bonusCalculation * Math.Max(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
+                    var staticConvection = heatTransferModifier * convectiveBonus;
+                    var dynamicConvection = heatTransferModifier * Math.Max(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
                     atmosphere_modifier = staticConvection + dynamicConvection;
 
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
