@@ -666,6 +666,11 @@ namespace FNPlugin.Wasteheat
         {
             return undergroundAmount > 0;
         }
+
+        protected override double AtmDensity()
+        {
+            return 1;
+        }
     }
 
     [KSPModule("Radiator")]
@@ -781,7 +786,7 @@ namespace FNPlugin.Wasteheat
         private double oxidationModifier;
         private double temperatureDifference;
         private double submergedModifier;
-        private bool clarifyFunction;
+        [KSPField(isPersistant = true)] public bool clarifyFunction;
         private double sphericalCowInAVaccum;
 
         static float _maximumRadiatorTempInSpace = 4500;
@@ -1635,15 +1640,17 @@ namespace FNPlugin.Wasteheat
                 {
                     double bonusCalculation;
 
-                    atmDensity = vessel.atmDensity;
+                    // Titanium radiators get a minimum surface area, and a slight buff here.
+                    double era = _isGraphene ? effectiveRadiatorArea : Math.Max(15, effectiveRadiatorArea) * 1.05;
+
+                    atmDensity = AtmDensity();
 
                     // density * exposed surface area * specific heat capacity
-                    bonusCalculation = (1 + (intakeLqdDensity * (effectiveRadiatorArea) * intakeLqdSpecificHeatCapacity)) * part.submergedPortion;
-                    bonusCalculation += (vessel.atmDensity == 0 ? 1 : vessel.atmDensity) * (1 + (intakeAtmDensity * (effectiveRadiatorArea) * intakeAtmSpecificHeatCapacity)) * (1 - part.submergedPortion);
-
+                    bonusCalculation = (intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity) * part.submergedPortion;
+                    bonusCalculation += atmDensity * (intakeAtmDensity * era * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
 
                     partRotationDistance = PartRotationDistance();
-                    atmosphere_modifier = bonusCalculation * Math.Min(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
+                    atmosphere_modifier = bonusCalculation * Math.Max(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
 
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
 
@@ -1687,9 +1694,15 @@ namespace FNPlugin.Wasteheat
 
         protected virtual bool CanConvect()
         {
-            return vessel.atmDensity > 0;
+            return vessel.altitude < vessel.mainBody.scienceValues.spaceAltitudeThreshold;
         }
 
+        protected virtual double AtmDensity()
+        {
+            // Another buff for titanium radiators - minimum of 50% effectiveness at the edge of space
+            return (_isGraphene ? 1 : 1.5) - (vessel.altitude / vessel.mainBody.scienceValues.spaceAltitudeThreshold);
+        }
+        
         private double CalculateInstantaneousRadTemp()
         {
             var result = Math.Min(maxCurrentRadiatorTemperature, radiator_temperature_temp_val);
@@ -1810,7 +1823,7 @@ namespace FNPlugin.Wasteheat
                 sb.Append("Mk6: ").Append(RadiatorProperties.RadiatorTemperatureMk6.ToString("F0")).Append(" K, ");
                 sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4)));
 
-                var convection = 0.9 * effectiveRadiatorArea;
+                var convection = 0.9 * (Math.Min(15, effectiveRadiatorArea) * 3);
                 var dissipation = _stefanArea * Math.Pow(900, 4);
 
                 sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", dissipation.ToString("F3"), convection.ToString("F3")));
