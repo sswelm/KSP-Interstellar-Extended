@@ -131,7 +131,7 @@ namespace FNPlugin
         public string upgradeTechReq = "";
         [KSPField]
         public float upgradeCost = 1;
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiFormat = "F2", guiName = "#LOC_KSPIE_Generator_radius", guiUnits = " m")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiFormat = "F2", guiName = "#LOC_KSPIE_Generator_radius", guiUnits = " m")]
         public double radius = 2.5;
         [KSPField]
         public string altUpgradedName = "";
@@ -160,7 +160,7 @@ namespace FNPlugin
         public double massModifier = 1;
         [KSPField]
         public double rawMaximumPower;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxTheoreticalPower", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxTheoreticalPower", guiFormat = "F2")]
         public string maximumTheoreticalPower;
         [KSPField]
         public double coreTemperateHotBathExponent = 0.7;
@@ -168,7 +168,7 @@ namespace FNPlugin
         public double capacityToMassExponent = 0.7;
 
         // Debugging
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_partMass", guiUnits = " t", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_partMass", guiUnits = " t", guiFormat = "F3")]
         public float partMass;
         [KSPField]
         public double targetMass;
@@ -204,22 +204,22 @@ namespace FNPlugin
         public double potentialThermalPower;
         [KSPField]
         public double attachedPowerSourceRatio;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_Generator_currentElectricPower", guiUnits = " MW_e", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_Generator_currentElectricPower", guiUnits = " MW_e", guiFormat = "F2")]
         public string OutputPower;
 
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_Generator_MaximumElectricPower")]//Maximum Electric Power
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_Generator_MaximumElectricPower")]//Maximum Electric Power
         public string MaxPowerStr;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_Generator_ElectricEfficiency")]//Electric Efficiency
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Generator_ElectricEfficiency")]//Electric Efficiency
         public string overallEfficiencyStr;
         [KSPField]
         public string upgradeCostStr = "";
         [KSPField]
         public double coldBathTemp = 500;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_Generator_coldBathTemp", guiUnits = " K", guiFormat = "F0")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_Generator_coldBathTemp", guiUnits = " K", guiFormat = "F0")]
         public double coldBathTempDisplay = 500;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_Generator_hotBathTemp", guiUnits = " K", guiFormat = "F0")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_Generator_hotBathTemp", guiUnits = " K", guiFormat = "F0")]
         public double hotBathTemp = 300;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double electrical_power_currently_needed;
 
         // Debug
@@ -314,7 +314,7 @@ namespace FNPlugin
         public double _totalEff;
         [KSPField]
         public double capacityRatio;
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW")]//Offscreen Power Generation
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW")]//Offscreen Power Generation
         public double initialGeneratorPowerEC;
         [KSPField]
         public double maximumGeneratorPowerMJ;
@@ -1272,7 +1272,7 @@ namespace FNPlugin
 
         public override void OnPostResourceSuppliable(double fixedDeltaTime)
         {
-            double totalPowerReceived = 0;
+            double totalPowerReceived;
 
             postThermalPowerReceived = 0;
             postChargedPowerReceived = 0;
@@ -1406,23 +1406,23 @@ namespace FNPlugin
                 sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(Mk9TechReq)));
 
             sb.Append("</size><color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Generator_conversionEfficiency")).AppendLine("</color>");
-            sb.Append("<size=10>Mk1: ").Append((efficiencyMk1 * 100.0).ToString("F0")).AppendLine("%");
+            sb.Append("<size=10>Mk1: ").AppendLine(efficiencyMk1.ToString("P0"));
             if (!string.IsNullOrEmpty(Mk2TechReq))
-                sb.Append("Mk2: ").Append((efficiencyMk2 * 100.0).ToString("F0")).AppendLine("%");
+                sb.Append("Mk2: ").AppendLine(efficiencyMk2.ToString("P0"));
             if (!string.IsNullOrEmpty(Mk3TechReq))
-                sb.Append("Mk3: ").Append((efficiencyMk3 * 100.0).ToString("F0")).AppendLine("%");
+                sb.Append("Mk3: ").AppendLine(efficiencyMk3.ToString("P0"));
             if (!string.IsNullOrEmpty(Mk4TechReq))
-                sb.Append("Mk4: ").Append((efficiencyMk4 * 100.0).ToString("F0")).AppendLine("%");
+                sb.Append("Mk4: ").AppendLine(efficiencyMk4.ToString("P0"));
             if (!string.IsNullOrEmpty(Mk5TechReq))
-                sb.Append("Mk5: ").Append((efficiencyMk5 * 100.0).ToString("F0")).AppendLine("%");
+                sb.Append("Mk5: ").AppendLine(efficiencyMk5.ToString("P0"));
             if (!string.IsNullOrEmpty(Mk6TechReq))
-                sb.Append("Mk6: ").Append((efficiencyMk6 * 100.0).ToString("F0")).AppendLine("%");
+                sb.Append("Mk6: ").AppendLine(efficiencyMk6.ToString("P0"));
             if (!string.IsNullOrEmpty(Mk7TechReq))
-                sb.Append("Mk7: ").Append((efficiencyMk7 * 100.0).ToString("F0")).AppendLine("%");
+                sb.Append("Mk7: ").AppendLine(efficiencyMk7.ToString("P0"));
             if (!string.IsNullOrEmpty(Mk8TechReq))
-                sb.Append("Mk8: ").Append((efficiencyMk8 * 100.0).ToString("F0")).AppendLine("%");
+                sb.Append("Mk8: ").AppendLine(efficiencyMk8.ToString("P0"));
             if (!string.IsNullOrEmpty(Mk9TechReq))
-                sb.Append("Mk9: ").Append((efficiencyMk9 * 100.0).ToString("F0")).AppendLine("%");
+                sb.Append("Mk9: ").AppendLine(efficiencyMk9.ToString("P0"));
             sb.Append("</size>");
 
             return sb.ToStringAndRelease();

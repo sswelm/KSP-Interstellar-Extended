@@ -381,14 +381,14 @@ namespace FNPlugin
                         sumRequest += consumed.PowerMaximumRequest;
                         sumConsumed += consumed.PowerConsumed;
                     }
-                    double utilization = sumRequest > 0.0 ? 100.0 * sumConsumed / sumRequest : 0.0;
+                    double utilization = sumRequest > 0.0 ? sumConsumed / sumRequest : 0.0;
 
                     string name = group.Key;
                     int count = group.Count();
                     if (count > 1)
                         name = count + " * " + name;
-                    if (sumRequest > 0.0 && resourceName == FNRESOURCE_MEGAJOULES && utilization < 99.5)
-                        name = name + " " + utilization.ToString("0") + "%";
+                    if (sumRequest > 0.0 && resourceName == FNRESOURCE_MEGAJOULES && utilization < 0.995)
+                        name = name + " " + utilization.ToString("P0");
 
                     summaryList.Add(new PowerConsumption(name, priority, sumRequest));
                 }
