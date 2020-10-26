@@ -87,6 +87,8 @@ namespace FNPlugin.Wasteheat
         public double lqdHeatTransferCoefficient = 0.03;
         [KSPField]
         public double powerDrawInJoules = 1; // How much power needed to run fans / etc. in joules.
+        [KSPField]
+        public double wasteHeatMultiplier = 1; // Reduce heat radiated in NF mode.
 
         private int intakeLqdID;
         private int intakeAtmID;
@@ -437,7 +439,7 @@ namespace FNPlugin.Wasteheat
             }
 
             // how much heat can we transfer in total
-            heatTransferrable = airHeatTransferrable + waterHeatTransferrable + steamHeatTransferrable;
+            heatTransferrable = wasteHeatMultiplier * (airHeatTransferrable + waterHeatTransferrable + steamHeatTransferrable);
             if (heatTransferrable == 0) return;
 
             /*
