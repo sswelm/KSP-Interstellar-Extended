@@ -220,7 +220,7 @@ namespace FNPlugin.Wasteheat
             if (hasPumpUpgradeMk4) pumpSpeed += 270;
 
             var storage = defaultLqdStorage * part.rescaleFactor;
-          
+
 
             // used to calculate coolant total, used as an indirect multiplier
             if (hasStorageUpgradeMk1) storage += 2499;
@@ -1638,15 +1638,13 @@ namespace FNPlugin.Wasteheat
 
                 if (CanConvect())
                 {
-                    double bonusCalculation;
-
                     // Titanium radiators get a minimum surface area, and a slight buff here.
-                    double era = _isGraphene ? effectiveRadiatorArea : Math.Max(15, effectiveRadiatorArea) * 1.05;
+                    double era = _isGraphene ? effectiveRadiatorArea : effectiveRadiatorArea * convectiveBonus;
 
                     atmDensity = AtmDensity();
 
                     // density * exposed surface area * specific heat capacity
-                    bonusCalculation = (intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity) * part.submergedPortion;
+                    var bonusCalculation = (intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity) * part.submergedPortion;
                     bonusCalculation += atmDensity * (intakeAtmDensity * era * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
 
                     partRotationDistance = PartRotationDistance();
@@ -1664,7 +1662,7 @@ namespace FNPlugin.Wasteheat
                     if(_isGraphene)
                     {
                         // Per AntaresMC and others in #development, graphene is chemically unstable in an atmosphere,
-                        // prone to oxidation etc which reduces its effectiveness. 
+                        // prone to oxidation etc which reduces its effectiveness.
                         convPowerDissipation *= 0.10;
                     }
 
@@ -1702,7 +1700,7 @@ namespace FNPlugin.Wasteheat
             // Another buff for titanium radiators - minimum of 50% effectiveness at the edge of space
             return (_isGraphene ? 1 : 1.5) - (vessel.altitude / vessel.mainBody.scienceValues.spaceAltitudeThreshold);
         }
-        
+
         private double CalculateInstantaneousRadTemp()
         {
             var result = Math.Min(maxCurrentRadiatorTemperature, radiator_temperature_temp_val);
@@ -1823,7 +1821,7 @@ namespace FNPlugin.Wasteheat
                 sb.Append("Mk6: ").Append(RadiatorProperties.RadiatorTemperatureMk6.ToString("F0")).Append(" K, ");
                 sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4)));
 
-                var convection = 0.9 * (Math.Min(15, effectiveRadiatorArea) * 3);
+                var convection = effectiveRadiatorArea * convectiveBonus;
                 var dissipation = _stefanArea * Math.Pow(900, 4);
 
                 sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_Maximumat1atmosphere", dissipation.ToString("F3"), convection.ToString("F3")));
