@@ -1638,17 +1638,16 @@ namespace FNPlugin.Wasteheat
 
                 if (CanConvect())
                 {
-                    // Titanium radiators get a minimum surface area, and a slight buff here.
-                    double era = _isGraphene ? effectiveRadiatorArea : effectiveRadiatorArea * convectiveBonus;
-
                     atmDensity = AtmDensity();
 
                     // density * exposed surface area * specific heat capacity
-                    var bonusCalculation = (intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity) * part.submergedPortion;
-                    bonusCalculation += atmDensity * (intakeAtmDensity * era * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
+                    var bonusCalculation = intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity * part.submergedPortion;
+                    bonusCalculation += atmDensity * (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
 
                     partRotationDistance = PartRotationDistance();
-                    atmosphere_modifier = bonusCalculation * Math.Max(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
+                    var staticConvection = bonusCalculation * convectiveBonus;
+                    var dynamicConvection = bonusCalculation * Math.Max(1, vessel.speed.Sqrt() + partRotationDistance.Sqrt());
+                    atmosphere_modifier = staticConvection + dynamicConvection;
 
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
 
