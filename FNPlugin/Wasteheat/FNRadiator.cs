@@ -1644,7 +1644,7 @@ namespace FNPlugin.Wasteheat
                     heatTransferModifier += atmDensity * (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
 
                     var staticConvection = heatTransferModifier * convectiveBonus;
-                    var dynamicConvection = heatTransferModifier * Math.Max(1, vessel.speed.Sqrt() + PartRotationDistance().Sqrt());
+                    var dynamicConvection = heatTransferModifier * Math.Max(0, vessel.speed.Sqrt() + PartRotationDistance().Sqrt());
                     atmosphere_modifier = staticConvection + dynamicConvection;
 
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
