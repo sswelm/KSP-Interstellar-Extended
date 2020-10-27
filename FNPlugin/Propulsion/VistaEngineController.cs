@@ -238,8 +238,8 @@ namespace FNPlugin
 
             KillKerbalsWithRadiation(throttle);
 
-            coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
-            maxTempatureRadiators = (float)FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+            coldBathTemp = (float)FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel);
+            maxTempatureRadiators = (float)FNRadiator.GetAverageMaximumRadiatorTemperatureForVessel(vessel);
 
             if (throttle > 0)
             {

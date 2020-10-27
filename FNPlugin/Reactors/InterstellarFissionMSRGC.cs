@@ -214,8 +214,8 @@ namespace FNPlugin.Reactors
 
                     if (minimumTemperature > 0)
                         temp_scale = minimumTemperature;
-                    else if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
-                        temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+                    else if (vessel != null && FNRadiator.HasRadiatorsForVessel(vessel))
+                        temp_scale = FNRadiator.GetAverageMaximumRadiatorTemperatureForVessel(vessel);
                     else
                         temp_scale = baseCoreTemperature / 2;
 

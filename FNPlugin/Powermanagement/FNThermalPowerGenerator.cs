@@ -71,11 +71,11 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            var hasRadiators = FNRadiator.hasRadiatorsForVessel(vessel);
+            var hasRadiators = FNRadiator.HasRadiatorsForVessel(vessel);
 
             // get radiator temperature
             if (hasRadiators)
-                radiatorTemperature = FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
+                radiatorTemperature = FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel);
             else if (!_stackAttachedParts.Any())
                 return;
             else
