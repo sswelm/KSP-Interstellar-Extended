@@ -8,9 +8,9 @@ namespace FNPlugin
     [KSPModule("Generator Adapter")]
     class FNGeneratorAdapterVariable : ResourceSuppliableModule
     {
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Powerinput", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F6")]//Power input
+        [KSPField(groupName = FNGenerator.GROUP, groupDisplayName = FNGenerator.GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Powerinput", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F4")]//Power input
         public double powerGeneratorPowerInput;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Poweroutput", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F6")]//Power output
+        [KSPField(groupName = FNGenerator.GROUP, groupDisplayName = FNGenerator.GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_Poweroutput", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F4")]//Power output
         public double powerGeneratorPowerOutput;
 
         [KSPField(isPersistant = true)]
@@ -75,10 +75,6 @@ namespace FNPlugin
         private double generatorInputRate;
 
         private bool active;
-
-        //private AvailablePart availablePart;
-        //private Part prefab_available_part;
-        //private FNGeneratorAdapterVariable prefab_generator_module;
 
         public override void OnStart(StartState state)
         {

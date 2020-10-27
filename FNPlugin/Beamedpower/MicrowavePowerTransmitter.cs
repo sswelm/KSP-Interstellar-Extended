@@ -28,32 +28,32 @@ namespace FNPlugin.Beamedpower
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
         public bool relay;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanRelay")]//Can Relay
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanRelay")]//Can Relay
         public bool canRelay;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_IsMirror")]//Is Mirror
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_IsMirror")]//Is Mirror
         public bool isMirror = false;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Canmergebeams")]//Can merge beams
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Canmergebeams")]//Can merge beams
         public bool isBeamMerger = false;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MergingBeams")]//Merging Beams
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MergingBeams")]//Merging Beams
         public bool mergingBeams;
         [KSPField(isPersistant = true)]
         public double nuclear_power = 0;
         [KSPField(isPersistant = true)]
         public double solar_power = 0;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_PowerCapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Power Capacity
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_PowerCapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Power Capacity
         public double power_capacity = 0;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthm", guiFormat = "F8", guiUnits = " m")]//Transmit WaveLength m
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthm", guiFormat = "F8", guiUnits = " m")]//Transmit WaveLength m
         public double wavelength = 0;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthSI")]//Transmit WaveLength SI
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthSI")]//Transmit WaveLength SI
         public string wavelengthText;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthWLName")]//Transmit WaveLength WL Name
+        public string wavelengthName;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MinRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Min Relay WaveLength
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MinRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Min Relay WaveLength
         public double minimumRelayWavelenght;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MaxRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Max Relay WaveLength
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MaxRelayWaveLength", guiFormat = "F8", guiUnits = " m")]//Max Relay WaveLength
         public double maximumRelayWavelenght;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmitWaveLengthWLName")]//Transmit WaveLength WL Name
-        public string wavelengthName;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
         [KSPField(isPersistant = true)]
@@ -62,25 +62,24 @@ namespace FNPlugin.Beamedpower
         public bool forceActivateAtStartup = false;
         [KSPField(isPersistant = true)]
         public bool hasLinkedReceivers = false;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_NativeWavelength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_NativeWavelength", guiFormat = "F8", guiUnits = " m")]
         public double nativeWaveLength = 0.003189281;
         [KSPField(isPersistant = true, guiActiveEditor = false)]
         public double nativeAtmosphericAbsorptionPercentage = 10;
 
         //Non Persistent 
-        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AtmosphericAbsorptionPercentage")]//Air Absorbtion Percentage
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AtmosphericAbsorptionPercentage", guiFormat = "F2", guiUnits = "%")]//Air Absorption Percentage
         public double atmosphericAbsorptionPercentage;
-        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_WaterAbsorptionPercentage")]//Water Absorbtion Percentage
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_WaterAbsorptionPercentage", guiFormat = "F2", guiUnits = "%")]//Water Absorption Percentage
         public double waterAbsorptionPercentage;
-        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TotalAbsorptionPercentage", guiFormat = "F4", guiUnits = "%")]//Absorbtion Percentage
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TotalAbsorptionPercentage", guiFormat = "F2", guiUnits = "%")]//Absorption Percentage
         public double totalAbsorptionPercentage;
-        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Bodyname")]//Body
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Bodyname")]//Body
         public string body_name;
-        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BiomeName")]//Biome Name
         public string biome_desc;
-        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MoistureModifier", guiFormat = "F4")]//Moisture Modifier
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_MoistureModifier", guiFormat = "F3")]//Moisture Modifier
         public double moistureModifier;
-        [KSPField(groupName = GROUP, guiActiveEditor = false, guiActive = false)]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = false)]
         public bool canFunctionOnSurface = true;
 
         [KSPField]
@@ -97,23 +96,23 @@ namespace FNPlugin.Beamedpower
         protected int nearbyPartsCount;
 
         //GUI 
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanTransmit")]//Can Transmit
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_CanTransmit")]//Can Transmit
         public bool canTransmit = false;
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BuildinRelay")]//Build in Relay
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BuildinRelay")]//Build in Relay
         public bool buildInRelay = false;
         [KSPField(groupName = GROUP)]
         public int compatibleBeamTypes = 1;
-        [KSPField(groupName = GROUP, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ApertureDiameter", guiFormat = "F2", guiUnits = " m")]//Aperture Diameter
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_ApertureDiameter", guiFormat = "F2", guiUnits = " m")]//Aperture Diameter
         public double apertureDiameter = 0;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Status")]//Status
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_Status")]//Status
         public string statusStr;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmissionEfficiency", guiUnits = "%")]//Transmission Efficiency
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_TransmissionEfficiency", guiFormat = "F1", guiUnits = "%")]//Transmission Efficiency
         public double transmissionEfficiencyPercentage;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BeamedPower")]//Wall to Beam Power
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_BeamedPower")]//Wall to Beam Power
         public string beamedpower;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AvailablePower", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", advancedTweakable = true)]//Available Power
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_AvailablePower", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", advancedTweakable = true)]//Available Power
         public double availablePower;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_RequestedPower", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", advancedTweakable = true)]//Requested Power
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_RequestedPower", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", advancedTweakable = true)]//Requested Power
         public double requestedPower;
 
         // Near Future Compatibility properties
@@ -143,7 +142,6 @@ namespace FNPlugin.Beamedpower
         private BaseField apertureDiameterField;
         private BaseField beamedpowerField;
         private BaseField transmitPowerField;
-        private BaseField moistureModifierField;
         private BaseField totalAbsorptionPercentageField;
         private BaseField wavelengthField;
         private BaseField wavelengthNameField;
@@ -162,25 +160,6 @@ namespace FNPlugin.Beamedpower
         {
             return anim != null ? anim.isPlaying : false;
         }
-
-        //public void SetScalar(float t)
-        //{
-        //    if (anim != null)
-        //    {
-        //        if (t > 0.5)
-        //        {
-        //            anim[animName].speed = 1;
-        //            anim[animName].normalizedTime = 0;
-        //            anim.Blend(animName, part.mass);
-        //        }
-        //        else
-        //        {
-        //            anim[animName].speed = -1;
-        //            anim[animName].normalizedTime = 1;
-        //            anim.Blend(animName, part.mass);
-        //        }
-        //    }
-        //}
 
         public void SetUIRead(bool state)
         {
@@ -206,12 +185,6 @@ namespace FNPlugin.Beamedpower
                 genericAnimation.Toggle();
             }
 
-            //if (anim != null)
-            //{
-            //    anim[animName].speed = 1;
-            //    anim[animName].normalizedTime = 0;
-            //    anim.Blend(animName, part.mass);
-            //}
             IsEnabled = true;
 
             // update wavelength
@@ -248,12 +221,6 @@ namespace FNPlugin.Beamedpower
                 genericAnimation.Toggle();
             }
  
-            //if (anim != null)
-            //{
-            //    anim[animName].speed = -1;
-            //    anim[animName].normalizedTime = 1;
-            //    anim.Blend(animName, part.mass);
-            //}
             IsEnabled = false;
         }
 
@@ -266,13 +233,6 @@ namespace FNPlugin.Beamedpower
             {
                 genericAnimation.Toggle();
             }
-
-            //if (anim != null)
-            //{
-            //    anim[animName].speed = 1;
-            //    anim[animName].normalizedTime = 0;
-            //    anim.Blend(animName, part.mass);
-            //}
 
             vessel_recievers = this.vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
 
@@ -292,13 +252,6 @@ namespace FNPlugin.Beamedpower
             {
                 genericAnimation.Toggle();
             }
-
-            //if (anim != null)
-            //{
-            //    anim[animName].speed = 1;
-            //    anim[animName].normalizedTime = 0;
-            //    anim.Blend(animName, part.mass);
-            //}
 
             relay = false;
         }
@@ -380,18 +333,17 @@ namespace FNPlugin.Beamedpower
 
             ConnectToBeamGenerator();
 
-            activateRelayEvent = Events["ActivateRelay"];
-            deactivateRelayEvent = Events["DeactivateRelay"];
-            activateTransmittervEvent = Events["ActivateTransmitter"];
-            deactivateTransmitterEvent = Events["DeactivateTransmitter"];
+            activateRelayEvent = Events[nameof(ActivateRelay)];
+            deactivateRelayEvent = Events[nameof(DeactivateRelay)];
+            activateTransmittervEvent = Events[nameof(ActivateTransmitter)];
+            deactivateTransmitterEvent = Events[nameof(DeactivateTransmitter)];
 
-            wavelengthField = Fields["wavelength"];
-            beamedpowerField = Fields["beamedpower"];
-            transmitPowerField = Fields["transmitPower"];
-            wavelengthNameField = Fields["wavelengthName"];
-            apertureDiameterField = Fields["apertureDiameter"];
-            moistureModifierField = Fields["moistureModifier"];
-            totalAbsorptionPercentageField = Fields["totalAbsorptionPercentage"];
+            wavelengthField = Fields[nameof(wavelengthText)];
+            beamedpowerField = Fields[nameof(beamedpower)];
+            transmitPowerField = Fields[nameof(transmitPower)];
+            wavelengthNameField = Fields[nameof(wavelengthName)];
+            apertureDiameterField = Fields[nameof(apertureDiameter)];
+            totalAbsorptionPercentageField = Fields[nameof(totalAbsorptionPercentage)];
 
             if (state == StartState.Editor)
             {
@@ -400,7 +352,7 @@ namespace FNPlugin.Beamedpower
             }
 
             solarCells = vessel.FindPartModulesImplementing<ISolarPower>();
-            vessel_recievers = this.vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
+            vessel_recievers = vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
 
             UpdateRelayWavelength();
 
@@ -421,48 +373,41 @@ namespace FNPlugin.Beamedpower
 
         private void ConnectToBeamGenerator()
         {
-            try
+            // connect with bbeam gnerators 
+            beamGenerators = part.FindModulesImplementing<BeamGenerator>().Where(m => (m.beamType & compatibleBeamTypes) == m.beamType).ToList();
+
+            if (beamGenerators.Count == 0 && part.parent != null)
             {
-                // connect with bbeam gnerators 
-                beamGenerators = part.FindModulesImplementing<BeamGenerator>().Where(m => (m.beamType & compatibleBeamTypes) == m.beamType).ToList();
-
-                if (beamGenerators.Count == 0 && part.parent != null)
-                {
-                    beamGenerators.AddRange(part.parent.FindModulesImplementing<BeamGenerator>().Where(m => (m.beamType & compatibleBeamTypes) == m.beamType));
-                }
-
-                if (beamGenerators.Count == 0)
-                {
-                    var attachedParts = part.attachNodes.Where(m => m.attachedPart != null).Select(m => m.attachedPart).ToList();
-
-                    var parentParts = attachedParts.Where(m => m.parent != null && m.parent != this.part).Select(m => m.parent).ToList();
-                    var indirectParts = attachedParts.SelectMany(m => m.attachNodes.Where(l => l.attachedPart != null && l.attachedPart != this.part).Select(l => l.attachedPart)).ToList();
-
-                    attachedParts.AddRange(indirectParts);
-                    attachedParts.AddRange(parentParts);
-
-                    var nearbyParts = attachedParts.Distinct().ToList();
-                    nearbyPartsCount = nearbyParts.Count();
-
-                    var nearbyGenerators = nearbyParts.Select(m => m.FindModuleImplementing<BeamGenerator>()).Where(l => l != null);
-                    var availableGenerators = nearbyGenerators.SelectMany(m => m.FindBeamGenerators(m.part)).Where(m => (m.beamType & compatibleBeamTypes) == m.beamType).Distinct();
-
-                    beamGenerators.AddRange(availableGenerators);
-                }
-
-                activeBeamGenerator = beamGenerators.FirstOrDefault();
-
-                if (activeBeamGenerator != null) 
-                {
-                    activeBeamGenerator.Connect(this);
-
-                    if (activeBeamGenerator.part != this.part)
-                        activeBeamGenerator.UpdateMass(this.maximumPower);
-                }
+                beamGenerators.AddRange(part.parent.FindModulesImplementing<BeamGenerator>().Where(m => (m.beamType & compatibleBeamTypes) == m.beamType));
             }
-            catch (Exception ex)
+
+            if (beamGenerators.Count == 0)
             {
-                Debug.LogError("[KSPI] Microwave Transmitter OnStart search for beamGenerator: " + ex);
+                var attachedParts = part.attachNodes.Where(m => m.attachedPart != null).Select(m => m.attachedPart).ToList();
+
+                var parentParts = attachedParts.Where(m => m.parent != null && m.parent != this.part).Select(m => m.parent).ToList();
+                var indirectParts = attachedParts.SelectMany(m => m.attachNodes.Where(l => l.attachedPart != null && l.attachedPart != this.part).Select(l => l.attachedPart)).ToList();
+
+                attachedParts.AddRange(indirectParts);
+                attachedParts.AddRange(parentParts);
+
+                var nearbyParts = attachedParts.Distinct().ToList();
+                nearbyPartsCount = nearbyParts.Count();
+
+                var nearbyGenerators = nearbyParts.Select(m => m.FindModuleImplementing<BeamGenerator>()).Where(l => l != null);
+                var availableGenerators = nearbyGenerators.SelectMany(m => m.FindBeamGenerators(m.part)).Where(m => (m.beamType & compatibleBeamTypes) == m.beamType).Distinct();
+
+                beamGenerators.AddRange(availableGenerators);
+            }
+
+            activeBeamGenerator = beamGenerators.FirstOrDefault();
+
+            if (activeBeamGenerator != null) 
+            {
+                activeBeamGenerator.Connect(this);
+
+                if (activeBeamGenerator.part != this.part)
+                    activeBeamGenerator.UpdateMass(this.maximumPower);
             }
         }
 
@@ -543,7 +488,6 @@ namespace FNPlugin.Beamedpower
             bool isLinkedForRelay = part_receiver != null && part_receiver.linkedForRelay;
             bool receiverNotInUse = !isLinkedForRelay && !receiver_on && !IsRelay;
 
-            moistureModifierField.guiActive = receiverNotInUse;
             totalAbsorptionPercentageField.guiActive = receiverNotInUse;
             wavelengthField.guiActive = receiverNotInUse;
             wavelengthNameField.guiActive = receiverNotInUse;
@@ -671,51 +615,44 @@ namespace FNPlugin.Beamedpower
 
         private void CollectBiomeData()
         {
-            try
+            moistureModifier = 0;
+            biome_desc = string.Empty;
+
+            if (part.vessel == null) return;
+
+            double lat = vessel.latitude * Math.PI / 180d;
+            double lon = vessel.longitude * Math.PI / 180d;
+
+            if (part.vessel.mainBody == null) return;
+
+            body_name = part.vessel.mainBody.name;
+
+            if (part.vessel.mainBody.BiomeMap == null) return;
+
+            var attribute = part.vessel.mainBody.BiomeMap.GetAtt(lat, lon);
+
+            if (attribute == null) return;
+
+            biome_desc = attribute.name;
+
+            double cloud_variance;
+            if (body_name == "Kerbin" || body_name == "Earth")
             {
-                moistureModifier = 0;
-                biome_desc = string.Empty;
-
-                if (part.vessel == null) return;
-
-                double lat = vessel.latitude * Math.PI / 180d;
-                double lon = vessel.longitude * Math.PI / 180d;
-
-                if (part.vessel.mainBody == null) return;
-
-                body_name = part.vessel.mainBody.name;
-
-                if (part.vessel.mainBody.BiomeMap == null) return;
-
-                var attribute = part.vessel.mainBody.BiomeMap.GetAtt(lat, lon);
-
-                if (attribute == null) return;
-
-                biome_desc = attribute.name;
-
-                double cloud_variance;
-                if (body_name == "Kerbin" || body_name == "Earth")
-                {
-                    if (biome_desc == "Desert" || biome_desc == "Ice Caps" || biome_desc == "BadLands")
-                        moistureModifier = 0.4;
-                    else if (biome_desc == " Water")
-                        moistureModifier = 1;
-                    else
-                        moistureModifier = 0.8;
-
-                    cloud_variance = 0.5d + (Planetarium.GetUniversalTime() % 3600 / 7200d);
-                }
+                if (biome_desc == "Desert" || biome_desc == "Ice Caps" || biome_desc == "BadLands")
+                    moistureModifier = 0.4;
+                else if (biome_desc == "Water")
+                    moistureModifier = 1;
                 else
-                    cloud_variance = 1;
+                    moistureModifier = 0.8;
 
-                double latitude_variance = ((180d - lat) / 180d);
+                cloud_variance = 0.5d + (Planetarium.GetUniversalTime() % 3600 / 7200d);
+            }
+            else
+                cloud_variance = 1;
 
-                moistureModifier = 2 * moistureModifier * latitude_variance * cloud_variance;
-            }
-            catch (NullReferenceException e)
-            {
-                Debug.LogError("[KSPI]: exception in CollectBiomeData " + e.Message + " at " + e.StackTrace);
-            }
+            double latitude_variance = (180d - lat) / 180d;
+
+            moistureModifier = 2 * moistureModifier * latitude_variance * cloud_variance;
         }
 
         public double getPowerCapacity()

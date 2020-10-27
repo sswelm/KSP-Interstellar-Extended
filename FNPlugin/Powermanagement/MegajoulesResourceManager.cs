@@ -56,7 +56,7 @@ namespace FNPlugin.Powermanagement
         {
             if (ResourceSupply >= ResourceDemand * 0.5)
             {
-                double storedSupplyRatio = ResourceSupply != 0.0 ? TotalPowerSupplied / ResourceSupply : 0.0;
+                double storedSupplyRatio = ResourceSupply != 0.0 ? Math.Min(1.0, Math.Max(0.0, TotalPowerSupplied / ResourceSupply)) : 0.0;
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentDistribution"), left_bold_label, GUILayout.ExpandWidth(true));//"Current Distribution"
                 GUILayout.Label(storedSupplyRatio.ToString("P2"), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
@@ -79,7 +79,7 @@ namespace FNPlugin.Powermanagement
         {
             part.GetConnectedResourceTotals(electricResourceDefinition.id, out double amount, out double maxAmount);
             double ecNeeded = maxAmount - amount;
-            if (amount.IsInfinityOrNaN())
+            if (amount.IsInfinityOrNaN() || ecNeeded <= 0.0)
                 return;
 
             if (priority == 0)
