@@ -248,8 +248,8 @@ namespace FNPlugin
             {
                 Fields["electricalPowerConsumptionStr"].guiActive = true;
                 Fields["heatProductionStr"].guiActive = true;
-                electricalPowerConsumptionStr = power_recieved_f.ToString("0.00") + " MW / " + power_requested_f.ToString("0.00") + " MW";
-                heatProductionStr = heat_production_f.ToString("0.00") + " MW";
+                electricalPowerConsumptionStr = PluginHelper.getFormattedPowerString(power_recieved_f) + " / " + PluginHelper.getFormattedPowerString(power_requested_f);
+                heatProductionStr = PluginHelper.getFormattedPowerString(heat_production_f);
             } 
             else 
             {

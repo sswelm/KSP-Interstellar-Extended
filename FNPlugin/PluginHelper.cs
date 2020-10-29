@@ -753,36 +753,43 @@ namespace FNPlugin
                 return vessel.mainBody.scienceValues.InSpaceHighDataValue;
         }
 
-        public static string getFormattedPowerString(double power, string shortFormat = "0", string longFormat = "0.0")
+        public static string getFormattedPowerString(double power)
         {
             var absPower = Math.Abs(power);
+            string suffix;
 
-            if (absPower > 1e6)
+            if (absPower >= 1e6)
             {
-                if (absPower > 2e7)
-                    return (absPower / 1e6).ToString(shortFormat) + " TW";
-                else
-                    return (absPower / 1e6).ToString(longFormat) + " TW";
+                suffix = " TW";
+                absPower *= 1e-6;
+                power *= 1e-6;
             }
-            else if (absPower > 1e3)
+            else if (absPower >= 1000)
             {
-                if (absPower > 2e4)
-                    return (absPower / 1e3).ToString(shortFormat) + " GW";
-                else
-                    return (absPower / 1e3).ToString(longFormat) + " GW";
+                suffix = " GW";
+                absPower *= 1e-3;
+                power *= 1e-3;
+            }
+            else if (absPower >= 1)
+            {
+                suffix = " MW";
+            }
+            else if (absPower >= 0.001)
+            {
+                suffix = " KW";
+                absPower *= 1e3;
+                power *= 1e3;
             }
             else
             {
-                if (absPower > 20)
-                    return power.ToString(shortFormat) + " MW";
-                else
-                {
-                    if (absPower > 1)
-                        return absPower.ToString(longFormat) + " MW";
-                    else
-                        return (absPower * 1000).ToString(longFormat) + " KW";
-                }
+                return (power * 1e6).ToString("0") + " W";
             }
+            if (absPower > 100.0)
+                return power.ToString("0") + suffix;
+            else if (absPower > 10.0)
+                return power.ToString("0.0") + suffix;
+            else
+                return power.ToString("0.00") + suffix;
         }
 
         public static string getFormatedMassString(double massInKg, string format)

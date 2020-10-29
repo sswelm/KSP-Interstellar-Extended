@@ -328,8 +328,8 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            var desc = Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo1") + " " + megajouleRate.ToString("0.0") + " MW\n";//"Power Requirements: "
-            return desc + Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo2") + upgradedMegajouleRate.ToString("0.0") + " MW\n";//"Upgraded Power Requirements: "
+            return Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo1") + " " + PluginHelper.getFormattedPowerString(megajouleRate) + "\n" +
+                Localizer.Format("#LOC_KSPIE_ComputerCore_getInfo2") + PluginHelper.getFormattedPowerString(upgradedMegajouleRate);//"Upgraded Power Requirements: "
         }
 
         // IUpgradeableModule

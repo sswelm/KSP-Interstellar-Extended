@@ -533,16 +533,7 @@ namespace FNPlugin.Beamedpower
             waterAbsorptionPercentage = activeBeamGenerator.waterAbsorptionPercentage * moistureModifier;
 
             double inputPower = nuclear_power + solar_power;
-            if (inputPower > 1000)
-            {
-                if (inputPower > 1e6)
-                    beamedpower = (inputPower / 1e6).ToString("0.000") + " GW";
-                else
-                    beamedpower = (inputPower / 1000).ToString("0.000") + " MW";
-            }
-            else
-                beamedpower = inputPower.ToString("0.000") + " KW";
-
+            beamedpower = PluginHelper.getFormattedPowerString(inputPower);
             solarCells = vessel.FindPartModulesImplementing<ISolarPower>();
         }
 

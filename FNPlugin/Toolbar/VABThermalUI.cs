@@ -163,7 +163,7 @@ namespace FNPlugin
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalHeatProduction"), bold_label, GUILayout.ExpandWidth(true));//"Total Heat Production:"
-            GUILayout.Label(getPowerFormatString(total_source_power), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(total_source_power), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -189,7 +189,7 @@ namespace FNPlugin
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumDissipation"), bold_label, GUILayout.ExpandWidth(true));//"Radiator Maximum Dissipation:"
-            GUILayout.Label(getPowerFormatString(rad_max_dissip), radiator_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(rad_max_dissip), radiator_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             string resting_radiator_temp_at_100pcntStr = (!double.IsInfinity(resting_radiator_temp_at_100pcnt) && !double.IsNaN(resting_radiator_temp_at_100pcnt)) ? resting_radiator_temp_at_100pcnt.ToString("0.0") + " K" : "N/A";
@@ -215,29 +215,6 @@ namespace FNPlugin
             }
             GUILayout.EndVertical();
             GUI.DragWindow();
-        }
-
-        protected string getPowerFormatString(double power) 
-        {
-            if (Math.Abs(power) >= 1000) 
-            {
-                if (Math.Abs(power) > 20000) 
-                    return (power / 1000).ToString("0.0") + " GW";
-                else 
-                    return (power / 1000).ToString("0.00") + " GW";
-            } 
-            else 
-            {
-                if (Math.Abs(power) > 20) 
-                    return power.ToString("0.0") + " MW";
-                else 
-                {
-                    if (Math.Abs(power) >= 1) 
-                        return power.ToString("0.00") + " MW";
-                    else 
-                        return (power * 1000).ToString("0.00") + " KW";
-                }
-            }
         }
     }
 }

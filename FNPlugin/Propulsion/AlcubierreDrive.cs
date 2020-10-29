@@ -1616,7 +1616,7 @@ namespace FNPlugin
             {
                 if (availablePower < minPowerRequirementForLightSpeed)
                 {
-                    var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg5", availablePower.ToString("0"),minPowerRequirementForLightSpeed.ToString("0"));//"Maximum power supply of " +  + " MW is insufficient power, you need at at least " +  + " MW of Power to maintain Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass."
+                    var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg5", availablePower.ToString("0"), minPowerRequirementForLightSpeed.ToString("0"));//"Maximum power supply of " +  + " MW is insufficient power, you need at at least " +  + " MW of Power to maintain Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass."
                     Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5);
                     DeactivateWarpDrive(false);
@@ -1628,7 +1628,7 @@ namespace FNPlugin
                 {
                     string message;
                     if (powerReturned < 0.99 * currentPowerRequirementForWarp)
-                        message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_criticalPowerSupplyAt") + " " + (powerReturned / currentPowerRequirementForWarp * 100).ToString("0.0") + "% " + Localizer.Format("#LOC_KSPIE_AlcubierreDrive_deactivatingWarpDrive");
+                        message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_criticalPowerSupplyAt") + " " + (powerReturned / currentPowerRequirementForWarp).ToString("P1") + " " + Localizer.Format("#LOC_KSPIE_AlcubierreDrive_deactivatingWarpDrive");
                     else
                         message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_criticalPowerShortageWhileAtMinimumSpeed") + " " + Localizer.Format("#LOC_KSPIE_AlcubierreDrive_deactivatingWarpDrive");
 
@@ -1637,7 +1637,7 @@ namespace FNPlugin
                     DeactivateWarpDrive(true);
                     return;
                 }
-                var insufficientMessage = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_insufficientPowerPercentageAt") + " " + (powerReturned / currentPowerRequirementForWarp * 100).ToString("0.0") + "% " + Localizer.Format("#LOC_KSPIE_AlcubierreDrive_reducingElectricPowerDrain");
+                var insufficientMessage = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_insufficientPowerPercentageAt") + " " + (powerReturned / currentPowerRequirementForWarp).ToString("P1") + " " + Localizer.Format("#LOC_KSPIE_AlcubierreDrive_reducingElectricPowerDrain");
                 Debug.Log("[KSPI]: " + insufficientMessage);
                 ScreenMessages.PostScreenMessage(insufficientMessage, 5);
                 ReduceWarpPower();
@@ -1780,7 +1780,7 @@ namespace FNPlugin
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_gravityDragPercentage"), gravityDragPercentage.ToString("0.000") + "%", bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_maxAllowedThrotle"), maximumAllowedWarpThrotle.ToString("0.0000") + " c", bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentSelectedSpeed"), warpEngineThrottle.ToString("0.0000") + " c", bold_black_style, text_black_style);
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentPowerReqForWarp"), currentPowerRequirementForWarp.ToString("0.000") + " MW", bold_black_style, text_black_style);
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentPowerReqForWarp"), PluginHelper.getFormattedPowerString(currentPowerRequirementForWarp), bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitSpeed"), exitSpeed.ToString("0.000") + " m/s", bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitApoapsis"), exitApoapsis.ToString("0.000") + " km", bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitPeriapsis"), exitPeriapsis.ToString("0.000") + " km", bold_black_style, text_black_style);

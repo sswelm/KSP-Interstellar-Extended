@@ -65,8 +65,8 @@ namespace FNPlugin.Reactors
 
         public override void OnUpdate()
         {
-            maximumPowerSupply = ResourceManager.getPowerFormatString(maximumPowerSupplyInMegaWatt);
-            currentPowerSupply = ResourceManager.getPowerFormatString(currentPowerSupplyInMegaWatt);
+            maximumPowerSupply = PluginHelper.getFormattedPowerString(maximumPowerSupplyInMegaWatt);
+            currentPowerSupply = PluginHelper.getFormattedPowerString(currentPowerSupplyInMegaWatt);
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
@@ -158,7 +158,7 @@ namespace FNPlugin.Reactors
 
         public override string GetInfo()
         {
-            return "Maximum Power: " + ResourceManager.getPowerFormatString(maximumPowerCapacity);
+            return "Maximum Power: " + PluginHelper.getFormattedPowerString(maximumPowerCapacity);
         }
     }
 }
