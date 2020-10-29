@@ -360,10 +360,8 @@ namespace FNPlugin.Collectors
                 dPowerRequirementsMW = 0;
             }
 
-            // set the GUI string to state the number of KWs received if the MW requirements were lower than 2, otherwise in MW
-            strReceivedPower = dPowerRequirementsMW < 2
-                ? (dLastPowerPercentage * dPowerRequirementsMW * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMW * 1000).ToString("0.0") + " KW"
-                : (dLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
+            strReceivedPower = PluginHelper.getFormattedPowerString(dLastPowerPercentage * dPowerRequirementsMW) + " / " +
+                PluginHelper.getFormattedPowerString(dPowerRequirementsMW);
             
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.

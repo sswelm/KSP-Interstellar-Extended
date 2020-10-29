@@ -1486,8 +1486,8 @@ namespace FNPlugin.Wasteheat
 
             if (radiatorIsEnabled && canRadiateHeat)
             {
-                thermalPowerDissipStr = PluginHelper.getFormattedPowerString(_radiatedThermalPower, "0.0", "0.000");
-                thermalPowerConvStr = PluginHelper.getFormattedPowerString(_convectedThermalPower, "0.0", "0.000");
+                thermalPowerDissipStr = PluginHelper.getFormattedPowerString(_radiatedThermalPower);
+                thermalPowerConvStr = PluginHelper.getFormattedPowerString(_convectedThermalPower);
             }
             else
             {

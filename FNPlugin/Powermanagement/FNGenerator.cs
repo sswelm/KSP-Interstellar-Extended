@@ -938,7 +938,7 @@ namespace FNPlugin
                 var percentOutputPower = _totalEff * 100.0;
                 var outputPowerReport = -outputPower;
 
-                OutputPower = PluginHelper.getFormattedPowerString(outputPowerReport, "0.0", "0.000");
+                OutputPower = PluginHelper.getFormattedPowerString(outputPowerReport);
                 overallEfficiencyStr = percentOutputPower.ToString("0.00") + "%";
 
                 maximumElectricPower = (_totalEff >= 0)
@@ -947,7 +947,7 @@ namespace FNPlugin
                         : PowerRatio * _totalEff * maxChargedPowerForChargedGenerator
                     : 0;
 
-                MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower, "0.0", "0.000");
+                MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower);
             }
             else
                 OutputPower = Localizer.Format("#LOC_KSPIE_Generator_Offline");//"Generator Offline"

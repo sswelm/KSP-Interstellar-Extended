@@ -288,9 +288,8 @@ namespace FNPlugin
                 powerrequirementsMW = 0;
             }
 
-            recievedPower = powerrequirementsMW < 2 
-                ? (last_power_percentage * powerrequirementsMW * 1000).ToString("0.0") + " KW / " + (powerrequirementsMW * 1000).ToString("0.0") + " KW"
-                : (last_power_percentage * powerrequirementsMW).ToString("0.0") + " MW / " + powerrequirementsMW.ToString("0.0") + " MW";
+            recievedPower = PluginHelper.getFormattedPowerString(last_power_percentage * powerrequirementsMW) + " / " +
+                PluginHelper.getFormattedPowerString(powerrequirementsMW);
 
             double resourceChange = scoopedAtm * last_power_percentage * deltaTimeInSeconds;
 

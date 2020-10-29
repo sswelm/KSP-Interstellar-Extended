@@ -216,11 +216,7 @@ namespace FNPlugin
 
         private void UpdatePowerStatusString()
         {
-            powerStatusStr = currentPowerReq < 1.0e+3
-                ? recievedPowerKW.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
-                : currentPowerReq < 1.0e+6
-                    ? (recievedPowerKW / 1.0e+3).ToString("0.000") + " MW / " + (currentPowerReq / 1.0e+3).ToString("0.000") + " MW"
-                    : (recievedPowerKW / 1.0e+6).ToString("0.000") + " GW / " + (currentPowerReq / 1.0e+6).ToString("0.000") + " GW";
+            powerStatusStr = PluginHelper.getFormattedPowerString(recievedPowerKW) + " / " + PluginHelper.getFormattedPowerString(currentPowerReq);
         }
 
         // FixedUpdate is also called while not staged

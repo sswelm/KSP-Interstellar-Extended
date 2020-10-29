@@ -46,7 +46,7 @@ namespace FNPlugin.Powermanagement
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_DCElectricalSystem"), left_aligned_label, GUILayout.ExpandWidth(true));//"DC Electrical System"
-                GUILayout.Label(getPowerFormatString(lastMJConverted), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                GUILayout.Label(PluginHelper.getFormattedPowerString(lastMJConverted), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
                 GUILayout.Label("0", right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PRIORITY_WIDTH));
                 GUILayout.EndHorizontal();
             }
