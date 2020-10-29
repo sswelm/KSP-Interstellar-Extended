@@ -1,3 +1,4 @@
+using CommNet;
 using FNPlugin;
 using FNPlugin.Constants;
 using KSP.Localization;
@@ -57,7 +58,7 @@ namespace FNPlugin
         }
     }
 
-    class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule
+    class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule, CommNet.ICommNetControlSource
     {
         // Persistent
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Name")]//Name
@@ -230,15 +231,17 @@ namespace FNPlugin
 
                 if (IsPowered)
                 {
-                    if(_moduleCommand != null)
-                        _moduleCommand.requiresTelemetry = false;
-
-                    if (part.vessel != null && part.vessel.connection != null && part.vessel.connection.Comm != null)
+                    if (part.vessel != null && part.vessel.connection != null)
                     {
-                        part.vessel.connection.Comm.isHome = true;
-                        part.vessel.connection.Comm.isControlSource = true;
-                    }
+                        vessel.connection.RegisterCommandSource(this);
 
+                        if (part.vessel.connection.Comm != null)
+                        {
+                            part.vessel.connection.Comm.isHome = true;
+                            part.vessel.connection.Comm.isControlSource = true;
+                        }
+                    }
+                    
                     var altitudeMultiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
                     var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
@@ -250,13 +253,15 @@ namespace FNPlugin
                 }
                 else
                 {
-                    if(_moduleCommand != null)
-                        _moduleCommand.requiresTelemetry = true;
-
-                    if (part.vessel != null && part.vessel.connection != null && part.vessel.connection.Comm != null)
+                    if (vessel != null && vessel.connection != null)
                     {
-                        part.vessel.connection.Comm.isHome = false;
-                        part.vessel.connection.Comm.isControlSource = false;
+                        vessel.connection.UnregisterCommandSource(this);
+
+                        if (vessel.connection.Comm != null)
+                        {
+                            part.vessel.connection.Comm.isHome = false;
+                            part.vessel.connection.Comm.isControlSource = false;
+                        }
                     }
 
                     part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -powerReturned * TimeWarp.fixedDeltaTime);
@@ -363,6 +368,19 @@ namespace FNPlugin
                 return " has detected a glitch in the universe and recommends checking your installation of KSPInterstellar.";
             }
         }
+
+        public void UpdateNetwork()
+        {
+        }
+
+        public VesselControlState GetControlSourceState()
+        {
+            return (IsEnabled && IsPowered) ? VesselControlState.ProbeFull : VesselControlState.None;
+        }
+
+        public bool IsCommCapable() => vessel.connection.IsConnected;
+
+        string ICommNetControlSource.name => "AI Control";
     }
 }
 
