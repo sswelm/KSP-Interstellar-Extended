@@ -1486,8 +1486,8 @@ namespace FNPlugin.Wasteheat
 
             if (radiatorIsEnabled && canRadiateHeat)
             {
-                thermalPowerDissipStr = PluginHelper.getFormattedPowerString(_radiatedThermalPower, "0.0", "0.000");
-                thermalPowerConvStr = PluginHelper.getFormattedPowerString(_convectedThermalPower, "0.0", "0.000");
+                thermalPowerDissipStr = PluginHelper.getFormattedPowerString(_radiatedThermalPower);
+                thermalPowerConvStr = PluginHelper.getFormattedPowerString(_convectedThermalPower);
             }
             else
             {
@@ -1691,13 +1691,13 @@ namespace FNPlugin.Wasteheat
 
         protected virtual bool CanConvect()
         {
-            return vessel.altitude < vessel.mainBody.scienceValues.spaceAltitudeThreshold;
+            return (vessel.mainBody == null) ? false : vessel.mainBody.atmosphere && vessel.altitude < vessel.mainBody.atmosphereDepth;
         }
 
         protected virtual double AtmDensity()
         {
             // Another buff for titanium radiators - minimum of 50% effectiveness at the edge of space
-            return (_isGraphene ? 1 : 1.5) - (vessel.altitude / vessel.mainBody.scienceValues.spaceAltitudeThreshold);
+            return (_isGraphene ? 1 : 1.5) - (vessel.altitude / vessel.mainBody.atmosphereDepth);
         }
 
         private double CalculateInstantaneousRadTemp()

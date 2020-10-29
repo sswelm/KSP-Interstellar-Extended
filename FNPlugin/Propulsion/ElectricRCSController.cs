@@ -300,7 +300,7 @@ namespace FNPlugin
             if (attachedRCS != null && vessel.ActionGroups[KSPActionGroup.RCS]) 
             {
                 Fields["electricalPowerConsumptionStr"].guiActive = true;
-                electricalPowerConsumptionStr = power_recieved_f.ToString("0.00") + " MW / " + power_requested_f.ToString("0.00") + " MW";
+                electricalPowerConsumptionStr = PluginHelper.getFormattedPowerString(power_recieved_f) + " / " + PluginHelper.getFormattedPowerString(power_requested_f);
             } 
             else 
                 Fields["electricalPowerConsumptionStr"].guiActive = false;

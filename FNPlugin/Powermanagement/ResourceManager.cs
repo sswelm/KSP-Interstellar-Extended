@@ -55,45 +55,6 @@ namespace FNPlugin
         protected const int MAX_PRIORITY = 6;
         private const int POWER_HISTORY_LEN = 10;
 
-        public static string getPowerFormatString(double power)
-        {
-            var absPower = Math.Abs(power);
-            string suffix;
-
-            if (absPower >= 1e6)
-            {
-                suffix = " TW";
-                absPower *= 1e-6;
-                power *= 1e-6;
-            }
-            else if (absPower >= 1000)
-            {
-                suffix = " GW";
-                absPower *= 1e-3;
-                power *= 1e-3;
-            }
-            else if (absPower >= 1)
-            {
-                suffix = " MW";
-            }
-            else if (absPower >= 0.001)
-            {
-                suffix = " KW";
-                absPower *= 1e3;
-                power *= 1e3;
-            }
-            else
-            {
-                return (power * 1e6).ToString("0") + " W";
-            }
-            if (absPower > 100.0)
-                return power.ToString("0") + suffix;
-            else if (absPower > 10.0)
-                return power.ToString("0.0") + suffix;
-            else
-                return power.ToString("0.00") + suffix;
-        }
-
         protected readonly IDictionary<IResourceSuppliable, PowerDistribution> consumptionRequests;
         private readonly IDictionary<IResourceSupplier, PowerGenerated> productionTemp;
         private readonly IDictionary<IResourceSupplier, PowerGenerated> productionRequests;
@@ -283,19 +244,19 @@ namespace FNPlugin
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_TheoreticalSupply"), left_bold_label, GUILayout.ExpandWidth(true));//"Theoretical Supply"
-            GUILayout.Label(getPowerFormatString(StableResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(StableResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentSupply"), left_bold_label, GUILayout.ExpandWidth(true));//"Current Supply"
-            GUILayout.Label(getPowerFormatString(ResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(ResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
             DoWindowInitial();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_PowerDemand"), left_bold_label, GUILayout.ExpandWidth(true));//"Power Demand"
-            GUILayout.Label(getPowerFormatString(ResourceDemand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(ResourceDemand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -304,7 +265,7 @@ namespace FNPlugin
 
             GUIStyle net_poer_style = netChange < -0.001 ? red_label : green_label;
 
-            GUILayout.Label(getPowerFormatString(netChange), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(netChange), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
             if (!netUtilization.IsInfinityOrNaN() && (resourceName != FNRESOURCE_MEGAJOULES || netUtilization < 2.0 || ResourceSupply >= last.Demand))
@@ -354,8 +315,8 @@ namespace FNPlugin
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(production.Component, left_aligned_label, GUILayout.ExpandWidth(true));
-                    GUILayout.Label(getPowerFormatString(production.AverageSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
-                    GUILayout.Label(getPowerFormatString(production.MaximumSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                    GUILayout.Label(PluginHelper.getFormattedPowerString(production.AverageSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                    GUILayout.Label(PluginHelper.getFormattedPowerString(production.MaximumSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
                     GUILayout.EndHorizontal();
                 }
             }
@@ -398,7 +359,7 @@ namespace FNPlugin
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(consumption.Component, left_aligned_label, GUILayout.ExpandWidth(true));
-                    GUILayout.Label(getPowerFormatString(consumption.Sum), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                    GUILayout.Label(PluginHelper.getFormattedPowerString(consumption.Sum), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
                     GUILayout.Label(consumption.Priority.ToString(), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PRIORITY_WIDTH));
                     GUILayout.EndHorizontal();
                 }

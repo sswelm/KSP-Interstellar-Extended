@@ -2907,12 +2907,12 @@ namespace FNPlugin.Reactors
 
                 WindowReactorControlSpecificOverride();
 
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxPowerOutputLabel"), PluginHelper.getFormattedPowerString(ongoing_total_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(NormalisedMaximumPower, "0.0", "0.000"), bold_style, text_style);//"Current/Max Power Output"
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxPowerOutputLabel"), PluginHelper.getFormattedPowerString(ongoing_total_power_generated) + " / " + PluginHelper.getFormattedPowerString(NormalisedMaximumPower), bold_style, text_style);//"Current/Max Power Output"
 
                 if (ChargedPowerRatio < 1.0)
-                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxThermalPower"), PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower, "0.0", "0.000"), bold_style, text_style);//"Current/Max Thermal Power"
+                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxThermalPower"), PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated) + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower), bold_style, text_style);//"Current/Max Thermal Power"
                 if (ChargedPowerRatio > 0)
-                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxChargedPower"), PluginHelper.getFormattedPowerString(ongoing_charged_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower, "0.0", "0.000"), bold_style, text_style);//"Current/Max Charged Power"
+                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxChargedPower"), PluginHelper.getFormattedPowerString(ongoing_charged_power_generated) + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower), bold_style, text_style);//"Current/Max Charged Power"
 
                 if (CurrentFuelMode != null && current_fuel_variant.ReactorFuels != null)
                 {

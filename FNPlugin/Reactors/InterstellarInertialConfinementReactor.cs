@@ -202,11 +202,11 @@ namespace FNPlugin.Reactors
         {
             if (isChargingField.guiActive)
             {
-                accumulatedChargeStr = PluginHelper.getFormattedPowerString(accumulatedElectricChargeInMW, "0.0", "0.000")
-                    + " / " + PluginHelper.getFormattedPowerString(StartupPower, "0.0", "0.000");
+                accumulatedChargeStr = PluginHelper.getFormattedPowerString(accumulatedElectricChargeInMW)
+                    + " / " + PluginHelper.getFormattedPowerString(StartupPower);
             }
             else if (part.vessel.geeForce > startupMaximumGeforce)
-                accumulatedChargeStr = part.vessel.geeForce.ToString("0.000") + "g > " + startupMaximumGeforce + "g";
+                accumulatedChargeStr = part.vessel.geeForce.ToString("F2") + "g > " + startupMaximumGeforce.ToString("F2") + "g";
             else
                 accumulatedChargeStr = String.Empty;
 

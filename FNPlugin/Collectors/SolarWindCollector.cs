@@ -722,12 +722,10 @@ namespace FNPlugin.Collectors
             {
                 dLastPowerRatio = 0;
                 dPowerRequirementsMw = 0;
-            }            
+            }
 
-            // set the GUI string to state the number of KWs received if the MW requirements were lower than 2, otherwise in MW
-            strReceivedPower = dPowerRequirementsMw < 2
-                ? (dLastPowerRatio * dPowerRequirementsMw * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMw * 1000).ToString("0.0") + " KW"
-                : (dLastPowerRatio * dPowerRequirementsMw).ToString("0.0") + " MW / " + dPowerRequirementsMw.ToString("0.0") + " MW";
+            strReceivedPower = PluginHelper.getFormattedPowerString(dLastPowerRatio * dPowerRequirementsMw) + " / " +
+                PluginHelper.getFormattedPowerString(dPowerRequirementsMw);
 
             // get the shielding effect provided by the magnetosphere
             magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));

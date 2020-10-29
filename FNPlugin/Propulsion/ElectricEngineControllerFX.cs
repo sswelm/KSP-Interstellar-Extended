@@ -692,15 +692,15 @@ namespace FNPlugin
                 Fields[nameof(electricalPowerShareStr)].guiActive = true;
                 Fields[nameof(heatProductionStr)].guiActive = true;
                 Fields[nameof(efficiencyStr)].guiActive = true;
-                electricalPowerShareStr = (100.0 * _electricalShareF).ToString("0.00") + "%";
-                heatProductionStr = _heatProductionF.ToString("0.000") + " MW";
+                electricalPowerShareStr = _electricalShareF.ToString("P2");
+                heatProductionStr = PluginHelper.getFormattedPowerString(_heatProductionF);
 
                 if (CurrentPropellant == null)
                     efficiencyStr = "";
                 else
                 {
-                    efficiencyStr = (CurrentPropellantEfficiency * 100.0).ToString("0.00") + "%";
-                    thermalEfficiency = (ThermalEfficiency * 100).ToString("0.00") + "%";
+                    efficiencyStr = CurrentPropellantEfficiency.ToString("P2");
+                    thermalEfficiency = ThermalEfficiency.ToString("P2");
                 }
             }
             else
@@ -1052,7 +1052,7 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            return Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + ": " + maxPower.ToString("F1") + " MW";
+            return Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + ": " + PluginHelper.getFormattedPowerString(maxPower * powerReqMult);
         }
 
         public override string getResourceManagerDisplayName()
