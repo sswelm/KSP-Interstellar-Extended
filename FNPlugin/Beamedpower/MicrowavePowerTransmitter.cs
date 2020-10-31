@@ -533,8 +533,7 @@ namespace FNPlugin.Beamedpower
             atmosphericAbsorptionPercentage = activeBeamGenerator.atmosphericAbsorptionPercentage;
             waterAbsorptionPercentage = activeBeamGenerator.waterAbsorptionPercentage * moistureModifier;
 
-            double inputPower = nuclear_power + solar_power;
-            beamedpower = PluginHelper.getFormattedPowerString(inputPower);
+            beamedpower = PluginHelper.getFormattedPowerString((nuclear_power + solar_power) / GameConstants.ecPerMJ);
             solarCells = vessel.FindPartModulesImplementing<ISolarPower>();
         }
 
