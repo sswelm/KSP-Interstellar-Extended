@@ -1,4 +1,5 @@
-﻿using FNPlugin.Power;
+﻿using FNPlugin.Constants;
+using FNPlugin.Power;
 using FNPlugin.Wasteheat;
 using System;
 using UnityEngine;
@@ -121,13 +122,13 @@ namespace FNPlugin
                 float generatorMax = _field_max.GetValue<float>(moduleGenerator);
                 float generatorEfficiency = _field_efficiency.GetValue<float>(moduleGenerator);
 
-                efficiency = (generatorEfficiency * 100).ToString("F2") + " %";
+                efficiency = generatorEfficiency.ToString("P2");
 
                 //extract power otherwise we end up with double power
                 part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorRate * fixedDeltaTime);
 
-                var megajoulesRate = generatorRate / 1000;
-                var maxMegajoulesRate = generatorMax / 1000;
+                var megajoulesRate = generatorRate / GameConstants.ecPerMJ;
+                var maxMegajoulesRate = generatorMax / GameConstants.ecPerMJ;
 
                 _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorRate);
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megajoulesRate);

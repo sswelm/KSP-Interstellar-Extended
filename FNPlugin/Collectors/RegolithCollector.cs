@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using KSP.Localization;
 using System;
@@ -336,24 +337,15 @@ namespace FNPlugin.Collectors
 
             if (dConcentrationRegolith > 0 && (dRegolithSpareCapacity > 0))
             {
-                // calculate available power
-                double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime), 0);
-                double dNormalisedRevievedPowerMW = dPowerReceivedMW / TimeWarp.fixedDeltaTime;
+                // Determine available power, using EC if below 2 MW required
+                double powerreceivedMW = consumeMegajoules(dPowerRequirementsMW * TimeWarp.fixedDeltaTime,
+                    true, false, dPowerRequirementsMW < 2.0) / TimeWarp.fixedDeltaTime;
 
-                // if power requirement sufficiently low, retrieve power from KW source
-                if (dPowerRequirementsMW < 2 && dNormalisedRevievedPowerMW <= dPowerRequirementsMW)
-                {
-                    double dRequiredKW = (dPowerRequirementsMW - dNormalisedRevievedPowerMW) * 1000;
-                    double dReceivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
-                    dPowerReceivedMW += (dReceivedKW / 1000);
-                }
-
-                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : (float)(dPowerReceivedMW / dPowerRequirementsMW / TimeWarp.fixedDeltaTime);
+                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : powerreceivedMW / dPowerRequirementsMW;
 
                 // show in GUI
                 strCollectingStatus = Localizer.Format("#LOC_KSPIE_RegolithCollector_Collectingregolith");//"Collecting regolith"
             }
-
             else
             {
                 dLastPowerPercentage = 0;

@@ -1,3 +1,4 @@
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
 using FNPlugin.Reactors;
@@ -7,7 +8,6 @@ using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using TweakScale;
 using UnityEngine;
 
@@ -635,7 +635,7 @@ namespace FNPlugin
                         outputModuleResource.rate = maximumGeneratorPowerEC;
 
                     maximumGeneratorPowerEC = outputModuleResource.rate;
-                    maximumGeneratorPowerMJ = maximumGeneratorPowerEC / 1000;
+                    maximumGeneratorPowerMJ = maximumGeneratorPowerEC / GameConstants.ecPerMJ;
 
                     mockInputResource = new ModuleResource();
                     mockInputResource.name = outputModuleResource.name;
@@ -803,7 +803,7 @@ namespace FNPlugin
             else
                 maximumGeneratorPowerMJ = maximumPower * maxEfficiency * 0.6;
 
-            outputModuleResource.rate = maximumGeneratorPowerMJ * 1000;
+            outputModuleResource.rate = maximumGeneratorPowerMJ * GameConstants.ecPerMJ;
         }
 
         private PowerSourceSearchResult FindThermalPowerSource()
@@ -1225,7 +1225,7 @@ namespace FNPlugin
                 if (outputModuleResource != null)
                 {
                     currentPowerForGeneratorMJ = Math.Min(maximumGeneratorPowerMJ, electricdtps);
-                    outputModuleResource.rate = currentPowerForGeneratorMJ * 1000;
+                    outputModuleResource.rate = currentPowerForGeneratorMJ * GameConstants.ecPerMJ;
                     mockInputResource.rate = outputModuleResource.rate;
                 }
 

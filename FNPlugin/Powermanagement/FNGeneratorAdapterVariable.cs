@@ -1,4 +1,5 @@
-﻿using FNPlugin.Power;
+﻿using FNPlugin.Constants;
+using FNPlugin.Power;
 using KSP.Localization;
 using System;
 using UnityEngine;
@@ -200,7 +201,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnStart " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnStart " + e.ToString());
                 throw;
             }
         }
@@ -219,39 +220,23 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            try
-            {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-                if (moduleGenerator == null) return;
+            if (moduleGenerator == null) return;
 
-                active = true;
-                base.OnFixedUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdate " + e.Message);
-                throw;
-            }
+            active = true;
+            base.OnFixedUpdate();
         }
 
 
         public void FixedUpdate()
         {
-            try
-            {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-                if (moduleGenerator == null) return;
+            if (moduleGenerator == null) return;
 
-                if (!active)
-                    base.OnFixedUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.FixedUpdate " + e.Message);
-                throw;
-            }
+            if (!active)
+                base.OnFixedUpdate();
         }
 
         public override string getResourceManagerDisplayName()
@@ -270,70 +255,64 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            try
+            last_active_time = Planetarium.GetUniversalTime();
+
+            powerGeneratorPowerOutput = 0;
+            powerGeneratorPowerInput = 0;
+
+            if (moduleGenerator == null) return;
+
+            if (outputType == ResourceType.other) return;
+
+            if (!moduleGenerator.generatorIsActive && !moduleGenerator.isAlwaysActive)
             {
-                last_active_time = Planetarium.GetUniversalTime();
-
-                powerGeneratorPowerOutput = 0;
-                powerGeneratorPowerInput = 0;
-
-                if (moduleGenerator == null) return;
-
-                if (outputType == ResourceType.other) return;
-
-                if (!moduleGenerator.generatorIsActive && !moduleGenerator.isAlwaysActive)
-                {
-                    mockInputResource.rate = 0;
-                    supplyFNResourcePerSecondWithMax(0, 0, ResourceManager.FNRESOURCE_MEGAJOULES);
-                    return;
-                }
-
-                if (maintainsBuffer)
-                    resourceBuffers.UpdateBuffers();
-
-                if (maximumPowerGeneration != 0)
-                {
-                    currentMegajoulesDemand =  Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
-                    currentMegajoulesSupply = Math.Min(currentMegajoulesDemand, maximumPowerGeneration);
-                }
-
-                if (moduleInputResource != null)
-                {
-                    moduleInputResource.rate = currentMegajoulesSupply > 0 ? currentMegajoulesSupply : initialInputAmount;
-
-                    part.GetConnectedResourceTotals(moduleInputResource.id, out inputAmount, out inputMaxAmount);
-
-                    var availableRatio = Math.Min(1, inputAmount / (moduleInputResource.rate * fixedDeltaTime));
-
-                    currentMegajoulesSupply *= availableRatio;
-                    moduleInputResource.rate *= availableRatio;
-
-                    generatorInputRate = moduleInputResource.rate;
-                    powerGeneratorPowerInput = inputType == ResourceType.megajoule ? generatorInputRate : generatorInputRate / 1000;
-                }
-
-                if (moduleOutputResource != null)
-                {
-                    generatorOutputRateInElectricCharge = maximumPowerGeneration > 0
-                        ? currentMegajoulesSupply * (outputType == ResourceType.megajoule ? 1 : 1000 )
-                        : initialOutputAmount;
-
-                    if (maximumPowerGeneration > 0)
-                        moduleOutputResource.rate = 1 + generatorOutputRateInElectricCharge;
-                    else
-                        moduleOutputResource.rate = 1 + generatorOutputRateInElectricCharge;
-
-                    mockInputResource.rate = generatorOutputRateInElectricCharge;
-
-                    double generatorSupplyInMegajoules = outputType == ResourceType.megajoule ? generatorOutputRateInElectricCharge : generatorOutputRateInElectricCharge / 1000;
-
-                    powerGeneratorPowerOutput = supplyFNResourcePerSecondWithMax(generatorSupplyInMegajoules, generatorSupplyInMegajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
-                }
+                mockInputResource.rate = 0;
+                supplyFNResourcePerSecondWithMax(0, 0, ResourceManager.FNRESOURCE_MEGAJOULES);
+                return;
             }
-            catch (Exception e)
+
+            if (maintainsBuffer)
+                resourceBuffers.UpdateBuffers();
+
+            if (maximumPowerGeneration != 0)
             {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdateResourceSuppliable " + e.Message);
-                throw;
+                currentMegajoulesDemand =  Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
+                currentMegajoulesSupply = Math.Min(currentMegajoulesDemand, maximumPowerGeneration);
+            }
+
+            if (moduleInputResource != null)
+            {
+                moduleInputResource.rate = currentMegajoulesSupply > 0 ? currentMegajoulesSupply : initialInputAmount;
+
+                part.GetConnectedResourceTotals(moduleInputResource.id, out inputAmount, out inputMaxAmount);
+
+                var availableRatio = Math.Min(1, inputAmount / (moduleInputResource.rate * fixedDeltaTime));
+
+                currentMegajoulesSupply *= availableRatio;
+                moduleInputResource.rate *= availableRatio;
+
+                generatorInputRate = moduleInputResource.rate;
+                powerGeneratorPowerInput = inputType == ResourceType.megajoule ?
+                    generatorInputRate : generatorInputRate / GameConstants.ecPerMJ;
+            }
+
+            if (moduleOutputResource != null)
+            {
+                generatorOutputRateInElectricCharge = maximumPowerGeneration > 0
+                    ? currentMegajoulesSupply * (outputType == ResourceType.megajoule ? 1 : GameConstants.ecPerMJ)
+                    : initialOutputAmount;
+
+                if (maximumPowerGeneration > 0)
+                    moduleOutputResource.rate = 1 + generatorOutputRateInElectricCharge;
+                else
+                    moduleOutputResource.rate = 1 + generatorOutputRateInElectricCharge;
+
+                mockInputResource.rate = generatorOutputRateInElectricCharge;
+
+                double generatorSupplyInMegajoules = outputType == ResourceType.megajoule ?
+                    generatorOutputRateInElectricCharge : generatorOutputRateInElectricCharge / GameConstants.ecPerMJ;
+
+                powerGeneratorPowerOutput = supplyFNResourcePerSecondWithMax(generatorSupplyInMegajoules, generatorSupplyInMegajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
             }
         }
     }
