@@ -1,4 +1,5 @@
-﻿using FNPlugin.Refinery.Activity;
+﻿using FNPlugin.Constants;
+using FNPlugin.Refinery.Activity;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -213,32 +214,29 @@ namespace FNPlugin.Refinery
 
         public void Update()
         {
-            try
+            if (HighLogic.LoadedSceneIsEditor)
+                return;
+
+            if (_current_activity == null)
             {
-                if (HighLogic.LoadedSceneIsEditor)
-                    return;
-
-                if (_current_activity == null)
-                {
-                    powerSupply.DisplayName = part.partInfo.title;
-                    return;
-                }
-
-                powerSupply.DisplayName = part.partInfo.title + " (" + _current_activity.ActivityName + ")";
+                powerSupply.DisplayName = part.partInfo.title;
             }
-            catch (Exception e)
+            else
             {
-                Debug.LogError("[KSPI]: InterstellarRefineryController Exception " + e.Message);
+                powerSupply.DisplayName = part.partInfo.title + " (" + _current_activity.ActivityName + ")";
             }
         }
 
         public override void OnUpdate()
         {
-            status_str = Localizer.Format("#LOC_KSPIE_Refinery_Offline");//"Offline"
-
-            if (_current_activity == null) return;
-
-            status_str = _current_activity.Status;
+            if (_current_activity == null)
+            {
+                status_str = Localizer.Format("#LOC_KSPIE_Refinery_Offline");//"Offline"
+            }
+            else
+            {
+                status_str = _current_activity.Status;
+            }
         }
 
         public void FixedUpdate()
@@ -259,14 +257,14 @@ namespace FNPlugin.Refinery
                 ? powerRequest
                 : powerSupply.ConsumeMegajoulesPerSecond(powerRequest);
 
-
             var shortage = Math.Max(currentPowerReq - consumedPowerMW, 0);
 
             var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
 
-            var receivedElectricCharge = part.RequestResource("ElectricCharge", shortage * 1000 * fixedDeltaTime) / fixedDeltaTime;
+            var receivedElectricCharge = part.RequestResource("ElectricCharge", shortage *
+                GameConstants.ecPerMJ * fixedDeltaTime) / fixedDeltaTime;
 
-            consumedPowerMW += receivedElectricCharge / 1000;
+            consumedPowerMW += receivedElectricCharge / GameConstants.ecPerMJ;
 
             var power_ratio = currentPowerReq > 0 ? consumedPowerMW / currentPowerReq : 0;
 

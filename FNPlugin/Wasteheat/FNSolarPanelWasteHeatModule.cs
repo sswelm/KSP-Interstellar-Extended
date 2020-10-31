@@ -1,4 +1,6 @@
+using FNPlugin.Constants;
 using FNPlugin.Power;
+using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using System;
 using System.Collections.Generic;
@@ -130,8 +132,8 @@ namespace FNPlugin
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate * 0.001f : _solarPanel.chargeRate);
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * 1000);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate / GameConstants.ecPerMJ : _solarPanel.chargeRate);
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * GameConstants.ecPerMJ);
                 _resourceBuffers.Init(part);
             }
 

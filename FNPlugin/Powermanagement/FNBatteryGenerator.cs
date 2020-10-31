@@ -1,3 +1,4 @@
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using System;
 using System.Collections.Generic;
@@ -153,7 +154,7 @@ namespace FNPlugin.Powermanagement
                         if (currentFuelRatio < fuelRatio)
                             fuelRatio = currentFuelRatio;
 
-                        var currentBatterySupplyRemaining = currentFuelRatio / fixedDeltaTime / 1000;
+                        var currentBatterySupplyRemaining = currentFuelRatio / fixedDeltaTime / GameConstants.ecPerMJ;
                         if (currentBatterySupplyRemaining < batterySupplyRemaining)
                             batterySupplyRemaining = currentBatterySupplyRemaining;
 

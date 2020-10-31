@@ -1,4 +1,5 @@
-﻿using FNPlugin.Extensions;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -167,6 +168,42 @@ namespace FNPlugin
             manager.powerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
 
             return power_taken_per_second;
+        }
+
+        protected double consumeMegajoules(double requestedMJ, bool allowCapacitor = true, bool allowKilowattHour = false, bool allowEC = false)
+        {
+            const double KILOWATT_RATIO = GameConstants.ecPerMJ / GameConstants.SECONDS_IN_HOUR;
+
+            // First try to consume MJ from ResourceManager
+            double add, result = CheatOptions.InfiniteElectricity ? requestedMJ :
+                consumeFNResource(requestedMJ, ResourceManager.FNRESOURCE_MEGAJOULES);
+            requestedMJ -= result;
+
+            // Use MJ from storage such as super capacitors
+            if (requestedMJ > 0.0 && allowCapacitor)
+            {
+                add = part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, requestedMJ);
+                result += add;
+                requestedMJ -= add;
+            }
+
+            // Use KWH resource from batteries
+            if (requestedMJ > 0.0 && allowKilowattHour)
+            {
+                add = part.RequestResource("KilowattHour", requestedMJ * KILOWATT_RATIO) / KILOWATT_RATIO;
+                result += add;
+                requestedMJ -= add;
+            }
+
+            // If still no power, use any electric charge available
+            if (requestedMJ > 0.0 && allowEC)
+            {
+                add = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE,
+                    requestedMJ * GameConstants.ecPerMJ) / GameConstants.ecPerMJ;
+                result += add;
+            }
+
+            return result;
         }
 
         public double supplyFNResourceFixed(double supply, string resourceName)

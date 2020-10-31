@@ -1,4 +1,5 @@
-﻿using FNPlugin.Resources;
+﻿using FNPlugin.Powermanagement;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -476,17 +477,9 @@ namespace FNPlugin.Collectors
                 return 100;
 
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements;
-
-            // calculate the provided power and consume it
-            double dNormalisedRecievedPowerMW = consumeFNResourcePerSecond(dPowerRequirementsMW, ResourceManager.FNRESOURCE_MEGAJOULES);
-
-            // when the requirements are low enough, we can get the power needed from stock energy charge
-            if (dPowerRequirementsMW < 5 && dNormalisedRecievedPowerMW <= dPowerRequirementsMW)
-            {
-                double dRequiredKW = (dPowerRequirementsMW - dNormalisedRecievedPowerMW) * 1000;
-                double dReceivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * deltaTime) / deltaTime;
-                dNormalisedRecievedPowerMW += dReceivedKW / 1000;
-            }
+            // Determine available power, using EC if below 5 MW required
+            double dNormalisedRecievedPowerMW = consumeMegajoules(dPowerRequirementsMW * TimeWarp.fixedDeltaTime,
+                true, false, dPowerRequirementsMW < 5.0) / TimeWarp.fixedDeltaTime;
 
             // Workaround for some weird glitches where dNormalisedRecievedPowerMW gets slightly smaller than it should be during timewarping
             return dNormalisedRecievedPowerMW / dPowerRequirementsMW;

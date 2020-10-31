@@ -1,4 +1,5 @@
-﻿using FNPlugin.Extensions;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
 using FNPlugin.Microwave;
 using KSP.Localization;
 using System;
@@ -581,13 +582,12 @@ namespace FNPlugin.Beamedpower
                     requestedPower = Math.Min(Math.Min(power_capacity, availablePower) * powerTransmissionRatio, effectiveResourceThrotling * availablePower);
                 }
 
-                var receivedPower = CheatOptions.InfiniteElectricity
-                    ? requestedPower
-                    : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                double receivedPower = CheatOptions.InfiniteElectricity ? requestedPower :
+                    consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                nuclear_power += 1000 * transmissionEfficiencyRatio * receivedPower;
+                nuclear_power += GameConstants.ecPerMJ * transmissionEfficiencyRatio * receivedPower;
 
-                solar_power += 1000 * transmissionEfficiencyRatio * solarCells.Sum(m => m.SolarPower);
+                solar_power += GameConstants.ecPerMJ * transmissionEfficiencyRatio * solarCells.Sum(m => m.SolarPower);
 
                 // generate wasteheat for converting electric power to beamed power
                 if (!CheatOptions.IgnoreMaxTemperature)
