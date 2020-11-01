@@ -231,14 +231,18 @@ namespace FNPlugin
 
                 if (IsPowered)
                 {
-                    if (part.vessel != null && part.vessel.connection != null)
+                    part.isControlSource = Vessel.ControlLevel.FULL;
+
+                    if (vessel != null && vessel.connection != null)
                     {
                         vessel.connection.RegisterCommandSource(this);
 
-                        if (part.vessel.connection.Comm != null)
+                        part.isControlSource = Vessel.ControlLevel.FULL;
+
+                        if (vessel.connection.Comm != null)
                         {
-                            part.vessel.connection.Comm.isHome = true;
-                            part.vessel.connection.Comm.isControlSource = true;
+                            vessel.connection.Comm.isHome = true;
+                            vessel.connection.Comm.isControlSource = true;
                         }
                     }
                     
@@ -257,10 +261,12 @@ namespace FNPlugin
                     {
                         vessel.connection.UnregisterCommandSource(this);
 
+                        part.isControlSource = Vessel.ControlLevel.NONE;
+
                         if (vessel.connection.Comm != null)
                         {
-                            part.vessel.connection.Comm.isHome = false;
-                            part.vessel.connection.Comm.isControlSource = false;
+                            vessel.connection.Comm.isHome = false;
+                            vessel.connection.Comm.isControlSource = false;
                         }
                     }
 
