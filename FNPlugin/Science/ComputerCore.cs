@@ -94,7 +94,7 @@ namespace FNPlugin
         [KSPField]
         public double powerReqMult = 1;
         [KSPField]
-        public double activeAIControlDistance = 9.460525284e20;    // diameter of milkyway
+        public double activeAIControlDistance = 1.0e+13; // Distance from the Large Multi Bandwidth Dish Transciever
         [KSPField]
         public double inactiveAIControlDistance = 100000;
 
