@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using KSP.Localization;
 using System;
@@ -325,6 +326,7 @@ namespace FNPlugin.Collectors
         // the main collecting function
         private void CollectRegolith(double deltaTimeInSeconds, bool offlineCollecting)
         {
+            double dt = TimeWarp.fixedDeltaTime;
             dConcentrationRegolith = GetFinalConcentration();
             
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
@@ -336,24 +338,15 @@ namespace FNPlugin.Collectors
 
             if (dConcentrationRegolith > 0 && (dRegolithSpareCapacity > 0))
             {
-                // calculate available power
-                double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime), 0);
-                double dNormalisedRevievedPowerMW = dPowerReceivedMW / TimeWarp.fixedDeltaTime;
+                // Determine available power, using EC if below 2 MW required
+                double powerreceivedMW = consumeMegawatts(dPowerRequirementsMW, true,
+                    false, dPowerRequirementsMW < 2.0);
 
-                // if power requirement sufficiently low, retrieve power from KW source
-                if (dPowerRequirementsMW < 2 && dNormalisedRevievedPowerMW <= dPowerRequirementsMW)
-                {
-                    double dRequiredKW = (dPowerRequirementsMW - dNormalisedRevievedPowerMW) * 1000;
-                    double dReceivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
-                    dPowerReceivedMW += (dReceivedKW / 1000);
-                }
-
-                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : (float)(dPowerReceivedMW / dPowerRequirementsMW / TimeWarp.fixedDeltaTime);
+                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : powerreceivedMW / dPowerRequirementsMW;
 
                 // show in GUI
                 strCollectingStatus = Localizer.Format("#LOC_KSPIE_RegolithCollector_Collectingregolith");//"Collecting regolith"
             }
-
             else
             {
                 dLastPowerPercentage = 0;
@@ -380,9 +373,7 @@ namespace FNPlugin.Collectors
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
-            dResourceFlow = part.RequestResource(strRegolithResourceName, -dResourceChange);
-
-            dResourceFlow = -dResourceFlow / TimeWarp.fixedDeltaTime;
+            dResourceFlow = -part.RequestResource(strRegolithResourceName, -dResourceChange) / dt;
 
             /* This takes care of wasteheat production (but takes into account if waste heat mechanics weren't disabled).
              * It's affected by two properties of the drill part - its power requirements and waste heat production percentage.

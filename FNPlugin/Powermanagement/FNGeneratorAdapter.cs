@@ -1,4 +1,5 @@
-﻿using FNPlugin.Power;
+﻿using FNPlugin.Constants;
+using FNPlugin.Power;
 using System;
 using UnityEngine;
 
@@ -99,46 +100,30 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnStart " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnStart " + e.ToString());
                 throw;
             }
         }
 
         public override void OnFixedUpdate()
         {
-            try
-            {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-                if (_moduleGenerator == null) return;
+            if (_moduleGenerator == null) return;
 
-                active = true;
-                base.OnFixedUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdate " + e.Message);
-                throw;
-            }
+            active = true;
+            base.OnFixedUpdate();
         }
 
 
         public void FixedUpdate()
         {
-            try
-            {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-                if (_moduleGenerator == null) return;
+            if (_moduleGenerator == null) return;
 
-                if (!active)
-                    base.OnFixedUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdate " + e.Message);
-                throw;
-            }
+            if (!active)
+                base.OnFixedUpdate();
         }
 
         public override string getResourceManagerDisplayName()
@@ -154,27 +139,21 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            try
-            {
-                if (_moduleGenerator == null) return;
+            if (_moduleGenerator == null) return;
 
-                if (_outputType == ResourceType.other) return;
+            if (_outputType == ResourceType.other) return;
 
-                var generatorRate = _moduleOutputResource.rate;
-                _mockInputResource.rate = generatorRate;
+            var generatorRate = _moduleOutputResource.rate;
+            _mockInputResource.rate = generatorRate;
 
-                double generatorSupply = _outputType == ResourceType.megajoule ? generatorRate : generatorRate / 1000;
+            double generatorSupply = _outputType == ResourceType.megajoule ? generatorRate :
+                generatorRate / GameConstants.ecPerMJ;
 
-                if (maintainsBuffer)
-                    _resourceBuffers.UpdateBuffers();
+            if (maintainsBuffer)
+                _resourceBuffers.UpdateBuffers();
 
-                megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdateResourceSuppliable " + e.Message);
-                throw;
-            }
+            megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorSupply,
+                generatorSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
     }
 }

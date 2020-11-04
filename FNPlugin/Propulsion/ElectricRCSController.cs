@@ -1,13 +1,18 @@
-﻿using FNPlugin.Extensions;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
+using KSP.UI.Screens.DebugToolbar.Screens.Cheats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin 
+namespace FNPlugin
 {
     class ElectricRCSController : ResourceSuppliableModule 
     {
+        public const string GROUP = "InterstellarRCSModule";
+        public const string GROUP_TITLE = "#LOC_KSPIE_RCSModule_groupName";
+
         [KSPField(isPersistant = true)]
         public int fuel_mode;
         [KSPField(isPersistant = true)]
@@ -40,54 +45,44 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false)]
         public double maxStoredPower = 0;
 
-        [KSPField(groupName = InterstellarRCSModule.GROUP, groupDisplayName = InterstellarRCSModule.GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_HasSufficientPower")]//Is Powered
-        public bool hasSufficientPower = true;
-        [KSPField(groupName = InterstellarRCSModule.GROUP, groupDisplayName = InterstellarRCSModule.GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantName")]//Propellant Name
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_HasSufficientPower")]//Is Powered
+        public bool hasSufficientPower;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantName")]//Propellant Name
         public string propNameStr = "";
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantMaximumIsp")]//Propellant Maximum Isp
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantMaximumIsp")]//Propellant Maximum Isp
         public float maxPropellantIsp;
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantThrustMultiplier")]//Propellant Thrust Multiplier
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_PropellantThrustMultiplier")]//Propellant Thrust Multiplier
         public double currentThrustMultiplier = 1;
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_ThrustIspMultiplier")]//Thrust / ISP Mult
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_ThrustIspMultiplier")]//Thrust / ISP Mult
         public string thrustIspMultiplier = "";
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_BaseThrust", guiUnits = " kN")]//Base Thrust
-        public float baseThrust = 0;
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_CurrentTotalThrust", guiUnits = " kN")]//Current Total Thrust
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_CurrentTotalThrust", guiFormat = "F2", guiUnits = " kN")]//Current Total Thrust
         public float currentThrust;
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_Mass", guiFormat = "F3", guiUnits = " t")]//Mass
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_ElectricRCSController_Mass", guiFormat = "F3", guiUnits = " t")]//Mass
         public float partMass = 0;
 
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Consumption")]//Consumption
-        public string electricalPowerConsumptionStr = "";
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Efficiency")]//Efficiency
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Consumption")]//Consumption
+        public string powerConsumptionStr = "";
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Efficiency")]//Efficiency
         public string efficiencyStr = "";
-        [KSPField(groupName = InterstellarRCSModule.GROUP, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Power", advancedTweakable = true), UI_Toggle(disabledText = "#LOC_KSPIE_ElectricRCSController_Power_Off", enabledText = "#LOC_KSPIE_ElectricRCSController_Power_On", affectSymCounterparts = UI_Scene.All)]//Power--Off--On
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_Power", advancedTweakable = true), UI_Toggle(disabledText = "#LOC_KSPIE_ElectricRCSController_Power_Off", enabledText = "#LOC_KSPIE_ElectricRCSController_Power_On", affectSymCounterparts = UI_Scene.All)]//Power--Off--On
         public bool powerEnabled = true;
 
         // internal
         private AnimationState[] rcsStates;
-        private bool rcsIsOn;
-        private bool rcsPartActive;
 
-        [KSPField(guiActive = false)]
-        public double power_shortage;
-        [KSPField(guiActive = false)]
-        public double power_ratio = 1;
-        [KSPField(guiActive = false)]
-        public double power_requested_f = 0;
-        [KSPField(guiActive = false)]
-        public double additional_power_requested_f;
-        [KSPField(guiActive = false)]
-        public double power_recieved_f = 1;
-        [KSPField(guiActive = false)]
-        public double additional_power_recieved_f;
-
-        private List<ElectricEnginePropellant> _propellants;
+        private readonly IList<ElectricEnginePropellant> propellants;
         private ModuleRCSFX attachedRCS;
         private bool oldPowerEnabled;
         private bool delayedVerificationPropellant;
+        private BaseField powerConsumptionStrField;
 
-        public ElectricEnginePropellant Current_propellant { get; set; }
+        public ElectricEnginePropellant CurrentPropellant { get; set; }
+
+        public ElectricRCSController()
+        {
+            hasSufficientPower = true;
+            propellants = new List<ElectricEnginePropellant>(32);
+        }
 
         [KSPAction("Next Propellant")]
         public void ToggleNextPropellantAction(KSPActionParam param)
@@ -101,341 +96,321 @@ namespace FNPlugin
             TogglePreviousPropellantEvent();
         }
 
-        [KSPEvent(groupName = InterstellarRCSModule.GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_NextPropellant", active = true)]//Next Propellant
+        [KSPEvent(groupName = GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_NextPropellant", active = true)]//Next Propellant
         public void ToggleNextPropellantEvent()
         {
-            SwitchToNextPropellant(_propellants.Count);
+            SwitchToNextPropellant();
         }
 
-        [KSPEvent(groupName = InterstellarRCSModule.GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_PreviousPropellant", active = true)]//Previous Propellant
+        [KSPEvent(groupName = GROUP, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_PreviousPropellant", active = true)]//Previous Propellant
         public void TogglePreviousPropellantEvent()
         {
-            SwitchToPreviousPropellant(_propellants.Count);
+            SwitchToPreviousPropellant();
         }
 
-        protected void SwitchPropellant(bool next, int maxSwitching)
-        {
-            if (next)
-                SwitchToNextPropellant(maxSwitching);
-            else
-                SwitchToPreviousPropellant(maxSwitching);
-        }
-
-        protected void SwitchToNextPropellant(int maxSwitching)
-        {
-            fuel_mode++;
-            if (fuel_mode >= _propellants.Count)
-                fuel_mode = 0;
-
-            SetupPropellants(true, maxSwitching);
-        }
-
-        protected void SwitchToPreviousPropellant(int maxSwitching)
-        {
-            fuel_mode--;
-            if (fuel_mode < 0)
-                fuel_mode = _propellants.Count - 1;
-
-            SetupPropellants(false, maxSwitching);
-        }
-
-        private void SetupPropellants(bool moveNext = true, int maxSwitching = 0)
-        {
-            Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
-            fuel_mode_name = Current_propellant.PropellantName;
-
-            if ((Current_propellant.SupportedEngines & type) != type)
-            {
-                SwitchPropellant(moveNext, --maxSwitching);
-                return;
-            }
-
-            Propellant new_propellant = Current_propellant.Propellant;
-            if (HighLogic.LoadedSceneIsFlight)
-            {
-                // you can have any fuel you want in the editor but not in flight
-                var totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
-                if (!totalpartresources.Any() && maxSwitching > 0)
-                {
-                    SwitchPropellant(moveNext, --maxSwitching);
-                    return;
-                }
-            }
-
-            if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
-            {
-                var effectiveIspMultiplier = type == 2 ? Current_propellant.DecomposedIspMult : Current_propellant.IspMultiplier;
-
-                var moduleConfig = new ConfigNode("MODULE");
-
-                moduleConfig.AddValue("thrusterPower", attachedRCS.thrusterPower.ToString("0.000"));
-                moduleConfig.AddValue("resourceName", new_propellant.name);
-                moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
-
-                ConfigNode propellantConfigNode = moduleConfig.AddNode("PROPELLANT");
-                propellantConfigNode.AddValue("name", new_propellant.name);
-                propellantConfigNode.AddValue("ratio", "1");
-                propellantConfigNode.AddValue("DrawGauge", "True");
-                propellantConfigNode.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
-                attachedRCS.Load(propellantConfigNode);
-
-                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
-
-                var effectiveBaseIsp = hasSufficientPower ? maxIsp : minIsp;
-
-                maxPropellantIsp = (float)(effectiveBaseIsp * effectiveIspMultiplier * currentThrustMultiplier);
-
-                var atmosphereCurve = new ConfigNode("atmosphereCurve");
-                atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
-                if (type != 8)
-                {
-                    atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).ToString("0.000"));
-                    atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).ToString("0.000"));
-                }
-                else
-                    atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp).ToString("0.000"));
-
-                moduleConfig.AddNode(atmosphereCurve);
-
-                attachedRCS.Load(moduleConfig);
-            }
-            else if (maxSwitching > 0)
-            {
-                Debug.Log("ElectricRCSController SetupPropellants switching mode because no definition found for " + new_propellant.name);
-                SwitchPropellant(moveNext, --maxSwitching);
-                return;
-            }
-        }
-
-        [KSPAction("Toggle Power")]
-        public void TogglePowerAction(KSPActionParam param)
-        {
-            powerEnabled = !powerEnabled;
-
-            power_recieved_f = powerEnabled ? CheatOptions.InfiniteElectricity ? 1 : consumeFNResourcePerSecond(0.1, ResourceManager.FNRESOURCE_MEGAJOULES) : 0;
-            hasSufficientPower = power_recieved_f >= 0.09;
-            SetupPropellants();
-            currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
-        }
-
-        public override void OnStart(PartModule.StartState state) 
-        {
-            try
-            {
-                attachedRCS = this.part.FindModulesImplementing<ModuleRCSFX>().Skip(rcsIndex).FirstOrDefault();
-
-                // old legacy stuff
-                if (baseThrust == 0 && maxThrust > 0)
-                    baseThrust = maxThrust;
-
-                if (partMass == 0)
-                    partMass = part.mass;
-
-                if (String.IsNullOrEmpty(displayName))
-                    displayName = part.partInfo.title;
-
-                String[] resources_to_supply = { ResourceManager.FNRESOURCE_WASTEHEAT };
-                this.resources_to_supply = resources_to_supply;
-
-                oldPowerEnabled = powerEnabled;
-                efficiencyStr = (efficiency * 100).ToString() + "%";
-
-                if (!String.IsNullOrEmpty(AnimationName))
-                    rcsStates = PluginHelper.SetUpAnimation(AnimationName, this.part);
-
-                // initialize propellant
-                _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
-
-                delayedVerificationPropellant = true;
-                // find correct fuel mode index
-                if (!String.IsNullOrEmpty(fuel_mode_name))
-                {
-                    Debug.Log("[KSPI]: ElectricRCSController OnStart loaded fuelmode " + fuel_mode_name);
-                    Current_propellant = _propellants.FirstOrDefault(p => p.PropellantName == fuel_mode_name);
-                }
-                if (Current_propellant != null && _propellants.Contains(Current_propellant))
-                {
-                    fuel_mode = _propellants.IndexOf(Current_propellant);
-                    Debug.Log("[KSPI]: ElectricRCSController OnStart index of fuelmode " + Current_propellant.PropellantGUIName + " = " + fuel_mode);
-                }
-
-                base.OnStart(state);
-
-                Fields["electricalPowerConsumptionStr"].guiActive = showConsumption;
-
-                maxStoredPower = bufferMult * maxThrust * maxIsp * 9.81 / efficiency / 1000;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: ElectricRCSController OnStart Error: " + e.Message);
-                throw;
-            }
-         }
-
-        public void Update()
-        {
-            if (Current_propellant == null) return;
-
-            if (oldPowerEnabled != powerEnabled)
-            {
-                hasSufficientPower = powerEnabled;
-                SetupPropellants(true, 0);
-                oldPowerEnabled = powerEnabled;
-            }
-
-            propNameStr = Current_propellant.PropellantGUIName;
-
-            thrustIspMultiplier = maxPropellantIsp + "s / " + currentThrustMultiplier;
-        }
-
-        public override void OnUpdate() 
-        {
-            if (delayedVerificationPropellant)
-            {
-                delayedVerificationPropellant = false;
-                SetupPropellants(true, _propellants.Count);
-                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
-            }
-
-            if (attachedRCS != null && vessel.ActionGroups[KSPActionGroup.RCS]) 
-            {
-                Fields["electricalPowerConsumptionStr"].guiActive = true;
-                electricalPowerConsumptionStr = PluginHelper.getFormattedPowerString(power_recieved_f) + " / " + PluginHelper.getFormattedPowerString(power_requested_f);
-            } 
-            else 
-                Fields["electricalPowerConsumptionStr"].guiActive = false;
-
-            if (rcsStates == null) return;
-
-            rcsIsOn = this.vessel.ActionGroups.groups[3];
-
-            var moduleImplementingRcs = part.FindModuleImplementing<ModuleRCS>();
-            if (moduleImplementingRcs != null)
-            {
-                rcsPartActive = moduleImplementingRcs.isEnabled;
-            }
-
-            var rcsStatesCount = rcsStates.Count();
-            for (var i = 0; i < rcsStatesCount; i++)
-            {
-                var anim = rcsStates[i];
-                if (attachedRCS.rcsEnabled && rcsIsOn && rcsPartActive && anim.normalizedTime < 1) { anim.speed = 1; }
-                if (attachedRCS.rcsEnabled && rcsIsOn && rcsPartActive && anim.normalizedTime >= 1)
-                {
-                    anim.speed = 0;
-                    anim.normalizedTime = 1;
-                }
-                if ((!attachedRCS.rcsEnabled || !rcsIsOn || !rcsPartActive) && anim.normalizedTime > 0) { anim.speed = -1; }
-                if ((!attachedRCS.rcsEnabled || !rcsIsOn || !rcsPartActive) && anim.normalizedTime <= 0)
-                {
-                    anim.speed = 0;
-                    anim.normalizedTime = 0;
-                }
-            }
-        }
-
-        /// <summary>
-        /// FixedUpdate is also called when not activated
-        /// </summary>
+        // FixedUpdate is also called when not activated
         public void FixedUpdate()
         {
-            power_requested_f = 0;
-            power_recieved_f = 0;
-            power_shortage = 0;
-            additional_power_requested_f = 0;
-            additional_power_recieved_f = 0;
-
-            if (attachedRCS == null) return;
-
-            if (!HighLogic.LoadedSceneIsFlight) return;
-
-            currentThrust = attachedRCS.thrustForces.Sum(frc => frc);
-
-            if (!vessel.ActionGroups[KSPActionGroup.RCS]) return;
-
-            var forcesCount = attachedRCS.thrustForces.Count();
-
-            if (powerEnabled)
+            if (attachedRCS != null && HighLogic.LoadedSceneIsFlight && vessel.ActionGroups[
+                KSPActionGroup.RCS])
             {
-                if (CheatOptions.InfiniteElectricity)
+                double dt = TimeWarp.fixedDeltaTime;
+                bool powerConsumed = false;
+
+                var forces = attachedRCS.thrustForces;
+                int forcesCount = forces.Length;
+                currentThrust = 0.0f;
+                for (int i = 0; i < forcesCount; i++)
                 {
-                    power_ratio = 1;
+                    currentThrust += forces[i];
                 }
-                else
+
+                double received = 0.0, requested = 0.0;
+                if (powerEnabled)
                 {
-                    var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-
-                    if (currentThrust > 0)
+                    if (currentThrust > 0.0f)
                     {
-                        power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000 / Current_propellant.ThrustMultiplier;
-
-                        power_recieved_f = power_requested_f <= availablePower
-                           ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES)
-                           : 0;
-
-                        var final_received_power = power_recieved_f;
-                        if (power_recieved_f < power_requested_f)
-                        {
-                            power_shortage = power_requested_f - power_recieved_f;
-                            if (power_shortage <= storedPower)
-                            {
-                                final_received_power = power_requested_f;
-                                storedPower -= power_shortage;
-                            }
-                        }
-                        else
-                            power_shortage = 0;
-
-                        power_ratio = power_requested_f > 0 ? Math.Min(final_received_power / power_requested_f, 1) : 1;
+                        requested = 0.5 * powerMult * currentThrust * maxIsp * GameConstants.
+                            STANDARD_GRAVITY / (efficiency * 1000.0 * CurrentPropellant.
+                            ThrustMultiplier);
                     }
+                    received = consumeMegawatts(requested + Math.Min(requested, Math.Max(0.0,
+                        maxStoredPower - storedPower) / dt), true, false, false);
+                    supplyFNResourcePerSecond(received * (1.0 - efficiency), ResourceManager.
+                        FNRESOURCE_WASTEHEAT);
 
-                    additional_power_requested_f = Math.Max(maxStoredPower - storedPower, 0);
-                    if (additional_power_requested_f > 0 && additional_power_requested_f <= availablePower)
+                    double totalPower = storedPower + received * dt, energyNeed = requested *
+                        dt;
+                    if (totalPower >= energyNeed)
                     {
-                        power_requested_f += additional_power_requested_f;
-                        additional_power_recieved_f = consumeFNResourcePerSecond(additional_power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES);
-                        storedPower += additional_power_recieved_f;
+                        powerConsumed = true;
+                        totalPower -= energyNeed;
                     }
+                    storedPower = totalPower;
+                }
+                powerConsumptionStr = PluginHelper.getFormattedPowerString(received) + " / " +
+                    PluginHelper.getFormattedPowerString(requested);
 
-                    if (storedPower >= maxStoredPower)
-                        power_ratio = 1;
+                if (hasSufficientPower != powerConsumed)
+                {
+                    hasSufficientPower = powerConsumed;
+                    SetPropellant(true);
+                }
+            }
+        }
 
-                    var heatToProduce = (power_recieved_f + additional_power_recieved_f) * (1 - efficiency);
+        private void LoadConfig()
+        {
+            double effectiveIspMultiplier = (type == (int)ElectricEngineType.ARCJET) ?
+                CurrentPropellant.DecomposedIspMult : CurrentPropellant.IspMultiplier;
+            string propName = CurrentPropellant.Propellant.name;
 
-                    supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
-                }           
+            var moduleConfig = new ConfigNode("MODULE");
+            moduleConfig.AddValue("thrusterPower", attachedRCS.thrusterPower.
+                ToString("F3"));
+            moduleConfig.AddValue("resourceName", propName);
+            moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
+
+            var propellantConfigNode = moduleConfig.AddNode("PROPELLANT");
+            propellantConfigNode.AddValue("name", propName);
+            propellantConfigNode.AddValue("ratio", "1");
+            propellantConfigNode.AddValue("DrawGauge", "True");
+            propellantConfigNode.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
+            attachedRCS.Load(propellantConfigNode);
+
+            currentThrustMultiplier = hasSufficientPower ? CurrentPropellant.
+                ThrustMultiplier : CurrentPropellant.ThrustMultiplierCold;
+            
+            var effectiveBaseIsp = hasSufficientPower ? maxIsp : minIsp;
+            maxPropellantIsp = (float)(effectiveBaseIsp * effectiveIspMultiplier *
+                currentThrustMultiplier);
+
+            var atmosphereCurve = new ConfigNode("atmosphereCurve");
+            atmosphereCurve.AddValue("key", "0 " + maxPropellantIsp.ToString("F3"));
+            if (type == (int)ElectricEngineType.VACUUMTHRUSTER)
+            {
+                atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp).ToString("F3"));
             }
             else
             {
-                power_recieved_f = 0;
-                power_ratio = 0;
+                atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).
+                    ToString("F3"));
+                atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).
+                    ToString("F3"));
             }
 
-            if (hasSufficientPower && power_ratio <= 0.999 )
+            moduleConfig.AddNode(atmosphereCurve);
+            attachedRCS.Load(moduleConfig);
+            thrustIspMultiplier = currentThrustMultiplier.ToString("F2") + " / " +
+                maxPropellantIsp.ToString("F0") + " s";
+        }
+
+        public override void OnStart(StartState state) 
+        {
+            var rcs = part.FindModulesImplementing<ModuleRCSFX>();
+            int fm;
+            attachedRCS = (rcsIndex >= rcs.Count) ? null : rcs[rcsIndex];
+
+            if (partMass == 0)
+                partMass = part.mass;
+
+            resources_to_supply = new string[] { ResourceManager.FNRESOURCE_WASTEHEAT };
+
+            oldPowerEnabled = powerEnabled;
+            efficiencyStr = efficiency.ToString("P1");
+
+            if (!string.IsNullOrEmpty(AnimationName))
+                rcsStates = PluginHelper.SetUpAnimation(AnimationName, part);
+
+            // Only allow propellants that are compatible with this engine type
+            propellants.Clear();
+            foreach (var propellant in ElectricEnginePropellant.GetPropellantsEngineForType(
+                type))
             {
-                hasSufficientPower = false;
-                SetupPropellants();
-            }
-            else if (!hasSufficientPower && power_ratio > 0.999)
-            {
-                hasSufficientPower = true;
-                SetupPropellants();
+                if ((propellant.SupportedEngines & type) != 0)
+                {
+                    propellants.Add(propellant);
+                }
             }
 
-            // store any unused power
-            if (!hasSufficientPower && power_recieved_f > 0)
+            if (propellants.Count < 1)
             {
-                storedPower += power_requested_f;
+                Debug.LogError("[KSPI]: No propellants available for RCS type " + type + "!");
             }
+
+            delayedVerificationPropellant = true;
+            // find correct fuel mode index
+            if (!string.IsNullOrEmpty(fuel_mode_name))
+            {
+                foreach (var propellant in propellants)
+                {
+                    if (propellant.PropellantName == fuel_mode_name)
+                    {
+                        Debug.Log("[KSPI]: ElectricRCSController set fuel mode " +
+                            fuel_mode_name);
+                        CurrentPropellant = propellant;
+                        break;
+                    }
+                }
+            }
+
+            if (CurrentPropellant != null && (fm = propellants.IndexOf(CurrentPropellant)) >= 0)
+            {
+                fuel_mode = fm;
+            }
+            SetPropellant(true);
+
+            base.OnStart(state);
+
+            powerConsumptionStrField = Fields[nameof(powerConsumptionStr)];
+            powerConsumptionStrField.guiActive = showConsumption;
+
+            maxStoredPower = bufferMult * maxThrust * powerMult * maxIsp * GameConstants.
+                STANDARD_GRAVITY / (efficiency * 1000.0);
+        }
+
+        public override int getPowerPriority()
+        {
+            return 2;
         }
 
         public override string getResourceManagerDisplayName() 
         {
             return part.partInfo.title + " (" + propNameStr + ")";
         }
-        public override int getPowerPriority()
+
+        private void MovePropellant(bool moveNext)
         {
-            return 2;
+            if (moveNext)
+            {
+                fuel_mode++;
+                if (fuel_mode >= propellants.Count)
+                {
+                    fuel_mode = 0;
+                }
+            }
+            else
+            {
+                fuel_mode--;
+                if (fuel_mode < 0)
+                {
+                    fuel_mode = propellants.Count - 1;
+                }
+            }
+        }
+
+        public void OnEditorAttach()
+        {
+            delayedVerificationPropellant = true;
+        }
+
+        public override void OnUpdate()
+        {
+            bool rcsIsOn = vessel.ActionGroups[KSPActionGroup.RCS];
+
+            if (delayedVerificationPropellant)
+            {
+                delayedVerificationPropellant = false;
+                SetPropellant(true);
+            }
+
+            powerConsumptionStrField.guiActive = attachedRCS != null && rcsIsOn;
+
+            if (rcsStates != null)
+            {
+                bool rcsPartActive = false;
+
+                var moduleImplementingRcs = part.FindModuleImplementing<ModuleRCS>();
+                if (moduleImplementingRcs != null)
+                {
+                    rcsPartActive = moduleImplementingRcs.isEnabled;
+                }
+
+                int n = rcsStates.Length;
+                bool extend = attachedRCS.rcsEnabled && rcsIsOn && rcsPartActive;
+                for (var i = 0; i < n; i++)
+                {
+                    var anim = rcsStates[i];
+                    if (extend)
+                    {
+                        if (anim.normalizedTime >= 1.0f)
+                        {
+                            anim.normalizedTime = 1.0f;
+                            anim.speed = 0.0f;
+                        }
+                        else
+                            anim.speed = 1.0f;
+                    }
+                    else
+                    {
+                        if (anim.normalizedTime <= 0.0f)
+                        {
+                            anim.normalizedTime = 0.0f;
+                            anim.speed = 0.0f;
+                        }
+                        else
+                            anim.speed = -1.0f;
+                    }
+                }
+            }
+        }
+
+        private void SetPropellant(bool moveNext)
+        {
+            int attempts = propellants.Count;
+            do
+            {
+                CurrentPropellant = propellants[fuel_mode];
+                fuel_mode_name = CurrentPropellant.PropellantName;
+
+                var propellant = CurrentPropellant.Propellant;
+                string propName = propellant.name;
+                if ((!HighLogic.LoadedSceneIsFlight || part.GetConnectedResources(propName).
+                    Any()) && PartResourceLibrary.Instance.GetDefinition(propName) != null)
+                {
+                    propNameStr = CurrentPropellant.PropellantGUIName;
+                    LoadConfig();
+                    break;
+                }
+                else
+                {
+                    Debug.Log("[KSPI]: ElectricRCSController switching mode, cannot use " +
+                        propName);
+                    MovePropellant(moveNext);
+                }
+            } while (--attempts >= 0);
+        }
+
+        protected void SwitchToNextPropellant()
+        {
+            MovePropellant(true);
+            SetPropellant(true);
+        }
+
+        protected void SwitchToPreviousPropellant()
+        {
+            MovePropellant(false);
+            SetPropellant(false);
+        }
+
+        [KSPAction("Toggle Power")]
+        public void TogglePowerAction(KSPActionParam _)
+        {
+            powerEnabled = !powerEnabled;
+
+            SetPropellant(true);
+        }
+
+        public void Update()
+        {
+            if (CurrentPropellant == null) return;
+
+            if (oldPowerEnabled != powerEnabled)
+            {
+                hasSufficientPower = powerEnabled;
+                SetPropellant(true);
+                oldPowerEnabled = powerEnabled;
+            }
         }
     }
 }

@@ -2118,7 +2118,6 @@ namespace FNPlugin
 
             var alternatorPower = alternatorRatio * powerInputMegajoules * 0.001;
 
-            var alternatorSupplyRatio = alternatorPower / total_thermal_power_provided;
             var alternatorWasteheat = Math.Min(alternatorPower * AverageEfficiencyFraction, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES) * AverageEfficiencyFraction);
 
             supplyFNResourcePerSecond(alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
@@ -2129,8 +2128,8 @@ namespace FNPlugin
 
             if (outputModuleResource != null)
             {
-                outputModuleResource.rate = alternatorPower * 1000;
-                mockInputResource.rate = alternatorPower * -1000;
+                outputModuleResource.rate = alternatorPower * GameConstants.ecPerMJ;
+                mockInputResource.rate = alternatorPower * -GameConstants.ecPerMJ;
             }
         }
 

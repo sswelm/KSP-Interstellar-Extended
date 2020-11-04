@@ -223,7 +223,6 @@
     <Compile Include="Powermanagement\FNGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Science\ComputerCore.cs" />
-    <Compile Include="Propulsion\InterstellarRCSModule.cs" />
     <Compile Include="Propulsion\VistaEngineController.cs" />
     <Compile Include="Wasteheat\FNRadiator.cs" />
     <Compile Include="Powermanagement\FNGeneratorAdapter.cs" />

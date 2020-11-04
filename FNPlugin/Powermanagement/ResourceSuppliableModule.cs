@@ -1,4 +1,5 @@
-﻿using FNPlugin.Extensions;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,7 +75,7 @@ namespace FNPlugin
 
             double power_taken_fixed = Math.Max(Math.Min(power_fixed, availablePower * fixedDeltaTime), 0);
 
-            fnresource_supplied[resourcename] -= (power_taken_fixed / fixedDeltaTime);
+            fnresource_supplied[resourcename] -= power_taken_fixed / fixedDeltaTime;
             manager.powerDrawFixed(this, power_fixed, power_taken_fixed);
 
             return power_taken_fixed;
@@ -167,6 +168,45 @@ namespace FNPlugin
             manager.powerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
 
             return power_taken_per_second;
+        }
+
+        protected double consumeMegawatts(double requestedMW, bool allowCapacitor = true,
+            bool allowKilowattHour = false, bool allowEC = false, double fixedDeltaTime = 0)
+        {
+            const double KILOWATT_RATIO = GameConstants.ecPerMJ / GameConstants.SECONDS_IN_HOUR;
+            double dt = fixedDeltaTime > 0 ? fixedDeltaTime : TimeWarp.fixedDeltaTime;
+
+            // First try to consume MJ from ResourceManager
+            double add, result = CheatOptions.InfiniteElectricity ? requestedMW :
+                consumeFNResourcePerSecond(requestedMW, ResourceManager.FNRESOURCE_MEGAJOULES);
+            requestedMW -= result;
+
+            // Use MJ from storage such as super capacitors
+            if (requestedMW > 0.0 && allowCapacitor)
+            {
+                add = part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, requestedMW * dt) / dt;
+                result += add;
+                requestedMW -= add;
+            }
+
+            // Use KWH resource from batteries
+            if (requestedMW > 0.0 && allowKilowattHour)
+            {
+                add = part.RequestResource("KilowattHour", requestedMW * KILOWATT_RATIO * dt) /
+                    (KILOWATT_RATIO * dt);
+                result += add;
+                requestedMW -= add;
+            }
+
+            // If still no power, use any electric charge available
+            if (requestedMW > 0.0 && allowEC)
+            {
+                add = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE,
+                    requestedMW * GameConstants.ecPerMJ * dt) / (GameConstants.ecPerMJ * dt);
+                result += add;
+            }
+
+            return result;
         }
 
         public double supplyFNResourceFixed(double supply, string resourceName)

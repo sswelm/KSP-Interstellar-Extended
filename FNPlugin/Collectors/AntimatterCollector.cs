@@ -1,9 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
+using System;
+using System.Linq;
 
-namespace FNPlugin 
+namespace FNPlugin
 {
     class AntimatterCollector : ResourceSuppliableModule    
     {
@@ -76,15 +77,8 @@ namespace FNPlugin
                 return;
             }
 
-            var fixedPowerReqKW = powerReqKW * TimeWarp.fixedDeltaTime;
-            // first attemp to get power more megajoule network
-            var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity
-                ? fixedPowerReqKW
-                : consumeFNResource(fixedPowerReqKW * 0.001, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime) * 1000;
-            // alternativly attempt to use electric charge
-            if (fixedRecievedChargeKW <= fixedPowerReqKW)
-                fixedRecievedChargeKW += part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
-            var powerRatio = fixedPowerReqKW > 0 ? fixedRecievedChargeKW / fixedPowerReqKW : 0;
+            double receivedPowerKW = consumeMegawatts(powerReqKW / GameConstants.ecPerMJ, true, false, true) * GameConstants.ecPerMJ;
+            double powerRatio = powerReqKW > 0.0 ? receivedPowerKW / powerReqKW : 0.0;
             
             _effectiveFlux = powerRatio * flux;
             part.RequestResource(_antimatterDef.id, -_effectiveFlux * TimeWarp.fixedDeltaTime - _offlineResource, ResourceFlowMode.STACK_PRIORITY_SEARCH);

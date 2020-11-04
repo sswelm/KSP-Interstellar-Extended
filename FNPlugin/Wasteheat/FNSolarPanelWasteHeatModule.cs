@@ -1,3 +1,4 @@
+using FNPlugin.Constants;
 using FNPlugin.Power;
 using FNPlugin.Resources;
 using System;
@@ -20,23 +21,24 @@ namespace FNPlugin
     [KSPModule("Solar Panel Adapter")]
     class FNSolarPanelWasteHeatModule : ResourceSuppliableModule, ISolarPower
     {
-        [KSPField( guiActive = true,  guiName = "#LOC_KSPIE_SolarPanelWH_CurrentSolarPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat= "F5")]//Current Solar Power
-        public double megaJouleSolarPowerSupply;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_SolarPanelWH_MaximumSolarPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F5")]//Maximum Solar Power
-        public double solarMaxSupply;
-        [KSPField(guiActive = false, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
+        public const string GROUP = "FNSolarPanelWasteHeatModule";
+        public const string GROUP_TITLE = "Interstellar Solar Generator";
+
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_SolarPanelWH_CurrentSolarPower")]//Current Solar Power
+        public string mjSolarSupply;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_SolarPanelWH_MaximumSolarPower")]//Maximum Solar Power
+        public string mjMaxSupply;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
         public double astronomicalUnit;
 
+        [KSPField]
+        public double solarMaxSupply;
         [KSPField]
         public string resourceName;
         [KSPField]
         public double solar_supply;
         [KSPField]
         public float chargeRate;
-        [KSPField]
-        public float efficiencyMult;
-        [KSPField]
-        public double _efficMult;
         [KSPField]
         public double sunAOA;
         [KSPField]
@@ -53,10 +55,6 @@ namespace FNPlugin
         [KSPField]
         public double scale = 1;
         [KSPField]
-        double maxSupply;
-        [KSPField]
-        double solarRate;
-        [KSPField]
         public double outputResourceRate;
         [KSPField]
         public double outputResourceCurrentRequest;
@@ -67,8 +65,8 @@ namespace FNPlugin
         ResourceType _outputType = 0;
         List<StarLight> _stars;
 
-        private BaseField _megaJouleSolarPowerSupplyField;
-        private BaseField _solarMaxSupplyField;
+        private BaseField _mjSolarSupplyField;
+        private BaseField _mjMaxSupplyField;
         private BaseField _fieldKerbalismNominalRate;
         private BaseField _fieldKerbalismPanelStatus;
 
@@ -83,8 +81,8 @@ namespace FNPlugin
         {
             if (state == StartState.Editor) return;
 
-            _megaJouleSolarPowerSupplyField = Fields[nameof(megaJouleSolarPowerSupply)];
-            _solarMaxSupplyField = Fields[nameof(solarMaxSupply)];
+            _mjSolarSupplyField = Fields[nameof(mjSolarSupply)];
+            _mjMaxSupplyField = Fields[nameof(mjMaxSupply)];
 
             if (part.Modules.Contains("SolarPanelFixer"))
             {
@@ -130,8 +128,8 @@ namespace FNPlugin
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate * 0.001f : _solarPanel.chargeRate);
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * 1000);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate / GameConstants.ecPerMJ : _solarPanel.chargeRate);
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * GameConstants.ecPerMJ);
                 _resourceBuffers.Init(part);
             }
 
@@ -168,11 +166,11 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            if (_megaJouleSolarPowerSupplyField != null)
-                _megaJouleSolarPowerSupplyField.guiActive = solarMaxSupply > 0;
+            if (_mjSolarSupplyField != null)
+                _mjSolarSupplyField.guiActive = solarMaxSupply > 0;
 
-            if (_solarMaxSupplyField != null)
-                _solarMaxSupplyField.guiActive = solarMaxSupply > 0;
+            if (_mjMaxSupplyField != null)
+                _mjMaxSupplyField.guiActive = solarMaxSupply > 0;
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
@@ -205,15 +203,13 @@ namespace FNPlugin
             if (_outputType == ResourceType.other) return;
 
             chargeRate = _solarPanel.chargeRate;
-            efficiencyMult = _solarPanel.efficiencyMult;
-            _efficMult = _solarPanel._efficMult;
 
-            calculatedEfficency = _solarPanel._efficMult > 0
-                ? _solarPanel._efficMult
-                : _solarPanel.temperatureEfficCurve.Evaluate((float)part.skinTemperature) * _solarPanel.timeEfficCurve.Evaluate((float)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * _solarPanel.efficiencyMult;
+            double age = (Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05;
+            calculatedEfficency = _solarPanel._efficMult > 0 ? _solarPanel._efficMult :
+                _solarPanel.temperatureEfficCurve.Evaluate((float)part.skinTemperature) *
+                _solarPanel.timeEfficCurve.Evaluate((float)age) * _solarPanel.efficiencyMult;
 
-            maxSupply = 0;
-            solarRate = 0;
+            double maxSupply = 0.0, solarRate = 0.0;
             sunAOA = 0;
             CalculateSolarFlowRate(calculatedEfficency / scale, ref maxSupply, ref solarRate);
 
@@ -230,10 +226,11 @@ namespace FNPlugin
             }
 
             // provide power to supply manager
-            solar_supply = _outputType == ResourceType.megajoule ? solarRate : solarRate * 0.001;
-            solarMaxSupply = _outputType == ResourceType.megajoule ? maxSupply : maxSupply * 0.001;
+            solar_supply = _outputType == ResourceType.megajoule ? solarRate : solarRate / GameConstants.ecPerMJ;
+            solarMaxSupply = _outputType == ResourceType.megajoule ? maxSupply : maxSupply / GameConstants.ecPerMJ;
 
-            megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+            mjSolarSupply = PluginHelper.getFormattedPowerString(supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES));
+            mjMaxSupply = PluginHelper.getFormattedPowerString(solarMaxSupply);
         }
 
         private void CalculateSolarFlowRate(double efficiency, ref double maximumSupply, ref double solarPowerRate)

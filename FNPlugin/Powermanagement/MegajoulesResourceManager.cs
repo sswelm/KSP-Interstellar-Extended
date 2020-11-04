@@ -1,4 +1,5 @@
-﻿using FNPlugin.Extensions;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
 using KSP.Localization;
 using System;
 using UnityEngine;
@@ -7,7 +8,6 @@ namespace FNPlugin.Powermanagement
 {
     internal class MegajoulesResourceManager : ResourceManager
     {
-        private const double EC_PER_MJ = 1000.0;
         private readonly PartResourceDefinition electricResourceDefinition;
 
         private double lastECNeeded;
@@ -66,12 +66,12 @@ namespace FNPlugin.Powermanagement
 
         private void SupplyEC(double timeWarpDT, double ecToSupply)
         {
-            ecToSupply = Math.Min(ecToSupply, current.Supply * EC_PER_MJ * timeWarpDT);
-            double powerConverted = part.RequestResource(electricResourceDefinition.id, -ecToSupply) / -EC_PER_MJ / timeWarpDT;
+            ecToSupply = Math.Min(ecToSupply, current.Supply * GameConstants.ecPerMJ * timeWarpDT);
+            double powerConverted = part.RequestResource(electricResourceDefinition.id, -ecToSupply) / -GameConstants.ecPerMJ / timeWarpDT;
             current.Supply -= powerConverted;
             current.StableSupply -= powerConverted;
             current.TotalSupplied += powerConverted;
-            current.Demand += ecToSupply / EC_PER_MJ / timeWarpDT;
+            current.Demand += ecToSupply / GameConstants.ecPerMJ / timeWarpDT;
             mjConverted += powerConverted;
         }
 
@@ -94,7 +94,7 @@ namespace FNPlugin.Powermanagement
                 else
                 {
                     // Add a demand for the difference in EC only
-                    double demand = (ecNeeded - lastECNeeded) / EC_PER_MJ / timeWarpDT;
+                    double demand = (ecNeeded - lastECNeeded) / GameConstants.ecPerMJ / timeWarpDT;
                     current.Demand += demand;
                     mjConverted += demand;
                 }

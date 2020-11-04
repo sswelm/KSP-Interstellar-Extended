@@ -703,14 +703,6 @@ namespace FNPlugin.Collectors
                 // calculate available power
                 var receivedPowerMw = consumeFNResourcePerSecond(dPowerRequirementsMw * heliumRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                // if power requirement sufficiently low, retreive power from KW source
-                //if (dPowerRequirementsMw < 2 && revievedPowerMw <= dPowerRequirementsMw)
-                //{
-                //    var requiredKw = (dPowerRequirementsMw - revievedPowerMw) * 1000;
-                //    var receivedKw = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, heliumRatio * requiredKw * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
-                //    revievedPowerMw += (receivedKw * 0.001);
-                //}
-
                 dLastPowerRatio = offlineCollecting ? dLastPowerRatio : (dPowerRequirementsMw > 0 ? receivedPowerMw / dPowerRequirementsMw : 0);
 
                 supplyManagedFNResourcePerSecond(dWasteheatProductionMw * dLastPowerRatio, ResourceManager.FNRESOURCE_WASTEHEAT);

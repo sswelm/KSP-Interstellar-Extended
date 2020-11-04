@@ -58,7 +58,7 @@ namespace FNPlugin
         }
     }
 
-    class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule, CommNet.ICommNetControlSource
+    class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule, CommNet.ICommNetControlSource, IRelayEnabler
     {
         // Persistent
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Name")]//Name
@@ -94,7 +94,7 @@ namespace FNPlugin
         [KSPField]
         public double powerReqMult = 1;
         [KSPField]
-        public double activeAIControlDistance = 9.460525284e20;    // diameter of milkyway
+        public double activeAIControlDistance = 1.0e+13; // Distance from the Large Multi Bandwidth Dish Transciever
         [KSPField]
         public double inactiveAIControlDistance = 100000;
 
@@ -231,14 +231,18 @@ namespace FNPlugin
 
                 if (IsPowered)
                 {
-                    if (part.vessel != null && part.vessel.connection != null)
+                    part.isControlSource = Vessel.ControlLevel.FULL;
+
+                    if (vessel != null && vessel.connection != null)
                     {
                         vessel.connection.RegisterCommandSource(this);
 
-                        if (part.vessel.connection.Comm != null)
+                        part.isControlSource = Vessel.ControlLevel.FULL;
+
+                        if (vessel.connection.Comm != null)
                         {
-                            part.vessel.connection.Comm.isHome = true;
-                            part.vessel.connection.Comm.isControlSource = true;
+                            vessel.connection.Comm.isHome = true;
+                            vessel.connection.Comm.isControlSource = true;
                         }
                     }
                     
@@ -257,10 +261,12 @@ namespace FNPlugin
                     {
                         vessel.connection.UnregisterCommandSource(this);
 
+                        part.isControlSource = Vessel.ControlLevel.NONE;
+
                         if (vessel.connection.Comm != null)
                         {
-                            part.vessel.connection.Comm.isHome = false;
-                            part.vessel.connection.Comm.isControlSource = false;
+                            vessel.connection.Comm.isHome = false;
+                            vessel.connection.Comm.isControlSource = false;
                         }
                     }
 
@@ -369,6 +375,9 @@ namespace FNPlugin
             }
         }
 
+        // This implements the ICommNetControlSource interface, and is used for determining control of the vessel
+        // in the CommNetVessel code.
+        string ICommNetControlSource.name => "AI Control";
         public void UpdateNetwork()
         {
         }
@@ -380,7 +389,27 @@ namespace FNPlugin
 
         public bool IsCommCapable() => vessel.connection.IsConnected;
 
-        string ICommNetControlSource.name => "AI Control";
+
+        // IRelayEnabler documentation: 
+        // Any module that implements this interface can make all antennae, not just those of type RELAY, work as a relay.
+
+        // This allows f.e. the XFELT antennas to be used as a RELAY while in AI mode. This will be useful for Galaxies
+        // Unbound and setting up Interstellar relay networks (under the stock commnet system, and maybe commnet constellations)
+
+        public bool CanRelay() => IsEnabled && IsPowered;
+
+        public bool CanRelayUnloaded(ProtoPartModuleSnapshot mSnap)
+        {
+            bool Is_Enabled, Is_Powered;
+
+            Is_Enabled = Is_Powered = false;
+
+            if(!mSnap.moduleValues.TryGetValue(nameof(ComputerCore.IsEnabled), ref Is_Enabled)) return false;
+            if(!mSnap.moduleValues.TryGetValue(nameof(ComputerCore.IsPowered), ref Is_Powered)) return false;
+
+            return Is_Enabled && Is_Powered;
+        }
+
     }
 }
 

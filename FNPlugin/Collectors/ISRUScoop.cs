@@ -4,6 +4,8 @@ using System;
 using System.Linq;
 using UnityEngine;
 using KSP.Localization;
+using FNPlugin.Powermanagement;
+using FNPlugin.Constants;
 
 namespace FNPlugin 
 {
@@ -245,7 +247,7 @@ namespace FNPlugin
             else if (resourceDisplayName == "Helium")
                 rescourceFraction += heliumTax;
 
-            densityFractionOfUpperAthmosphere = (upperatmosphereDensity * 100).ToString("0.000") + "%";
+            densityFractionOfUpperAthmosphere = upperatmosphereDensity.ToString("P3");
             rescourcePercentage = rescourceFraction * 100;
             if (rescourceFraction <= 0 || vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
             {
@@ -256,31 +258,18 @@ namespace FNPlugin
                 return;
             }
 
-            double airspeed = part.vessel.srf_velocity.magnitude + 40;
-            double air = airspeed * (airDensity / 1000) * scoopair / resourcedensity;
+            double airspeed = part.vessel.srf_velocity.magnitude + 40.0;
+            double air = airspeed * airDensity * 0.001 * scoopair / resourcedensity;
             double scoopedAtm = air * rescourceFraction;
-            double powerrequirementsMW = (scoopair / 0.15) * 6 * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
+            double powerrequirementsMW = 40.0 * scoopair * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
 
             if (scoopedAtm > 0 && part.GetResourceSpareCapacity(resourceStoragename) > 0)
             {
-                var powerRequest = powerrequirementsMW * TimeWarp.fixedDeltaTime;
+                // Determine available power, using EC if below 2 MW required
+                double powerreceivedMW = consumeMegawatts(powerrequirementsMW, true,
+                    false, powerrequirementsMW < 2.0);
 
-                // calculate available power
-                double powerreceivedMW =  CheatOptions.InfiniteElectricity 
-                    ? powerRequest
-                    : Math.Max(consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime), 0);
-
-                double normalisedRevievedPowerMW = powerreceivedMW / TimeWarp.fixedDeltaTime;
-
-                // if power requirement sufficiently low, retreive power from KW source
-                if (powerrequirementsMW < 2 && normalisedRevievedPowerMW <= powerrequirementsMW)
-                {
-                    var requiredKW = (powerrequirementsMW - normalisedRevievedPowerMW) * 1000;
-                    var recievedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, requiredKW * TimeWarp.fixedDeltaTime);
-                    powerreceivedMW += (recievedKW / 1000);
-                }
-
-                last_power_percentage = offlineCollecting ? last_power_percentage : powerreceivedMW / powerrequirementsMW / TimeWarp.fixedDeltaTime;
+                last_power_percentage = offlineCollecting ? last_power_percentage : powerreceivedMW / powerrequirementsMW;
             }
             else
             {
