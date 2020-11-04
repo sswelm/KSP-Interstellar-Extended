@@ -670,6 +670,7 @@ namespace FNPlugin
 
             if (chargeStatus > 0 && antimatterResource.amount > _minimumAntimatterAmount)
             {
+                // chargeStatus is in seconds
                 chargeStatus -= vessel.packed ? 0.05f : TimeWarp.fixedDeltaTime;
             }
 
@@ -681,11 +682,12 @@ namespace FNPlugin
 
             effectivePowerNeeded = chargeNeeded * powerModifier;
 
-            if (effectivePowerNeeded > 0)
+            if (effectivePowerNeeded > 0.0)
             {
-                double powerMultiplier = chargeStatus >= maxCharge ? 0.5 : 1;
-                double powerRequest = powerMultiplier * 2.0 * effectivePowerNeeded * TimeWarp.fixedDeltaTime;
-                double chargeToAdd = consumeMegajoules(powerRequest / GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ;
+                double powerRequest = (chargeStatus >= maxCharge ? 1.0 : 2.0) *
+                    effectivePowerNeeded * TimeWarp.fixedDeltaTime;
+                double chargeToAdd = consumeMegawatts(powerRequest / GameConstants.ecPerMJ,
+                    true, true, true) * GameConstants.ecPerMJ / effectivePowerNeeded;
                 chargeStatus += chargeToAdd;
 
                 if (chargeToAdd >= TimeWarp.fixedDeltaTime)

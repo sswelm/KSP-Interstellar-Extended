@@ -77,9 +77,8 @@ namespace FNPlugin
                 return;
             }
 
-            double fixedPowerReqKW = powerReqKW * TimeWarp.fixedDeltaTime;
-            double fixedReceivedChargeKW = consumeMegajoules(fixedPowerReqKW / GameConstants.ecPerMJ, true, false, true) * GameConstants.ecPerMJ;
-            double powerRatio = fixedPowerReqKW > 0.0 ? fixedReceivedChargeKW / fixedPowerReqKW : 0.0;
+            double receivedPowerKW = consumeMegawatts(powerReqKW / GameConstants.ecPerMJ, true, false, true) * GameConstants.ecPerMJ;
+            double powerRatio = powerReqKW > 0.0 ? receivedPowerKW / powerReqKW : 0.0;
             
             _effectiveFlux = powerRatio * flux;
             part.RequestResource(_antimatterDef.id, -_effectiveFlux * TimeWarp.fixedDeltaTime - _offlineResource, ResourceFlowMode.STACK_PRIORITY_SEARCH);

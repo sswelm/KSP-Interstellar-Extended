@@ -240,8 +240,8 @@ namespace FNPlugin
             {
                 UpdateElectricChargeBuffer(Math.Max(currentPowerReq, 0.1 * powerReqKW));
 
-                recievedPowerKW = consumeMegajoules(currentPowerReq * fixedDeltaTime /
-                    GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ / fixedDeltaTime;
+                recievedPowerKW = consumeMegawatts(currentPowerReq /
+                    GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ;
             }
             else
                 recievedPowerKW = 0;
