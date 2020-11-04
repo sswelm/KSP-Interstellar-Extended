@@ -468,7 +468,7 @@ namespace FNPlugin.Collectors
         /// <summary>
         /// Helper function to calculate whether the extractor is getting enough power.
         /// It also takes care of the power consumption.
-        /// Returns true if there's enough power (or the Cheat Option Inifinite Electricity is ON).
+        /// Returns true if there's enough power (or the Cheat Option Infinite Electricity is ON).
         /// </summary>
         /// <returns>Double indicating how much power is available to the drill</returns>
         private double HasEnoughPower(double deltaTime)
@@ -478,8 +478,8 @@ namespace FNPlugin.Collectors
 
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements;
             // Determine available power, using EC if below 5 MW required
-            double dNormalisedRecievedPowerMW = consumeMegajoules(dPowerRequirementsMW * TimeWarp.fixedDeltaTime,
-                true, false, dPowerRequirementsMW < 5.0) / TimeWarp.fixedDeltaTime;
+            double dNormalisedRecievedPowerMW = consumeMegawatts(dPowerRequirementsMW,
+                true, false, dPowerRequirementsMW < 5.0);
 
             // Workaround for some weird glitches where dNormalisedRecievedPowerMW gets slightly smaller than it should be during timewarping
             return dNormalisedRecievedPowerMW / dPowerRequirementsMW;

@@ -258,16 +258,16 @@ namespace FNPlugin
                 return;
             }
 
-            double airspeed = part.vessel.srf_velocity.magnitude + 40;
-            double air = airspeed * (airDensity / 1000) * scoopair / resourcedensity;
+            double airspeed = part.vessel.srf_velocity.magnitude + 40.0;
+            double air = airspeed * airDensity * 0.001 * scoopair / resourcedensity;
             double scoopedAtm = air * rescourceFraction;
-            double powerrequirementsMW = (scoopair / 0.15) * 6 * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
+            double powerrequirementsMW = 40.0 * scoopair * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
 
             if (scoopedAtm > 0 && part.GetResourceSpareCapacity(resourceStoragename) > 0)
             {
                 // Determine available power, using EC if below 2 MW required
-                double powerreceivedMW = consumeMegajoules(powerrequirementsMW * TimeWarp.fixedDeltaTime,
-                    true, false, powerrequirementsMW < 2.0) / TimeWarp.fixedDeltaTime;
+                double powerreceivedMW = consumeMegawatts(powerrequirementsMW, true,
+                    false, powerrequirementsMW < 2.0);
 
                 last_power_percentage = offlineCollecting ? last_power_percentage : powerreceivedMW / powerrequirementsMW;
             }

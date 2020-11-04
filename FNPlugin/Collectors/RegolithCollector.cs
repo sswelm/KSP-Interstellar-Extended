@@ -326,6 +326,7 @@ namespace FNPlugin.Collectors
         // the main collecting function
         private void CollectRegolith(double deltaTimeInSeconds, bool offlineCollecting)
         {
+            double dt = TimeWarp.fixedDeltaTime;
             dConcentrationRegolith = GetFinalConcentration();
             
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
@@ -338,8 +339,8 @@ namespace FNPlugin.Collectors
             if (dConcentrationRegolith > 0 && (dRegolithSpareCapacity > 0))
             {
                 // Determine available power, using EC if below 2 MW required
-                double powerreceivedMW = consumeMegajoules(dPowerRequirementsMW * TimeWarp.fixedDeltaTime,
-                    true, false, dPowerRequirementsMW < 2.0) / TimeWarp.fixedDeltaTime;
+                double powerreceivedMW = consumeMegawatts(dPowerRequirementsMW, true,
+                    false, dPowerRequirementsMW < 2.0);
 
                 dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : powerreceivedMW / dPowerRequirementsMW;
 
@@ -372,9 +373,7 @@ namespace FNPlugin.Collectors
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
-            dResourceFlow = part.RequestResource(strRegolithResourceName, -dResourceChange);
-
-            dResourceFlow = -dResourceFlow / TimeWarp.fixedDeltaTime;
+            dResourceFlow = -part.RequestResource(strRegolithResourceName, -dResourceChange) / dt;
 
             /* This takes care of wasteheat production (but takes into account if waste heat mechanics weren't disabled).
              * It's affected by two properties of the drill part - its power requirements and waste heat production percentage.
