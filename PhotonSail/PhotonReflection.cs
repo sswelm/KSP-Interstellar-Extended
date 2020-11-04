@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using KSP.Localization;
+using PhotonSail;
 
 namespace FNPlugin.Beamedpower
 {

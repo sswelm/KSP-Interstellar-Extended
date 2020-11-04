@@ -1,81 +1,87 @@
-﻿using FNPlugin.Constants;
-using FNPlugin.Extensions;
-using FNPlugin.Resources;
-using FNPlugin.Beamedpower;
-using FNPlugin;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using TweakScale;
 using UnityEngine;
 
-namespace FNPlugin.Beamedpower
+namespace PhotonSail
 {
     class TechnologyHelper
     {
-        private static Dictionary<string, PartUpgradeHandler.Upgrade> partUpgradeByName;
+        private static Dictionary<string, PartUpgradeHandler.Upgrade> _partUpgradeByName;
 
         public static Dictionary<string, PartUpgradeHandler.Upgrade> PartUpgradeByName
         {
             get
             {
-                if (partUpgradeByName == null)
+                if (_partUpgradeByName != null)
+                    return _partUpgradeByName;
+
+                _partUpgradeByName = new Dictionary<string, PartUpgradeHandler.Upgrade>();
+
+                // catalog part upgrades
+                ConfigNode[] partUpgradeNodes = GameDatabase.Instance.GetConfigNodes("PARTUPGRADE");
+                Debug.Log("[PhotonSail]: PartUpgradeByName found: " + partUpgradeNodes.Count() + " Part upgrades");
+
+                for (int i = 0; i < partUpgradeNodes.Length; i++)
                 {
-                    partUpgradeByName = new Dictionary<string, PartUpgradeHandler.Upgrade>();
+                    var partUpgradeConfig = partUpgradeNodes[i];
 
-                    // catalog part upgrades
-                    ConfigNode[] partupgradeNodes = GameDatabase.Instance.GetConfigNodes("PARTUPGRADE");
-                    Debug.Log("[KSPI]: PluginHelper found: " + partupgradeNodes.Count() + " Part upgrades");
-
-                    for (int i = 0; i < partupgradeNodes.Length; i++)
+                    var partUpgrade = new PartUpgradeHandler.Upgrade
                     {
-                        var partUpgradeConfig = partupgradeNodes[i];
+                        name = partUpgradeConfig.GetValue("name"),
+                        techRequired = partUpgradeConfig.GetValue("techRequired"),
+                        manufacturer = partUpgradeConfig.GetValue("manufacturer")
+                    };
 
-                        var partUpgrade = new PartUpgradeHandler.Upgrade();
-                        partUpgrade.name = partUpgradeConfig.GetValue("name");
-                        partUpgrade.techRequired = partUpgradeConfig.GetValue("techRequired");
-                        partUpgrade.manufacturer = partUpgradeConfig.GetValue("manufacturer");
-
-                        if (partUpgradeByName.ContainsKey(partUpgrade.name))
-                        {
-                            Debug.LogError("[KSPI]: Duplicate error: failed to add PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
-                        }
-                        else
-                        {
-                            Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
-                            partUpgradeByName.Add(partUpgrade.name, partUpgrade);
-                        }
+                    if (_partUpgradeByName.ContainsKey(partUpgrade.name))
+                    {
+                        Debug.LogError("[PhotonSail]: Duplicate error: failed to add PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                    }
+                    else
+                    {
+                        Debug.Log("[PhotonSail]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                        _partUpgradeByName.Add(partUpgrade.name, partUpgrade);
                     }
                 }
 
-                return partUpgradeByName;
+                return _partUpgradeByName;
             }
         }
 
         public static string GetTechTitleById(string id)
         {
-            var result = ResearchAndDevelopment.GetTechnologyTitle(id);
-            if (!String.IsNullOrEmpty(result))
-                return result;
-
-            PartUpgradeHandler.Upgrade partUpgrade;
-            if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
+            if (string.IsNullOrEmpty(id))
             {
-                RDTech upgradeTechnode;
-                if (RDTechByName.TryGetValue(partUpgrade.techRequired, out upgradeTechnode))
-                    return upgradeTechnode.title;
+                Debug.LogError("[PhotonSail]: GetTechTitleById - id is null");
+                return id;
             }
 
-            RDTech technode;
-            if (RDTechByName.TryGetValue(id, out technode))
-                return technode.title;
+            var result = ResearchAndDevelopment.GetTechnologyTitle(id);
+            if (!string.IsNullOrEmpty(result))
+                return result;
+
+            if (PartUpgradeByName.TryGetValue(id, out var partUpgrade))
+            {
+                if (partUpgrade != null && !string.IsNullOrEmpty(partUpgrade.techRequired))
+                {
+                    Debug.LogError("[PhotonSail]: GetTechTitleById - id is null");
+                    if (RDTechByName.TryGetValue(partUpgrade.techRequired, out var upgradeTechNode))
+                        return upgradeTechNode?.title;
+                }
+                else if (partUpgrade != null)
+                    Debug.LogError("[PhotonSail]: GetTechTitleById - partUpgrade is null");
+                else
+                    Debug.LogError("[PhotonSail]: GetTechTitleById - partUpgrade.techRequired is null");
+            }
+
+            if (RDTechByName.TryGetValue(id, out var techNode))
+                return techNode.title;
 
             return id;
         }
 
         public static bool UpgradeAvailable(string id)
         {
-            if (String.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id))
                 return false;
 
             if (id == "true" || id == "always")
@@ -84,20 +90,18 @@ namespace FNPlugin.Beamedpower
             if (id == "false" || id == "none")
                 return false;
 
-            if (HighLogic.CurrentGame == null) return true;
-            if (HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX) return true;
+            if (HighLogic.CurrentGame == null)
+                return true;
 
-            PartUpgradeHandler.Upgrade partUpgrade;
-            if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
-            {
-                //Debug.Log("[KSPI]: found PARTUPGRADE " + id + ", checking techRequired " + partUpgrade.techRequired);
+            if (HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX)
+                return true;
+
+            if (PartUpgradeByName.TryGetValue(id, out var partUpgrade))
                 id = partUpgrade.techRequired;
-            }
 
             if (HighLogic.CurrentGame != null)
-            {
                 return !TechnologyIsInUse || HasTech(id);
-            }
+
             return false;
         }
 
@@ -107,32 +111,32 @@ namespace FNPlugin.Beamedpower
         {
             get
             {
-                if (rdTechByName == null)
+                if (rdTechByName != null)
+                    return rdTechByName;
+
+                rdTechByName = new Dictionary<string, RDTech>();
+
+                // catalog part upgrades
+                ConfigNode[] techTree = GameDatabase.Instance.GetConfigNodes("TechTree");
+                Debug.Log("[PhotonSail]: PluginHelper found: " + techTree.Count() + " TechTrees");
+
+                foreach (var techTreeConfig in techTree)
                 {
-                    rdTechByName = new Dictionary<string, RDTech>();
+                    var techNodes = techTreeConfig.nodes;
 
-                    // catalog part upgrades
-                    ConfigNode[] techtree = GameDatabase.Instance.GetConfigNodes("TechTree");
-                    Debug.Log("[KSPI]: PluginHelper found: " + techtree.Count() + " TechTrees");
-
-                    foreach (var techtreeConfig in techtree)
+                    Debug.Log("[PhotonSail]: PluginHelper found: " + techNodes.Count + " Technodes");
+                    for (var j = 0; j < techNodes.Count; j++)
                     {
-                        var technodes = techtreeConfig.nodes;
+                        var techNode = techNodes[j];
 
-                        Debug.Log("[KSPI]: PluginHelper found: " + technodes.Count + " Technodes");
-                        for (var j = 0; j < technodes.Count; j++)
+                        var tech = new RDTech { techID = techNode.GetValue("id"), title = techNode.GetValue("title") };
+
+                        if (rdTechByName.ContainsKey(tech.techID))
+                            Debug.LogError("[PhotonSail]: Duplicate error: skipped technode id: " + tech.techID + " title: " + tech.title);
+                        else
                         {
-                            var technode = technodes[j];
-
-                            var tech = new RDTech { techID = technode.GetValue("id"), title = technode.GetValue("title") };
-
-                            if (rdTechByName.ContainsKey(tech.techID))
-                                Debug.LogError("[KSPI]: Duplicate error: skipped technode id: " + tech.techID + " title: " + tech.title);
-                            else
-                            {
-                                Debug.Log("[KSPI]: PluginHelper technode id: " + tech.techID + " title: " + tech.title);
-                                rdTechByName.Add(tech.techID, tech);
-                            }
+                            Debug.Log("[PhotonSail]: PluginHelper technode id: " + tech.techID + " title: " + tech.title);
+                            rdTechByName.Add(tech.techID, tech);
                         }
                     }
                 }

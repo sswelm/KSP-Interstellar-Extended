@@ -175,7 +175,7 @@ namespace FNPlugin
 
         private static Dictionary<string, RDTech> rdTechByName;
 
-        public static Dictionary<string, RDTech> RDTechByName 
+        public static Dictionary<string, RDTech> RDTechByName
         {
             get
             {
@@ -214,9 +214,9 @@ namespace FNPlugin
 
         private static Dictionary<string, PartUpgradeHandler.Upgrade> partUpgradeByName;
 
-        public static Dictionary<string, PartUpgradeHandler.Upgrade> PartUpgradeByName 
-        { 
-            get 
+        public static Dictionary<string, PartUpgradeHandler.Upgrade> PartUpgradeByName
+        {
+            get
             {
                 if (partUpgradeByName == null)
                 {
@@ -248,7 +248,7 @@ namespace FNPlugin
                 }
 
                 return partUpgradeByName;
-            } 
+            }
         }
 
         static protected bool buttonAdded;
@@ -296,11 +296,11 @@ namespace FNPlugin
         public static double MicrowaveApertureDiameterMult { get { return _microwaveApertureDiameterMult; } }
 
         private static double _speedOfLight = 29979245.8;
-        public static double SpeedOfLight { get { return GameConstants.speedOfLight * _speedOfLightMult; } } 
+        public static double SpeedOfLight { get { return GameConstants.speedOfLight * _speedOfLightMult; } }
 
         private static double _speedOfLightMult = 0.1 ;
         public static double SpeedOfLightMult { get { return _speedOfLightMult; } }
- 
+
         private static double _maxAtmosphericAltitudeMult = 1;
         public static double MaxAtmosphericAltitudeMult { get { return _maxAtmosphericAltitudeMult; } }
 
@@ -421,19 +421,19 @@ namespace FNPlugin
 
         // Jet Upgrade Techs
 
-        private static string _jetUpgradeTech1 = String.Empty;
+        private static string _jetUpgradeTech1 = string.Empty;
         public static string JetUpgradeTech1 { get { return _jetUpgradeTech1; } private set { _jetUpgradeTech1 = value; } }
 
-        private static string _jetUpgradeTech2 = String.Empty;
+        private static string _jetUpgradeTech2 = string.Empty;
         public static string JetUpgradeTech2 { get { return _jetUpgradeTech2; } private set { _jetUpgradeTech2 = value; } }
 
-        private static string _jetUpgradeTech3 = String.Empty;
+        private static string _jetUpgradeTech3 = string.Empty;
         public static string JetUpgradeTech3 { get { return _jetUpgradeTech3; } private set { _jetUpgradeTech3 = value; } }
 
-        private static string _jetUpgradeTech4 = String.Empty;
+        private static string _jetUpgradeTech4 = string.Empty;
         public static string JetUpgradeTech4 { get { return _jetUpgradeTech4; } private set { _jetUpgradeTech4 = value; } }
 
-        private static string _jetUpgradeTech5 = String.Empty;
+        private static string _jetUpgradeTech5 = string.Empty;
         public static string JetUpgradeTech5 { get { return _jetUpgradeTech5; } private set { _jetUpgradeTech5 = value; } }
 
         // RadiatorAreaMultiplier
@@ -507,12 +507,12 @@ namespace FNPlugin
 
         public static bool HasTechRequirementOrEmpty(string techName)
         {
-            return techName == String.Empty || UpgradeAvailable(techName);
+            return techName == string.Empty || UpgradeAvailable(techName);
         }
 
         public static bool HasTechRequirementAndNotEmpty(string techName)
         {
-            return techName != String.Empty && UpgradeAvailable(techName);
+            return techName != string.Empty && UpgradeAvailable(techName);
         }
 
         public static string DisplayTech(string techid)
@@ -523,28 +523,39 @@ namespace FNPlugin
 
         public static string GetTechTitleById(string id)
         {
-            var result = ResearchAndDevelopment.GetTechnologyTitle(id);
-            if (!String.IsNullOrEmpty(result))
-                return result;
-
-            PartUpgradeHandler.Upgrade partUpgrade;
-            if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
+            if (string.IsNullOrEmpty(id))
             {
-                RDTech upgradeTechnode;
-                if (RDTechByName.TryGetValue(partUpgrade.techRequired, out upgradeTechnode))
-                    return upgradeTechnode.title;
+                Debug.LogError("[KSPI]: GetTechTitleById - id is null");
+                return id;
             }
 
-            RDTech technode;
-            if (RDTechByName.TryGetValue(id, out technode))
-                return technode.title;
+            var result = ResearchAndDevelopment.GetTechnologyTitle(id);
+            if (!string.IsNullOrEmpty(result))
+                return result;
+
+            if (PartUpgradeByName.TryGetValue(id, out var partUpgrade))
+            {
+                if (partUpgrade != null && !string.IsNullOrEmpty(partUpgrade.techRequired))
+                {
+                    Debug.LogError("[KSPI]: GetTechTitleById - id is null");
+                    if (RDTechByName.TryGetValue(partUpgrade.techRequired, out var upgradeTechNode))
+                        return upgradeTechNode?.title;
+                }
+                else if (partUpgrade != null)
+                    Debug.LogError("[KSPI]: GetTechTitleById - partUpgrade is null");
+                else
+                    Debug.LogError("[KSPI]: GetTechTitleById - partUpgrade.techRequired is null");
+            }
+
+            if (RDTechByName.TryGetValue(id, out var techNode))
+                return techNode.title;
 
             return id;
         }
 
         private static bool HasTech(string id)
         {
-            if (String.IsNullOrEmpty(id) || id == "none")
+            if (string.IsNullOrEmpty(id) || id == "none")
                 return false;
 
             if (ResearchAndDevelopment.Instance == null)
@@ -890,7 +901,7 @@ namespace FNPlugin
 
             if (!resources_configured)
             {
-                // read WarpPluginSettings.cfg 
+                // read WarpPluginSettings.cfg
                 ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
                 if (plugin_settings != null)
                 {
@@ -945,7 +956,7 @@ namespace FNPlugin
                         }
                     }
 
-                    
+
                     if (plugin_settings.HasValue("SecondsInDay"))
                     {
                         _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
