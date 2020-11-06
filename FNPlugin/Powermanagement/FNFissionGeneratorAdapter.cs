@@ -4,7 +4,7 @@ using FNPlugin.Wasteheat;
 using System;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Powermanagement
 {
     [KSPModule("Near Future Fission Generator Adapter")]
     class FNFissionGeneratorAdapter : ResourceSuppliableModule
@@ -17,14 +17,14 @@ namespace FNPlugin
         [KSPField]
         public float wasteHeatMultiplier = 0.01f;
 
-        private PartModule moduleGenerator;
-        private BaseField _field_status;
-        private BaseField _field_generated;
-        private BaseField _field_efficiency;
-        private BaseField _field_max;
+        private PartModule _moduleGenerator;
+        private BaseField _fieldStatus;
+        private BaseField _fieldGenerated;
+        private BaseField _fieldEfficiency;
+        private BaseField _fieldMax;
+        private ResourceBuffers _resourceBuffers;
 
         private bool active;
-        private ResourceBuffers _resourceBuffers;
 
         public override void OnStart(StartState state)
         {
@@ -34,14 +34,14 @@ namespace FNPlugin
 
                 if (part.Modules.Contains("FissionGenerator"))
                 {
-                    moduleGenerator = part.Modules["FissionGenerator"];
-                    _field_status = moduleGenerator.Fields["Status"];
-                    _field_generated = moduleGenerator.Fields["CurrentGeneration"];
-                    _field_efficiency = moduleGenerator.Fields["Efficiency"];
-                    _field_max = moduleGenerator.Fields["PowerGeneration"];
+                    _moduleGenerator = part.Modules["FissionGenerator"];
+                    _fieldStatus = _moduleGenerator.Fields["Status"];
+                    _fieldGenerated = _moduleGenerator.Fields["CurrentGeneration"];
+                    _fieldEfficiency = _moduleGenerator.Fields["Efficiency"];
+                    _fieldMax = _moduleGenerator.Fields["PowerGeneration"];
                 }
 
-                if (moduleGenerator == null) return;
+                if (_moduleGenerator == null) return;
 
                 resources_to_supply = new string[] { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
                 base.OnStart(state);
@@ -61,7 +61,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            if (!HighLogic.LoadedSceneIsFlight || moduleGenerator == null) return;
+            if (!HighLogic.LoadedSceneIsFlight || _moduleGenerator == null) return;
 
             active = true;
             base.OnFixedUpdate();
@@ -69,7 +69,7 @@ namespace FNPlugin
 
         public void FixedUpdate()
         {
-            if (!HighLogic.LoadedSceneIsFlight || moduleGenerator == null) return;
+            if (!HighLogic.LoadedSceneIsFlight || _moduleGenerator == null) return;
 
             if (!active)
                 base.OnFixedUpdate();
@@ -88,13 +88,13 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            if (moduleGenerator == null || _field_status == null || _field_generated == null) return;
+            if (_moduleGenerator == null || _fieldStatus == null || _fieldGenerated == null) return;
 
-            bool status = _field_status.GetValue<bool>(moduleGenerator);
+            bool status = _fieldStatus.GetValue<bool>(_moduleGenerator);
 
-            float generatorRate = status ? _field_generated.GetValue<float>(moduleGenerator) : 0;
-            float generatorMax = _field_max.GetValue<float>(moduleGenerator);
-            float generatorEfficiency = _field_efficiency.GetValue<float>(moduleGenerator);
+            float generatorRate = status ? _fieldGenerated.GetValue<float>(_moduleGenerator) : 0;
+            float generatorMax = _fieldMax.GetValue<float>(_moduleGenerator);
+            float generatorEfficiency = _fieldEfficiency.GetValue<float>(_moduleGenerator);
 
             efficiency = generatorEfficiency.ToString("P2");
 
@@ -110,15 +110,11 @@ namespace FNPlugin
 
             megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            if (!CheatOptions.IgnoreMaxTemperature)
-            {
-                double maxWasteheat = generatorEfficiency > 0.0 ? maxMegajoulesRate * (1.0 /
-                    generatorEfficiency - 1.0) : maxMegajoulesRate;
-                double throttledWasteheat = generatorEfficiency > 0.0 ? megajoulesRate * (1.0 /
-                    generatorEfficiency - 1.0) : megajoulesRate;
-                supplyFNResourcePerSecondWithMax(throttledWasteheat, maxWasteheat,
-                    ResourceManager.FNRESOURCE_WASTEHEAT);
-            }
+            if (CheatOptions.IgnoreMaxTemperature) return;
+
+            double maxWasteheat = generatorEfficiency > 0.0 ? maxMegajoulesRate * (1.0 / generatorEfficiency - 1.0) : maxMegajoulesRate;
+            double throttledWasteheat = generatorEfficiency > 0.0 ? megajoulesRate * (1.0 / generatorEfficiency - 1.0) : megajoulesRate;
+            supplyFNResourcePerSecondWithMax(throttledWasteheat, maxWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
         }
     }
 }
