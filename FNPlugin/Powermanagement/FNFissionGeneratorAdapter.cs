@@ -43,13 +43,11 @@ namespace FNPlugin
 
                 if (moduleGenerator == null) return;
 
-                string[] resourcesToSupply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
-                this.resources_to_supply = resourcesToSupply;
+                resources_to_supply = new string[] { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
                 base.OnStart(state);
 
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
                 _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+5, true));
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                 _resourceBuffers.Init(part);
@@ -63,38 +61,18 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            try
-            {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight || moduleGenerator == null) return;
 
-                if (moduleGenerator == null) return;
-
-                active = true;
-                base.OnFixedUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in FNFissionGeneratorAdapter.OnFixedUpdate " + e.Message);
-                throw;
-            }
+            active = true;
+            base.OnFixedUpdate();
         }
 
         public void FixedUpdate()
         {
-            try
-            {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight || moduleGenerator == null) return;
 
-                if (moduleGenerator == null) return;
-
-                if (!active)
-                    base.OnFixedUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in FNFissionGeneratorAdapter.OnFixedUpdate " + e.Message);
-                throw;
-            }
+            if (!active)
+                base.OnFixedUpdate();
         }
 
         public override string getResourceManagerDisplayName()
@@ -110,45 +88,36 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            try
+            if (moduleGenerator == null || _field_status == null || _field_generated == null) return;
+
+            bool status = _field_status.GetValue<bool>(moduleGenerator);
+
+            float generatorRate = status ? _field_generated.GetValue<float>(moduleGenerator) : 0;
+            float generatorMax = _field_max.GetValue<float>(moduleGenerator);
+            float generatorEfficiency = _field_efficiency.GetValue<float>(moduleGenerator);
+
+            efficiency = generatorEfficiency.ToString("P2");
+
+            //extract power otherwise we end up with double power
+            part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorRate * fixedDeltaTime);
+
+            double megajoulesRate = generatorRate / GameConstants.ecPerMJ;
+            double maxMegajoulesRate = generatorMax / GameConstants.ecPerMJ;
+
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megajoulesRate);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+            _resourceBuffers.UpdateBuffers();
+
+            megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            if (!CheatOptions.IgnoreMaxTemperature)
             {
-                if (moduleGenerator == null) return;
-                if (_field_status == null) return;
-                if (_field_generated == null) return;
-
-                bool status = _field_status.GetValue<bool>(moduleGenerator);
-
-                float generatorRate = status ? _field_generated.GetValue<float>(moduleGenerator) : 0;
-                float generatorMax = _field_max.GetValue<float>(moduleGenerator);
-                float generatorEfficiency = _field_efficiency.GetValue<float>(moduleGenerator);
-
-                efficiency = generatorEfficiency.ToString("P2");
-
-                //extract power otherwise we end up with double power
-                part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorRate * fixedDeltaTime);
-
-                var megajoulesRate = generatorRate / GameConstants.ecPerMJ;
-                var maxMegajoulesRate = generatorMax / GameConstants.ecPerMJ;
-
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorRate);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megajoulesRate);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
-                _resourceBuffers.UpdateBuffers();
-
-                megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceManager.FNRESOURCE_MEGAJOULES);
-
-                var maxWasteheat = generatorEfficiency > 0 ? maxMegajoulesRate / generatorEfficiency : maxMegajoulesRate;
-
-                if (!CheatOptions.IgnoreMaxTemperature)
-                {
-                    supplyFNResourcePerSecondWithMax(maxWasteheat, maxWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
-                    consumeFNResourcePerSecond(maxWasteheat * generatorEfficiency, ResourceManager.FNRESOURCE_WASTEHEAT);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: Exception in FNFissionGeneratorAdapter.OnFixedUpdateResourceSuppliable " + e.Message);
-                throw;
+                double maxWasteheat = generatorEfficiency > 0.0 ? maxMegajoulesRate * (1.0 /
+                    generatorEfficiency - 1.0) : maxMegajoulesRate;
+                double throttledWasteheat = generatorEfficiency > 0.0 ? megajoulesRate * (1.0 /
+                    generatorEfficiency - 1.0) : megajoulesRate;
+                supplyFNResourcePerSecondWithMax(throttledWasteheat, maxWasteheat,
+                    ResourceManager.FNRESOURCE_WASTEHEAT);
             }
         }
     }
