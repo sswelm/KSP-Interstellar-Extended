@@ -8,6 +8,7 @@ using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using TweakScale;
@@ -39,106 +40,55 @@ namespace FNPlugin.Reactors
         public float forcedMinimumThrottle = 0;
 
         // Persistent True
-        [KSPField(isPersistant = true)]
-        public int fuelmode_index = -1;
-        [KSPField(isPersistant = true)]
-        public string fuel_mode_name = string.Empty;
-        [KSPField(isPersistant = true)]
-        public string fuel_mode_variant = string.Empty;
+        [KSPField(isPersistant = true)] public int fuelmode_index = -1;
+        [KSPField(isPersistant = true)] public string fuel_mode_name = string.Empty;
+        [KSPField(isPersistant = true)] public string fuel_mode_variant = string.Empty;
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiName = "#LOC_KSPIE_Reactor_ReactorIsEnabled")]//Reactor IsEnabled
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiName = "#LOC_KSPIE_Reactor_ReactorIsEnabled")]
         public bool IsEnabled;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiName = "#LOC_KSPIE_Reactor_ReactorIsStated")]//Reactor IsStated
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiName = "#LOC_KSPIE_Reactor_ReactorIsStated")]
         public bool IsStarted;
-        [KSPField(isPersistant = true)]
-        public bool isDeployed = false;
-        [KSPField(isPersistant = true)]
-        public bool isupgraded = false;
-        [KSPField(isPersistant = true)]
-        public bool breedtritium;
-        [KSPField(isPersistant = true)]
-        public double last_active_time;
-        [KSPField(isPersistant = true)]
-        public double ongoing_consumption_rate;
-        [KSPField(isPersistant = true)]
-        public double ongoing_wasteheat_rate;
-        [KSPField(isPersistant = true)]
-        public bool reactorInit;
-        [KSPField(isPersistant = true)]
-        public double neutronEmbrittlementDamage;
-        [KSPField(isPersistant = true)]
-        public double maxEmbrittlementFraction = 0.5;
-        [KSPField(isPersistant = true)]
-        public float windowPositionX = 20;
-        [KSPField(isPersistant = true)]
-        public float windowPositionY = 20;
-        [KSPField(isPersistant = true)]
-        public int currentGenerationType;
 
-        [KSPField(isPersistant = true)]
-        public double factorAbsoluteLinear = 1;
-        [KSPField(isPersistant = true)]
-        public double storedPowerMultiplier = 1;
-        [KSPField(isPersistant = true)]
-        public double stored_fuel_ratio = 1;
-        [KSPField(isPersistant = true)]
-        public double fuel_ratio = 1;
-        [KSPField(isPersistant = true)]
-        public double requested_thermal_power_ratio = 1;
-        [KSPField(isPersistant = true)]
-        public double maximumThermalPower;
-        [KSPField(isPersistant = true)]
-        public double maximumChargedPower;
+        [KSPField(isPersistant = true)] public bool isDeployed = false;
+        [KSPField(isPersistant = true)] public bool isupgraded = false;
+        [KSPField(isPersistant = true)] public bool breedtritium;
+        [KSPField(isPersistant = true)] public double last_active_time;
+        [KSPField(isPersistant = true)] public double ongoing_consumption_rate;
+        [KSPField(isPersistant = true)] public double ongoing_wasteheat_rate;
+        [KSPField(isPersistant = true)] public bool reactorInit;
+        [KSPField(isPersistant = true)] public double neutronEmbrittlementDamage;
+        [KSPField(isPersistant = true)] public double maxEmbrittlementFraction = 0.5;
+        [KSPField(isPersistant = true)] public float windowPositionX = 20;
+        [KSPField(isPersistant = true)] public float windowPositionY = 20;
+        [KSPField(isPersistant = true)] public int currentGenerationType;
 
-        [KSPField(isPersistant = true)]
-        public double thermal_power_ratio = 1;
-        [KSPField(isPersistant = true)]
-        public double charged_power_ratio = 1;
-        [KSPField(isPersistant = true)]
-        public double reactor_power_ratio = 1;
-        [KSPField(isPersistant = true)]
-        public double power_request_ratio = 1;
+        [KSPField(isPersistant = true)] public double factorAbsoluteLinear = 1;
+        [KSPField(isPersistant = true)] public double storedPowerMultiplier = 1;
+        [KSPField(isPersistant = true)] public double stored_fuel_ratio = 1;
+        [KSPField(isPersistant = true)] public double fuel_ratio = 1;
+        [KSPField(isPersistant = true)] public double requested_thermal_power_ratio = 1;
+        [KSPField(isPersistant = true)] public double maximumThermalPower;
+        [KSPField(isPersistant = true)] public double maximumChargedPower;
 
-        [KSPField]
-        public double thermal_propulsion_ratio;
-        [KSPField]
-        public double plasma_propulsion_ratio;
-        [KSPField]
-        public double charged_propulsion_ratio;
-        [KSPField]
-        public double thermal_generator_ratio;
-        [KSPField]
-        public double plasma_generator_ratio;
-        [KSPField]
-        public double charged_generator_ratio;
-        [KSPField]
-        public double propulsion_request_ratio_sum;    
-        [KSPField]
-        public double maximum_thermal_request_ratio;
-        [KSPField]
-        public double maximum_charged_request_ratio;
-        [KSPField]
-        public double maximum_reactor_request_ratio;
-        [KSPField]
-        public double thermalThrottleRatio;
-        [KSPField]
-        public double plasmaThrottleRatio;
-        [KSPField]
-        public double chargedThrottleRatio;
+        [KSPField(isPersistant = true)] public double thermal_power_ratio = 1;
+        [KSPField(isPersistant = true)] public double charged_power_ratio = 1;
+        [KSPField(isPersistant = true)] public double reactor_power_ratio = 1;
+        [KSPField(isPersistant = true)] public double power_request_ratio = 1;
 
-        [KSPField(isPersistant = true)]
-        public double storedIsThermalEnergyGeneratorEfficiency;
-        [KSPField(isPersistant = true)]
-        public double storedIsPlasmaEnergyGeneratorEfficiency;
-        [KSPField(isPersistant = true)]
-        public double storedIsChargedEnergyGeneratorEfficiency;
+        [KSPField] public double maximum_thermal_request_ratio;
+        [KSPField] public double maximum_charged_request_ratio;
+        [KSPField] public double maximum_reactor_request_ratio;
+        [KSPField] public double thermalThrottleRatio;
+        [KSPField] public double plasmaThrottleRatio;
+        [KSPField] public double chargedThrottleRatio;
 
-        [KSPField(isPersistant = true)]
-        public double storedGeneratorThermalEnergyRequestRatio;
-        [KSPField(isPersistant = true)]
-        public double storedGeneratorPlasmaEnergyRequestRatio;
-        [KSPField(isPersistant = true)]
-        public double storedGeneratorChargedEnergyRequestRatio;
+        [KSPField(isPersistant = true)] public double storedIsThermalEnergyGeneratorEfficiency;
+        [KSPField(isPersistant = true)] public double storedIsPlasmaEnergyGeneratorEfficiency;
+        [KSPField(isPersistant = true)] public double storedIsChargedEnergyGeneratorEfficiency;
+
+        [KSPField(isPersistant = true)] public double storedGeneratorThermalEnergyRequestRatio;
+        [KSPField(isPersistant = true)] public double storedGeneratorPlasmaEnergyRequestRatio;
+        [KSPField(isPersistant = true)] public double storedGeneratorChargedEnergyRequestRatio;
 
         [KSPField(isPersistant = true)]
         public double ongoing_total_power_generated;
@@ -146,396 +96,222 @@ namespace FNPlugin.Reactors
         protected double ongoing_thermal_power_generated;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiName = "#LOC_KSPIE_Reactor_chargedPower ", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
-
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_Reactor_LithiumModifier", guiFormat = "F6")]//Lithium Modifier
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_Reactor_LithiumModifier", guiFormat = "F6")]
         public double lithium_modifier = 1;
-        [KSPField]
-        public double maximumPower;       
-        [KSPField]
-        public float minimumPowerPercentage = 10;
 
-        [KSPField]
-        public string upgradeTechReqMk2 = null;
-        [KSPField]
-        public string upgradeTechReqMk3 = null;
-        [KSPField]
-        public string upgradeTechReqMk4 = null;
-        [KSPField]
-        public string upgradeTechReqMk5 = null;
-        [KSPField]
-        public string upgradeTechReqMk6 = null;
-        [KSPField]
-        public string upgradeTechReqMk7 = null;
+        [KSPField] public double maximumPower;
+        [KSPField] public float minimumPowerPercentage = 10;
 
-        [KSPField]
-        public double minimumThrottleMk1 = 0;
-        [KSPField]
-        public double minimumThrottleMk2 = 0;
-        [KSPField]
-        public double minimumThrottleMk3 = 0;
-        [KSPField]
-        public double minimumThrottleMk4 = 0;
-        [KSPField]
-        public double minimumThrottleMk5 = 0;
-        [KSPField]
-        public double minimumThrottleMk6 = 0;
-        [KSPField]
-        public double minimumThrottleMk7 = 0;
+        [KSPField] public string upgradeTechReqMk2 = null;
+        [KSPField] public string upgradeTechReqMk3 = null;
+        [KSPField] public string upgradeTechReqMk4 = null;
+        [KSPField] public string upgradeTechReqMk5 = null;
+        [KSPField] public string upgradeTechReqMk6 = null;
+        [KSPField] public string upgradeTechReqMk7 = null;
 
-        [KSPField]
-        public double fuelEfficencyMk1 = 0;
-        [KSPField]
-        public double fuelEfficencyMk2 = 0;
-        [KSPField]
-        public double fuelEfficencyMk3 = 0;
-        [KSPField]
-        public double fuelEfficencyMk4 = 0;
-        [KSPField]
-        public double fuelEfficencyMk5 = 0;
-        [KSPField]
-        public double fuelEfficencyMk6 = 0;
-        [KSPField]
-        public double fuelEfficencyMk7 = 0;
+        [KSPField] public double minimumThrottleMk1;
+        [KSPField] public double minimumThrottleMk2;
+        [KSPField] public double minimumThrottleMk3;
+        [KSPField] public double minimumThrottleMk4;
+        [KSPField] public double minimumThrottleMk5;
+        [KSPField] public double minimumThrottleMk6;
+        [KSPField] public double minimumThrottleMk7;
 
-        [KSPField]
-        public double hotBathTemperatureMk1 = 0;
-        [KSPField]
-        public double hotBathTemperatureMk2 = 0;
-        [KSPField]
-        public double hotBathTemperatureMk3 = 0;
-        [KSPField]
-        public double hotBathTemperatureMk4 = 0;
-        [KSPField]
-        public double hotBathTemperatureMk5 = 0;
-        [KSPField]
-        public double hotBathTemperatureMk6 = 0;
-        [KSPField]
-        public double hotBathTemperatureMk7 = 0;
+        [KSPField] public double fuelEfficencyMk1;
+        [KSPField] public double fuelEfficencyMk2;
+        [KSPField] public double fuelEfficencyMk3;
+        [KSPField] public double fuelEfficencyMk4;
+        [KSPField] public double fuelEfficencyMk5;
+        [KSPField] public double fuelEfficencyMk6;
+        [KSPField] public double fuelEfficencyMk7;
 
-        [KSPField]
-        public double coreTemperatureMk1 = 0;
-        [KSPField]
-        public double coreTemperatureMk2 = 0;
-        [KSPField]
-        public double coreTemperatureMk3 = 0;
-        [KSPField]
-        public double coreTemperatureMk4 = 0;
-        [KSPField]
-        public double coreTemperatureMk5 = 0;
-        [KSPField]
-        public double coreTemperatureMk6 = 0;
-        [KSPField]
-        public double coreTemperatureMk7 = 0;
+        [KSPField] public double hotBathTemperatureMk1 = 0;
+        [KSPField] public double hotBathTemperatureMk2 = 0;
+        [KSPField] public double hotBathTemperatureMk3 = 0;
+        [KSPField] public double hotBathTemperatureMk4 = 0;
+        [KSPField] public double hotBathTemperatureMk5 = 0;
+        [KSPField] public double hotBathTemperatureMk6 = 0;
+        [KSPField] public double hotBathTemperatureMk7 = 0;
 
-        [KSPField]
-        public double basePowerOutputMk1 = 0;
-        [KSPField]
-        public double basePowerOutputMk2 = 0;
-        [KSPField]
-        public double basePowerOutputMk3 = 0;
-        [KSPField]
-        public double basePowerOutputMk4 = 0;
-        [KSPField]
-        public double basePowerOutputMk5 = 0;
-        [KSPField]
-        public double basePowerOutputMk6 = 0;
-        [KSPField]
-        public double basePowerOutputMk7 = 0;
+        [KSPField] public double coreTemperatureMk1;
+        [KSPField] public double coreTemperatureMk2;
+        [KSPField] public double coreTemperatureMk3;
+        [KSPField] public double coreTemperatureMk4;
+        [KSPField] public double coreTemperatureMk5;
+        [KSPField] public double coreTemperatureMk6;
+        [KSPField] public double coreTemperatureMk7;
 
-        [KSPField]
-        public double fusionEnergyGainFactorMk1 = 10;
-        [KSPField]
-        public double fusionEnergyGainFactorMk2;
-        [KSPField]
-        public double fusionEnergyGainFactorMk3;
-        [KSPField]
-        public double fusionEnergyGainFactorMk4;
-        [KSPField]
-        public double fusionEnergyGainFactorMk5;
-        [KSPField]
-        public double fusionEnergyGainFactorMk6;
-        [KSPField]
-        public double fusionEnergyGainFactorMk7;
+        [KSPField] public double basePowerOutputMk1 = 0;
+        [KSPField] public double basePowerOutputMk2 = 0;
+        [KSPField] public double basePowerOutputMk3 = 0;
+        [KSPField] public double basePowerOutputMk4 = 0;
+        [KSPField] public double basePowerOutputMk5 = 0;
+        [KSPField] public double basePowerOutputMk6 = 0;
+        [KSPField] public double basePowerOutputMk7 = 0;
 
-        [KSPField]
-        public string fuelModeTechReqLevel2;
-        [KSPField]
-        public string fuelModeTechReqLevel3;
-        [KSPField]
-        public string fuelModeTechReqLevel4;
-        [KSPField]
-        public string fuelModeTechReqLevel5;
-        [KSPField]
-        public string fuelModeTechReqLevel6;
-        [KSPField]
-        public string fuelModeTechReqLevel7;
+        [KSPField] public double fusionEnergyGainFactorMk1 = 10;
+        [KSPField] public double fusionEnergyGainFactorMk2;
+        [KSPField] public double fusionEnergyGainFactorMk3;
+        [KSPField] public double fusionEnergyGainFactorMk4;
+        [KSPField] public double fusionEnergyGainFactorMk5;
+        [KSPField] public double fusionEnergyGainFactorMk6;
+        [KSPField] public double fusionEnergyGainFactorMk7;
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk1", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField] public string fuelModeTechReqLevel2;
+        [KSPField] public string fuelModeTechReqLevel3;
+        [KSPField] public string fuelModeTechReqLevel4;
+        [KSPField] public string fuelModeTechReqLevel5;
+        [KSPField] public string fuelModeTechReqLevel6;
+        [KSPField] public string fuelModeTechReqLevel7;
+
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_powerOutputMk1", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerOutputMk1;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerOutputMk2;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk3", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk3", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerOutputMk3;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk4", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk4", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerOutputMk4;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk5", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk5", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerOutputMk5;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk6", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk6", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerOutputMk6;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk7", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk7", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerOutputMk7;
 
         // Settings
-        [KSPField]
-        public double neutronsExhaustRadiationMult = 16;
-        [KSPField]
-        public double gammaRayExhaustRadiationMult = 4;
-        [KSPField]
-        public double neutronScatteringRadiationMult = 20;
+        [KSPField] public double neutronsExhaustRadiationMult = 16;
+        [KSPField] public double gammaRayExhaustRadiationMult = 4;
+        [KSPField] public double neutronScatteringRadiationMult = 20;
 
-        [KSPField]
-        public bool showEngineConnectionInfo = true;
-        [KSPField]
-        public bool showPowerGeneratorConnectionInfo = true;
-        [KSPField]
-        public bool mayExhaustInAtmosphereHomeworld = true;
-        [KSPField]
-        public bool mayExhaustInLowSpaceHomeworld = true;
-        [KSPField]
-        public double minThermalNozzleTempRequired = 0;
-        [KSPField]
-        public bool canUseAllPowerForPlasma = true;
-        [KSPField]
-        public bool updateModuleCost = true;
-        [KSPField]
-        public int minCoolingFactor = 1;
-        [KSPField]
-        public double engineHeatProductionMult = 1;
-        [KSPField]
-        public double plasmaHeatProductionMult = 1;
-        [KSPField]
-        public double engineWasteheatProductionMult = 1;
-        [KSPField]
-        public double plasmaWasteheatProductionMult = 1;
-        [KSPField]
-        public bool supportMHD = false;
-        [KSPField]
-        public int reactorModeTechBonus = 0;
-        [KSPField]
-        public bool canBeCombinedWithLab = false;
-        [KSPField]
-        public bool canBreedTritium = false;
-        [KSPField]
-        public bool canDisableTritiumBreeding = true;
-        [KSPField]
-        public bool showShutDownInFlight = false;
-        [KSPField]
-        public bool showForcedMinimumThrottle = false;
-        [KSPField]
-        public bool showPowerPercentage = true;
-        [KSPField]
-        public double powerScaleExponent = 3;
-        [KSPField]
-        public double costScaleExponent = 1.86325;
-        [KSPField]
-        public double breedDivider = 100000;
-        [KSPField]
-        public double maxThermalNozzleIsp = 2997.13f;
-        [KSPField]
-        public double effectivePowerMultiplier;
-        [KSPField]
-        public double bonusBufferFactor = 0.05;
-        [KSPField]
-        public double thermalPowerBufferMult = 4;
-        [KSPField]
-        public double chargedPowerBufferMult = 4;
-        [KSPField]
-        public double massCoreTempExp = 0;
-        [KSPField]
-        public double massPowerExp = 0;
-        [KSPField]
-        public double heatTransportationEfficiency = 0.9;
-        [KSPField]
-        public double ReactorTemp = 0;
-        [KSPField]
-        public double powerOutputMultiplier = 1;
-        [KSPField]
-        public double upgradedReactorTemp = 0;
-        [KSPField]
-        public string animName = "";
-        [KSPField]
-        public double animExponent = 1;
-        [KSPField]
-        public string loopingAnimationName = "";
-        [KSPField]
-        public string startupAnimationName = "";
-        [KSPField]
-        public string shutdownAnimationName = "";
-        [KSPField]
-        public double reactorSpeedMult = 1;
-        [KSPField]
-        public double powerRatio;
-        [KSPField]
-        public string upgradedName = "";
-        [KSPField]
-        public string originalName = "";
-        [KSPField]
-        public float upgradeCost = 0;
+        [KSPField] public bool showEngineConnectionInfo = true;
+        [KSPField] public bool showPowerGeneratorConnectionInfo = true;
+        [KSPField] public bool mayExhaustInAtmosphereHomeworld = true;
+        [KSPField] public bool mayExhaustInLowSpaceHomeworld = true;
+        [KSPField] public double minThermalNozzleTempRequired = 0;
+        [KSPField] public bool canUseAllPowerForPlasma = true;
+        [KSPField] public bool updateModuleCost = true;
+        [KSPField] public int minCoolingFactor = 1;
+        [KSPField] public double engineHeatProductionMult = 1;
+        [KSPField] public double plasmaHeatProductionMult = 1;
+        [KSPField] public double engineWasteheatProductionMult = 1;
+        [KSPField] public double plasmaWasteheatProductionMult = 1;
+        [KSPField] public bool supportMHD = false;
+        [KSPField] public int reactorModeTechBonus = 0;
+        [KSPField] public bool canBeCombinedWithLab = false;
+        [KSPField] public bool canBreedTritium = false;
+        [KSPField] public bool canDisableTritiumBreeding = true;
+        [KSPField] public bool showShutDownInFlight = false;
+        [KSPField] public bool showForcedMinimumThrottle = false;
+        [KSPField] public bool showPowerPercentage = true;
+        [KSPField] public double powerScaleExponent = 3;
+        [KSPField] public double costScaleExponent = 1.86325;
+        [KSPField] public double breedDivider = 100000;
+        [KSPField] public double maxThermalNozzleIsp = 2997.13f;
+        [KSPField] public double effectivePowerMultiplier;
+        [KSPField] public double bonusBufferFactor = 0.05;
+        [KSPField] public double thermalPowerBufferMult = 4;
+        [KSPField] public double chargedPowerBufferMult = 4;
+        [KSPField] public double massCoreTempExp = 0;
+        [KSPField] public double massPowerExp = 0;
+        [KSPField] public double heatTransportationEfficiency = 0.9;
+        [KSPField] public double ReactorTemp = 0;
+        [KSPField] public double powerOutputMultiplier = 1;
+        [KSPField] public double upgradedReactorTemp = 0;
+        [KSPField] public string animName = "";
+        [KSPField] public double animExponent = 1;
+        [KSPField] public string loopingAnimationName = "";
+        [KSPField] public string startupAnimationName = "";
+        [KSPField] public string shutdownAnimationName = "";
+        [KSPField] public double reactorSpeedMult = 1;
+        [KSPField] public double powerRatio;
+        [KSPField] public string upgradedName = "";
+        [KSPField] public string originalName = "";
+
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive = false, guiFormat = "F2", guiName = "#LOC_KSPIE_Reactor_connectionRadius")]
         public double radius = 2.5;
-        [KSPField]
-        public double minimumThrottle = 0;
-        [KSPField]
-        public bool canShutdown = true;
-        [KSPField]
-        public int reactorType = 0;
-        [KSPField]
-        public double fuelEfficiency = 1;
-        [KSPField]
-        public bool containsPowerGenerator = false;
-        [KSPField]
-        public double fuelUsePerMJMult = 1;
-        [KSPField]
-        public double wasteHeatMultiplier = 1;
-        [KSPField]
-        public double wasteHeatBufferMassMult = 2.0e+5;
-        [KSPField]
-        public double wasteHeatBufferMult = 1;
-        [KSPField]
-        public double hotBathTemperature = 0;
-        [KSPField]
-        public bool usePropellantBaseIsp = false;
-        [KSPField]
-        public double emergencyPowerShutdownFraction = 0.99;
-        [KSPField]
-        public double thermalPropulsionEfficiency = 1;
-        [KSPField]
-        public double plasmaPropulsionEfficiency = 1;
-        [KSPField]
-        public double chargedParticlePropulsionEfficiency = 1;
 
-        [KSPField]
-        public double thermalEnergyEfficiency = 1;
-        [KSPField]
-        public double chargedParticleEnergyEfficiency = 1;
-        [KSPField] 
-        public double plasmaEnergyEfficiency = 1;
-        [KSPField]
-        public double maxGammaRayPower = 0;
+        [KSPField] public double minimumThrottle = 0;
+        [KSPField] public bool canShutdown = true;
+        [KSPField] public int reactorType = 0;
+        [KSPField] public double fuelEfficiency = 1;
+        [KSPField] public bool containsPowerGenerator = false;
+        [KSPField] public double fuelUsePerMJMult = 1;
+        [KSPField] public double wasteHeatMultiplier = 1;
+        [KSPField] public double wasteHeatBufferMassMult = 2.0e+5;
+        [KSPField] public double wasteHeatBufferMult = 1;
+        [KSPField] public double hotBathTemperature = 0;
+        [KSPField] public bool usePropellantBaseIsp = false;
+        [KSPField] public double emergencyPowerShutdownFraction = 0.99;
+        [KSPField] public double thermalPropulsionEfficiency = 1;
+        [KSPField] public double plasmaPropulsionEfficiency = 1;
+        [KSPField] public double chargedParticlePropulsionEfficiency = 1;
 
-        [KSPField]
-        public double maxChargedParticleUtilisationRatio = 1;
-        [KSPField]
-        public double maxChargedParticleUtilisationRatioMk1 = 1;
-        [KSPField]
-        public double maxChargedParticleUtilisationRatioMk2 = 1;
-        [KSPField]
-        public double maxChargedParticleUtilisationRatioMk3 = 1;
-        [KSPField]
-        public double maxChargedParticleUtilisationRatioMk4 = 1;
-        [KSPField]
-        public double maxChargedParticleUtilisationRatioMk5 = 1;
+        [KSPField] public double thermalEnergyEfficiency = 1;
+        [KSPField] public double chargedParticleEnergyEfficiency = 1;
+        [KSPField] public double plasmaEnergyEfficiency = 1;
+        [KSPField] public double maxGammaRayPower = 0;
 
-        [KSPField]
-        public string maxChargedParticleUtilisationTechMk2 = null;
-        [KSPField]
-        public string maxChargedParticleUtilisationTechMk3 = null;
-        [KSPField]
-        public string maxChargedParticleUtilisationTechMk4 = null;
-        [KSPField]
-        public string maxChargedParticleUtilisationTechMk5 = null;
+        [KSPField] public double maxChargedParticleUtilisationRatio = 1;
+        [KSPField] public double maxChargedParticleUtilisationRatioMk1 = 1;
+        [KSPField] public double maxChargedParticleUtilisationRatioMk2 = 1;
+        [KSPField] public double maxChargedParticleUtilisationRatioMk3 = 1;
+        [KSPField] public double maxChargedParticleUtilisationRatioMk4 = 1;
+        [KSPField] public double maxChargedParticleUtilisationRatioMk5 = 1;
 
-        [KSPField]
-        public bool hasBuoyancyEffects = true;
-        [KSPField]
-        public double geeForceMultiplier = 0.1;
-        [KSPField]
-        public double geeForceTreshHold = 9;
-        [KSPField]
-        public double geeForceExponent = 2;
-        [KSPField]
-        public double minGeeForceModifier = 0.01;
+        [KSPField] public string maxChargedParticleUtilisationTechMk2 = null;
+        [KSPField] public string maxChargedParticleUtilisationTechMk3 = null;
+        [KSPField] public string maxChargedParticleUtilisationTechMk4 = null;
+        [KSPField] public string maxChargedParticleUtilisationTechMk5 = null;
 
-        [KSPField]
-        public bool hasOverheatEffects = true;
-        [KSPField]
-        public double overheatMultiplier = 10;
-        [KSPField]
-        public double overheatTreshHold = 0.95;
-        [KSPField]
-        public double overheatExponent = 2;
-        [KSPField]
-        public double minOverheatModifier = 0.01;
+        [KSPField] public bool hasBuoyancyEffects = true;
+        [KSPField] public double geeForceMultiplier = 0.1;
+        [KSPField] public double geeForceTreshHold = 9;
+        [KSPField] public double geeForceExponent = 2;
+        [KSPField] public double minGeeForceModifier = 0.01;
 
-        [KSPField]
-        public string soundRunningFilePath = "";
-        [KSPField]
-        public double soundRunningPitchMin = 0.4;
-        [KSPField]
-        public double soundRunningPitchExp = 0;
-        [KSPField]
-        public double soundRunningVolumeExp = 0;
-        [KSPField]
-        public double soundRunningVolumeMin = 0;
+        [KSPField] public bool hasOverheatEffects = true;
+        [KSPField] public double overheatMultiplier = 10;
+        [KSPField] public double overheatTreshHold = 0.95;
+        [KSPField] public double overheatExponent = 2;
+        [KSPField] public double minOverheatModifier = 0.01;
 
-        [KSPField]
-        public string soundTerminateFilePath = "";
+        [KSPField] public string soundRunningFilePath = "";
+        [KSPField] public double soundRunningPitchMin = 0.4;
+        [KSPField] public double soundRunningPitchExp = 0;
+        [KSPField] public double soundRunningVolumeExp = 0;
+        [KSPField] public double soundRunningVolumeMin = 0;
 
-        [KSPField]
-        public string soundInitiateFilePath = "";
+        [KSPField] public string soundTerminateFilePath = "";
+        [KSPField] public string soundInitiateFilePath = "";
+        [KSPField] public double neutronEmbrittlementLifepointsMax = 100;
+        [KSPField] public double neutronEmbrittlementDivider = 1e+9;
+        [KSPField] public double hotBathModifier = 1;
+        [KSPField] public double thermalProcessingModifier = 1;
+        [KSPField] public int supportedPropellantAtoms = GameConstants.defaultSupportedPropellantAtoms;
+        [KSPField] public int supportedPropellantTypes = GameConstants.defaultSupportedPropellantTypes;
+        [KSPField] public bool fullPowerForNonNeutronAbsorbants = true;
+        [KSPField] public bool showPowerPriority = true;
+        [KSPField] public bool showSpecialisedUI = true;
+        [KSPField] public bool canUseNeutronicFuels = true;
+        [KSPField] public bool canUseGammaRayFuels = true;
+        [KSPField] public double maxNeutronsRatio = 1.04;
+        [KSPField] public double minNeutronsRatio = 0;
 
-        public double previous_reactor_power_ratio;
+        [KSPField] public int fuelModeTechLevel;
+        [KSPField] public string bimodelUpgradeTechReq = string.Empty;
+        [KSPField] public string powerUpgradeTechReq = string.Empty;
+        [KSPField] public double powerUpgradeCoreTempMult = 1;
 
-        [KSPField]
-        public double neutronEmbrittlementLifepointsMax = 100;
-        [KSPField]
-        public double neutronEmbrittlementDivider = 1e+9;
-        [KSPField]
-        public double hotBathModifier = 1;
-        [KSPField]
-        public double thermalProcessingModifier = 1;
-        [KSPField]
-        public int supportedPropellantAtoms = GameConstants.defaultSupportedPropellantAtoms;
-        [KSPField]
-        public int supportedPropellantTypes = GameConstants.defaultSupportedPropellantTypes;
-        [KSPField]
-        public bool fullPowerForNonNeutronAbsorbants = true;
-        [KSPField]
-        public bool showPowerPriority = true;
-        [KSPField]
-        public bool showSpecialisedUI = true;
-        [KSPField]
-        public bool canUseNeutronicFuels = true;
-        [KSPField]
-        public bool canUseGammaRayFuels = true;
-        [KSPField]
-        public double maxNeutronsRatio = 1.04;
-        [KSPField]
-        public double minNeutronsRatio = 0;
-
-        [KSPField]
-        public int fuelModeTechLevel;
-        [KSPField]
-        public string bimodelUpgradeTechReq = string.Empty;
-        [KSPField]
-        public string powerUpgradeTechReq = string.Empty;
-        [KSPField]
-        public double powerUpgradeCoreTempMult = 1;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_rawPowerOutput", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double currentRawPowerOutput;
 
-        [KSPField]
-        public double PowerOutput = 0;
-        [KSPField]
-        public double upgradedPowerOutput = 0;
-        [KSPField]
-        public string upgradeTechReq = string.Empty;
-        [KSPField]
-        public bool shouldApplyBalance;
-        [KSPField]
-        public double tritium_molar_mass_ratio = 3.0160 / 7.0183;
-        [KSPField]
-        public double helium_molar_mass_ratio = 4.0023 / 7.0183;
+        [KSPField] public double PowerOutput = 0;
+        [KSPField] public double upgradedPowerOutput = 0;
+        [KSPField] public string upgradeTechReq = string.Empty;
+        [KSPField] public bool shouldApplyBalance;
+        [KSPField] public double tritium_molar_mass_ratio = 3.0160 / 7.0183;
+        [KSPField] public double helium_molar_mass_ratio = 4.0023 / 7.0183;
 
         // GUI strings
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_reactorStatus")]
@@ -549,20 +325,13 @@ namespace FNPlugin.Reactors
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_reactorSurface", guiUnits = " m\xB3")]
         public double reactorSurface;
 
-        [KSPField]
-        protected double max_power_to_supply;
-        [KSPField]
-        protected double requested_thermal_to_supply_per_second;
-        [KSPField]
-        protected double max_thermal_to_supply_per_second;
-        [KSPField]
-        protected double requested_charged_to_supply_per_second;
-        [KSPField]
-        protected double max_charged_to_supply_per_second;
-        [KSPField]
-        protected double min_throttle;
-        [KSPField]
-        public double massCostExponent = 2.5;
+        [KSPField] protected double maxPowerToSupply;
+        [KSPField] protected double requestedThermalToSupplyPerSecond;
+        [KSPField] protected double maxThermalToSupplyPerSecond;
+        [KSPField] protected double requestedChargedToSupplyPerSecond;
+        [KSPField] protected double maxChargedToSupplyPerSecond;
+        [KSPField] protected double minThrottle;
+        [KSPField] public double massCostExponent = 2.5;
 
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_InitialCost")]//Initial Cost
         public double initialCost;
@@ -577,20 +346,20 @@ namespace FNPlugin.Reactors
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false)]
-        public float massDifference = 0;
+        public float massDifference;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_CalibratedMass", guiUnits = " t")]//calibrated mass
         public float partMass = 0;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiFormat = "F3", guiUnits = " t")]
-        public float currentMass = 0;
+        public float currentMass;
         [KSPField]
-        public double maximumThermalPowerEffective = 0;
+        public double maximumThermalPowerEffective;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_EmbrittlementFraction", guiFormat = "F4")]//Embrittlement Fraction
-        public double embrittlementModifier = 0;
+        public double embrittlementModifier;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_BuoyancyFraction", guiFormat = "F4")]//Buoyancy Fraction
         public double geeForceModifier = 1;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_OverheatFraction", guiFormat = "F4")]//Overheat Fraction
         public double overheatModifier = 1;
-        
+
         [KSPField]public double lithiumNeutronAbsorbtion = 1;
         [KSPField]public bool isConnectedToThermalGenerator;
         [KSPField]public bool isConnectedToChargedGenerator;
@@ -599,7 +368,7 @@ namespace FNPlugin.Reactors
         public bool render_window;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_startEnabled"), UI_Toggle(disabledText = "#LOC_KSPIE_Reactor_startEnabled_True", enabledText = "#LOC_KSPIE_Reactor_startEnabled_False")]//True-False
         public bool startDisabled;
-        
+
         // shared variabels
         protected bool decay_ongoing;
         protected bool initialized;
@@ -609,152 +378,72 @@ namespace FNPlugin.Reactors
         protected double animationStarted = 0;
         protected double powerPcnt;
         protected double totalAmountLithium = 0;
-        protected double totalMaxAmountLithium = 0;  
+        protected double totalMaxAmountLithium = 0;
 
-        protected GUIStyle bold_style;
-        protected GUIStyle text_style;
-        protected List<ReactorFuelType> fuel_modes;
-        protected List<ReactorFuelMode> current_fuel_variants_sorted;
-        protected ReactorFuelMode current_fuel_variant;
+        protected GUIStyle boldStyle;
+        protected GUIStyle textStyle;
+        protected List<ReactorFuelType> fuelModes;
+        protected List<ReactorFuelMode> currentFuelVariantsSorted;
+        protected ReactorFuelMode currentFuelVariant;
         protected AnimationState[] pulseAnimation;
         protected ModuleAnimateGeneric startupAnimation;
         protected ModuleAnimateGeneric shutdownAnimation;
         protected ModuleAnimateGeneric loopingAnimation;
 
-        FNHabitat centrifugeHabitat;
-        Rect windowPosition;
-        ReactorFuelType current_fuel_mode;
-        PartResourceDefinition lithium6_def;
-        PartResourceDefinition tritium_def;
-        PartResourceDefinition helium_def;
-        PartResourceDefinition hydrogenDefinition;
-        ResourceBuffers _resourceBuffers;
-        FNEmitterController emitterController;
+        private FNHabitat centrifugeHabitat;
+        private Rect windowPosition;
+        private ReactorFuelType _currentFuelMode;
+        private PartResourceDefinition _lithium6Def;
+        private PartResourceDefinition _tritiumDef;
+        private PartResourceDefinition _heliumDef;
+        private PartResourceDefinition hydrogenDefinition;
+        private ResourceBuffers _resourceBuffers;
+        private FNEmitterController emitterController;
 
-        List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
-        List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
-        Queue<double> averageGeeforce = new Queue<double>();
-        Queue<double> averageOverheat = new Queue<double>();
+        private readonly List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
+        private readonly List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
+        private readonly Queue<double> averageGeeforce = new Queue<double>();
+        private readonly Queue<double> averageOverheat = new Queue<double>();
 
-        AudioSource initiate_sound;
-        AudioSource terminate_sound;
-        AudioSource running_sound;
+        private AudioSource _initiateSound;
+        private AudioSource _terminateSound;
+        private AudioSource _runningSound;
 
-        double tritium_density;
-        double helium4_density;
-        double lithium6_density;
+        private double _tritiumDensity;
+        private double _helium4Density;
+        private double _lithium6Density;
 
-        double consumedFuelTotalFixed;
-        double connectedRecieversSum;
+        private double _propulsionRequestRatioSum;
+        private double _consumedFuelTotalFixed;
+        private double _connectedReceiversSum;
+        private double _previousReactorPowerRatio;
 
-        double currentThermalEnergyGeneratorMass;
-        double currentChargedEnergyGeneratorMass;
+        private double _currentThermalEnergyGeneratorMass;
+        private double _currentChargedEnergyGeneratorMass;
 
-        double tritiumBreedingMassAdjustment;
-        double heliumBreedingMassAdjustment;
-        double staticBreedRate;
+        private double _tritiumBreedingMassAdjustment;
+        private double _heliumBreedingMassAdjustment;
+        private double _staticBreedRate;
 
-        double currentIsThermalEnergyGeneratorEfficiency;
-        double currentIsChargedEnergyGenratorEfficiency;
-        double currentIsPlasmaEnergyGeneratorEfficiency;
+        private double _currentIsThermalEnergyGeneratorEfficiency;
+        private double _currentIsChargedEnergyGeneratorEfficiency;
+        private double _currentIsPlasmaEnergyGeneratorEfficiency;
 
-        double currentGeneratorThermalEnergyRequestRatio;
-        double currentGeneratorPlasmaEnergyRequestRatio;
-        double currentGeneratorChargedEnergyRequestRatio;
+        private double _currentGeneratorThermalEnergyRequestRatio;
+        private double _currentGeneratorPlasmaEnergyRequestRatio;
+        private double _currentGeneratorChargedEnergyRequestRatio;
 
-        double lithium_consumed_per_second;
-        double tritium_produced_per_second;
-        double helium_produced_per_second;
+        private double _lithiumConsumedPerSecond;
+        private double _tritiumProducedPerSecond;
+        private double _heliumProducedPerSecond;
 
-        int windowID = 90175467;
-        int deactivate_timer;
-        int chargedParticleUtilisationLevel = 1;
+        private int _windowId = 90175467;
+        private int _deactivateTimer;
+        private int _chargedParticleUtilisationLevel = 1;
 
         bool hasSpecificFuelModeTechs;
         bool? hasBimodelUpgradeTechReq;
-        
         bool isFixedUpdatedCalled;
-
-        private void DetermineChargedParticleUtilizationRatio()
-        {
-            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk2))
-                chargedParticleUtilisationLevel++;
-            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk3))
-                chargedParticleUtilisationLevel++;
-            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk4))
-                chargedParticleUtilisationLevel++;
-            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk5))
-                chargedParticleUtilisationLevel++;
-
-            if (chargedParticleUtilisationLevel == 1)
-                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk1;
-            else if (chargedParticleUtilisationLevel == 2)
-                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk2;
-            else if (chargedParticleUtilisationLevel == 3)
-                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk3;
-            else if (chargedParticleUtilisationLevel == 4)
-                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk4;
-            else 
-                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk5;
-        }
-
-        public ReactorFuelType CurrentFuelMode
-        {
-            get 
-            {
-                if (current_fuel_mode == null)
-                {
-                    Debug.Log("[KSPI]: CurrentFuelMode setting default fuelmode");
-                    SetDefaultFuelMode();
-                }
-
-                return current_fuel_mode; 
-            }
-            set
-            {
-                current_fuel_mode = value;
-                max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
-                current_fuel_variants_sorted = current_fuel_mode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
-                current_fuel_variant = current_fuel_variants_sorted.First();
-
-                // persist
-                fuelmode_index = current_fuel_mode.Index;
-                fuel_mode_name = current_fuel_mode.ModeGUIName;
-                fuel_mode_variant = current_fuel_variant.Name;
-            }
-        }
-
-        public double PowerRatio  
-        { 
-            get 
-            {
-                powerRatio = ((double)(decimal)powerPercentage) / 100;
-
-                return powerRatio; 
-            } 
-        }
-
-        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
-        {
-            neutronEmbrittlementCost = calculatedCost * Math.Pow((neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), 0.5);
-
-            maxResourceCost = part.Resources.Sum(m => m.maxAmount * m.info.unitCost);
-
-            var dryCost = calculatedCost - initialCost;
-
-            moduleCost = updateModuleCost ? (float)(maxResourceCost + dryCost - neutronEmbrittlementCost) : 0;
-
-            //if (neutronEmbrittlementCost > 0)
-            //    Debug.Log("[KSPI]: GetModuleCost returned maxResourceCost " + maxResourceCost + " + dryCost " + dryCost + " - neutronEmbrittlementCost " + neutronEmbrittlementCost + " = " + moduleCost);
-
-            return moduleCost;
-        }
-                
-
-        public ModifierChangeWhen GetModuleCostChangeWhen()
-        {
-            return ModifierChangeWhen.STAGED;
-        }
 
         // properties
         public double ForcedMinimumThrottleRatio => ((double)(decimal)forcedMinimumThrottle) / 100;
@@ -779,7 +468,7 @@ namespace FNPlugin.Reactors
 
         public double MinThermalNozzleTempRequired => minThermalNozzleTempRequired;
 
-        public virtual double CurrentMeVPerChargedProduct => current_fuel_mode?.MeVPerChargedProduct ?? 0;
+        public virtual double CurrentMeVPerChargedProduct => _currentFuelMode?.MeVPerChargedProduct ?? 0;
 
         public bool UsePropellantBaseIsp => usePropellantBaseIsp;
 
@@ -797,7 +486,7 @@ namespace FNPlugin.Reactors
 
         public double ThermalPropulsionWasteheatModifier => 1;
 
-        public double ConsumedFuelFixed => consumedFuelTotalFixed;
+        public double ConsumedFuelFixed => _consumedFuelTotalFixed;
 
         public bool SupportMHD => supportMHD;
 
@@ -817,7 +506,153 @@ namespace FNPlugin.Reactors
 
         public int ProviderPowerPriority => (int)electricPowerPriority;
 
+        public double ThermalTransportationEfficiency => heatTransportationEfficiency;
+
         public double RawTotalPowerProduced => ongoing_total_power_generated;
+
+        public GenerationType CurrentGenerationType => (GenerationType)currentGenerationType;
+
+        public GenerationType FuelModeTechLevel => (GenerationType)fuelModeTechLevel;
+
+        public double ChargedParticlePropulsionEfficiency => chargedParticlePropulsionEfficiency * maxChargedParticleUtilisationRatio;
+
+        public double PlasmaPropulsionEfficiency => plasmaPropulsionEfficiency * maxChargedParticleUtilisationRatio;
+
+        public double ThermalPropulsionEfficiency => thermalPropulsionEfficiency;
+
+        public double ThermalEnergyEfficiency => thermalEnergyEfficiency;
+
+        public double PlasmaEnergyEfficiency => plasmaEnergyEfficiency;
+
+        public double ChargedParticleEnergyEfficiency => chargedParticleEnergyEfficiency;
+
+        public bool IsSelfContained => containsPowerGenerator;
+
+        public String UpgradeTechnology => upgradeTechReq;
+
+        public double PowerBufferBonus => this.bonusBufferFactor;
+
+        public double RawMaximumPowerForPowerGeneration => RawPowerOutput;
+
+        public double RawMaximumPower => RawPowerOutput;
+
+        public virtual double ReactorEmbrittlementConditionRatio => Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
+
+        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode?.NormalisedReactionRate ?? 1);
+
+        public virtual double MinimumPower => MaximumPower * MinimumThrottle;
+
+        public virtual double MaximumThermalPower => PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier;
+
+        public virtual double MaximumChargedPower => PowerRatio * NormalisedMaximumPower * ChargedPowerRatio * geeForceModifier * overheatModifier;
+
+        public double ReactorSpeedMult => reactorSpeedMult;
+
+        public virtual bool CanProducePower => stored_fuel_ratio > 0;
+
+        public virtual bool IsNuclear => false;
+
+        public virtual bool IsActive => IsEnabled;
+
+        public virtual bool IsVolatileSource => false;
+
+        public virtual bool IsFuelNeutronRich => false;
+
+        public virtual double MaximumPower => MaximumThermalPower + MaximumChargedPower;
+
+        public virtual double StableMaximumReactorPower => IsEnabled ? NormalisedMaximumPower : 0;
+
+        public int ReactorFuelModeTechLevel => fuelModeTechLevel + reactorModeTechBonus;
+
+        public int ReactorType => reactorType;
+
+        public virtual string TypeName => part.partInfo.title;
+
+        public virtual double ChargedPowerRatio => CurrentFuelMode?.ChargedPowerRatio ?? 0;
+
+        public double ThermalPowerRatio => 1 - ChargedPowerRatio;
+
+        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
+
+        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
+
+        private void DetermineChargedParticleUtilizationRatio()
+        {
+            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk2))
+                _chargedParticleUtilisationLevel++;
+            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk3))
+                _chargedParticleUtilisationLevel++;
+            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk4))
+                _chargedParticleUtilisationLevel++;
+            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk5))
+                _chargedParticleUtilisationLevel++;
+
+            if (_chargedParticleUtilisationLevel == 1)
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk1;
+            else if (_chargedParticleUtilisationLevel == 2)
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk2;
+            else if (_chargedParticleUtilisationLevel == 3)
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk3;
+            else if (_chargedParticleUtilisationLevel == 4)
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk4;
+            else
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk5;
+        }
+
+        public ReactorFuelType CurrentFuelMode
+        {
+            get
+            {
+                if (_currentFuelMode != null)
+                    return _currentFuelMode;
+
+                Debug.Log("[KSPI]: CurrentFuelMode setting default fuelmode");
+                SetDefaultFuelMode();
+
+                return _currentFuelMode;
+            }
+            set
+            {
+                _currentFuelMode = value;
+                maxPowerToSupply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
+                currentFuelVariantsSorted = _currentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult);
+                currentFuelVariant = currentFuelVariantsSorted.First();
+
+                // persist
+                fuelmode_index = _currentFuelMode.Index;
+                fuel_mode_name = _currentFuelMode.ModeGUIName;
+                fuel_mode_variant = currentFuelVariant.Name;
+            }
+        }
+
+        public double PowerRatio
+        {
+            get
+            {
+                powerRatio = ((double)(decimal)powerPercentage) / 100;
+
+                return powerRatio;
+            }
+        }
+
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            neutronEmbrittlementCost = calculatedCost * Math.Pow((neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), 0.5);
+
+            maxResourceCost = part.Resources.Sum(m => m.maxAmount * m.info.unitCost);
+
+            var dryCost = calculatedCost - initialCost;
+
+            moduleCost = updateModuleCost ? (float)(maxResourceCost + dryCost - neutronEmbrittlementCost) : 0;
+
+            return moduleCost;
+        }
+
+
+        public ModifierChangeWhen GetModuleCostChangeWhen()
+        {
+            return ModifierChangeWhen.STAGED;
+        }
 
         public void UseProductForPropulsion(double ratio, double propellantMassPerSecond)
         {
@@ -841,7 +676,7 @@ namespace FNPlugin.Reactors
                 part.RequestResource(product.fuelmode.ResourceName, fuelAmount);
             }
 
-            var resultFixed = part.RequestResource(resource.name, -propellantMassPerSecond * ((double)(decimal)TimeWarp.fixedDeltaTime) / ((double)(decimal)resource.density), ResourceFlowMode.ALL_VESSEL);
+            part.RequestResource(resource.name, -propellantMassPerSecond * TimeWarp.fixedDeltaTime / resource.density, ResourceFlowMode.ALL_VESSEL);
         }
 
         public void ConnectWithEngine(IEngineNoozle engine)
@@ -874,17 +709,6 @@ namespace FNPlugin.Reactors
                 connectedEngines.Remove(fnEngine);
         }
 
-        public GenerationType CurrentGenerationType
-        {
-            get => (GenerationType)currentGenerationType;
-            private set => currentGenerationType = (int)value;
-        }
-
-        public GenerationType FuelModeTechLevel
-        {
-            get => (GenerationType)fuelModeTechLevel;
-            private set => fuelModeTechLevel = (int)value;
-        }
 
         public double FusionEnergyGainFactor
         {
@@ -951,40 +775,40 @@ namespace FNPlugin.Reactors
 
         public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD, double mass)
         {
-            currentThermalEnergyGeneratorMass = mass;
+            _currentThermalEnergyGeneratorMass = mass;
 
             if (isMHD)
             {
-                currentIsPlasmaEnergyGeneratorEfficiency = efficency;
-                currentGeneratorPlasmaEnergyRequestRatio = power_ratio;
+                _currentIsPlasmaEnergyGeneratorEfficiency = efficency;
+                _currentGeneratorPlasmaEnergyRequestRatio = power_ratio;
             }
             else
             {
-                currentIsThermalEnergyGeneratorEfficiency = efficency;
-                currentGeneratorThermalEnergyRequestRatio = power_ratio;
+                _currentIsThermalEnergyGeneratorEfficiency = efficency;
+                _currentGeneratorThermalEnergyRequestRatio = power_ratio;
             }
             isConnectedToThermalGenerator = true;
         }
 
         public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio)
         {
-            currentIsThermalEnergyGeneratorEfficiency = efficency;
-            currentGeneratorThermalEnergyRequestRatio = power_ratio;
+            _currentIsThermalEnergyGeneratorEfficiency = efficency;
+            _currentGeneratorThermalEnergyRequestRatio = power_ratio;
             isConnectedToThermalGenerator = true;
         }
 
         public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio)
         {
-            currentIsChargedEnergyGenratorEfficiency = efficency;
-            currentGeneratorChargedEnergyRequestRatio = power_ratio;
+            _currentIsChargedEnergyGeneratorEfficiency = efficency;
+            _currentGeneratorChargedEnergyRequestRatio = power_ratio;
             isConnectedToChargedGenerator = true;
         }
 
-        public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, double mass) 
+        public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, double mass)
         {
-            currentChargedEnergyGeneratorMass = mass;
-            currentIsChargedEnergyGenratorEfficiency = efficency;
-            currentGeneratorChargedEnergyRequestRatio = power_ratio;
+            _currentChargedEnergyGeneratorMass = mass;
+            _currentIsChargedEnergyGeneratorEfficiency = efficency;
+            _currentGeneratorChargedEnergyRequestRatio = power_ratio;
             isConnectedToChargedGenerator = true;
         }
 
@@ -998,14 +822,14 @@ namespace FNPlugin.Reactors
         {
             if (!connectedReceivers.ContainsKey(key))
                 connectedReceivers.Add(key, radius);
-            UpdateConnectedRecieversStr();
+            UpdateConnectedReceiversStr();
         }
 
         public override void DetachThermalReciever(Guid key)
         {
             if (connectedReceivers.ContainsKey(key))
                 connectedReceivers.Remove(key);
-            UpdateConnectedRecieversStr();
+            UpdateConnectedReceiversStr();
         }
 
         public virtual void OnRescale(ScalingFactor factor)
@@ -1033,20 +857,18 @@ namespace FNPlugin.Reactors
             }
         }
 
-        private void UpdateConnectedRecieversStr()
+        private void UpdateConnectedReceiversStr()
         {
             if (connectedReceivers == null) return;
 
-            connectedRecieversSum = connectedReceivers.Sum(r => r.Value * r.Value);
+            _connectedReceiversSum = connectedReceivers.Sum(r => r.Value * r.Value);
             connectedReceiversFraction.Clear();
             foreach (var pair in connectedReceivers)
-                connectedReceiversFraction[pair.Key] = pair.Value * pair.Value / connectedRecieversSum;
+                connectedReceiversFraction[pair.Key] = pair.Value * pair.Value / _connectedReceiversSum;
 
             reactorSurface = Math.Pow(radius, 2);
-            connectedRecieversStr = connectedReceivers.Count() + " (" + connectedRecieversSum.ToString("0.000") + " m2)";
+            connectedRecieversStr = connectedReceivers.Count() + " (" + _connectedReceiversSum.ToString("0.000") + " m2)";
         }
-
-        public double ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
         public bool HasBimodelUpgradeTechReq
         {
@@ -1057,68 +879,6 @@ namespace FNPlugin.Reactors
                 return (bool)hasBimodelUpgradeTechReq;
             }
         }
-
-        public double ChargedParticlePropulsionEfficiency => chargedParticlePropulsionEfficiency * maxChargedParticleUtilisationRatio;
-
-        public double PlasmaPropulsionEfficiency => plasmaPropulsionEfficiency * maxChargedParticleUtilisationRatio;
-
-        public double ThermalPropulsionEfficiency => thermalPropulsionEfficiency;
-
-        public double ThermalEnergyEfficiency => thermalEnergyEfficiency;
-
-        public double PlasmaEnergyEfficiency => plasmaEnergyEfficiency;
-
-        public double ChargedParticleEnergyEfficiency => chargedParticleEnergyEfficiency;
-
-        public bool IsSelfContained => containsPowerGenerator;
-
-        public String UpgradeTechnology => upgradeTechReq;
-
-        public double PowerBufferBonus => this.bonusBufferFactor;
-
-        public double RawMaximumPowerForPowerGeneration => RawPowerOutput;
-
-        public double RawMaximumPower => RawPowerOutput;
-
-        public virtual double ReactorEmbrittlementConditionRatio => Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
-
-        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode?.NormalisedReactionRate ?? 1);
-
-        public virtual double MinimumPower => MaximumPower * MinimumThrottle;
-
-        public virtual double MaximumThermalPower => PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier;
-
-        public virtual double MaximumChargedPower => PowerRatio * NormalisedMaximumPower * ChargedPowerRatio * geeForceModifier * overheatModifier;
-
-        public double ReactorSpeedMult => reactorSpeedMult;
-
-        public virtual bool CanProducePower => stored_fuel_ratio > 0;
-
-        public virtual bool IsNuclear => false;
-
-        public virtual bool IsActive => IsEnabled;
-
-        public virtual bool IsVolatileSource => false;
-
-        public virtual bool IsFuelNeutronRich => false;
-
-        public virtual double MaximumPower => MaximumThermalPower + MaximumChargedPower;
-
-        public virtual double StableMaximumReactorPower => IsEnabled ? NormalisedMaximumPower : 0;
-
-        public int ReactorFuelModeTechLevel => fuelModeTechLevel + reactorModeTechBonus;
-
-        public int ReactorType => reactorType;
-
-        public virtual string TypeName => part.partInfo.title;
-
-        public virtual double ChargedPowerRatio => CurrentFuelMode?.ChargedPowerRatio ?? 0;
-
-        public double ThermalPowerRatio => 1 - ChargedPowerRatio;
-
-        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
-
-        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
         public virtual double FuelEfficiency
         {
@@ -1231,7 +991,7 @@ namespace FNPlugin.Reactors
 
         public double EffectiveEmbrittlementEffectRatio
         {
-            get 
+            get
             {
                 embrittlementModifier = CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlementConditionRatio * Math.PI * 0.5);
                 return embrittlementModifier;
@@ -1286,8 +1046,8 @@ namespace FNPlugin.Reactors
 
                 stored_fuel_ratio = 1;
                 IsEnabled = true;
-                if (running_sound != null)
-                    running_sound.Play();
+                if (_runningSound != null)
+                    _runningSound.Play();
             }
         }
 
@@ -1302,7 +1062,7 @@ namespace FNPlugin.Reactors
 
             if (centrifugeHabitat != null && !centrifugeHabitat.isDeployed)
             {
-                var message = Localizer.Format("#LOC_KSPIE_Reactor_PostMsg1", part.name);//"Activation was canceled because " +  + " is not deployed"
+                var message = Localizer.Format("#LOC_KSPIE_Reactor_PostMsg1", part.name);
                 ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
                 Debug.LogWarning("[KSPI]: " + message);
                 return;
@@ -1323,8 +1083,8 @@ namespace FNPlugin.Reactors
 
                 IsEnabled = false;
 
-                if (running_sound != null)
-                    running_sound.Stop();
+                if (_runningSound != null)
+                    _runningSound.Stop();
             }
         }
 
@@ -1372,19 +1132,19 @@ namespace FNPlugin.Reactors
         {
             if (PluginHelper.PartTechUpgrades == null)
             {
-                print("[KSPI]: PartTechUpgrades is not initialized");
+                Debug.Log("[KSPI]: PartTechUpgrades is not initialized");
                 return false;
             }
 
-            if (!PluginHelper.PartTechUpgrades.TryGetValue(part.name, out var upgradetechName))
+            if (!PluginHelper.PartTechUpgrades.TryGetValue(part.name, out var upgradeTechName))
             {
-                print("[KSPI]: PartTechUpgrade entry is not found for part '" + part.name + "'");
+                Debug.Log("[KSPI]: PartTechUpgrade entry is not found for part '" + part.name + "'");
                 return false;
             }
 
-            print("[KSPI]: Found matching Interstellar upgradeTech for part '" + part.name + "' with techNode " + upgradetechName);
+            Debug.Log("[KSPI]: Found matching Interstellar upgradeTech for part '" + part.name + "' with techNode " + upgradeTechName);
 
-            return PluginHelper.UpgradeAvailable(upgradetechName);
+            return PluginHelper.UpgradeAvailable(upgradeTechName);
         }
 
         public void DeterminePowerOutput()
@@ -1400,6 +1160,14 @@ namespace FNPlugin.Reactors
             powerOutputMk5 = basePowerOutputMk5 * effectivePowerMultiplier;
             powerOutputMk6 = basePowerOutputMk6 * effectivePowerMultiplier;
             powerOutputMk7 = basePowerOutputMk7 * effectivePowerMultiplier;
+
+            Fields[nameof(powerOutputMk1)].guiActiveEditor = true;
+            Fields[nameof(powerOutputMk2)].guiActiveEditor = !string.IsNullOrEmpty(fuelModeTechReqLevel2);
+            Fields[nameof(powerOutputMk3)].guiActiveEditor = !string.IsNullOrEmpty(fuelModeTechReqLevel3);
+            Fields[nameof(powerOutputMk4)].guiActiveEditor = !string.IsNullOrEmpty(fuelModeTechReqLevel4);
+            Fields[nameof(powerOutputMk5)].guiActiveEditor = !string.IsNullOrEmpty(fuelModeTechReqLevel5);
+            Fields[nameof(powerOutputMk6)].guiActiveEditor = !string.IsNullOrEmpty(fuelModeTechReqLevel6);
+            Fields[nameof(powerOutputMk7)].guiActiveEditor = !string.IsNullOrEmpty(fuelModeTechReqLevel7);
 
             // initialise power output when missing
             if (powerOutputMk2 <= 0)
@@ -1431,7 +1199,7 @@ namespace FNPlugin.Reactors
                 minimumThrottleMk7 = minimumThrottleMk6;
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             UpdateReactorCharacteristics();
 
@@ -1441,7 +1209,7 @@ namespace FNPlugin.Reactors
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
-            staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
+            _staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
 
             var powerPercentageField = Fields[nameof(powerPercentage)];
             powerPercentageField.guiActive = showPowerPercentage;
@@ -1465,8 +1233,8 @@ namespace FNPlugin.Reactors
                 part.OnEditorDetach += OnEditorDetach;
             }
 
-            String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES };
-            this.resources_to_supply = resources_to_supply;
+            string[] resourcesToSupply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES };
+            this.resources_to_supply = resourcesToSupply;
 
             _resourceBuffers = new ResourceBuffers();
             _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
@@ -1475,11 +1243,11 @@ namespace FNPlugin.Reactors
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             _resourceBuffers.Init(part);
 
-            windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
+            _windowId = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
             base.OnStart(state);
 
             // configure reactor modes
-            fuel_modes = GetReactorFuelModes();
+            fuelModes = GetReactorFuelModes();
             SetDefaultFuelMode();
             UpdateFuelMode();
 
@@ -1521,30 +1289,30 @@ namespace FNPlugin.Reactors
                 reactorInit = true;
             }
 
-            if (IsEnabled && running_sound != null)
+            if (IsEnabled && _runningSound != null)
             {
-                previous_reactor_power_ratio = reactor_power_ratio;
+                _previousReactorPowerRatio = reactor_power_ratio;
 
                 if (vessel.isActiveVessel)
-                    running_sound.Play();
+                    _runningSound.Play();
             }
 
-            tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.TritiumGas);
-            helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
-            lithium6_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
+            _tritiumDef = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.TritiumGas);
+            _heliumDef = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
+            _lithium6Def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
 
-            tritium_density = tritium_def.density;
-            helium4_density = helium_def.density;
-            lithium6_density = lithium6_def.density;
+            _tritiumDensity = _tritiumDef.density;
+            _helium4Density = _heliumDef.density;
+            _lithium6Density = _lithium6Def.density;
 
-            tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * lithium6_density/ tritium_density;
-            heliumBreedingMassAdjustment = helium_molar_mass_ratio * lithium6_density / helium4_density;
+            _tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * _lithium6Density/ _tritiumDensity;
+            _heliumBreedingMassAdjustment = helium_molar_mass_ratio * _lithium6Density / _helium4Density;
 
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
 
             if (!string.IsNullOrEmpty(animName))
-                pulseAnimation = PluginHelper.SetUpAnimation(animName, this.part);
+                pulseAnimation = PluginHelper.SetUpAnimation(animName, part);
             if (!string.IsNullOrEmpty(loopingAnimationName))
                 loopingAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == loopingAnimationName);
             if (!string.IsNullOrEmpty(startupAnimationName))
@@ -1560,7 +1328,7 @@ namespace FNPlugin.Reactors
             {
                 Debug.Log("[KSPI]: InterstellarReactor on " + part.name + " was Force Activated");
                 part.force_activate();
-                
+
                 Fields[nameof(heatTransportationEfficiency)].guiActiveEditor = true;
             }
             else
@@ -1576,36 +1344,36 @@ namespace FNPlugin.Reactors
         {
             if (!string.IsNullOrWhiteSpace(soundRunningFilePath))
             {
-                running_sound = gameObject.AddComponent<AudioSource>();
-                running_sound.clip = GameDatabase.Instance.GetAudioClip(soundRunningFilePath);
-                running_sound.volume = 0;
-                running_sound.panStereo = 0;
-                running_sound.rolloffMode = AudioRolloffMode.Linear;
-                running_sound.loop = true;
-                running_sound.Stop();
+                _runningSound = gameObject.AddComponent<AudioSource>();
+                _runningSound.clip = GameDatabase.Instance.GetAudioClip(soundRunningFilePath);
+                _runningSound.volume = 0;
+                _runningSound.panStereo = 0;
+                _runningSound.rolloffMode = AudioRolloffMode.Linear;
+                _runningSound.loop = true;
+                _runningSound.Stop();
             }
 
             //soundTerminateFilePath
             if (!string.IsNullOrWhiteSpace(soundTerminateFilePath))
             {
-                terminate_sound = gameObject.AddComponent<AudioSource>();
-                terminate_sound.clip = GameDatabase.Instance.GetAudioClip(soundTerminateFilePath);
-                terminate_sound.volume = 0;
-                terminate_sound.panStereo = 0;
-                terminate_sound.rolloffMode = AudioRolloffMode.Linear;
-                terminate_sound.loop = false;
-                terminate_sound.Stop();
+                _terminateSound = gameObject.AddComponent<AudioSource>();
+                _terminateSound.clip = GameDatabase.Instance.GetAudioClip(soundTerminateFilePath);
+                _terminateSound.volume = 0;
+                _terminateSound.panStereo = 0;
+                _terminateSound.rolloffMode = AudioRolloffMode.Linear;
+                _terminateSound.loop = false;
+                _terminateSound.Stop();
             }
 
             if (!string.IsNullOrWhiteSpace(soundTerminateFilePath))
             {
-                initiate_sound = gameObject.AddComponent<AudioSource>();
-                initiate_sound.clip = GameDatabase.Instance.GetAudioClip(soundInitiateFilePath);
-                initiate_sound.volume = 0;
-                initiate_sound.panStereo = 0;
-                initiate_sound.rolloffMode = AudioRolloffMode.Linear;
-                initiate_sound.loop = false;
-                initiate_sound.Stop();
+                _initiateSound = gameObject.AddComponent<AudioSource>();
+                _initiateSound.clip = GameDatabase.Instance.GetAudioClip(soundInitiateFilePath);
+                _initiateSound.volume = 0;
+                _initiateSound.panStereo = 0;
+                _initiateSound.rolloffMode = AudioRolloffMode.Linear;
+                _initiateSound.loop = false;
+                _initiateSound.Stop();
             }
         }
 
@@ -1626,12 +1394,12 @@ namespace FNPlugin.Reactors
 
         private void DetermineFuelModeTechLevel()
         {
-            hasSpecificFuelModeTechs = 
+            hasSpecificFuelModeTechs =
                 !string.IsNullOrEmpty(fuelModeTechReqLevel2)
-                || !string.IsNullOrEmpty(fuelModeTechReqLevel3) 
-                || !string.IsNullOrEmpty(fuelModeTechReqLevel4) 
+                || !string.IsNullOrEmpty(fuelModeTechReqLevel3)
+                || !string.IsNullOrEmpty(fuelModeTechReqLevel4)
                 || !string.IsNullOrEmpty(fuelModeTechReqLevel5)
-                || !string.IsNullOrEmpty(fuelModeTechReqLevel6) 
+                || !string.IsNullOrEmpty(fuelModeTechReqLevel6)
                 || !string.IsNullOrEmpty(fuelModeTechReqLevel7);
 
             if (string.IsNullOrEmpty(fuelModeTechReqLevel2))
@@ -1664,7 +1432,7 @@ namespace FNPlugin.Reactors
 
         private void DetermineCoreTemperature()
         {
-            // if coreTemperature is missing, first look at lagacy value
+            // if coreTemperature is missing, first look at legacy value
             if (coreTemperatureMk1 <= 0)
                 coreTemperatureMk1 = ReactorTemp;
             if (coreTemperatureMk2 <= 0)
@@ -1691,7 +1459,7 @@ namespace FNPlugin.Reactors
 
         private void DetermineFuelEfficiency()
         {
-            // if fuel efficiency is missing, try to use lagacy value
+            // if fuel efficiency is missing, try to use legacy value
             if (fuelEfficencyMk1 <= 0)
                 fuelEfficencyMk1 = fuelEfficiency;
 
@@ -1714,7 +1482,7 @@ namespace FNPlugin.Reactors
 
         private void DeterminePowerGenerationType()
         {
-            // initialize tech requirement if missing 
+            // initialize tech requirement if missing
             if (string.IsNullOrEmpty(upgradeTechReqMk2))
                 upgradeTechReqMk2 = upgradeTechReq;
             if (string.IsNullOrEmpty(upgradeTechReqMk3))
@@ -1774,6 +1542,9 @@ namespace FNPlugin.Reactors
             }
         }
 
+        /// <summary>
+        /// is called in both VAB and in flight
+        /// </summary>
         public virtual void Update()
         {
             DeterminePowerOutput();
@@ -1783,14 +1554,13 @@ namespace FNPlugin.Reactors
             currentRawPowerOutput = RawPowerOutput;
             coretempStr = CoreTemperature.ToString("0") + " K";
 
-            Events["DeactivateReactor"].guiActive = HighLogic.LoadedSceneIsFlight && showShutDownInFlight && IsEnabled;
+            Events[nameof(DeactivateReactor)].guiActive = HighLogic.LoadedSceneIsFlight && showShutDownInFlight && IsEnabled;
 
             if (HighLogic.LoadedSceneIsEditor)
             {
-                UpdateConnectedRecieversStr();
+                UpdateConnectedReceiversStr();
                 reactorSurface = radius * radius;
-                
-            }            
+            }
         }
 
         protected void UpdateFuelMode()
@@ -1808,13 +1578,13 @@ namespace FNPlugin.Reactors
             {
                 if (CheatOptions.InfinitePropellant || stored_fuel_ratio > 0.99)
                     statusStr = Localizer.Format("#LOC_KSPIE_Reactor_status1", powerPcnt.ToString("0.0000"));//"Active (" +  + "%)"
-                else if (current_fuel_variant != null)
-                    statusStr = current_fuel_variant.ReactorFuels.OrderBy(GetFuelAvailability).First().ResourceName + " " + Localizer.Format("#LOC_KSPIE_Reactor_status2");//"Deprived"
+                else if (currentFuelVariant != null)
+                    statusStr = currentFuelVariant.ReactorFuels.OrderBy(GetFuelAvailability).First().ResourceName + " " + Localizer.Format("#LOC_KSPIE_Reactor_status2");//"Deprived"
             }
             else
             {
-                statusStr = powerPcnt > 0 
-                    ? Localizer.Format("#LOC_KSPIE_Reactor_status3", powerPcnt.ToString("0.0000")) 
+                statusStr = powerPcnt > 0
+                    ? Localizer.Format("#LOC_KSPIE_Reactor_status3", powerPcnt.ToString("0.0000"))
                     : Localizer.Format("#LOC_KSPIE_Reactor_status4");
             }
         }
@@ -1859,7 +1629,7 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled && maximumPower > 0)
             {
-                max_power_to_supply = Math.Max(maximumPower * timeWarpFixedDeltaTime, 0);
+                maxPowerToSupply = Math.Max(maximumPower * timeWarpFixedDeltaTime, 0);
 
                 UpdateGeeforceModifier();
 
@@ -1876,18 +1646,19 @@ namespace FNPlugin.Reactors
                 else
                     overheatModifier = 1;
 
-                current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier * overheatModifier, fuelUsePerMJMult);
-                current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
-                fuel_mode_variant = current_fuel_variant.Name;
-                
-                stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
+                currentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply * geeForceModifier * overheatModifier, fuelUsePerMJMult);
+                currentFuelVariant = currentFuelVariantsSorted.FirstOrDefault();
+
+                fuel_mode_variant = currentFuelVariant?.Name;
+
+                stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : currentFuelVariant != null ? Math.Min(currentFuelVariant.FuelRatio, 1) : 0;
 
                 LookForAlternativeFuelTypes();
 
                 UpdateCapacities();
 
-                var true_variant = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult, false).FirstOrDefault();
-                fuel_ratio = CheatOptions.InfinitePropellant ? 1 : true_variant != null ? Math.Min(true_variant.FuelRatio, 1) : 0;
+                var trueVariant = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult, false).FirstOrDefault();
+                fuel_ratio = CheatOptions.InfinitePropellant ? 1 : trueVariant != null ? Math.Min(trueVariant.FuelRatio, 1) : 0;
 
                 if (fuel_ratio < 0.99999)
                 {
@@ -1901,23 +1672,23 @@ namespace FNPlugin.Reactors
                 }
                 else
                     messagedRanOutOfFuel = false;
-             
+
                 thermalThrottleRatio = connectedEngines.Any(m => m.RequiresThermalHeat) ? Math.Min(1, connectedEngines.Where(m => m.RequiresThermalHeat).Sum(e => e.CurrentThrottle)) : 0;
                 plasmaThrottleRatio = connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.CurrentThrottle)) : 0;
                 chargedThrottleRatio = connectedEngines.Any(m => m.RequiresChargedPower) ? Math.Min(1, connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle)) : 0;
 
-                thermal_propulsion_ratio = ThermalPropulsionEfficiency * thermalThrottleRatio;
-                plasma_propulsion_ratio = PlasmaPropulsionEfficiency * plasmaThrottleRatio;
-                charged_propulsion_ratio = ChargedParticlePropulsionEfficiency * chargedThrottleRatio;
+                var thermalPropulsionRatio = ThermalPropulsionEfficiency * thermalThrottleRatio;
+                var plasmaPropulsionRatio = PlasmaPropulsionEfficiency * plasmaThrottleRatio;
+                var chargedPropulsionRatio = ChargedParticlePropulsionEfficiency * chargedThrottleRatio;
 
-                thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
-                plasma_generator_ratio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
-                charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
+                var thermalGeneratorRatio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
+                var plasmaGeneratorRatio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
+                var chargedGeneratorRatio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
-                propulsion_request_ratio_sum = Math.Min(1, thermal_propulsion_ratio + plasma_propulsion_ratio + charged_propulsion_ratio);
+                _propulsionRequestRatioSum = Math.Min(1, thermalPropulsionRatio + plasmaPropulsionRatio + chargedPropulsionRatio);
 
-                maximum_thermal_request_ratio = Math.Min(thermal_propulsion_ratio + plasma_propulsion_ratio + thermal_generator_ratio + plasma_generator_ratio, 1);
-                maximum_charged_request_ratio = Math.Min(charged_propulsion_ratio + charged_generator_ratio, 1);
+                maximum_thermal_request_ratio = Math.Min(thermalPropulsionRatio + plasmaPropulsionRatio + thermalGeneratorRatio + plasmaGeneratorRatio, 1);
+                maximum_charged_request_ratio = Math.Min(chargedPropulsionRatio + chargedGeneratorRatio, 1);
 
                 maximum_reactor_request_ratio = Math.Max(maximum_thermal_request_ratio, maximum_charged_request_ratio);
 
@@ -1938,27 +1709,27 @@ namespace FNPlugin.Reactors
 
                 power_request_ratio = Math.Max(maxThrottleRatio, maxStoredGeneratorEnergyRequestedRatio);
 
-                max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
-                requested_charged_to_supply_per_second = max_charged_to_supply_per_second * power_request_ratio * maximum_charged_request_ratio;
+                maxChargedToSupplyPerSecond = maximumChargedPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
+                requestedChargedToSupplyPerSecond = maxChargedToSupplyPerSecond * power_request_ratio * maximum_charged_request_ratio;
 
                 var chargedParticlesManager = getManagerForVessel(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 var thermalHeatManager = getManagerForVessel(ResourceManager.FNRESOURCE_THERMALPOWER);
 
-                min_throttle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
-                var neededChargedPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(max_charged_to_supply_per_second, min_throttle, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
+                minThrottle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
+                var neededChargedPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(maxChargedToSupplyPerSecond, minThrottle, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 charged_power_ratio = Math.Min(maximum_charged_request_ratio, maximumChargedPower > 0 ? neededChargedPowerPerSecond / maximumChargedPower : 0);
 
-                max_thermal_to_supply_per_second = maximumThermalPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
-                requested_thermal_to_supply_per_second = max_thermal_to_supply_per_second * power_request_ratio * maximum_thermal_request_ratio;
+                maxThermalToSupplyPerSecond = maximumThermalPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
+                requestedThermalToSupplyPerSecond = maxThermalToSupplyPerSecond * power_request_ratio * maximum_thermal_request_ratio;
 
-                var neededThermalPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(max_thermal_to_supply_per_second, min_throttle, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+                var neededThermalPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(maxThermalToSupplyPerSecond, minThrottle, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
                 requested_thermal_power_ratio =  maximumThermalPower > 0 ? neededThermalPowerPerSecond / maximumThermalPower : 0;
                 thermal_power_ratio = Math.Min(maximum_thermal_request_ratio, requested_thermal_power_ratio);
 
                 reactor_power_ratio = Math.Min(overheatModifier * maximum_reactor_request_ratio, PowerRatio);
 
-                ongoing_charged_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requested_charged_to_supply_per_second, max_charged_to_supply_per_second, reactor_power_ratio, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
-                ongoing_thermal_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requested_thermal_to_supply_per_second, max_thermal_to_supply_per_second, reactor_power_ratio, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+                ongoing_charged_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requestedChargedToSupplyPerSecond, maxChargedToSupplyPerSecond, reactor_power_ratio, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
+                ongoing_thermal_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requestedThermalToSupplyPerSecond, maxThermalToSupplyPerSecond, reactor_power_ratio, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
                 ongoing_total_power_generated = ongoing_thermal_power_generated + ongoing_charged_power_generated;
 
                 var totalPowerReceivedFixed = ongoing_total_power_generated * timeWarpFixedDeltaTime;
@@ -1973,9 +1744,9 @@ namespace FNPlugin.Reactors
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
                     // skip first frame of wasteheat production
-                    var delayed_wasteheat_rate = ongoing_consumption_rate > ongoing_wasteheat_rate ? Math.Min(ongoing_wasteheat_rate, ongoing_consumption_rate) : ongoing_consumption_rate;
+                    var delayedWasteheatRate = ongoing_consumption_rate > ongoing_wasteheat_rate ? Math.Min(ongoing_wasteheat_rate, ongoing_consumption_rate) : ongoing_consumption_rate;
 
-                    supplyFNResourcePerSecondWithMax(delayed_wasteheat_rate * maximumPower, StableMaximumReactorPower, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecondWithMax(delayedWasteheatRate * maximumPower, StableMaximumReactorPower, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                     ongoing_wasteheat_rate = ongoing_consumption_rate;
                 }
@@ -1983,20 +1754,19 @@ namespace FNPlugin.Reactors
                 // consume fuel
                 if (!CheatOptions.InfinitePropellant)
                 {
-                    consumedFuelTotalFixed = 0;
+                    _consumedFuelTotalFixed = 0;
 
-                    for (var i = 0; i < current_fuel_variant.ReactorFuels.Count; i++)
+                    foreach (var reactorFuel in currentFuelVariant.ReactorFuels)
                     {
-                        consumedFuelTotalFixed += ConsumeReactorFuel(current_fuel_variant.ReactorFuels[i], totalPowerReceivedFixed / geeForceModifier);
+                        _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, totalPowerReceivedFixed / geeForceModifier);
                     }
 
                     // refresh production list
                     reactorProduction.Clear();
 
                     // produce reactor products
-                    for (var i = 0; i < current_fuel_variant.ReactorProducts.Count; i++)
+                    foreach (var product in currentFuelVariant.ReactorProducts)
                     {
-                        var product = current_fuel_variant.ReactorProducts[i];
                         var massProduced = ProduceReactorProduct(product, totalPowerReceivedFixed / geeForceModifier);
                         if (product.IsPropellant)
                             reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
@@ -2023,10 +1793,10 @@ namespace FNPlugin.Reactors
             }
             else
             {
-                current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, NormalisedMaximumPower, fuelUsePerMJMult);
-                current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
-                fuel_mode_variant = current_fuel_variant.Name;
-                stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
+                currentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, NormalisedMaximumPower, fuelUsePerMJMult);
+                currentFuelVariant = currentFuelVariantsSorted.FirstOrDefault();
+                fuel_mode_variant = currentFuelVariant?.Name;
+                stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : currentFuelVariant != null ? Math.Min(currentFuelVariant.FuelRatio, 1) : 0;
 
                 ongoing_total_power_generated = 0;
                 reactor_power_ratio = 0;
@@ -2036,7 +1806,7 @@ namespace FNPlugin.Reactors
 
             UpdatePlayedSound();
 
-            previous_reactor_power_ratio = reactor_power_ratio;
+            _previousReactorPowerRatio = reactor_power_ratio;
 
             if (IsEnabled) return;
 
@@ -2054,60 +1824,60 @@ namespace FNPlugin.Reactors
             var pitch = soundRunningPitchMin * (1 - scaledPitchRatio) + scaledPitchRatio;
             var volume = reactor_power_ratio <= 0 ? 0 : GameSettings.SHIP_VOLUME * ( soundRunningVolumeMin * (1 - scaledVolumeRatio) + scaledVolumeRatio);
 
-            if (running_sound != null)
+            if (_runningSound != null)
             {
-                running_sound.pitch = (float)pitch;
-                running_sound.volume = (float)volume;
+                _runningSound.pitch = (float)pitch;
+                _runningSound.volume = (float)volume;
             }
 
-            if (initiate_sound != null)
+            if (_initiateSound != null)
             {
-                initiate_sound.pitch = (float)pitch;
-                initiate_sound.volume = (float)volume;
+                _initiateSound.pitch = (float)pitch;
+                _initiateSound.volume = (float)volume;
             }
 
-            if (previous_reactor_power_ratio > 0 && reactor_power_ratio <= 0)
+            if (_previousReactorPowerRatio > 0 && reactor_power_ratio <= 0)
             {
-                if (initiate_sound != null && initiate_sound.isPlaying)
-                    initiate_sound.Stop();
-                if (running_sound != null && running_sound.isPlaying)
-                    running_sound.Stop();
+                if (_initiateSound != null && _initiateSound.isPlaying)
+                    _initiateSound.Stop();
+                if (_runningSound != null && _runningSound.isPlaying)
+                    _runningSound.Stop();
 
-                if (vessel.isActiveVessel && terminate_sound != null && !terminate_sound.isPlaying)
+                if (vessel.isActiveVessel && _terminateSound != null && !_terminateSound.isPlaying)
                 {
-                    terminate_sound.PlayOneShot(terminate_sound.clip);
-                    terminate_sound.volume = GameSettings.SHIP_VOLUME;
+                    _terminateSound.PlayOneShot(_terminateSound.clip);
+                    _terminateSound.volume = GameSettings.SHIP_VOLUME;
                 }
             }
-            else if (previous_reactor_power_ratio <= 0 && reactor_power_ratio > 0)
+            else if (_previousReactorPowerRatio <= 0 && reactor_power_ratio > 0)
             {
-                if (running_sound != null && running_sound.isPlaying)
-                    running_sound.Stop();
-                if (terminate_sound != null && terminate_sound.isPlaying)
-                    terminate_sound.Stop();
+                if (_runningSound != null && _runningSound.isPlaying)
+                    _runningSound.Stop();
+                if (_terminateSound != null && _terminateSound.isPlaying)
+                    _terminateSound.Stop();
 
                 if (vessel.isActiveVessel)
                 {
-                    if (initiate_sound != null && !initiate_sound.isPlaying)
+                    if (_initiateSound != null && !_initiateSound.isPlaying)
                     {
-                        initiate_sound.PlayOneShot(initiate_sound.clip);
-                        initiate_sound.volume = GameSettings.SHIP_VOLUME;
+                        _initiateSound.PlayOneShot(_initiateSound.clip);
+                        _initiateSound.volume = GameSettings.SHIP_VOLUME;
                     }
-                    else if (running_sound != null)
-                        running_sound.Play();
+                    else if (_runningSound != null)
+                        _runningSound.Play();
                 }
             }
-            else if (previous_reactor_power_ratio > 0 && reactor_power_ratio > 0 && running_sound != null)
+            else if (_previousReactorPowerRatio > 0 && reactor_power_ratio > 0 && _runningSound != null)
             {
-                if (vessel.isActiveVessel && !running_sound.isPlaying)
+                if (vessel.isActiveVessel && !_runningSound.isPlaying)
                 {
-                    if ((initiate_sound == null || (initiate_sound != null && !initiate_sound.isPlaying)) &&
-                        (terminate_sound == null || (terminate_sound != null && !terminate_sound.isPlaying)))
-                        running_sound.Play();
+                    if ((_initiateSound == null || (_initiateSound != null && !_initiateSound.isPlaying)) &&
+                        (_terminateSound == null || (_terminateSound != null && !_terminateSound.isPlaying)))
+                        _runningSound.Play();
                 }
-                else if (!vessel.isActiveVessel && running_sound.isPlaying)
+                else if (!vessel.isActiveVessel && _runningSound.isPlaying)
                 {
-                    running_sound.Stop();
+                    _runningSound.Stop();
                 }
             }
         }
@@ -2178,15 +1948,15 @@ namespace FNPlugin.Reactors
                 return;
 
             // look for most advanced version
-            var alternativeFuelType = fuel_modes.LastOrDefault(m => m.ModeGUIName.Contains(alternativeFuelTypeName));
+            var alternativeFuelType = fuelModes.LastOrDefault(m => m.ModeGUIName.Contains(alternativeFuelTypeName));
             if (alternativeFuelType == null)
             {
-                Debug.LogWarning("[KSPI]: failed to find fueltype " + alternativeFuelTypeName);
+                Debug.LogWarning("[KSPI]: failed to find fuelType " + alternativeFuelTypeName);
                 return;
             }
 
-            Debug.Log("[KSPI]: searching fuelmodes for alternative for fuel type " + alternativeFuelTypeName);
-            var alternativeFuelVariantsSorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
+            Debug.Log("[KSPI]: searching fuelModes for alternative for fuel type " + alternativeFuelTypeName);
+            var alternativeFuelVariantsSorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult);
 
             if (alternativeFuelVariantsSorted == null)
                 return;
@@ -2194,7 +1964,7 @@ namespace FNPlugin.Reactors
             var alternativeFuelVariant = alternativeFuelVariantsSorted.FirstOrDefault();
             if (alternativeFuelVariant == null)
             {
-                Debug.LogError("[KSPI]: failed to find any variant for fueltype " + alternativeFuelTypeName);
+                Debug.LogError("[KSPI]: failed to find any variant for fuelType " + alternativeFuelTypeName);
                 return;
             }
 
@@ -2209,40 +1979,40 @@ namespace FNPlugin.Reactors
             ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
 
             CurrentFuelMode = alternativeFuelType;
-            stored_fuel_ratio = current_fuel_variant.FuelRatio;
+            stored_fuel_ratio = currentFuelVariant.FuelRatio;
         }
 
         private void StoreGeneratorRequests(double timeWarpFixedDeltaTime)
         {
-            storedIsThermalEnergyGeneratorEfficiency = currentIsThermalEnergyGeneratorEfficiency;
-            storedIsPlasmaEnergyGeneratorEfficiency = currentIsPlasmaEnergyGeneratorEfficiency;
-            storedIsChargedEnergyGeneratorEfficiency = currentIsChargedEnergyGenratorEfficiency;
+            storedIsThermalEnergyGeneratorEfficiency = _currentIsThermalEnergyGeneratorEfficiency;
+            storedIsPlasmaEnergyGeneratorEfficiency = _currentIsPlasmaEnergyGeneratorEfficiency;
+            storedIsChargedEnergyGeneratorEfficiency = _currentIsChargedEnergyGeneratorEfficiency;
 
-            currentIsThermalEnergyGeneratorEfficiency = 0;
-            currentIsPlasmaEnergyGeneratorEfficiency = 0;
-            currentIsChargedEnergyGenratorEfficiency = 0;
+            _currentIsThermalEnergyGeneratorEfficiency = 0;
+            _currentIsPlasmaEnergyGeneratorEfficiency = 0;
+            _currentIsChargedEnergyGeneratorEfficiency = 0;
 
             var previousStoredRatio = Math.Max(Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorPlasmaEnergyRequestRatio), storedGeneratorChargedEnergyRequestRatio);
-            
+
             storedGeneratorThermalEnergyRequestRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, previousStoredRatio);
             storedGeneratorPlasmaEnergyRequestRatio = Math.Max(storedGeneratorPlasmaEnergyRequestRatio, previousStoredRatio);
             storedGeneratorChargedEnergyRequestRatio = Math.Max(storedGeneratorChargedEnergyRequestRatio, previousStoredRatio);
 
             var requiredMinimumThrottle = Math.Max(MinimumThrottle, ForcedMinimumThrottleRatio);
 
-            currentGeneratorThermalEnergyRequestRatio = Math.Max(currentGeneratorThermalEnergyRequestRatio, requiredMinimumThrottle);
-            currentGeneratorPlasmaEnergyRequestRatio = Math.Max(currentGeneratorPlasmaEnergyRequestRatio, requiredMinimumThrottle);
-            currentGeneratorChargedEnergyRequestRatio = Math.Max(currentGeneratorChargedEnergyRequestRatio, requiredMinimumThrottle);
+            _currentGeneratorThermalEnergyRequestRatio = Math.Max(_currentGeneratorThermalEnergyRequestRatio, requiredMinimumThrottle);
+            _currentGeneratorPlasmaEnergyRequestRatio = Math.Max(_currentGeneratorPlasmaEnergyRequestRatio, requiredMinimumThrottle);
+            _currentGeneratorChargedEnergyRequestRatio = Math.Max(_currentGeneratorChargedEnergyRequestRatio, requiredMinimumThrottle);
 
-            var thermalDifference = Math.Abs(storedGeneratorThermalEnergyRequestRatio - currentGeneratorThermalEnergyRequestRatio);
-            var plasmaDifference = Math.Abs(storedGeneratorPlasmaEnergyRequestRatio - currentGeneratorPlasmaEnergyRequestRatio);
-            var chargedDifference = Math.Abs(storedGeneratorChargedEnergyRequestRatio - currentGeneratorChargedEnergyRequestRatio);
+            var thermalDifference = Math.Abs(storedGeneratorThermalEnergyRequestRatio - _currentGeneratorThermalEnergyRequestRatio);
+            var plasmaDifference = Math.Abs(storedGeneratorPlasmaEnergyRequestRatio - _currentGeneratorPlasmaEnergyRequestRatio);
+            var chargedDifference = Math.Abs(storedGeneratorChargedEnergyRequestRatio - _currentGeneratorChargedEnergyRequestRatio);
 
-            var thermalThrottleIsGrowing = currentGeneratorThermalEnergyRequestRatio > storedGeneratorThermalEnergyRequestRatio;
-            var plasmaThrottleIsGrowing = currentGeneratorPlasmaEnergyRequestRatio > storedGeneratorPlasmaEnergyRequestRatio;
-            var chargedThrottleIsGrowing = currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio;
+            var thermalThrottleIsGrowing = _currentGeneratorThermalEnergyRequestRatio > storedGeneratorThermalEnergyRequestRatio;
+            var plasmaThrottleIsGrowing = _currentGeneratorPlasmaEnergyRequestRatio > storedGeneratorPlasmaEnergyRequestRatio;
+            var chargedThrottleIsGrowing = _currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio;
 
-            var fixedReactorSpeedMult = ReactorSpeedMult * timeWarpFixedDeltaTime;
+            var fixedReactorSpeedMultiplier = ReactorSpeedMult * timeWarpFixedDeltaTime;
             var minimumAcceleration = timeWarpFixedDeltaTime * timeWarpFixedDeltaTime;
 
             var thermalAccelerationReductionRatio = thermalThrottleIsGrowing
@@ -2257,9 +2027,9 @@ namespace FNPlugin.Reactors
                 ? storedGeneratorChargedEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorChargedEnergyRequestRatio) / 0.5
                 : storedGeneratorChargedEnergyRequestRatio <= 0.5 ? minimumAcceleration + storedGeneratorChargedEnergyRequestRatio / 0.5 : 1;
 
-            var fixedThermalSpeed = fixedReactorSpeedMult > 0 ? Math.Min(thermalDifference, fixedReactorSpeedMult) * thermalAccelerationReductionRatio : thermalDifference;
-            var fixedPlasmaSpeed = fixedReactorSpeedMult > 0 ? Math.Min(plasmaDifference, fixedReactorSpeedMult) * plasmaAccelerationReductionRatio : plasmaDifference;
-            var fixedChargedSpeed = fixedReactorSpeedMult > 0 ? Math.Min(chargedDifference, fixedReactorSpeedMult) * chargedAccelerationReductionRatio : chargedDifference;
+            var fixedThermalSpeed = fixedReactorSpeedMultiplier > 0 ? Math.Min(thermalDifference, fixedReactorSpeedMultiplier) * thermalAccelerationReductionRatio : thermalDifference;
+            var fixedPlasmaSpeed = fixedReactorSpeedMultiplier > 0 ? Math.Min(plasmaDifference, fixedReactorSpeedMultiplier) * plasmaAccelerationReductionRatio : plasmaDifference;
+            var fixedChargedSpeed = fixedReactorSpeedMultiplier > 0 ? Math.Min(chargedDifference, fixedReactorSpeedMultiplier) * chargedAccelerationReductionRatio : chargedDifference;
 
             var thermalChangeFraction = thermalThrottleIsGrowing ? fixedThermalSpeed : -fixedThermalSpeed;
             var plasmaChangeFraction = plasmaThrottleIsGrowing ? fixedPlasmaSpeed : -fixedPlasmaSpeed;
@@ -2269,9 +2039,9 @@ namespace FNPlugin.Reactors
             storedGeneratorPlasmaEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorPlasmaEnergyRequestRatio + plasmaChangeFraction));
             storedGeneratorChargedEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorChargedEnergyRequestRatio + chargedChangeFraction));
 
-            currentGeneratorThermalEnergyRequestRatio = 0;
-            currentGeneratorPlasmaEnergyRequestRatio = 0;
-            currentGeneratorChargedEnergyRequestRatio = 0;
+            _currentGeneratorThermalEnergyRequestRatio = 0;
+            _currentGeneratorPlasmaEnergyRequestRatio = 0;
+            _currentGeneratorChargedEnergyRequestRatio = 0;
         }
 
         private void UpdateCapacities()
@@ -2294,9 +2064,9 @@ namespace FNPlugin.Reactors
 
         private void BreedTritium(double neutronPowerReceivedEachSecond, double fixedDeltaTime)
         {
-            lithium_consumed_per_second = 0;
-            tritium_produced_per_second = 0;
-            helium_produced_per_second = 0;
+            _lithiumConsumedPerSecond = 0;
+            _tritiumProducedPerSecond = 0;
+            _heliumProducedPerSecond = 0;
             totalAmountLithium = 0;
             totalMaxAmountLithium = 0;
 
@@ -2320,37 +2090,37 @@ namespace FNPlugin.Reactors
                 return;
 
             // calculate current maximum lithium consumption
-            var breedRate = CurrentFuelMode.TritiumBreedModifier * CurrentFuelMode.NeutronsRatio * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * lithiumNeutronAbsorbtion;
-            var lithiumRate = breedRate / lithium6_density;
+            var breedRate = CurrentFuelMode.TritiumBreedModifier * CurrentFuelMode.NeutronsRatio * _staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * lithiumNeutronAbsorbtion;
+            var lithiumRate = breedRate / _lithium6Density;
 
             // get spare room tritium
-            var spareRoomTritiumAmount = part.GetResourceSpareCapacity(tritium_def);
+            var spareRoomTritiumAmount = part.GetResourceSpareCapacity(_tritiumDef);
 
             // limit lithium consumption to maximum tritium storage
-            var maximumTritiumProduction = lithiumRate * tritiumBreedingMassAdjustment;
+            var maximumTritiumProduction = lithiumRate * _tritiumBreedingMassAdjustment;
             var maximumLithiumConsumptionRatio = maximumTritiumProduction > 0 ? Math.Min(maximumTritiumProduction, spareRoomTritiumAmount) / maximumTritiumProduction : 0;
             var lithiumRequest = lithiumRate * maximumLithiumConsumptionRatio;
 
             // consume the lithium
             var lithiumUsed = CheatOptions.InfinitePropellant
                 ? lithiumRequest
-                : part.RequestResource(lithium6_def.id, lithiumRequest, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                : part.RequestResource(_lithium6Def.id, lithiumRequest, ResourceFlowMode.STACK_PRIORITY_SEARCH);
 
             // calculate effective lithium used for tritium breeding
-            lithium_consumed_per_second = lithiumUsed / fixedDeltaTime;
+            _lithiumConsumedPerSecond = lithiumUsed / fixedDeltaTime;
 
             // calculate products
-            var tritiumProduction = lithiumUsed * tritiumBreedingMassAdjustment;
-            var heliumProduction = lithiumUsed * heliumBreedingMassAdjustment;
+            var tritiumProduction = lithiumUsed * _tritiumBreedingMassAdjustment;
+            var heliumProduction = lithiumUsed * _heliumBreedingMassAdjustment;
 
             // produce tritium and helium
-            tritium_produced_per_second = CheatOptions.InfinitePropellant
+            _tritiumProducedPerSecond = CheatOptions.InfinitePropellant
                 ? tritiumProduction / fixedDeltaTime
-                : -part.RequestResource(tritium_def.name, -tritiumProduction) / fixedDeltaTime;
+                : -part.RequestResource(_tritiumDef.name, -tritiumProduction) / fixedDeltaTime;
 
-            helium_produced_per_second = CheatOptions.InfinitePropellant
+            _heliumProducedPerSecond = CheatOptions.InfinitePropellant
                 ? heliumProduction / fixedDeltaTime
-                : -part.RequestResource(helium_def.name, -heliumProduction) / fixedDeltaTime;
+                : -part.RequestResource(_heliumDef.name, -heliumProduction) / fixedDeltaTime;
         }
 
         public virtual double GetCoreTempAtRadiatorTemp(double radTemp)
@@ -2378,10 +2148,13 @@ namespace FNPlugin.Reactors
         {
             var sb = StringBuilderCache.Acquire();
 
+            const string headerSize = "<size=11>";
+            const string headerColor = "<color=#7fdfffff>";
+
             UpdateReactorCharacteristics();
             if (showEngineConnectionInfo)
             {
-                sb.Append("<size=11><color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_propulsion")).AppendLine(":</color><size=10>");
+                sb.Append(headerSize + headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_propulsion")).AppendLine(":</color><size=10>");
                 sb.Append(Localizer.Format("#LOC_KSPIE_Reactor_thermalNozzle")).Append(": ");
                 UtilizationInfo(sb, thermalPropulsionEfficiency);
                 sb.AppendLine().Append(Localizer.Format("#LOC_KSPIE_Reactor_plasmaNozzle")).Append(": ");
@@ -2393,7 +2166,7 @@ namespace FNPlugin.Reactors
 
             if (showPowerGeneratorConnectionInfo)
             {
-                sb.Append("<size=11><color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_powerGeneration")).AppendLine(":</color><size=10>");
+                sb.Append(headerSize + headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_powerGeneration")).AppendLine(":</color><size=10>");
                 sb.Append(Localizer.Format("#LOC_KSPIE_Reactor_thermalGenerator")).Append(": ");
                 UtilizationInfo(sb, thermalEnergyEfficiency);
                 sb.AppendLine().Append(Localizer.Format("#LOC_KSPIE_Reactor_MHDGenerator")).Append(": ");
@@ -2405,7 +2178,7 @@ namespace FNPlugin.Reactors
 
             if (!string.IsNullOrEmpty(upgradeTechReqMk2))
             {
-                sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_powerUpgradeTechnologies")).AppendLine(":</color><size=10>");
+                sb.Append(headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_powerUpgradeTechnologies")).AppendLine(":</color><size=10>");
                 if (!string.IsNullOrEmpty(upgradeTechReqMk2))
                     sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReqMk2)));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk3))
@@ -2423,8 +2196,8 @@ namespace FNPlugin.Reactors
 
             if (thermalEnergyEfficiency > 0 || plasmaEnergyEfficiency > 0 || chargedParticleEnergyEfficiency > 0)
             {
-                
-                sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_ReactorPower")).AppendLine(":</color><size=10>");
+
+                sb.Append(headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_ReactorPower")).AppendLine(":</color><size=10>");
                 sb.Append("Mk1: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk1));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk2))
                     sb.Append("Mk2: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk2));
@@ -2443,7 +2216,7 @@ namespace FNPlugin.Reactors
 
             if (hasSpecificFuelModeTechs)
             {
-                sb.AppendLine("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_fuelModeUpgradeTechnologies")).AppendLine(":</color><size=10>");
+                sb.AppendLine(headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_fuelModeUpgradeTechnologies")).AppendLine(":</color><size=10>");
                 if (!string.IsNullOrEmpty(fuelModeTechReqLevel2) && fuelModeTechReqLevel2 != "none")
                     sb.Append("- ").AppendLine(Localizer.Format(PluginHelper.GetTechTitleById(fuelModeTechReqLevel2)));
                 if (!string.IsNullOrEmpty(fuelModeTechReqLevel3) && fuelModeTechReqLevel3 != "none")
@@ -2464,17 +2237,17 @@ namespace FNPlugin.Reactors
 
             if (fuelGroups.Count > 1)
             {
-                sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_getInfoFuelModes")).AppendLine(":</color><size=10>");
+                sb.Append(headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_getInfoFuelModes")).AppendLine(":</color><size=10>");
                 foreach (var group in fuelGroups)
                 {
                      sb.Append("Mk").Append(Math.Max(0, 1 + group.TechLevel - reactorModeTechBonus)).Append(": ").AppendLine(Localizer.Format(group.ModeGUIName));
                 }
                 sb.AppendLine("</size>");
             }
-            
+
             if (plasmaPropulsionEfficiency > 0)
             {
-                sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_plasmaNozzlePerformance")).AppendLine(":</color><size=10>");
+                sb.Append(headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_plasmaNozzlePerformance")).AppendLine(":</color><size=10>");
                 sb.Append("Mk1: ").AppendLine(PlasmaNozzlePerformance(coreTemperatureMk1, powerOutputMk1));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk2))
                     sb.Append("Mk2: ").AppendLine(PlasmaNozzlePerformance(coreTemperatureMk2, powerOutputMk2));
@@ -2493,7 +2266,7 @@ namespace FNPlugin.Reactors
 
             if (thermalPropulsionEfficiency > 0)
             {
-                sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_Reactor_thermalNozzlePerformance")).AppendLine(":</color><size=10>");
+                sb.Append(headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_thermalNozzlePerformance")).AppendLine(":</color><size=10>");
                 sb.Append("Mk1: ").AppendLine(ThermalNozzlePerformance(coreTemperatureMk1, powerOutputMk1));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk2))
                     sb.Append("Mk2: ").AppendLine(ThermalNozzlePerformance(coreTemperatureMk2, powerOutputMk2));
@@ -2541,24 +2314,24 @@ namespace FNPlugin.Reactors
             return maximumFuelTechLevel;
         }
 
-        private string ThermalNozzlePerformance(double temperature, double powerInMJ)
+        private string ThermalNozzlePerformance(double temperature, double powerInMj)
         {
             var isp = Math.Min(Math.Sqrt(temperature) * 21, maxThermalNozzleIsp);
 
             var exhaustVelocity = isp * GameConstants.STANDARD_GRAVITY;
 
-            var thrust = powerInMJ * 2000.0 * thermalPropulsionEfficiency / (exhaustVelocity * powerOutputMultiplier);
+            var thrust = powerInMj * 2000.0 * thermalPropulsionEfficiency / (exhaustVelocity * powerOutputMultiplier);
 
             return thrust.ToString("F1") + "kN @ " + isp.ToString("F0") + "s";
         }
 
-        private string PlasmaNozzlePerformance(double temperature, double powerInMJ)
+        private string PlasmaNozzlePerformance(double temperature, double powerInMj)
         {
             var isp = Math.Sqrt(temperature) * 21;
 
             var exhaustVelocity = isp * GameConstants.STANDARD_GRAVITY;
 
-            var thrust = powerInMJ * 2000.0 * plasmaPropulsionEfficiency / (exhaustVelocity * powerOutputMultiplier);
+            var thrust = powerInMj * 2000.0 * plasmaPropulsionEfficiency / (exhaustVelocity * powerOutputMultiplier);
 
             return thrust.ToString("F1") + "kN @ " + isp.ToString("F0") + "s";
         }
@@ -2566,6 +2339,7 @@ namespace FNPlugin.Reactors
         private void UtilizationInfo(StringBuilder sb, double value)
         {
             sb.Append(RUIutils.GetYesNoUIString(value > 0.0));
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (value > 0.0 && value != 1.0)
             {
                 sb.Append(" (<color=orange>").Append((value * 100.0).ToString("F0")).Append("%</color>)");
@@ -2581,7 +2355,7 @@ namespace FNPlugin.Reactors
             double deltaTimeDiff = Math.Max(Planetarium.GetUniversalTime() - last_active_time, 0);
 
             // determine available variants
-            var persistentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, deltaTimeDiff * ongoing_total_power_generated, fuelUsePerMJMult);
+            var persistentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, deltaTimeDiff * ongoing_total_power_generated, fuelUsePerMJMult);
 
             // consume fuel
             foreach (var fuel in persistentFuelVariantsSorted.First().ReactorFuels)
@@ -2603,35 +2377,35 @@ namespace FNPlugin.Reactors
         {
             if (!CheatOptions.IgnoreMaxTemperature && getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) >= emergencyPowerShutdownFraction && canShutdown)
             {
-                deactivate_timer++;
-                if (deactivate_timer > 3)
+                _deactivateTimer++;
+                if (_deactivateTimer > 3)
                     return true;
             }
             else
-                deactivate_timer = 0;
+                _deactivateTimer = 0;
 
             return false;
         }
 
         protected List<ReactorFuelType> GetReactorFuelModes()
         {
-            var fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
+            var fuelModeConfigs = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
 
-            var filteredFuelModes = fuelmodes.Select(node => new ReactorFuelMode(node))
+            var filteredFuelModes = fuelModeConfigs.Select(node => new ReactorFuelMode(node))
                 .Where(fm =>
                        fm.AllFuelResourcesDefinitionsAvailable
-                    && fm.AllProductResourcesDefinitionsAvailable 
+                    && fm.AllProductResourcesDefinitionsAvailable
                     && (fm.SupportedReactorTypes & ReactorType) == ReactorType
                     && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
                     && ReactorFuelModeTechLevel >= fm.TechLevel
                     && FusionEnergyGainFactor >= fm.MinimumFusionGainFactor
                     && (fm.Aneutronic || canUseNeutronicFuels)
                     && maxGammaRayPower >= fm.GammaRayEnergy
-                    && fm.NeutronsRatio <= maxNeutronsRatio 
+                    && fm.NeutronsRatio <= maxNeutronsRatio
                     && fm.NeutronsRatio >= minNeutronsRatio
                     ).ToList();
 
-            for (int i = 0; i < filteredFuelModes.Count; i++)
+            for (var i = 0; i < filteredFuelModes.Count; i++)
             {
                 filteredFuelModes[i].Position = i;
             }
@@ -2654,16 +2428,15 @@ namespace FNPlugin.Reactors
 
         public virtual void SetDefaultFuelMode()
         {
-            Debug.Log("[KSPI]: Reactor SetDefaultFuelMode");
-            if (fuel_modes == null)
+            if (fuelModes == null)
             {
                 Debug.Log("[KSPI]: SetDefaultFuelMode - load fuel modes");
-                fuel_modes = GetReactorFuelModes();
+                fuelModes = GetReactorFuelModes();
             }
 
-            CurrentFuelMode = fuel_modes.FirstOrDefault();
+            CurrentFuelMode = fuelModes.FirstOrDefault();
 
-            max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
+            maxPowerToSupply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
 
             if (CurrentFuelMode == null)
                 print("[KSPI]: Warning : CurrentFuelMode is null");
@@ -2671,18 +2444,22 @@ namespace FNPlugin.Reactors
                 print("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
         }
 
-        protected double ConsumeReactorFuel(ReactorFuel fuel, double mJpower)
+        protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj)
         {
-            if (mJpower < (0.000005 / powerOutputMultiplier))
+            if (fuel == null)
+            {
+                Debug.LogError("[KSPI]: ConsumeReactorFuel fuel null");
+                return 0;
+            }
+
+            if (powerInMj.IsInfinityOrNaNorZero())
                 return 0;
 
-            var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ?  mJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency : 0;
+            var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ?  powerInMj * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency : 0;
 
             if (fuel.ConsumeGlobal)
             {
                 var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-                //var result = part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-                //var fuelconsumption = fuel.Simulate ? consumeAmountInUnitOfStorage : result;
                 return (fuel.Simulate ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
             }
 
@@ -2696,12 +2473,18 @@ namespace FNPlugin.Reactors
                 return 0;
         }
 
-        protected virtual double ProduceReactorProduct(ReactorProduct product, double MJpower)
+        protected virtual double ProduceReactorProduct(ReactorProduct product, double powerInMj)
         {
-            if (product.Definition == null)
+            if (product == null)
+            {
+                Debug.LogError("[KSPI]: ProduceReactorProduct product null");
+                return 0;
+            }
+
+            if (powerInMj.IsInfinityOrNaNorZero())
                 return 0;
 
-            var productSupply = MJpower * product.AmountProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
+            var productSupply = powerInMj * product.AmountProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
 
             if (!product.ProduceGlobal)
             {
@@ -2725,15 +2508,15 @@ namespace FNPlugin.Reactors
         protected double GetFuelAvailability(ReactorFuel fuel)
         {
             if (fuel == null)
+            {
                 Debug.LogError("[KSPI]: GetFuelAvailability fuel null");
+                return 0;
+            }
 
             if (!fuel.ConsumeGlobal)
                 return GetLocalResourceAmount(fuel);
 
-            if (HighLogic.LoadedSceneIsFlight)
-                return part.GetResourceAvailable(fuel.Definition);
-            else
-                return part.FindAmountOfAvailableFuel(fuel.ResourceName, 4);
+            return HighLogic.LoadedSceneIsFlight ? part.GetResourceAvailable(fuel.Definition) : part.FindAmountOfAvailableFuel(fuel.ResourceName, 4);
         }
 
         protected double GetLocalResourceRatio(ReactorFuel fuel)
@@ -2755,7 +2538,10 @@ namespace FNPlugin.Reactors
         protected double GetFuelAvailability(PartResourceDefinition definition)
         {
             if (definition == null)
+            {
                 Debug.LogError("[KSPI]: GetFuelAvailability definition null");
+                return 0;
+            }
 
             if (definition.resourceTransferMode == ResourceTransferMode.NONE)
             {
@@ -2765,16 +2551,16 @@ namespace FNPlugin.Reactors
                     return 0;
             }
 
-            if (HighLogic.LoadedSceneIsFlight)
-                return part.GetResourceAvailable(definition);
-            else
-                return part.FindAmountOfAvailableFuel(definition.name, 4);
+            return HighLogic.LoadedSceneIsFlight ? part.GetResourceAvailable(definition) : part.FindAmountOfAvailableFuel(definition.name, 4);
         }
 
         protected double GetProductAvailability(ReactorProduct product)
         {
             if (product == null)
+            {
                 Debug.LogError("[KSPI]: GetFuelAvailability product null");
+                return 0;
+            }
 
             if (product.Definition == null)
             {
@@ -2790,16 +2576,16 @@ namespace FNPlugin.Reactors
                     return 0;
             }
 
-            if (HighLogic.LoadedSceneIsFlight)
-                return part.GetResourceAvailable(product.Definition);
-            else
-                return part.FindAmountOfAvailableFuel(product.ResourceName, 4);
+            return HighLogic.LoadedSceneIsFlight ? part.GetResourceAvailable(product.Definition) : part.FindAmountOfAvailableFuel(product.ResourceName, 4);
         }
 
         protected double GetMaxProductAvailability(ReactorProduct product)
         {
             if (product == null)
-                Debug.LogError("[KSPI]: GetFuelAvailability product null");
+            {
+                Debug.LogError("[KSPI]: GetMaxProductAvailability product null");
+                return 0;
+            }
 
             if (product.Definition == null)
                 return 0;
@@ -2843,25 +2629,25 @@ namespace FNPlugin.Reactors
             emitterController.reactorActivityFraction = ongoing_consumption_rate;
             emitterController.fuelNeutronsFraction = CurrentFuelMode.NeutronsRatio;
             emitterController.lithiumNeutronAbsorbtionFraction = lithiumNeutronAbsorbtion;
-            emitterController.exhaustActivityFraction = propulsion_request_ratio_sum;
+            emitterController.exhaustActivityFraction = _propulsionRequestRatioSum;
             emitterController.radioactiveFuelLeakFraction = Math.Max(0, 1 - geeForceModifier);
 
             emitterController.reactorShadowShieldMassProtection = isConnectedToThermalGenerator || isConnectedToChargedGenerator
-                ? Math.Max(currentChargedEnergyGeneratorMass, currentThermalEnergyGeneratorMass) / (radius * radius) / (RawMaximumPower * 0.001)
+                ? Math.Max(_currentChargedEnergyGeneratorMass, _currentThermalEnergyGeneratorMass) / (radius * radius) / (RawMaximumPower * 0.001)
                 : 0;
         }
 
         public void OnGUI()
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
-                windowPosition = GUILayout.Window(windowID, windowPosition, Window, Localizer.Format("#LOC_KSPIE_Reactor_reactorControlWindow"));
+            if (vessel == FlightGlobals.ActiveVessel && render_window)
+                windowPosition = GUILayout.Window(_windowId, windowPosition, Window, Localizer.Format("#LOC_KSPIE_Reactor_reactorControlWindow"));
         }
 
-        protected void PrintToGUILayout(string label, string value, GUIStyle bold_style, GUIStyle text_style, int witdhLabel = 150, int witdhValue = 150)
+        protected void PrintToGuiLayout(string label, string value, GUIStyle guiLabelStyle, GUIStyle guiValueStyle, int widthLabel = 150, int widthValue = 150)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, bold_style, GUILayout.Width(witdhLabel));
-            GUILayout.Label(value, text_style, GUILayout.Width(witdhValue));
+            GUILayout.Label(label, guiLabelStyle, GUILayout.Width(widthLabel));
+            GUILayout.Label(value, guiValueStyle, GUILayout.Width(widthValue));
             GUILayout.EndHorizontal();
         }
 
@@ -2869,18 +2655,18 @@ namespace FNPlugin.Reactors
 
         protected virtual void WindowReactorControlSpecificOverride() { }
 
-        private void Window(int windowID)
+        private void Window(int windowId)
         {
             try
             {
                 windowPositionX = windowPosition.x;
                 windowPositionY = windowPosition.y;
 
-                if (bold_style == null)
-                    bold_style = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold, font = PluginHelper.MainFont};
+                if (boldStyle == null)
+                    boldStyle = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold, font = PluginHelper.MainFont};
 
-                if (text_style == null)
-                    text_style = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Normal,font = PluginHelper.MainFont};
+                if (textStyle == null)
+                    textStyle = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Normal,font = PluginHelper.MainFont};
 
                 if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
                     render_window = false;
@@ -2888,53 +2674,53 @@ namespace FNPlugin.Reactors
                 GUILayout.BeginVertical();
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(TypeName, bold_style, GUILayout.ExpandWidth(true));
+                GUILayout.Label(TypeName, boldStyle, GUILayout.ExpandWidth(true));
                 GUILayout.EndHorizontal();
 
                 if (IsFuelNeutronRich)
-                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_ReactorEmbrittlement"), (100 * (1 - ReactorEmbrittlementConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);//"Reactor Embrittlement"
+                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_ReactorEmbrittlement"), (100 * (1 - ReactorEmbrittlementConditionRatio)).ToString("0.000000") + "%", boldStyle, textStyle);//"Reactor Embrittlement"
 
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_Geeforceoverload") +" ", (100 * (1 - geeForceModifier)).ToString("0.000000") + "%", bold_style, text_style);//Geeforce overload
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_Overheating") +" ", (100 * (1 - overheatModifier)).ToString("0.000000") + "%", bold_style, text_style);//Overheating
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_Geeforceoverload") +" ", (100 * (1 - geeForceModifier)).ToString("0.000000") + "%", boldStyle, textStyle);//Geeforce overload
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_Overheating") +" ", (100 * (1 - overheatModifier)).ToString("0.000000") + "%", boldStyle, textStyle);//Overheating
 
                 WindowReactorStatusSpecificOverride();
 
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_Radius"), radius + "m", bold_style, text_style);//"Radius"
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CoreTemperature"), coretempStr, bold_style, text_style);//"Core Temperature"
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_StatusLabel"), statusStr, bold_style, text_style);//"Status"
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelMode"), fuelModeStr, bold_style, text_style);//"Fuel Mode"
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelEfficiencyLabel"), (FuelEfficiency * 100).ToString(), bold_style, text_style);//"Fuel efficiency"
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_Radius"), radius + "m", boldStyle, textStyle);//"Radius"
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CoreTemperature"), coretempStr, boldStyle, textStyle);//"Core Temperature"
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_StatusLabel"), statusStr, boldStyle, textStyle);//"Status"
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelMode"), fuelModeStr, boldStyle, textStyle);//"Fuel Mode"
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelEfficiencyLabel"), (FuelEfficiency * 100).ToString(CultureInfo.InvariantCulture), boldStyle, textStyle);//"Fuel efficiency"
 
                 WindowReactorControlSpecificOverride();
 
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxPowerOutputLabel"), PluginHelper.getFormattedPowerString(ongoing_total_power_generated) + " / " + PluginHelper.getFormattedPowerString(NormalisedMaximumPower), bold_style, text_style);//"Current/Max Power Output"
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxPowerOutputLabel"), PluginHelper.getFormattedPowerString(ongoing_total_power_generated) + " / " + PluginHelper.getFormattedPowerString(NormalisedMaximumPower), boldStyle, textStyle);//"Current/Max Power Output"
 
                 if (ChargedPowerRatio < 1.0)
-                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxThermalPower"), PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated) + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower), bold_style, text_style);//"Current/Max Thermal Power"
+                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxThermalPower"), PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated) + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower), boldStyle, textStyle);//"Current/Max Thermal Power"
                 if (ChargedPowerRatio > 0)
-                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxChargedPower"), PluginHelper.getFormattedPowerString(ongoing_charged_power_generated) + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower), bold_style, text_style);//"Current/Max Charged Power"
+                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxChargedPower"), PluginHelper.getFormattedPowerString(ongoing_charged_power_generated) + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower), boldStyle, textStyle);//"Current/Max Charged Power"
 
-                if (CurrentFuelMode != null && current_fuel_variant.ReactorFuels != null)
+                if (CurrentFuelMode != null && currentFuelVariant.ReactorFuels != null)
                 {
-                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_EnergyProduction"), current_fuel_variant.GigawattPerGram.ToString("0.0") + " GW / g", bold_style, text_style);//"Energy Production"
-                    PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelUsage"), current_fuel_variant.FuelUseInGramPerTeraJoule.ToString("0.000") + " g / TW", bold_style, text_style);//"Fuel Usage"
+                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_EnergyProduction"), currentFuelVariant.GigawattPerGram.ToString("0.0") + " GW / g", boldStyle, textStyle);//"Energy Production"
+                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelUsage"), currentFuelVariant.FuelUseInGramPerTeraJoule.ToString("0.000") + " g / TW", boldStyle, textStyle);//"Fuel Usage"
 
                     if (IsFuelNeutronRich && breedtritium && canBreedTritium)
                     {
-                        PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelNeutronBreedRate"), 100 * CurrentFuelMode.NeutronsRatio + "% ", bold_style, text_style);//"Fuel Neutron Breed Rate"
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelNeutronBreedRate"), 100 * CurrentFuelMode.NeutronsRatio + "% ", boldStyle, textStyle);//"Fuel Neutron Breed Rate"
 
-                        var tritiumKgDay = tritium_produced_per_second * tritium_density * 1000 * PluginHelper.SecondsInDay;
-                        PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), tritiumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", bold_style, text_style);//"Tritium Breed Rate"kg/day
+                        var tritiumKgDay = _tritiumProducedPerSecond * _tritiumDensity * 1000 * PluginHelper.SecondsInDay;
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), tritiumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Tritium Breed Rate"kg/day
 
-                        var heliumKgDay = helium_produced_per_second * helium4_density * 1000 * PluginHelper.SecondsInDay;
-                        PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_HeliumBreedRate"), heliumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", bold_style, text_style);//"Helium Breed Rate"kg/day
+                        var heliumKgDay = _heliumProducedPerSecond * _helium4Density * 1000 * PluginHelper.SecondsInDay;
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_HeliumBreedRate"), heliumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Helium Breed Rate"kg/day
 
-                        part.GetConnectedResourceTotals(lithium6_def.id, out var totalLithium6Amount, out var totalLithium6MaxAmount);
+                        part.GetConnectedResourceTotals(_lithium6Def.id, out var totalLithium6Amount, out var totalLithium6MaxAmount);
 
-                        PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumReserves"), totalLithium6Amount.ToString("0.000") + " L / " + totalLithium6MaxAmount.ToString("0.000") + " L", bold_style, text_style);//"Lithium Reserves"
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumReserves"), totalLithium6Amount.ToString("0.000") + " L / " + totalLithium6MaxAmount.ToString("0.000") + " L", boldStyle, textStyle);//"Lithium Reserves"
 
-                        var lithiumConsumptionDay = lithium_consumed_per_second * PluginHelper.SecondsInDay;
-                        PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumConsumption"), lithiumConsumptionDay.ToString("0.00000") + " "+Localizer.Format("#LOC_KSPIE_Reactor_lithiumConsumptionDay"), bold_style, text_style);//"Lithium Consumption"L/day
+                        var lithiumConsumptionDay = _lithiumConsumedPerSecond * PluginHelper.SecondsInDay;
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumConsumption"), lithiumConsumptionDay.ToString("0.00000") + " "+Localizer.Format("#LOC_KSPIE_Reactor_lithiumConsumptionDay"), boldStyle, textStyle);//"Lithium Consumption"L/day
                         var lithiumLifetimeTotalDays = lithiumConsumptionDay > 0 ? totalLithium6Amount / lithiumConsumptionDay : 0;
 
                         var lithiumLifetimeYears = Math.Floor(lithiumLifetimeTotalDays / GameConstants.KERBIN_YEAR_IN_DAYS);
@@ -2948,35 +2734,35 @@ namespace FNPlugin.Reactors
                         if (lithiumLifetimeYears < 1e9)
                         {
                             if (lithiumLifetimeYears < 1)
-                                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumRemaining"), lithiumLifetimeRemainingDays + " "+Localizer.Format("#LOC_KSPIE_Reactor_days") +" " + lithiumLifetimeRemainingHours.ToString("0.0") + " "+Localizer.Format("#LOC_KSPIE_Reactor_hours"), bold_style, text_style);//"Lithium Remaining"days""hours
+                                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumRemaining"), lithiumLifetimeRemainingDays + " "+Localizer.Format("#LOC_KSPIE_Reactor_days") +" " + lithiumLifetimeRemainingHours.ToString("0.0") + " "+Localizer.Format("#LOC_KSPIE_Reactor_hours"), boldStyle, textStyle);//"Lithium Remaining"days""hours
                             else if (lithiumLifetimeYears < 1e3)
-                                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumRemaining"), lithiumLifetimeYears + " "+Localizer.Format("#LOC_KSPIE_Reactor_years") +" " + lithiumLifetimeRemainingDays + " "+Localizer.Format("#LOC_KSPIE_Reactor_days"), bold_style, text_style);//"Lithium Remaining"years""days
+                                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumRemaining"), lithiumLifetimeYears + " "+Localizer.Format("#LOC_KSPIE_Reactor_years") +" " + lithiumLifetimeRemainingDays + " "+Localizer.Format("#LOC_KSPIE_Reactor_days"), boldStyle, textStyle);//"Lithium Remaining"years""days
                             else
-                                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumRemaining"), lithiumLifetimeYears + " "+Localizer.Format("#LOC_KSPIE_Reactor_years") +" " , bold_style, text_style);//"Lithium Remaining"years
+                                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumRemaining"), lithiumLifetimeYears + " "+Localizer.Format("#LOC_KSPIE_Reactor_years") +" " , boldStyle, textStyle);//"Lithium Remaining"years
                         }
 
-                        part.GetConnectedResourceTotals(tritium_def.id, out var totalTritiumAmount, out var totalTritiumMaxAmount);
+                        part.GetConnectedResourceTotals(_tritiumDef.id, out var totalTritiumAmount, out var totalTritiumMaxAmount);
 
-                        var massTritiumAmount = totalTritiumAmount * tritium_density * 1000;
-                        var massTritiumMaxAmount = totalTritiumMaxAmount * tritium_density * 1000;
+                        var massTritiumAmount = totalTritiumAmount * _tritiumDensity * 1000;
+                        var massTritiumMaxAmount = totalTritiumMaxAmount * _tritiumDensity * 1000;
 
-                        PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumStorage"), massTritiumAmount.ToString("0.000000") + " kg / " + massTritiumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);//"Tritium Storage"
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumStorage"), massTritiumAmount.ToString("0.000000") + " kg / " + massTritiumMaxAmount.ToString("0.000000") + " kg", boldStyle, textStyle);//"Tritium Storage"
 
-                        part.GetConnectedResourceTotals(helium_def.id, out var totalHeliumAmount, out var totalHeliumMaxAmount);
+                        part.GetConnectedResourceTotals(_heliumDef.id, out var totalHeliumAmount, out var totalHeliumMaxAmount);
 
-                        var massHeliumAmount = totalHeliumAmount * helium4_density * 1000;
-                        var massHeliumMaxAmount = totalHeliumMaxAmount * helium4_density * 1000;
+                        var massHeliumAmount = totalHeliumAmount * _helium4Density * 1000;
+                        var massHeliumMaxAmount = totalHeliumMaxAmount * _helium4Density * 1000;
 
-                        PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_HeliumStorage"), massHeliumAmount.ToString("0.000000") + " kg / " + massHeliumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);//"Helium Storage"
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_HeliumStorage"), massHeliumAmount.ToString("0.000000") + " kg / " + massHeliumMaxAmount.ToString("0.000000") + " kg", boldStyle, textStyle);//"Helium Storage"
                     }
                     else
-                        PrintToGUILayout(Localizer.Format("#LOC_KSPIE_Reactor_IsNeutronrich"), IsFuelNeutronRich.ToString(), bold_style, text_style);//"Is Neutron rich"
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_IsNeutronrich"), IsFuelNeutronRich.ToString(), boldStyle, textStyle);//"Is Neutron rich"
 
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(Localizer.Format("#LOC_KSPIE_Reactor_Fuels") +":", bold_style, GUILayout.Width(150));//Fuels
+                    GUILayout.Label(Localizer.Format("#LOC_KSPIE_Reactor_Fuels") +":", boldStyle, GUILayout.Width(150));//Fuels
                     GUILayout.EndHorizontal();
 
-                    foreach (var fuel in current_fuel_variant.ReactorFuels)
+                    foreach (var fuel in currentFuelVariant.ReactorFuels)
                     {
                         if (fuel == null)
                             continue;
@@ -2991,16 +2777,16 @@ namespace FNPlugin.Reactors
                         var availabilityInTon = availableResources.Sum(m => m.amount * m.effectiveDensity);
 
                         var variantText = availableResources.Count > 1 ? " (" + availableResources.Count + " variants)" : "";
-                        PrintToGUILayout(fuel.FuelName + " "+Localizer.Format("#LOC_KSPIE_Reactor_Reserves"), PluginHelper.formatMassStr(availabilityInTon) + variantText, bold_style, text_style);//Reserves
+                        PrintToGuiLayout(fuel.FuelName + " "+ Localizer.Format("#LOC_KSPIE_Reactor_Reserves"), PluginHelper.formatMassStr(availabilityInTon) + variantText, boldStyle, textStyle);//Reserves
 
                         var tonFuelUsePerHour = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginHelper.SecondsInHour;
                         var kgFuelUsePerHour = tonFuelUsePerHour * 1000;
                         var kgFuelUsePerDay = kgFuelUsePerHour * PluginHelper.HoursInDay;
 
                         if (tonFuelUsePerHour > 120)
-                            PrintToGUILayout(fuel.FuelName + " "+Localizer.Format("#LOC_KSPIE_Reactor_Consumption") +" ", PluginHelper.formatMassStr(tonFuelUsePerHour / 60) + " / "+Localizer.Format("#LOC_KSPIE_Reactor_min"), bold_style, text_style);//Consumption-min
+                            PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Consumption") +" ", PluginHelper.formatMassStr(tonFuelUsePerHour / 60) + " / "+Localizer.Format("#LOC_KSPIE_Reactor_min"), boldStyle, textStyle);//Consumption-min
                         else
-                            PrintToGUILayout(fuel.FuelName + " "+Localizer.Format("#LOC_KSPIE_Reactor_Consumption") +" ", PluginHelper.formatMassStr(tonFuelUsePerHour) + " / "+Localizer.Format("#LOC_KSPIE_Reactor_hour"), bold_style, text_style);//Consumption--hour
+                            PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Consumption") +" ", PluginHelper.formatMassStr(tonFuelUsePerHour) + " / "+Localizer.Format("#LOC_KSPIE_Reactor_hour"), boldStyle, textStyle);//Consumption--hour
 
                         if (kgFuelUsePerDay > 0)
                         {
@@ -3011,12 +2797,12 @@ namespace FNPlugin.Reactors
                                 if (lifetimeYears >= 10)
                                 {
                                     var lifetimeYearsDayRemainder = lifetimeYears < 1e+6 ? fuelLifetimeD % GameConstants.KERBIN_YEAR_IN_DAYS : 0;
-                                    PrintToGUILayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), (double.IsNaN(lifetimeYears) ? "-" : lifetimeYears + " " + Localizer.Format("#LOC_KSPIE_Reactor_years") + " "), bold_style, text_style);//Lifetime years
+                                    PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), (double.IsNaN(lifetimeYears) ? "-" : lifetimeYears + " " + Localizer.Format("#LOC_KSPIE_Reactor_years") + " "), boldStyle, textStyle);//Lifetime years
                                 }
                                 else if (lifetimeYears > 0)
                                 {
                                     var lifetimeYearsDayRemainder = lifetimeYears < 1e+6 ? fuelLifetimeD % GameConstants.KERBIN_YEAR_IN_DAYS : 0;
-                                    PrintToGUILayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), (double.IsNaN(lifetimeYears) ? "-" : lifetimeYears + " " + Localizer.Format("#LOC_KSPIE_Reactor_years") + " " + (lifetimeYearsDayRemainder).ToString("0.00")) + " " + Localizer.Format("#LOC_KSPIE_Reactor_days"), bold_style, text_style);//Lifetime--years--days
+                                    PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), (double.IsNaN(lifetimeYears) ? "-" : lifetimeYears + " " + Localizer.Format("#LOC_KSPIE_Reactor_years") + " " + (lifetimeYearsDayRemainder).ToString("0.00")) + " " + Localizer.Format("#LOC_KSPIE_Reactor_days"), boldStyle, textStyle);//Lifetime--years--days
                                 }
                                 else if (fuelLifetimeD < 1)
                                 {
@@ -3024,25 +2810,25 @@ namespace FNPlugin.Reactors
                                     var minutes = (int)Math.Floor(minutesD);
                                     var seconds = (int)Math.Ceiling((minutesD - minutes) * 60);
 
-                                    PrintToGUILayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), minutes.ToString("F0") + " " + Localizer.Format("#LOC_KSPIE_Reactor_minutes") + " " + seconds.ToString("F0") + " " + Localizer.Format("#LOC_KSPIE_Reactor_seconds"), bold_style, text_style);//Lifetime--minutes--seconds
+                                    PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), minutes.ToString("F0") + " " + Localizer.Format("#LOC_KSPIE_Reactor_minutes") + " " + seconds.ToString("F0") + " " + Localizer.Format("#LOC_KSPIE_Reactor_seconds"), boldStyle, textStyle);//Lifetime--minutes--seconds
                                 }
                                 else
-                                    PrintToGUILayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), (double.IsNaN(fuelLifetimeD) ? "-" : (fuelLifetimeD).ToString("0.00")) + " " + Localizer.Format("#LOC_KSPIE_Reactor_days"), bold_style, text_style);//Lifetime--days
+                                    PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), (double.IsNaN(fuelLifetimeD) ? "-" : (fuelLifetimeD).ToString("0.00")) + " " + Localizer.Format("#LOC_KSPIE_Reactor_days"), boldStyle, textStyle);//Lifetime--days
                             }
                             else
-                                PrintToGUILayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), "", bold_style, text_style);//Lifetime
+                                PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), "", boldStyle, textStyle);//Lifetime
                         }
                         else
-                            PrintToGUILayout(fuel.FuelName + " "+Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), "", bold_style, text_style);//Lifetime
+                            PrintToGuiLayout(fuel.FuelName + " "+ Localizer.Format("#LOC_KSPIE_Reactor_Lifetime"), "", boldStyle, textStyle);//Lifetime
                     }
 
-                    if (current_fuel_variant.ReactorProducts.Count > 0)
+                    if (currentFuelVariant.ReactorProducts.Count > 0)
                     {
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label(Localizer.Format("#LOC_KSPIE_Reactor_Products"), bold_style, GUILayout.Width(150));//"Products:"
+                        GUILayout.Label(Localizer.Format("#LOC_KSPIE_Reactor_Products"), boldStyle, GUILayout.Width(150));//"Products:"
                         GUILayout.EndHorizontal();
 
-                        foreach (var product in current_fuel_variant.ReactorProducts)
+                        foreach (var product in currentFuelVariant.ReactorProducts)
                         {
                             if (product == null)
                                 continue;
@@ -3051,14 +2837,14 @@ namespace FNPlugin.Reactors
                             var maxAvailabilityInTon = GetMaxProductAvailability(product) * product.DensityInTon;
 
                             GUILayout.BeginHorizontal();
-                            GUILayout.Label(product.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Storage"), bold_style, GUILayout.Width(150));//Storage
-                            GUILayout.Label(PluginHelper.formatMassStr(availabilityInTon, "0.00000") + " / " + PluginHelper.formatMassStr(maxAvailabilityInTon, "0.00000"), text_style, GUILayout.Width(150));
+                            GUILayout.Label(product.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Storage"), boldStyle, GUILayout.Width(150));//Storage
+                            GUILayout.Label(PluginHelper.formatMassStr(availabilityInTon, "0.00000") + " / " + PluginHelper.formatMassStr(maxAvailabilityInTon, "0.00000"), textStyle, GUILayout.Width(150));
                             GUILayout.EndHorizontal();
 
                             var hourProductionInTon = ongoing_total_power_generated * product.TonsProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginHelper.SecondsInHour;
                             GUILayout.BeginHorizontal();
-                            GUILayout.Label(product.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Production"), bold_style, GUILayout.Width(150));//Production
-                            GUILayout.Label(PluginHelper.formatMassStr(hourProductionInTon) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_hour"), text_style, GUILayout.Width(150));//hour
+                            GUILayout.Label(product.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Production"), boldStyle, GUILayout.Width(150));//Production
+                            GUILayout.Label(PluginHelper.formatMassStr(hourProductionInTon) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_hour"), textStyle, GUILayout.Width(150));//hour
                             GUILayout.EndHorizontal();
                         }
                     }
@@ -3093,7 +2879,7 @@ namespace FNPlugin.Reactors
 
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: InterstellarReactor Window(" + windowID + "): " + e.Message);
+                Debug.LogError("[KSPI]: InterstellarReactor Window(" + windowId + "): " + e.Message);
                 throw;
             }
         }
@@ -3101,7 +2887,7 @@ namespace FNPlugin.Reactors
         public override string getResourceManagerDisplayName()
         {
             var displayName = part.partInfo.title;
-            if (fuel_modes.Count > 1 )
+            if (fuelModes.Count > 1 )
                 displayName += " (" + fuelModeStr + ")";
             if (similarParts != null && similarParts.Count > 1)
                 displayName += " " + partNrInList;

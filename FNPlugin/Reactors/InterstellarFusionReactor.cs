@@ -1,38 +1,26 @@
-﻿using System;
-using System.Linq;
-using FNPlugin.Redist;
-using UnityEngine;
+﻿using FNPlugin.Redist;
 using KSP.Localization;
+using System;
+using System.Linq;
+using UnityEngine;
 
 namespace FNPlugin.Reactors
 {
     abstract class InterstellarFusionReactor : InterstellarReactor, IFNChargedParticleSource
     {
-        [KSPField(isPersistant = true)]
-        public int fuel_mode;
+        [KSPField(isPersistant = true)] public int fuel_mode;
+        [KSPField(isPersistant = true)] public bool allowJumpStart = true;
 
-        [KSPField(isPersistant = true, guiActive = false)]
-        public bool allowJumpStart = true;
+        [KSPField] public double magneticNozzlePowerMult = 1;
+        [KSPField] public int powerPriority = 0;
+        [KSPField] public bool powerIsAffectedByLithium = true;
 
-        [KSPField]
-        public double magneticNozzlePowerMult = 1;
-        [KSPField]
-        public int powerPriority = 0;
-        [KSPField]
-        public bool powerIsAffectedByLithium = true;
-
-        [KSPField]
-        public double minimumLithiumModifier = 0.001;
-        [KSPField]
-        public double maximumLithiumModifier = 1;
-        [KSPField]
-        public double lithiumModifierExponent = 0.5;
-        [KSPField]
-        public double maximumChargedIspMult = 100;
-        [KSPField]
-        public double minimumChargdIspMult = 1;
-        [KSPField]
-        public double maintenancePowerWasteheatRatio = 0.1;
+        [KSPField] public double minimumLithiumModifier = 0.001;
+        [KSPField] public double maximumLithiumModifier = 1;
+        [KSPField] public double lithiumModifierExponent = 0.5;
+        [KSPField] public double maximumChargedIspMult = 100;
+        [KSPField] public double minimumChargdIspMult = 1;
+        [KSPField] public double maintenancePowerWasteheatRatio = 0.1;
 
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_Maintance")]//Maintance
         public string electricPowerMaintenance;
@@ -43,25 +31,38 @@ namespace FNPlugin.Reactors
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_IsSwappingFuelMode")]//Is Swapping Fuel Mode
         public bool isSwappingFuelMode;
 
-        [KSPField]
-        public double reactorRatioThreshold = 0.000005;
-        [KSPField]
-        public double minReactorRatio = 0;
+        [KSPField] public double reactorRatioThreshold = 0.000005;
+        [KSPField] public double minReactorRatio = 0;
+
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_RequiredRatio", guiFormat = "F3")]//Required Ratio
         public double required_reactor_ratio;
 
-        public double MaximumChargedIspMult { get { return maximumChargedIspMult; } }
+        // Properties
 
-        public double MinimumChargdIspMult { get { return minimumChargdIspMult; } }
+        public double MaximumChargedIspMult => maximumChargedIspMult;
 
-        public override double StableMaximumReactorPower 
-        { 
-            get 
+        public double MinimumChargdIspMult => minimumChargdIspMult;
+
+        public override double MaximumThermalPower => Math.Max(base.MaximumThermalPower * PlasmaModifier * lithium_modifier, 0);
+
+        public override double MaximumChargedPower => base.MaximumChargedPower * PlasmaModifier;
+
+        public override double MagneticNozzlePowerMult => magneticNozzlePowerMult;
+
+        public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic && CurrentFuelMode.NeutronsRatio > 0;
+
+        public double PowerRequirement => RawPowerOutput / FusionEnergyGainFactor;
+
+        public double NormalizedPowerRequirement => PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements;
+
+        public override double StableMaximumReactorPower
+        {
+            get
             {
                 var stablePower = base.StableMaximumReactorPower;
 
                 return stablePower * ChargedPowerRatio + stablePower * ThermalPowerRatio * lithium_modifier;
-            } 
+            }
         }
 
         public virtual double PlasmaModifier
@@ -85,18 +86,6 @@ namespace FNPlugin.Reactors
                 return modifier;
             }
         }
-
-        public override double MaximumThermalPower { get { return Math.Max(base.MaximumThermalPower * PlasmaModifier * lithium_modifier, 0); } }
-
-        public override double MaximumChargedPower { get { return base.MaximumChargedPower * PlasmaModifier; }  }
-
-        public override double MagneticNozzlePowerMult { get { return magneticNozzlePowerMult; } }
-
-        public override bool IsFuelNeutronRich { get { return !CurrentFuelMode.Aneutronic && CurrentFuelMode.NeutronsRatio > 0; } }
-
-        public double PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
-
-        public double NormalizedPowerRequirment { get { return PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements; } }
 
         private void InitialiseGainFactors()
         {
@@ -148,20 +137,20 @@ namespace FNPlugin.Reactors
 
         private void SwitchToNextFuelMode(int initialFuelMode)
         {
-            if (fuel_modes == null || fuel_modes.Count == 0)
+            if (fuelModes == null || fuelModes.Count == 0)
                 return;
 
             fuel_mode++;
-            if (fuel_mode >= fuel_modes.Count)
+            if (fuel_mode >= fuelModes.Count)
                 fuel_mode = 0;
 
             stored_fuel_ratio = 1;
-            CurrentFuelMode = fuel_modes[fuel_mode];
+            CurrentFuelMode = fuelModes[fuel_mode];
             fuel_mode_name = CurrentFuelMode.ModeGUIName;
 
             UpdateFuelMode();
 
-            if (!FullFuelRequirments() && fuel_mode != initialFuelMode)
+            if (!FullFuelRequirements() && fuel_mode != initialFuelMode)
                 SwitchToNextFuelMode(initialFuelMode);
 
             isSwappingFuelMode = true;
@@ -169,25 +158,25 @@ namespace FNPlugin.Reactors
 
         private void SwitchToPreviousFuelMode(int initialFuelMode)
         {
-            if (fuel_modes == null || fuel_modes.Count == 0)
+            if (fuelModes == null || fuelModes.Count == 0)
                 return;
 
             fuel_mode--;
             if (fuel_mode < 0)
-                fuel_mode = fuel_modes.Count - 1;
+                fuel_mode = fuelModes.Count - 1;
 
-            CurrentFuelMode = fuel_modes[fuel_mode];
+            CurrentFuelMode = fuelModes[fuel_mode];
             fuel_mode_name = CurrentFuelMode.ModeGUIName;
 
             UpdateFuelMode();
 
-            if (!FullFuelRequirments() && fuel_mode != initialFuelMode)
+            if (!FullFuelRequirements() && fuel_mode != initialFuelMode)
                 SwitchToPreviousFuelMode(initialFuelMode);
 
             isSwappingFuelMode = true;
         }
 
-        private bool FullFuelRequirments()
+        private bool FullFuelRequirements()
         {
             return HasAllFuels() && FuelRequiresLab(CurrentFuelMode.RequiresLab);
         }
@@ -198,7 +187,7 @@ namespace FNPlugin.Reactors
                 return true;
 
             var hasAllFuels = true;
-            foreach (var fuel in current_fuel_variants_sorted.First().ReactorFuels)
+            foreach (var fuel in currentFuelVariantsSorted.First().ReactorFuels)
             {
                 if (!(GetFuelRatio(fuel, FuelEfficiency, NormalisedMaximumPower) < 1)) continue;
 
@@ -224,7 +213,7 @@ namespace FNPlugin.Reactors
             }
             GUILayout.EndHorizontal();
 
-            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_FissionPB_CurrentMaxMaintenance"), electricPowerMaintenance, bold_style, text_style);//"Current/Max Fusion Maintenance"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_FissionPB_CurrentMaxMaintenance"), electricPowerMaintenance, boldStyle, textStyle);//"Current/Max Fusion Maintenance"
         }
 
         public override void OnFixedUpdate()
@@ -241,34 +230,34 @@ namespace FNPlugin.Reactors
         {
             Debug.Log("[KSPI]: FusionReactor SetDefaultFuelMode");
 
-            if (fuel_modes == null)
+            if (fuelModes == null)
             {
                 Debug.Log("[KSPI]: FusionReactor SetDefaultFuelMode - load fuel modes");
-                fuel_modes = GetReactorFuelModes();
+                fuelModes = GetReactorFuelModes();
             }
 
-            if (!string.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
+            if (!string.IsNullOrEmpty(fuel_mode_name) && fuelModes.Any(m => m.ModeGUIName == fuel_mode_name))
             {
-                CurrentFuelMode = fuel_modes.First(m => m.ModeGUIName == fuel_mode_name);
+                CurrentFuelMode = fuelModes.First(m => m.ModeGUIName == fuel_mode_name);
             }
-            else if (!string.IsNullOrEmpty(fuel_mode_variant) && fuel_modes.Any(m => m.Variants.Any(l => l.Name == fuel_mode_variant)))
+            else if (!string.IsNullOrEmpty(fuel_mode_variant) && fuelModes.Any(m => m.Variants.Any(l => l.Name == fuel_mode_variant)))
             {
-                CurrentFuelMode = fuel_modes.First(m => m.Variants.Any(l => l.Name == fuel_mode_variant));
+                CurrentFuelMode = fuelModes.First(m => m.Variants.Any(l => l.Name == fuel_mode_variant));
             }
-            else if (fuelmode_index >= 0 && fuel_modes.Any(m => m.Index == fuelmode_index))
+            else if (fuelmode_index >= 0 && fuelModes.Any(m => m.Index == fuelmode_index))
             {
-                CurrentFuelMode = fuel_modes.First(m => m.Index == fuelmode_index);
+                CurrentFuelMode = fuelModes.First(m => m.Index == fuelmode_index);
             }
-            else if (fuel_modes.Any(m => m.Index == fuel_mode))
+            else if (fuelModes.Any(m => m.Index == fuel_mode))
             {
-                CurrentFuelMode = fuel_modes.First(m => m.Index == fuel_mode);
+                CurrentFuelMode = fuelModes.First(m => m.Index == fuel_mode);
             }
             else
             {
-                CurrentFuelMode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
+                CurrentFuelMode = (fuel_mode < fuelModes.Count) ? fuelModes[fuel_mode] : fuelModes.FirstOrDefault();
             }
 
-            fuel_mode = fuel_modes.IndexOf(CurrentFuelMode);
+            fuel_mode = fuelModes.IndexOf(CurrentFuelMode);
         }
 
         public override int getPowerPriority()

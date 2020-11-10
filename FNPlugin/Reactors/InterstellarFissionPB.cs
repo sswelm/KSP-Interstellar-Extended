@@ -7,13 +7,12 @@ namespace FNPlugin.Reactors
 
     [KSPModule("Pebble Bed Fission Engine")]
     class InterstellarPebbleBedFissionEngine : InterstellarFissionPB { }
-    
+
     class InterstellarFissionPB : InterstellarReactor
     {
-        // Persistant False
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_HeatThrottling")]//Heat Throttling
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_HeatThrottling")]//Heat Throttling
         public bool heatThrottling = false;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = false, guiActive = true, guiUnits = "%", guiName = "#LOC_KSPIE_FissionPB_Overheating", guiFormat = "F3")]//Overheating
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = true, guiUnits = "%", guiName = "#LOC_KSPIE_FissionPB_Overheating", guiFormat = "F3")]//Overheating
         public double overheatPercentage;
         [KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_WasteheatRatio")]//Wasteheat Ratio
         public double resourceBarRatio;
@@ -95,8 +94,8 @@ namespace FNPlugin.Reactors
         public override void OnUpdate()
         {
             overheatPercentage = (1 - ThermalRatioEfficiency) * 100;
-            Events["ManualRestart"].active = Events["ManualRestart"].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
-            Events["ManualShutdown"].active = Events["ManualShutdown"].guiActiveUnfocused = IsEnabled;
+            Events[nameof(ManualRestart)].active = Events[nameof(ManualRestart)].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
+            Events[nameof(ManualShutdown)].active = Events[nameof(ManualShutdown)].guiActiveUnfocused = IsEnabled;
             base.OnUpdate();
         }
 
@@ -135,7 +134,5 @@ namespace FNPlugin.Reactors
             }
             return base.GetThermalPowerAtTemp(temp);
         }
-
-
     }
 }

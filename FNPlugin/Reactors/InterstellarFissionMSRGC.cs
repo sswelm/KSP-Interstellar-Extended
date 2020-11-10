@@ -47,7 +47,11 @@ namespace FNPlugin.Reactors
         double oxygenDepletedUraniumVolumeMultipler;
         double reactorFuelMaxAmount;
 
-        public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
+        public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic;
+
+        public override bool IsNuclear => true;
+
+        public double WasteToReprocess => part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0;
 
         [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_FissionMSRGC_Dump_Actinides", guiActiveEditor = false, guiActive = true)]
         public void DumpActinides()
@@ -74,12 +78,11 @@ namespace FNPlugin.Reactors
             Debug.Log("[KSPI]: " + message);
         }
 
-
         [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_FissionMSRGC_SwapFuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]//Swap Fuel
         public void SwapFuelMode()
         {
             if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) || part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount > 0.01) return;
-            defuelCurrentFuel();
+            DefuelCurrentFuel();
             if (IsCurrentFuelDepleted())
             {
                 DisableResources();
@@ -92,14 +95,14 @@ namespace FNPlugin.Reactors
         [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_FissionMSRGC_SwapFuel", guiActiveEditor = true, guiActive = false)]//Swap Fuel
         public void EditorSwapFuel()
         {
-            if (fuel_modes.Count == 1)
+            if (fuelModes.Count == 1)
                 return;
 
             DisableResources();
             SwitchFuelType();
             EnableResources();
 
-            var modesAvailable = checkFuelModes();
+            var modesAvailable = CheckFuelModes();
             // Hide Switch Mode button if theres only one mode for the selected fuel type available
             Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = modesAvailable > 1;
         }
@@ -114,17 +117,17 @@ namespace FNPlugin.Reactors
             do
             {
                 fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count)
+                if (fuel_mode >= fuelModes.Count)
                     fuel_mode = 0;
 
-                CurrentFuelMode = fuel_modes[fuel_mode];
+                CurrentFuelMode = fuelModes[fuel_mode];
                 currentFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
             }
             while (currentFirstFuelType.ResourceName != startFirstFuelType.ResourceName);
 
             fuelModeStr = CurrentFuelMode.ModeGUIName;
 
-            int modesAvailable = checkFuelModes();
+            int modesAvailable = CheckFuelModes();
             // Hide Switch Mode button if theres only one mode for the selected fuel type available
             Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = modesAvailable > 1;
         }
@@ -132,7 +135,7 @@ namespace FNPlugin.Reactors
         [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_FissionMSRGC_ManualRestart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]//Manual Restart
         public void ManualRestart()
         {
-            // verify any of the fuel types has at least 50% avaialbility inside the reactor
+            // verify any of the fuel types has at least 50% availability inside the reactor
             if (CurrentFuelMode.Variants.Any(variant => variant.ReactorFuels.All(fuel => GetLocalResourceRatio(fuel) > 0.5)))
                 IsEnabled = true;
         }
@@ -151,25 +154,21 @@ namespace FNPlugin.Reactors
                 // avoid exceptions, just in case
                 if (!part.Resources.Contains(fuel.ResourceName) || !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides)) return;
 
-                var fuel_reactor = part.Resources[fuel.ResourceName];
-                var actinides_reactor = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                var fuel_resources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuel_reactor)).ToList();
+                var fuelReactor = part.Resources[fuel.ResourceName];
+                var actinidesReactor = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+                var fuelResources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuelReactor)).ToList();
 
-                double spare_capacity_for_fuel = fuel_reactor.maxAmount - actinides_reactor.amount - fuel_reactor.amount;
-                fuel_resources.ForEach(res =>
+                double spareCapacityForFuel = fuelReactor.maxAmount - actinidesReactor.amount - fuelReactor.amount;
+                fuelResources.ForEach(res =>
                 {
-                    double resource_available = res.amount;
-                    double resource_added = Math.Min(resource_available, spare_capacity_for_fuel);
-                    fuel_reactor.amount += resource_added;
-                    res.amount -= resource_added;
-                    spare_capacity_for_fuel -= resource_added;
+                    double resourceAvailable = res.amount;
+                    double resourceAdded = Math.Min(resourceAvailable, spareCapacityForFuel);
+                    fuelReactor.amount += resourceAdded;
+                    res.amount -= resourceAdded;
+                    spareCapacityForFuel -= resourceAdded;
                 });
             }
         }
-
-        public override bool IsFuelNeutronRich { get { return !CurrentFuelMode.Aneutronic; } }
-
-        public override bool IsNuclear { get { return true; } }
 
         public override double MaximumThermalPower
         {
@@ -188,9 +187,9 @@ namespace FNPlugin.Reactors
 
                 if (actinidesResource != null)
                 {
-                    var fuel_actinide_mass_ratio = 1 - actinidesResource.amount / actinidesResource.maxAmount;
+                    var fuelActinideMassRatio = 1 - actinidesResource.amount / actinidesResource.maxAmount;
 
-                    actinidesModifer = Math.Pow(fuel_actinide_mass_ratio * fuel_actinide_mass_ratio, CurrentFuelMode.NormalisedReactionRate);
+                    actinidesModifer = Math.Pow(fuelActinideMassRatio * fuelActinideMassRatio, CurrentFuelMode.NormalisedReactionRate);
 
                     return base.MaximumThermalPower * actinidesModifer;
                 }
@@ -201,14 +200,14 @@ namespace FNPlugin.Reactors
 
         protected override void WindowReactorStatusSpecificOverride()
         {
-            PrintToGUILayout(Localizer.Format("#LOC_KSPIE_FissionMSRGC_Actinides_Poisoning"), (100 - actinidesModifer * 100).ToString("0.000000") + "%", bold_style, text_style);
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_FissionMSRGC_Actinides_Poisoning"), (100 - actinidesModifer * 100).ToString("0.000000") + "%", boldStyle, textStyle);
         }
 
         public override double CoreTemperature
         {
             get
             {
-                if (!CheatOptions.IgnoreMaxTemperature && HighLogic.LoadedSceneIsFlight && !isupgraded && powerPcnt >= min_throttle * 100)
+                if (!CheatOptions.IgnoreMaxTemperature && HighLogic.LoadedSceneIsFlight && !isupgraded && powerPcnt >= minThrottle * 100)
                 {
                     var baseCoreTemperature = base.CoreTemperature;
 
@@ -234,15 +233,15 @@ namespace FNPlugin.Reactors
 
         public override void OnUpdate()
         {
-            Events["ManualShutdown"].active = Events["ManualShutdown"].guiActiveUnfocused = IsEnabled;
-            Events["Refuel"].active = Events["Refuel"].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
-            Events["Refuel"].guiName = "Refuel " + (CurrentFuelMode != null ? CurrentFuelMode.ModeGUIName : "");
-            Events["SwapFuelMode"].active = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1 && !IsEnabled && !decay_ongoing;
-            Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
+            Events[nameof(ManualShutdown)].active = Events[nameof(ManualShutdown)].guiActiveUnfocused = IsEnabled;
+            Events[nameof(Refuel)].active = Events[nameof(Refuel)].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
+            Events[nameof(Refuel)].guiName = "Refuel " + (CurrentFuelMode != null ? CurrentFuelMode.ModeGUIName : "");
+            Events[nameof(SwapFuelMode)].active = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1 && !IsEnabled && !decay_ongoing;
+            Events[nameof(SwapFuelMode)].guiActive = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1;
 
-            Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = checkFuelModes() > 1;
-            Events["EditorSwapFuel"].guiActiveEditor = fuel_modes.Count > 1;
-            Events["DumpActinides"].guiActive = canDumpActinides;
+            Events[nameof(SwitchMode)].guiActiveEditor = Events[nameof(SwitchMode)].guiActive = Events[nameof(SwitchMode)].guiActiveUnfocused = CheckFuelModes() > 1;
+            Events[nameof(EditorSwapFuel)].guiActiveEditor = fuelModes.Count > 1;
+            Events[nameof(DumpActinides)].guiActive = canDumpActinides;
 
             base.OnUpdate();
         }
@@ -258,10 +257,10 @@ namespace FNPlugin.Reactors
             if (IsCurrentFuelDepleted())
             {
                 fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count)
+                if (fuel_mode >= fuelModes.Count)
                     fuel_mode = 0;
 
-                CurrentFuelMode = fuel_modes[fuel_mode];
+                CurrentFuelMode = fuelModes[fuel_mode];
             }
 
             fuelModeStr = CurrentFuelMode.ModeGUIName;
@@ -280,7 +279,7 @@ namespace FNPlugin.Reactors
             if (mainReactorFuel != null)
                 reactorFuelMaxAmount = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName).maxAmount;
 
-            foreach (ReactorFuelType fuelMode in fuel_modes)
+            foreach (ReactorFuelType fuelMode in fuelModes)
             {
                 foreach (ReactorFuel fuel in fuelMode.Variants.First().ReactorFuels)
                 {
@@ -291,10 +290,10 @@ namespace FNPlugin.Reactors
                 }
             }
 
-            Events["DumpActinides"].guiActive = canDumpActinides;
-            Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = checkFuelModes() > 1;
-            Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
-            Events["EditorSwapFuel"].guiActiveEditor = fuel_modes.Count > 1;
+            Events[nameof(DumpActinides)].guiActive = canDumpActinides;
+            Events[nameof(SwitchMode)].guiActiveEditor = Events[nameof(SwitchMode)].guiActive = Events[nameof(SwitchMode)].guiActiveUnfocused = CheckFuelModes() > 1;
+            Events[nameof(SwapFuelMode)].guiActive = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1;
+            Events[nameof(EditorSwapFuel)].guiActiveEditor = fuelModes.Count > 1;
         }
 
         public override void OnFixedUpdate()
@@ -321,34 +320,34 @@ namespace FNPlugin.Reactors
             if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides))
             {
                 var actinides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                var new_actinides_amount = Math.Max(actinides.amount - rate, 0);
-                var actinides_change = actinides.amount - new_actinides_amount;
-                actinides.amount = new_actinides_amount;
+                var newActinidesAmount = Math.Max(actinides.amount - rate, 0);
+                var actinidesChange = actinides.amount - newActinidesAmount;
+                actinides.amount = newActinidesAmount;
 
-                var depleted_fuels_request = actinides_change * 0.2;
-                var depleted_fuels_produced = -Part.RequestResource(depletedFuelDefinition.id, -depleted_fuels_request, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var depletedFuelsRequest = actinidesChange * 0.2;
+                var depletedFuelsProduced = -Part.RequestResource(depletedFuelDefinition.id, -depletedFuelsRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
-                // first try to replace depletedfuel with enriched uranium
-                var enrichedUraniumRequest = depleted_fuels_produced * enrichedUraniumVolumeMultiplier;
+                // first try to replace depletedFuel with enriched uranium
+                var enrichedUraniumRequest = depletedFuelsProduced * enrichedUraniumVolumeMultiplier;
                 var enrichedUraniumRetrieved = Part.RequestResource(enrichedUraniumDefinition.id, enrichedUraniumRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
                 var receivedEnrichedUraniumFraction = enrichedUraniumRequest > 0 ? enrichedUraniumRetrieved / enrichedUraniumRequest : 0;
 
                 // if missing fluorine is dumped
-                var oxygenChange = -Part.RequestResource(oxygenGasDefinition.id, -depleted_fuels_produced * oxygenDepletedUraniumVolumeMultipler * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-                var fluorineChange = -Part.RequestResource(fluorineGasDefinition.id, -depleted_fuels_produced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var oxygenChange = -Part.RequestResource(oxygenGasDefinition.id, -depletedFuelsProduced * oxygenDepletedUraniumVolumeMultipler * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var fluorineChange = -Part.RequestResource(fluorineGasDefinition.id, -depletedFuelsProduced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
                 var reactorFuels = CurrentFuelMode.Variants.First().ReactorFuels;
-                var sum_useage_per_mw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMJ * fuelUsePerMJMult);
+                var sumUsagePerMw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMJ * fuelUsePerMJMult);
 
                 foreach (ReactorFuel fuel in reactorFuels)
                 {
-                    var fuel_resource = part.Resources[fuel.ResourceName];
-                    var powerFraction = sum_useage_per_mw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sum_useage_per_mw : 1;
-                    var new_fuel_amount = Math.Min(fuel_resource.amount + ((depleted_fuels_produced * 4) + (depleted_fuels_produced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultplier, fuel_resource.maxAmount);
-                    fuel_resource.amount = new_fuel_amount;
+                    var fuelResource = part.Resources[fuel.ResourceName];
+                    var powerFraction = sumUsagePerMw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sumUsagePerMw : 1;
+                    var newFuelAmount = Math.Min(fuelResource.amount + ((depletedFuelsProduced * 4) + (depletedFuelsProduced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultplier, fuelResource.maxAmount);
+                    fuelResource.amount = newFuelAmount;
                 }
 
-                return actinides_change;
+                return actinidesChange;
             }
             return 0;
         }
@@ -356,13 +355,13 @@ namespace FNPlugin.Reactors
         // This Methods loads the correct fuel mode
         public override void SetDefaultFuelMode()
         {
-            if (fuel_modes == null)
+            if (fuelModes == null)
             {
                 Debug.Log("[KSPI]: MSRC SetDefaultFuelMode - load fuel modes");
-                fuel_modes = GetReactorFuelModes();
+                fuelModes = GetReactorFuelModes();
             }
 
-            CurrentFuelMode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
+            CurrentFuelMode = (fuel_mode < fuelModes.Count) ? fuelModes[fuel_mode] : fuelModes.FirstOrDefault();
         }
 
         private void DisableResources()
@@ -379,7 +378,7 @@ namespace FNPlugin.Reactors
                         resource.isTweakable = false;
                     }
                     resource.maxAmount = 0;
-                    
+
                 }
             }
         }
@@ -410,10 +409,10 @@ namespace FNPlugin.Reactors
             do
             {
                 fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count)
+                if (fuel_mode >= fuelModes.Count)
                     fuel_mode = 0;
 
-                CurrentFuelMode = fuel_modes[fuel_mode];
+                CurrentFuelMode = fuelModes[fuel_mode];
                 currentFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
             }
             while (currentFirstFuelType.ResourceName == startFirstFuelType.ResourceName);
@@ -421,19 +420,19 @@ namespace FNPlugin.Reactors
             fuelModeStr = CurrentFuelMode.ModeGUIName;
         }
 
-        private void defuelCurrentFuel()
+        private void DefuelCurrentFuel()
         {
             foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
             {
-                var fuel_reactor = part.Resources[fuel.ResourceName];
-                var swap_resource_list = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuel_reactor)).ToList();
+                var fuelReactor = part.Resources[fuel.ResourceName];
+                var swapResourceList = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuelReactor)).ToList();
 
-                swap_resource_list.ForEach(res =>
+                swapResourceList.ForEach(res =>
                 {
-                    double spare_capacity_for_fuel = res.maxAmount - res.amount;
-                    double fuel_added = Math.Min(fuel_reactor.amount, spare_capacity_for_fuel);
-                    fuel_reactor.amount -= fuel_added;
-                    res.amount += fuel_added;
+                    double spareCapacityForFuel = res.maxAmount - res.amount;
+                    double fuelAdded = Math.Min(fuelReactor.amount, spareCapacityForFuel);
+                    fuelReactor.amount -= fuelAdded;
+                    res.amount += fuelAdded;
                 });
             }
         }
@@ -444,15 +443,15 @@ namespace FNPlugin.Reactors
         }
 
 
-        // Returns the number of fuelmodes available for the currently selected fueltype 
-        public int checkFuelModes()
+        // Returns the number of fuel-modes available for the currently selected fuel-type
+        public int CheckFuelModes()
         {
             int modesAvailable = 0;
             var fuelType = CurrentFuelMode.Variants.First().ReactorFuels.First().FuelName;
-            for (int n = 0; n < fuel_modes.Count; n++)
+            foreach (var reactorFuelType in fuelModes)
             {
-                var current_mode = fuel_modes[n].Variants.First().ReactorFuels.First().FuelName;
-                if (current_mode == fuelType)
+                var currentMode = reactorFuelType.Variants.First().ReactorFuels.First().FuelName;
+                if (currentMode == fuelType)
                 {
                     modesAvailable++;
                 }
