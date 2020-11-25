@@ -247,10 +247,10 @@ namespace FNPlugin.Resources
                 AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
                 AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
                 AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.OxygenGas, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
+                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
                 AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
+                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.ArgonLqd, "LqdArgon", "ArgonGas", "Argon", "Argon");
                 AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
                 AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
                 AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");

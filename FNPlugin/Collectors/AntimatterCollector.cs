@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace FNPlugin
 {
-    class AntimatterCollector : ResourceSuppliableModule    
+    class AntimatterCollector : ResourceSuppliableModule
     {
         public const string GROUP = "AntimatterCollector";
         public const string GROUP_TITLE = "#LOC_KSPIE_AntimatterCollector_groupName";
@@ -36,8 +36,8 @@ namespace FNPlugin
 
         private double _effectiveFlux;
         private double _offlineResource;
-        
-        public override void OnStart(PartModule.StartState state) 
+
+        public override void OnStart(PartModule.StartState state)
         {
             _antimatterDef = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter);
 
@@ -57,7 +57,7 @@ namespace FNPlugin
             _offlineResource = timeDiff * flux;
         }
 
-        public override void OnUpdate() 
+        public override void OnUpdate()
         {
             var lat = vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
             celestrialBodyFieldStrengthMod = MagneticFieldDefinitionsHandler.GetMagneticFieldDefinitionForBody(vessel.mainBody).StrengthMult;
@@ -79,7 +79,7 @@ namespace FNPlugin
 
             double receivedPowerKW = consumeMegawatts(powerReqKW / GameConstants.ecPerMJ, true, false, true) * GameConstants.ecPerMJ;
             double powerRatio = powerReqKW > 0.0 ? receivedPowerKW / powerReqKW : 0.0;
-            
+
             _effectiveFlux = powerRatio * flux;
             part.RequestResource(_antimatterDef.id, -_effectiveFlux * TimeWarp.fixedDeltaTime - _offlineResource, ResourceFlowMode.STACK_PRIORITY_SEARCH);
             _offlineResource = 0;

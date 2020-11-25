@@ -181,10 +181,10 @@ namespace FNPlugin.Resources
         {
             try
             {
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Ammonia, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.AmmoniaLqd, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.ArgonLqd, "LqdArgon", "ArgonGas", "Argon", "Argon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
                 AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.DeuteriumGas, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
                 AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
                 AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");

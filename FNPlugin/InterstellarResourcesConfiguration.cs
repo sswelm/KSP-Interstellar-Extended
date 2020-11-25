@@ -5,16 +5,29 @@ namespace FNPlugin
 {
     public class InterstellarResourcesConfiguration
     {
-        private static InterstellarResourcesConfiguration _instance = null;
+        private static InterstellarResourcesConfiguration _instance;
 
-        public const String _ALIMINIUM = "Aluminium";
-        public const String _ANTIMATTER = "Antimatter";
-        public const String _INTAKEATMOSPHERE = "IntakeAtm";
-        public const String _THORIUM_TETRAFLOURIDE = "ThF4";
-        public const String _URANIUM_233 = "Uranium-233";
-        public const String _URANIUM_NITRIDE = "UraniumNitride";
+        #region autoproerties
+
+        public string Actinides { get; private set; } = "Actinides";
+        public string Alumina { get; private set; } = "Alumina";
+        public string Aluminium { get; private set; } = "Aluminium";
+        public string AmmoniaLqd { get; private set; } = "LqdAmmonia";
+        public string Antimatter { get; private set; } = "Antimatter";
+        public string ArgonLqd { get; private set; } = "LqdArgon";
+        public string CarbonDioxideLqd { get; private set; } = "LqdCO2";
+        public string CarbonMonoxideGas { get; private set; } = "CarbonMonoxide";
+        public string UraniumTetraflouride { get; private set; } = "UF4";
+        public string IntakeAtmosphere { get; private set; } = "IntakeAtm";
+        public string ThoriumTetraflouride { get; private set; } = "ThF4";
+        public string FluorineGas { get; private set; } = "Fluorine";
+        public string Uranium233 { get; private set; } = "Uranium-233";
+        public string UraniumNitride { get; private set; } = "UraniumNitride";
+
+        #endregion
+
+        //public const String _URANIUM_NITRIDE = "UraniumNitride";
         public const String _ENRICHED_URANIUM = "EnrichedUranium";
-        public const String _ACTINIDES = "Actinides";
         public const String _DEPLETED_FUEL = "DepletedFuel";
         public const String _VACUUM_PLASMA = "VacuumPlasma";
         public const String _EXOTIC_MATTER = "ExoticMatter";
@@ -22,22 +35,14 @@ namespace FNPlugin
         public const String _LITHIUM7 = "Lithium";
         public const String _LITHIUM6 = "Lithium6";
         public const String _PLUTONIUM_238 = "Plutonium-238";
-        public const String _ALUMINA = "Alumina";
-
         public const String _DEUTERIUM_LIQUID = "LqdDeuterium";
         public const String _DEUTERIUM_GAS = "Deuterium";
         public const String _INTAKE_LIQUID = "IntakeLqd";
         public const String _ELECTRIC_CHARGE = "ElectricCharge";
-        public const String _LIQUID_AMMONIA = "LqdAmmonia";
-        public const String _LIQUID_ARGON = "LqdArgon";
         public const String _LIQUID_CO2 = "LqdCO2";
-
         public const String _CARBONMONOXIDE_LIQUID = "LqdCO";
-        public const String _CARBONMONOXIDE_GAS = "CarbonMonoxide";
-
         public const String _CHLORINE = "Chlorine";
         public const String _LIQUID_METHANE = "LqdMethane";
-
         public const String _HELIUM4_LIQUID = "LqdHelium";
         public const String _HELIUM4_GAS = "Helium";
         public const String _HELIUM3_LIQUID = "LqdHe3";
@@ -46,10 +51,8 @@ namespace FNPlugin
         public const String _HYDROGEN_GAS = "Hydrogen";
         public const String _NEON_LIQUID = "LqdNeon";
         public const String _NEON_GAS = "NeonGas";
-
         public const String _NITROGEN_LIQUID = "LqdNitrogen";
         public const String _NITROGEN_GAS = "Nitrogen";
-
         public const String _LIQUID_NITROGEN_15 = "LqdNitrogen15";
         public const String _LIQUID_OXYGEN = "LqdOxygen";
         public const String _OXYGEN_GAS = "Oxygen";
@@ -63,13 +66,6 @@ namespace FNPlugin
         public const String _LIQUID_TRITIUM = "LqdTritium";
         public const String _TRITIUM_GAS = "Tritium";
 
-        private String _uranium_TerraFloride = "UF4";
-        private String _aluminium = _ALIMINIUM;
-        private String _ammonia = _LIQUID_AMMONIA;
-        private String _argon = _LIQUID_ARGON;
-        private String _carbonDioxide = _LIQUID_CO2;
-        private String _carbonMoxoxide = _CARBONMONOXIDE_LIQUID;
-        private String _fluorineGas = "Fluorine";
         private String _helium4_gas = _HELIUM4_GAS;
         private String _liquid_helium4 = _HELIUM4_LIQUID;
         private String _helium3_gas = _HELIUM3_GAS;
@@ -92,23 +88,16 @@ namespace FNPlugin
         private String _regolith = "Regolith";
         private String _xenongas = _XENON_GAS;
         private String _xenon = _LIQUID_XENON;
-        private String _kryton = _LIQUID_KRYPTON;
-        private String _krytongas = _KRYPTON_GAS;
+        private string _kryton = _LIQUID_KRYPTON;
+        private string _krytongas = _KRYPTON_GAS;
 
-        public String Actinides { get { return _ACTINIDES; } }
-        public String Alumina { get { return _ALUMINA; } }
-        public String Aluminium { get { return _aluminium; } }
-        public String Ammonia { get { return _ammonia; } }
-        public String Antimatter { get { return _ANTIMATTER; } }
-        public String Argon { get { return _argon; } }
-        public String CarbonDioxide { get { return _carbonDioxide; } }
-        public String CarbonMoxoxide { get { return _carbonMoxoxide; } }
+
+        // ToDo convert to auto property
         public String DepletedFuel { get { return _DEPLETED_FUEL; } }
         public String LqdDeuterium { get { return _DEUTERIUM_LIQUID; } }
         public String DeuteriumGas { get { return _DEUTERIUM_GAS; } }
         public String ExoticMatter { get { return _EXOTIC_MATTER; } }
         public String ElectricCharge { get { return _ELECTRIC_CHARGE; } }
-        public String FluorineGas { get { return _fluorineGas; } }
         public String LqdHelium4 { get { return _liquid_helium4; } }
         public String Helium4Gas { get { return _helium4_gas; } }
         public String LqdHelium3 { get { return _liquid_helium3; } }
@@ -117,7 +106,6 @@ namespace FNPlugin
         public String Hydrogen { get { return _hydrogen; } }
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
         public String Hydrazine { get { return _hydrazine; } }
-        public String IntakeAtmosphere { get { return _INTAKEATMOSPHERE; } }
         public String IntakeLiquid { get { return _INTAKE_LIQUID; } }
         public String Lithium6 { get { return _LITHIUM6; } }
         public String IntakeAir { get { return _INTAKE_AIR; } }
@@ -131,12 +119,10 @@ namespace FNPlugin
         public String Plutonium238 { get { return _PLUTONIUM_238; } }
         public String Regolith { get { return _regolith; } }
         public String SolarWind { get { return _solarWind; } }
-        public String ThoriumTetraflouride { get { return _THORIUM_TETRAFLOURIDE; } }
         public String LqdTritium { get { return _tritium; } }
         public String TritiumGas { get { return _tritium_gas; } }
-        public String UraniumTetraflouride { get { return _uranium_TerraFloride; } }
-        public String UraniumNitride { get { return _URANIUM_NITRIDE; } }
-        public String Uranium233 { get { return _URANIUM_233; } }
+
+
         public String EnrichedUrarium { get { return _ENRICHED_URANIUM; } }
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
         public String Water { get { return _water; } }
@@ -146,133 +132,128 @@ namespace FNPlugin
         public String KryptonGas { get { return _krytongas; } }
         public String Krypton { get { return _kryton; } }
 
-        public InterstellarResourcesConfiguration(ConfigNode plugin_settings)
+        private void UpdatePropertyWithConfigNode(ConfigNode pluginSettings, string resourceName, Action<string> property)
         {
-            if (plugin_settings != null)
+            if (!pluginSettings.HasValue(resourceName + "ResourceName")) return;
+
+            var value = pluginSettings.GetValue(resourceName + "ResourceName");
+            property(value);
+            Debug.Log("[KSPI]: " + resourceName + " resource name set to " + property);
+        }
+
+        public InterstellarResourcesConfiguration(ConfigNode pluginSettings)
+        {
+            if (pluginSettings != null)
             {
-                if (plugin_settings.HasValue("AluminiumResourceName"))
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Actinides), value => Actinides = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Antimatter), value => Antimatter = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(ArgonLqd), value => ArgonLqd = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Aluminium), value => Aluminium = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Alumina), value => Alumina = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(AmmoniaLqd), value => AmmoniaLqd = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonDioxideLqd), value => CarbonDioxideLqd = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonMonoxideGas), value => CarbonMonoxideGas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(FluorineGas), value => FluorineGas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(UraniumTetraflouride), value => UraniumTetraflouride = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(ThoriumTetraflouride), value => ThoriumTetraflouride = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(IntakeAtmosphere), value => IntakeAtmosphere = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Uranium233), value => Uranium233 = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(UraniumNitride), value => UraniumNitride = value);
+
+
+                // ToDo convert to method call
+                if (pluginSettings.HasValue("Helium4GasResourceName"))
                 {
-                    _aluminium = plugin_settings.GetValue("AluminiumResourceName");
-                    Debug.Log("[KSPI]: Aluminium resource name set to " + Aluminium);
-                }
-                if (plugin_settings.HasValue("AmmoniaResourceName"))
-                {
-                    _ammonia = plugin_settings.GetValue("AmmoniaResourceName");
-                    Debug.Log("[KSPI]: Ammonia resource name set to " + Ammonia);
-                }
-                if (plugin_settings.HasValue("ArgonResourceName"))
-                {
-                    _argon = plugin_settings.GetValue("ArgonResourceName");
-                    Debug.Log("[KSPI]: Argon resource name set to " + Argon);
-                }
-                if (plugin_settings.HasValue("CarbonDioxideResourceName"))
-                {
-                    _carbonDioxide = plugin_settings.GetValue("CarbonDioxideResourceName");
-                    Debug.Log("[KSPI]: CarbonDioxide resource name set to " + CarbonDioxide);
-                }
-                if (plugin_settings.HasValue("CarbonMonoxideResourceName"))
-                {
-                    _carbonMoxoxide = plugin_settings.GetValue("CarbonMonoxideResourceName");
-                    Debug.Log("[KSPI]: CarbonMonoxide resource name set to " + CarbonMoxoxide);
-                }
-                if (plugin_settings.HasValue("Helium4GasResourceName"))
-                {
-                    _helium4_gas = plugin_settings.GetValue("Helium4GasResourceName");
+                    _helium4_gas = pluginSettings.GetValue("Helium4GasResourceName");
                     Debug.Log("[KSPI]: Helium4 Gas resource name set to " + Helium4Gas);
                 }
-                if (plugin_settings.HasValue("Helium3GasResourceName"))
+                if (pluginSettings.HasValue("Helium3GasResourceName"))
                 {
-                    _helium3_gas = plugin_settings.GetValue("Helium3GasResourceName");
+                    _helium3_gas = pluginSettings.GetValue("Helium3GasResourceName");
                     Debug.Log("[KSPI]: Helium3 Gas resource name set to " + Helium3Gas);
                 }
-                if (plugin_settings.HasValue("HeliumResourceName"))
+                if (pluginSettings.HasValue("HeliumResourceName"))
                 {
-                    _liquid_helium4 = plugin_settings.GetValue("HeliumResourceName");
+                    _liquid_helium4 = pluginSettings.GetValue("HeliumResourceName");
                     Debug.Log("[KSPI]: Helium4 Liquid resource name set to " + LqdHelium4);
                 }
-                if (plugin_settings.HasValue("Helium3ResourceName"))
+                if (pluginSettings.HasValue("Helium3ResourceName"))
                 {
-                    _liquid_helium3 = plugin_settings.GetValue("Helium3ResourceName");
+                    _liquid_helium3 = pluginSettings.GetValue("Helium3ResourceName");
                     Debug.Log("[KSPI]: Helium3 resource name set to " + LqdHelium3);
                 }
-                if (plugin_settings.HasValue("HydrazineResourceName"))
+                if (pluginSettings.HasValue("HydrazineResourceName"))
                 {
-                    _hydrazine = plugin_settings.GetValue("HydrazineResourceName");
+                    _hydrazine = pluginSettings.GetValue("HydrazineResourceName");
                     Debug.Log("[KSPI]: Hydrazine resource name set to " + Hydrazine);
                 }
-                if (plugin_settings.HasValue("HydrogenResourceName"))
+                if (pluginSettings.HasValue("HydrogenResourceName"))
                 {
-                    _hydrogen = plugin_settings.GetValue("HydrogenResourceName");
+                    _hydrogen = pluginSettings.GetValue("HydrogenResourceName");
                     Debug.Log("[KSPI]: Hydrogen resource name set to " + Hydrogen);
                 }
-                if (plugin_settings.HasValue("HydrogenPeroxideResourceName"))
+                if (pluginSettings.HasValue("HydrogenPeroxideResourceName"))
                 {
-                    _hydrogen_peroxide = plugin_settings.GetValue("HydrogenPeroxideResourceName");
+                    _hydrogen_peroxide = pluginSettings.GetValue("HydrogenPeroxideResourceName");
                     Debug.Log("[KSPI]: Hydrogen Peroxide resource name set to " + HydrogenPeroxide);
                 }
-
-                if (plugin_settings.HasValue("MethaneResourceName"))
+                if (pluginSettings.HasValue("MethaneResourceName"))
                 {
-                    _methane = plugin_settings.GetValue("MethaneResourceName");
+                    _methane = pluginSettings.GetValue("MethaneResourceName");
                     Debug.Log("[KSPI]: Methane resource name set to " + Methane);
                 }
-                if (plugin_settings.HasValue("NeonResourceName"))
+                if (pluginSettings.HasValue("NeonResourceName"))
                 {
-                    _neon_gas = plugin_settings.GetValue("NeonResourceName");
+                    _neon_gas = pluginSettings.GetValue("NeonResourceName");
                     Debug.Log("[KSPI]: Neon resource name set to " + NeonGas);
                 }
-                if (plugin_settings.HasValue("NitrogenResourceName"))
+                if (pluginSettings.HasValue("NitrogenResourceName"))
                 {
-                    _nitrogen = plugin_settings.GetValue("NitrogenResourceName");
+                    _nitrogen = pluginSettings.GetValue("NitrogenResourceName");
                     Debug.Log("[KSPI]: Nitrogen resource name set to " + Nitrogen);
                 }
-                if (plugin_settings.HasValue("OxygenResourceName"))
+                if (pluginSettings.HasValue("OxygenResourceName"))
                 {
-                    _lqdOxygen = plugin_settings.GetValue("OxygenResourceName");
+                    _lqdOxygen = pluginSettings.GetValue("OxygenResourceName");
                     Debug.Log("[KSPI]: Oxygen resource name set to " + LqdOxygen);
                 }
-                if (plugin_settings.HasValue("RegolithResourceName"))
+                if (pluginSettings.HasValue("RegolithResourceName"))
                 {
-                    _regolith = plugin_settings.GetValue("RegolithResourceName");
+                    _regolith = pluginSettings.GetValue("RegolithResourceName");
                     Debug.Log("[KSPI]: Regolith resource name set to " + Regolith);
                 }
-                if (plugin_settings.HasValue("XenonGasResourceName"))
+                if (pluginSettings.HasValue("XenonGasResourceName"))
                 {
-                    _xenongas = plugin_settings.GetValue("XenonGasResourceName");
+                    _xenongas = pluginSettings.GetValue("XenonGasResourceName");
                     Debug.Log("[KSPI]: XenonGas resource name set to " + XenonGas);
                 }
-                if (plugin_settings.HasValue("SolarWindResourceName"))
+                if (pluginSettings.HasValue("SolarWindResourceName"))
                 {
-                    _solarWind = plugin_settings.GetValue("SolarWindResourceName");
+                    _solarWind = pluginSettings.GetValue("SolarWindResourceName");
                     Debug.Log("[KSPI]: SolarWind resource name set to " + SolarWind);
                 }
-                if (plugin_settings.HasValue("TritiumResourceName"))
+                if (pluginSettings.HasValue("TritiumResourceName"))
                 {
-                    _tritium = plugin_settings.GetValue("TritiumResourceName");
+                    _tritium = pluginSettings.GetValue("TritiumResourceName");
                     Debug.Log("[KSPI]: Tritium resource name set to " + LqdTritium);
                 }
-                if (plugin_settings.HasValue("UraniumTetraflourideName"))
+                if (pluginSettings.HasValue("WaterResourceName"))
                 {
-                    _uranium_TerraFloride = plugin_settings.GetValue("UraniumTetraflourideName");
-                    Debug.Log("[KSPI]: UraniumTetraflouride resource name set to " + _uranium_TerraFloride);
-                }
-                if (plugin_settings.HasValue("WaterResourceName"))
-                {
-                    _water = plugin_settings.GetValue("WaterResourceName");
+                    _water = pluginSettings.GetValue("WaterResourceName");
                     Debug.Log("[KSPI]: Water resource name set to " + Water);
                 }
-                if (plugin_settings.HasValue("HeavyWaterResourceName"))
+                if (pluginSettings.HasValue("HeavyWaterResourceName"))
                 {
-                    _heavyWater = plugin_settings.GetValue("HeavyWaterResourceName");
+                    _heavyWater = pluginSettings.GetValue("HeavyWaterResourceName");
                     Debug.Log("[KSPI]: Heavy Water resource name set to " + HeavyWater);
                 }
-            } 
+            }
             else
             {
                 PluginHelper.showInstallationErrorMessage();
             }
         }
 
-        public static InterstellarResourcesConfiguration Instance { get { return _instance ?? (_instance = new InterstellarResourcesConfiguration(PluginHelper.PluginSettingsConfig)); } }
+        public static InterstellarResourcesConfiguration Instance => _instance ?? (_instance = new InterstellarResourcesConfiguration(PluginHelper.PluginSettingsConfig));
     }
 }

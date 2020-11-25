@@ -69,7 +69,7 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _definitionAmmonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia);
+            _definitionAmmonia = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.AmmoniaLqd);
             _definitionHydrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
             _definitionNitrogen = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen);
 
@@ -184,7 +184,7 @@ namespace FNPlugin.Refinery.Activity
             if (!HasAccessToNitrogen())
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HaberProcess_Postmsg1") + " " + InterstellarResourcesConfiguration.Instance.Nitrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
             if (!HasSpareCapacityAmmonia())
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HaberProcess_Postmsg2") + " " + InterstellarResourcesConfiguration.Instance.Ammonia, 3.0f, ScreenMessageStyle.UPPER_CENTER);//No Spare Capacity
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HaberProcess_Postmsg2") + " " + InterstellarResourcesConfiguration.Instance.AmmoniaLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//No Spare Capacity
         }
     }
 }

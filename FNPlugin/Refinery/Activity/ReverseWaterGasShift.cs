@@ -66,8 +66,8 @@ namespace FNPlugin.Refinery.Activity
             _vessel = localPart.vessel;
 
             _waterResourceName = InterstellarResourcesConfiguration.Instance.Water;
-            _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
-            _dioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
+            _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas;
+            _dioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd;
             _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
 
             _waterDensity = PartResourceLibrary.Instance.GetDefinition(_waterResourceName).density;
@@ -222,8 +222,8 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.CarbonDioxide).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.CarbonDioxide, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.Hydrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

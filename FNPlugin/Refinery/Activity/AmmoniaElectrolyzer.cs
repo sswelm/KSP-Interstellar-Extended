@@ -27,7 +27,7 @@ namespace FNPlugin.Refinery.Activity
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0);  }
+        public bool HasActivityRequirements() { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.AmmoniaLqd).Any(rs => rs.amount > 0);  }
 
         public string Status => string.Copy(_status);
 
@@ -35,7 +35,7 @@ namespace FNPlugin.Refinery.Activity
         {
             _part = localPart;
             _vessel = localPart.vessel;
-            _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Ammonia).density;
+            _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.AmmoniaLqd).density;
             _nitrogenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen).density;
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
         }
@@ -60,7 +60,7 @@ namespace FNPlugin.Refinery.Activity
             }
             else
             {
-                _ammoniaConsumptionMassRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, _currentMassRate * fixedDeltaTime / _ammoniaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammoniaDensity;
+                _ammoniaConsumptionMassRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.AmmoniaLqd, _currentMassRate * fixedDeltaTime / _ammoniaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammoniaDensity;
                 var hydrogenMassRate = _ammoniaConsumptionMassRate * GameConstants.ammoniaHydrogenFractionByMass;
                 var nitrogenMassRate = _ammoniaConsumptionMassRate * (1 - GameConstants.ammoniaHydrogenFractionByMass);
 
@@ -116,7 +116,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.Ammonia, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.AmmoniaLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

@@ -54,9 +54,9 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _dioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
+            _dioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd;
             _oxygenResourceName = InterstellarResourcesConfiguration.Instance.LqdOxygen;
-            _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
+            _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas;
 
             _dioxideDensity = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;
             _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(_oxygenResourceName).density;
@@ -179,7 +179,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.CarbonDioxide, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

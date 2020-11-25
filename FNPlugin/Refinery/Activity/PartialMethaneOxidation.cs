@@ -68,7 +68,7 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
+            _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas;
             _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
             _methaneResourceName = InterstellarResourcesConfiguration.Instance.Methane;
             _oxygenResourceName = InterstellarResourcesConfiguration.Instance.LqdOxygen;

@@ -80,8 +80,8 @@ namespace FNPlugin.Refinery.Activity
             _stDeuteriumResourceName = InterstellarResourcesConfiguration.Instance.DeuteriumGas;
             _strLiquidHelium3ResourceName = InterstellarResourcesConfiguration.Instance.Helium3Gas;
             _strLiquidHelium4ResourceName = InterstellarResourcesConfiguration.Instance.Helium4Gas;
-            _strMonoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
-            _strDioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
+            _strMonoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas;
+            _strDioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd;
             _strMethaneResourceName = InterstellarResourcesConfiguration.Instance.Methane;
             _strNitrogenResourceName = InterstellarResourcesConfiguration.Instance.Nitrogen;
             _strWaterResourceName = InterstellarResourcesConfiguration.Instance.Water;
