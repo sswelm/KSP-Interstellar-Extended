@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Power;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using UnityEngine;
@@ -105,7 +106,7 @@ namespace FNPlugin
                 {
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                         inputType = ResourceType.megajoule;
-                    else if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+                    else if (moduleResource.name == ResourceSettings.Config.ElectricChargePower)
                         inputType = ResourceType.electricCharge;
 
                     if (inputType != ResourceType.other)
@@ -139,7 +140,7 @@ namespace FNPlugin
                     // assuming only one of those two is present
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                         outputType = ResourceType.megajoule;
-                    else if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+                    else if (moduleResource.name == ResourceSettings.Config.ElectricChargePower)
                         outputType = ResourceType.electricCharge;
 
                     if (outputType != ResourceType.other)

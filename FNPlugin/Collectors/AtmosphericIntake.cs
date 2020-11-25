@@ -1,10 +1,10 @@
 ﻿using FNPlugin.Power;
+using FNPlugin.Resources;
 using System;
 using System.Linq;
-using FNPlugin.Resources;
 using UnityEngine;
 
-namespace FNPlugin  
+namespace FNPlugin
 {
     class AtmosphericIntake : PartModule
     {
@@ -110,8 +110,8 @@ namespace FNPlugin
             var jetTech = Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
             jetTechBonus = 5 * (1 + (jetTech / 9.92992f));
 
-            _moduleResourceIntake = this.part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == ResourcesConfiguration.Instance.IntakeOxygenAir);
-            _resourceAtmosphereDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.IntakeAtmosphere);
+            _moduleResourceIntake = this.part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == ResourceSettings.Config.IntakeOxygenAir);
+            _resourceAtmosphereDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeAtmosphere);
 
             if (_moduleResourceIntake == null)
                 Debug.LogWarning("[KSPI]: ModuleResourceIntake with IntakeAir is missing on " + part.partInfo.title);
@@ -128,7 +128,7 @@ namespace FNPlugin
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * 100));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.IntakeAtmosphere, 300, area * unitScalar * 100));
             resourceBuffers.Init(this.part);
         }
 
@@ -203,12 +203,12 @@ namespace FNPlugin
                 return;
             }
 
-            var vesselFlyingVector = vessel.altitude < part.vessel.mainBody.atmosphereDepth * 0.5 
-                ? vessel.GetSrfVelocity() 
+            var vesselFlyingVector = vessel.altitude < part.vessel.mainBody.atmosphereDepth * 0.5
+                ? vessel.GetSrfVelocity()
                 : vessel.GetObtVelocity();
 
             vesselSpeed = vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.SUB_ORBITAL
-                ? vessel.obt_speed 
+                ? vessel.obt_speed
                 : vessel.speed;
 
             intakeAngle = Mathf.Clamp(Vector3.Dot(vesselFlyingVector.normalized, part.transform.up.normalized), 0, 1);
@@ -225,7 +225,7 @@ namespace FNPlugin
                 airDensity = Math.Max(part.vessel.atmDensity, spaceAirDensity);                             // display amount of density
                 upperAtmoDensity = Math.Max(0, spaceAirDensity - part.vessel.atmDensity);                   // calculate effective addition upper atmosphere density
                 var space_airFlow = intakeAngle * upperAtmoDensity * intakeExposure / _resourceAtmosphereDefinition.density; // how much of that air is our intake catching
-                airThisUpdate = airThisUpdate + (space_airFlow * TimeWarp.fixedDeltaTime);                  // increase how much  air do we get per update 
+                airThisUpdate = airThisUpdate + (space_airFlow * TimeWarp.fixedDeltaTime);                  // increase how much  air do we get per update
             }
 
             if (startupCount > 10)
@@ -243,7 +243,7 @@ namespace FNPlugin
         {
             if (!storesResource)
             {
-                var _intake_atmosphere_resource = part.Resources[ResourcesConfiguration.Instance.IntakeAtmosphere];
+                var _intake_atmosphere_resource = part.Resources[ResourceSettings.Config.IntakeAtmosphere];
                 if (_intake_atmosphere_resource == null)
                     return;
 

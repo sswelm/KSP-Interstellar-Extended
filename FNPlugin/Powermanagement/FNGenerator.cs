@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using FNPlugin.Power;
 using FNPlugin.Reactors;
 using FNPlugin.Redist;
+using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
@@ -495,7 +496,7 @@ namespace FNPlugin
             _resourceBuffers = new ResourceBuffers();
 
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 1000 / powerOutputMultiplier));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricChargePower, 1000 / powerOutputMultiplier));
 
             if (controlWasteHeatBuffer)
             {
@@ -604,7 +605,7 @@ namespace FNPlugin
 
             if (stockModuleGenerator != null)
             {
-                outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
+                outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceSettings.Config.ElectricChargePower);
 
                 if (outputModuleResource != null)
                 {
@@ -1333,7 +1334,7 @@ namespace FNPlugin
 
                 megawattBufferAmount = (minimumBufferSize * 50) + (powerBufferBonus + 1) * stablePowerForBuffer;
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, megawattBufferAmount);
             }
 
             _resourceBuffers.UpdateBuffers();
@@ -1378,7 +1379,7 @@ namespace FNPlugin
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
 
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
-            _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, megawattBufferAmount);
             _resourceBuffers.UpdateBuffers();
         }
 

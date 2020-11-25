@@ -1,9 +1,9 @@
 ﻿using FNPlugin.Extensions;
+using FNPlugin.Propulsion;
 using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
-using FNPlugin.Propulsion;
 using UnityEngine;
 
 namespace FNPlugin
@@ -241,9 +241,9 @@ namespace FNPlugin
             double resourceFraction = (1.0 - hydrogenTax - heliumTax) * AtmosphericResourceHandler.GetAtmosphericResourceContent(vessel.mainBody, currentresource);
 
             // increase density hydrogen
-            if (resourceDisplayName == ResourcesConfiguration.Instance.HydrogenGas)
+            if (resourceDisplayName == ResourceSettings.Config.HydrogenGas)
                 resourceFraction += hydrogenTax;
-            else if (resourceDisplayName == ResourcesConfiguration.Instance.Helium4Gas)
+            else if (resourceDisplayName == ResourceSettings.Config.Helium4Gas)
                 resourceFraction += heliumTax;
 
             densityFractionOfUpperAthmosphere = upperAtmosphereDensity.ToString("P3");

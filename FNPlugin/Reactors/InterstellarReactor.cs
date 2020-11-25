@@ -1206,7 +1206,7 @@ namespace FNPlugin.Reactors
 
             InitializeKerbalismEmitter();
 
-            hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.HydrogenLqd);
+            hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd);
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
@@ -1298,9 +1298,9 @@ namespace FNPlugin.Reactors
                     _runningSound.Play();
             }
 
-            _tritiumDef = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.TritiumGas);
-            _heliumDef = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.Helium4Gas);
-            _lithium6Def = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.Lithium6);
+            _tritiumDef = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.TritiumGas);
+            _heliumDef = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Helium4Gas);
+            _lithium6Def = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Lithium6);
 
             _tritiumDensity = _tritiumDef.density;
             _helium4Density = _heliumDef.density;
@@ -2075,7 +2075,7 @@ namespace FNPlugin.Reactors
                 return;
 
             // verify if there is any lithium6 present
-            var partResourceLithium6 = part.Resources[ResourcesConfiguration.Instance.Lithium6];
+            var partResourceLithium6 = part.Resources[ResourceSettings.Config.Lithium6];
             if (partResourceLithium6 == null)
                 return;
 

@@ -941,13 +941,13 @@ namespace FNPlugin.Propulsion
                 effectPower = currentEffectPower * (1 - maxEffectPowerRatio) + maximumEffectPower * maxEffectPowerRatio;
             }
 
-            var vacuumPlasmaResource = part.Resources[ResourcesConfiguration.Instance.VacuumPlasma];
+            var vacuumPlasmaResource = part.Resources[ResourceSettings.Config.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
                 var calculatedConsumptionInTon = vessel.packed ? 0 : simulatedThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
                 var vacuumPlasmaResourceAmount = calculatedConsumptionInTon * 2000 * TimeWarp.fixedDeltaTime;
                 vacuumPlasmaResource.maxAmount = vacuumPlasmaResourceAmount;
-                part.RequestResource(ResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
+                part.RequestResource(ResourceSettings.Config.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
             }
         }
 
@@ -1044,7 +1044,7 @@ namespace FNPlugin.Propulsion
             {
                 vacplasmaadded = true;
                 var node = new ConfigNode("RESOURCE");
-                node.AddValue("name", ResourcesConfiguration.Instance.VacuumPlasma);
+                node.AddValue("name", ResourceSettings.Config.VacuumPlasma);
                 node.AddValue("maxAmount", scaledMaxPower * 0.0000001);
                 node.AddValue("amount", scaledMaxPower * 0.0000001);
                 part.AddResource(node);

@@ -310,7 +310,7 @@ namespace FNPlugin
 
             reprocessor = new NuclearFuelReprocessor();
             reprocessor.Initialize(part);
-            antimatterGenerator = new AntimatterGenerator(part, 1, PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.AntiProtium));
+            antimatterGenerator = new AntimatterGenerator(part, 1, PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AntiProtium));
 
             UnityEngine.Debug.Log("[KSPI]: ScienceModule on " + part.name + " was Force Activated");
             part.force_activate();
@@ -654,19 +654,19 @@ namespace FNPlugin
                 IsEnabled = false;
             }
             else if (active_mode == 4) // Centrifuge
-            { 
+            {
                 if (vessel.Splashed)
                 {
                     var powerRequest = powerReqMult * PluginHelper.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime;
 
-                    double electrical_power_provided = CheatOptions.InfiniteElectricity 
+                    double electrical_power_provided = CheatOptions.InfiniteElectricity
                         ? powerRequest
                         : consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
-                    
+
                     electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult;
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                     double deut_produced = global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f;
-                    deut_rate_f = -part.RequestResource(ResourcesConfiguration.Instance.LqdDeuterium, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    deut_rate_f = -part.RequestResource(ResourceSettings.Config.DeuteriumLqd, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                 }
                 else
                 {

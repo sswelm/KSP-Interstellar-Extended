@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +57,7 @@ namespace FNPlugin
 
         public double consumeFNResource(double power_fixed, string resourcename, double fixedDeltaTime = 0)
         {
-            if (power_fixed.IsInfinityOrNaN() || double.IsNaN(fixedDeltaTime) || string.IsNullOrEmpty(resourcename)) 
+            if (power_fixed.IsInfinityOrNaN() || double.IsNaN(fixedDeltaTime) || string.IsNullOrEmpty(resourcename))
             {
                 Debug.Log("[KSPI]: consumeFNResource illegal values.");
                 return 0;
@@ -149,7 +150,7 @@ namespace FNPlugin
 
             if (!fnresource_supplied.TryGetValue(resourceName, out var availablePower))
                 fnresource_supplied[resourceName] = 0;
- 
+
             var power_taken_per_second = Math.Max(Math.Min(requestedPowerPerSecond, availablePower), 0);
             fnresource_supplied[resourceName] -= power_taken_per_second;
 
@@ -201,8 +202,7 @@ namespace FNPlugin
             // If still no power, use any electric charge available
             if (requestedMW > 0.0 && allowEC)
             {
-                add = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE,
-                    requestedMW * GameConstants.ecPerMJ * dt) / (GameConstants.ecPerMJ * dt);
+                add = part.RequestResource(ResourceSettings.Config.ElectricChargePower, requestedMW * GameConstants.ecPerMJ * dt) / (GameConstants.ecPerMJ * dt);
                 result += add;
             }
 
@@ -333,7 +333,7 @@ namespace FNPlugin
 
         public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, string resourceName, ResourceManager manager = null)
         {
-            if (requested_power.IsInfinityOrNaN()|| maximum_power.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName)) 
+            if (requested_power.IsInfinityOrNaN()|| maximum_power.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName))
             {
                 Debug.LogError("[KSPI]: managedProvidedPowerSupplyPerSecondMinimumRatio illegal values.");
                 return 0;
@@ -351,7 +351,7 @@ namespace FNPlugin
 
         public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, string resourceName, ResourceManager manager = null)
         {
-            if (requested_power.IsInfinityOrNaN() || maximum_power.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName)) 
+            if (requested_power.IsInfinityOrNaN() || maximum_power.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName))
             {
                 Debug.LogError("[KSPI]: managedPowerSupplyPerSecondMinimumRatio illegal values.");
                 return null;
@@ -382,7 +382,7 @@ namespace FNPlugin
 
         public double getStableResourceSupply(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getCurrentResourceDemand resourceName is null or empty");
                 return 0;
@@ -427,7 +427,7 @@ namespace FNPlugin
 
         public double getAvailablePrioritisedStableSupply(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getAvailablePrioritisedStableSupply resourceName is null or empty");
                 return 0;
@@ -524,7 +524,7 @@ namespace FNPlugin
                 Debug.LogError("[KSPI]: getResourceSupply resourceName is null or empty");
                 return 0;
             }
-            
+
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
             {
@@ -568,7 +568,7 @@ namespace FNPlugin
 
         public double getResourceDemand(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getResourceDemand resourceName is null or empty");
                 return 0;
@@ -586,7 +586,7 @@ namespace FNPlugin
 
         public double GetRequiredResourceDemand(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: GetRequiredResourceDemand resourceName is null or empty");
                 return 0;
@@ -601,7 +601,7 @@ namespace FNPlugin
 
         public double GetCurrentUnfilledResourceDemand(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: GetRequiredResourceDemand resourceName is null or empty");
                 return 0;
@@ -616,7 +616,7 @@ namespace FNPlugin
 
         public double GetPowerSupply(string resourceName)
         {
-            if (string.IsNullOrEmpty(resourceName)) 
+            if (string.IsNullOrEmpty(resourceName))
             {
                 Debug.LogError("[KSPI]: GetPowerSupply resourceName is null or empty");
                 return 0;
@@ -631,7 +631,7 @@ namespace FNPlugin
 
         public double getResourceBarRatio(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getResourceBarRatio resourceName is null or empty");
                 return 0;
@@ -661,7 +661,7 @@ namespace FNPlugin
 
         public double getSpareResourceCapacity(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getSpareResourceCapacity resourceName is null or empty");
                 return 0;
@@ -676,7 +676,7 @@ namespace FNPlugin
 
         public double getResourceAvailability(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getResourceAvailability resourceName is null or empty");
                 return 0;
@@ -691,7 +691,7 @@ namespace FNPlugin
 
         public double getTotalResourceCapacity(string resourcename)
         {
-            if (string.IsNullOrEmpty(resourcename)) 
+            if (string.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getTotalResourceCapacity resourceName is null or empty");
                 return 0;

@@ -439,7 +439,7 @@ namespace FNPlugin
             vesselWasInOuterspace = false;
  
             // consume all exotic matter to create warp field
-            part.RequestResource(ResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
+            part.RequestResource(ResourceSettings.Config.ExoticMatter, exotic_power_required);
 
             warp_sound.Play();
             warp_sound.loop = true;
@@ -795,8 +795,8 @@ namespace FNPlugin
 
             moduleReactionWheel = part.FindModuleImplementing<ModuleReactionWheel>();
 
-            exoticResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.ExoticMatter);
-           
+            exoticResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.ExoticMatter);
+
             InstanceID = GetInstanceID();
 
             if (IsSlave)
@@ -1474,7 +1474,7 @@ namespace FNPlugin
                 ProduceWasteheat(exoticMatterProduced);
             }
 
-            part.RequestResource(ResourcesConfiguration.Instance.ExoticMatter, -exoticMatterProduced * 0.001 * TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
+            part.RequestResource(ResourceSettings.Config.ExoticMatter, -exoticMatterProduced * 0.001 * TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
         }
 
         private void GenerateAntiGravity()

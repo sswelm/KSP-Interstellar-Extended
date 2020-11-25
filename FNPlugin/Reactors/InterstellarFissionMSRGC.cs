@@ -52,19 +52,19 @@ namespace FNPlugin.Reactors
 
         public override bool IsNuclear => true;
 
-        public double WasteToReprocess => part.Resources.Contains(ResourcesConfiguration.Instance.Actinides) ? part.Resources[ResourcesConfiguration.Instance.Actinides].amount : 0;
+        public double WasteToReprocess => part.Resources.Contains(ResourceSettings.Config.Actinides) ? part.Resources[ResourceSettings.Config.Actinides].amount : 0;
 
         [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_FissionMSRGC_Dump_Actinides", guiActiveEditor = false, guiActive = true)]
         public void DumpActinides()
         {
-            var actinides = part.Resources[ResourcesConfiguration.Instance.Actinides];
+            var actinides = part.Resources[ResourceSettings.Config.Actinides];
             if (actinides == null)
             {
                 Debug.LogError("[KSPI]: actinides not found on " + part.partInfo.title);
                 return;
             }
 
-            var uranium233 = part.Resources[ResourcesConfiguration.Instance.Uranium233];
+            var uranium233 = part.Resources[ResourceSettings.Config.Uranium233];
             if (uranium233 == null)
             {
                 Debug.LogError("[KSPI]: uranium-233 not found on " + part.partInfo.title);
@@ -82,7 +82,7 @@ namespace FNPlugin.Reactors
         [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_FissionMSRGC_SwapFuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]//Swap Fuel
         public void SwapFuelMode()
         {
-            if (!part.Resources.Contains(ResourcesConfiguration.Instance.Actinides) || part.Resources[ResourcesConfiguration.Instance.Actinides].amount > 0.01) return;
+            if (!part.Resources.Contains(ResourceSettings.Config.Actinides) || part.Resources[ResourceSettings.Config.Actinides].amount > 0.01) return;
             DefuelCurrentFuel();
             if (IsCurrentFuelDepleted())
             {
@@ -153,10 +153,10 @@ namespace FNPlugin.Reactors
             foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
             {
                 // avoid exceptions, just in case
-                if (!part.Resources.Contains(fuel.ResourceName) || !part.Resources.Contains(ResourcesConfiguration.Instance.Actinides)) return;
+                if (!part.Resources.Contains(fuel.ResourceName) || !part.Resources.Contains(ResourceSettings.Config.Actinides)) return;
 
                 var fuelReactor = part.Resources[fuel.ResourceName];
-                var actinidesReactor = part.Resources[ResourcesConfiguration.Instance.Actinides];
+                var actinidesReactor = part.Resources[ResourceSettings.Config.Actinides];
                 var fuelResources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuelReactor)).ToList();
 
                 double spareCapacityForFuel = fuelReactor.maxAmount - actinidesReactor.amount - fuelReactor.amount;
@@ -184,7 +184,7 @@ namespace FNPlugin.Reactors
                     return base.MaximumThermalPower;
                 }
 
-                var actinidesResource = part.Resources[ResourcesConfiguration.Instance.Actinides];
+                var actinidesResource = part.Resources[ResourceSettings.Config.Actinides];
 
                 if (actinidesResource != null)
                 {
@@ -227,10 +227,7 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public override double MaxCoreTemperature
-        {
-            get { return actinidesModifer * base.CoreTemperature; }
-        }
+        public override double MaxCoreTemperature => actinidesModifer * base.CoreTemperature;
 
         public override void OnUpdate()
         {
@@ -266,10 +263,10 @@ namespace FNPlugin.Reactors
 
             fuelModeStr = CurrentFuelMode.ModeGUIName;
 
-            oxygenGasDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.OxygenGas);
-            fluorineGasDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.FluorineGas);
-            depletedFuelDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.DepletedFuel);
-            enrichedUraniumDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.EnrichedUranium);
+            oxygenGasDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenGas);
+            fluorineGasDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.FluorineGas);
+            depletedFuelDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.DepletedFuel);
+            enrichedUraniumDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.EnrichedUranium);
 
             depletedToEnrichVolumeMultplier = enrichedUraniumDefinition.density / depletedFuelDefinition.density;
             fluorineDepletedFuelVolumeMultiplier = ((19 * 4) / 232d) * (depletedFuelDefinition.density / fluorineGasDefinition.density);
@@ -300,11 +297,11 @@ namespace FNPlugin.Reactors
         public override void OnFixedUpdate()
         {
             // if reactor is overloaded with actinides, stop functioning
-            if (IsEnabled && part.Resources.Contains(ResourcesConfiguration.Instance.Actinides))
+            if (IsEnabled && part.Resources.Contains(ResourceSettings.Config.Actinides))
             {
-                if (part.Resources[ResourcesConfiguration.Instance.Actinides].amount >= part.Resources[ResourcesConfiguration.Instance.Actinides].maxAmount)
+                if (part.Resources[ResourceSettings.Config.Actinides].amount >= part.Resources[ResourceSettings.Config.Actinides].maxAmount)
                 {
-                    part.Resources[ResourcesConfiguration.Instance.Actinides].amount = part.Resources[ResourcesConfiguration.Instance.Actinides].maxAmount;
+                    part.Resources[ResourceSettings.Config.Actinides].amount = part.Resources[ResourceSettings.Config.Actinides].maxAmount;
                     IsEnabled = false;
                 }
             }
@@ -318,9 +315,9 @@ namespace FNPlugin.Reactors
 
         public double ReprocessFuel(double rate)
         {
-            if (part.Resources.Contains(ResourcesConfiguration.Instance.Actinides))
+            if (part.Resources.Contains(ResourceSettings.Config.Actinides))
             {
-                var actinides = part.Resources[ResourcesConfiguration.Instance.Actinides];
+                var actinides = part.Resources[ResourceSettings.Config.Actinides];
                 var newActinidesAmount = Math.Max(actinides.amount - rate, 0);
                 var actinidesChange = actinides.amount - newActinidesAmount;
                 actinides.amount = newActinidesAmount;

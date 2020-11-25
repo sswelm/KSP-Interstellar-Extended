@@ -1,5 +1,5 @@
-﻿using System;
-using FNPlugin.Extensions;
+﻿using FNPlugin.Resources;
+using System;
 using UnityEngine;
 
 namespace FNPlugin.Power
@@ -17,7 +17,7 @@ namespace FNPlugin.Power
         protected ResourceBuffers resourceBuffers;
         protected double currentPowerSupply;
 
-        public int PowerPriority 
+        public int PowerPriority
         {
             get { return powerPriority; }
             set { powerPriority = value; }
@@ -39,7 +39,7 @@ namespace FNPlugin.Power
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 1000));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricChargePower, 1000));
             resourceBuffers.Init(this.part);
 
             Debug.Log("[KSPI]: PowerSupply on " + part.name + " was Force Activated");
@@ -91,7 +91,7 @@ namespace FNPlugin.Power
             base.OnFixedUpdate();
 
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, currentPowerSupply);
-            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, currentPowerSupply);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, currentPowerSupply);
             resourceBuffers.UpdateBuffers();
 
             currentPowerSupply = 0;

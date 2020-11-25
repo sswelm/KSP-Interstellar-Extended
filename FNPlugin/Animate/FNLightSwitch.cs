@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using KSP.Localization;
 using System.Collections.Generic;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Animate
 {

@@ -146,10 +146,10 @@ namespace FNPlugin.Resources
                 List<ConfigNode> Crustal_resource_list = Crustal_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestialBody.name).ToList();
                 if (Crustal_resource_list.Any())
                 {
-                    bodyCrustalComposition = Crustal_resource_list.Select(orsc => 
-                        new CrustalResource(orsc.HasValue("resourceName") 
-                            ? orsc.GetValue("resourceName") : null, 
-                            double.Parse(orsc.GetValue("abundance")), 
+                    bodyCrustalComposition = Crustal_resource_list.Select(orsc =>
+                        new CrustalResource(orsc.HasValue("resourceName")
+                            ? orsc.GetValue("resourceName") : null,
+                            double.Parse(orsc.GetValue("abundance")),
                             orsc.GetValue("guiName"))).ToList();
                 }
             }
@@ -200,7 +200,7 @@ namespace FNPlugin.Resources
                     else if (celestialBody.Mass > (homeworld.Mass / 2) && celestialBody.Mass < homeworld.Mass && pressureAtSurface < 100) // it's at least half as big as the homeworld and has significant atmosphere
                     {
                         // it is Laythe-like, use Laythe as a template
-                        bodyCrustalComposition = GetCrustalCompositionForBody("Laythe"); 
+                        bodyCrustalComposition = GetCrustalCompositionForBody("Laythe");
                     }
                     else if (celestialBody.atmosphereContainsOxygen)
                     {
@@ -208,14 +208,14 @@ namespace FNPlugin.Resources
                         bool hasEarth = FlightGlobals.Bodies.Any(b => b.name == "Earth"); // is there a planet called Earth present in KSP?
                         if (hasEarth)
                         {
-                            bodyCrustalComposition = GetCrustalCompositionForBody("Earth"); 
+                            bodyCrustalComposition = GetCrustalCompositionForBody("Earth");
                         }
                         else // if there is not, use the definition for Kerbin
                         {
                             bodyCrustalComposition = GetCrustalCompositionForBody("Kerbin");
                         }
                     }
-                    else 
+                    else
                     {
                         // it is a Mars-like, use Mars as template
                         bool hasMars = FlightGlobals.Bodies.Any(b => b.name == "Mars"); // is there a planet called Mars present in KSP?
@@ -243,28 +243,28 @@ namespace FNPlugin.Resources
         {
             try
             {
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Water, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.OxygenGas, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.ArgonLqd, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.UraniumNitride, "UraniumNitride", "UN", "UraniumNitride", "UraniumNitride");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.UraniumTetraflouride, "UraniumTetrafluoride", "UraniumTerraFloride", "UF4", "UF");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Lithium6, "Lithium", "Lithium6", "Lithium-6", "LI");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Lithium7, "Lithium7", "Lithium-7", "LI7", "Li7");
-                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Plutonium238, "Plutionium", "Blutonium", "PU", "PU238");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Water, "LqdWater", "H2O", "Water", "Water");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Water, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.OxygenGas, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.ArgonLqd, "LqdArgon", "ArgonGas", "Argon", "Argon");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.DeuteriumLqd, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.UraniumNitride, "UraniumNitride", "UN", "UraniumNitride", "UraniumNitride");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.UraniumTetraflouride, "UraniumTetrafluoride", "UraniumTerraFloride", "UF4", "UF");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Lithium6, "Lithium", "Lithium6", "Lithium-6", "LI");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Lithium7, "Lithium7", "Lithium-7", "LI7", "Li7");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Plutonium238, "Plutionium", "Blutonium", "PU", "PU238");
 
-                AddResource(ResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyCrustalComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
-                AddResource(ResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyCrustalComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
-                AddResource(ResourcesConfiguration.Instance.HydrogenLqd, "Hydrogen", refBody, bodyCrustalComposition, new[] { ResourcesConfiguration.LqdHydrogen, "HydrogenGas", "Hydrogen", "H2", "Protium" });
+                AddResource(ResourceSettings.Config.LqdHelium4, "Helium-4", refBody, bodyCrustalComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(ResourceSettings.Config.LqdHelium3, "Helium-3", refBody, bodyCrustalComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
+                AddResource(ResourceSettings.Config.HydrogenLqd, "Hydrogen", refBody, bodyCrustalComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium" });
             }
             catch (Exception ex)
             {
@@ -290,7 +290,7 @@ namespace FNPlugin.Resources
 
         private static void AddMissingResource(string resourname, int refBody, List<CrustalResource> bodyCrustalComposition)
         {
-            if (resourname == ResourcesConfiguration.Instance.Regolith)
+            if (resourname == ResourceSettings.Config.Regolith)
             {
                 Debug.Log("[KSPI]: AddMissingResource : Ignored Regolith");
                 return;
@@ -363,18 +363,18 @@ namespace FNPlugin.Resources
         private static void AddRaresAndIsotopesToCrustComposition(List<CrustalResource> bodyCrustalComposition)
         {
             // add heavywater based on water abundance in crust
-            if (!bodyCrustalComposition.Any(m => m.ResourceName == ResourcesConfiguration.Instance.HeavyWater) && bodyCrustalComposition.Any(m => m.ResourceName == ResourcesConfiguration.Instance.Water))
+            if (!bodyCrustalComposition.Any(m => m.ResourceName == ResourceSettings.Config.HeavyWater) && bodyCrustalComposition.Any(m => m.ResourceName == ResourceSettings.Config.Water))
             {
-                var water = bodyCrustalComposition.FirstOrDefault(m => m.ResourceName == ResourcesConfiguration.Instance.Water);
+                var water = bodyCrustalComposition.FirstOrDefault(m => m.ResourceName == ResourceSettings.Config.Water);
                 var heavywaterAbundance = water.ResourceAbundance / 6420;
-                bodyCrustalComposition.Add(new CrustalResource(ResourcesConfiguration.Instance.HeavyWater, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater" }));
+                bodyCrustalComposition.Add(new CrustalResource(ResourceSettings.Config.HeavyWater, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater" }));
             }
         }
 
         private static float GetAbundance(string resourceName, int refBody)
         {
             return ResourceMap.Instance.GetAbundance(new AbundanceRequest()
-            {               
+            {
                 ResourceType = HarvestTypes.Planetary,
                 ResourceName = resourceName,
                 BodyId = refBody,

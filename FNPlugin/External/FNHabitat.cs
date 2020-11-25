@@ -314,7 +314,7 @@ namespace FNPlugin
 
         //        var warehouse = sourcePart.FindModuleImplementing<USI_ModuleResourceWarehouse>();
 
-        //        if (resInfo.ResourceName != "ElectricCharge" && warehouse != null) //EC we're a lot less picky...
+        //        if (resInfo.ResourceName != ResourceManager.ElectricCharge && warehouse != null) //EC we're a lot less picky...
         //        {
         //            if (!warehouse.localTransferEnabled)
         //                continue;

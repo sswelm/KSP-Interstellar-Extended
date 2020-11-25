@@ -1,4 +1,5 @@
 ﻿using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -22,7 +23,7 @@ namespace FNPlugin.Powermanagement
         [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
         public string powerResourceName = "Megajoules";
         [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
-        public string electricChargeResourceName = "ElectricCharge";
+        public string electricChargeResourceName = ResourceSettings.ElectricCharge;
 
         [KSPField]
         public double powerConversionRate = 1000;

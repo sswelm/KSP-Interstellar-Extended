@@ -83,14 +83,14 @@ namespace FNPlugin
         private double currentPowerReq;
         private double previousPowerReq;
         private ResourceBuffers resourceBuffers;
-       
+
         private bool requiresPower;
 
         public override void OnStart(PartModule.StartState state)
         {
             enabled = true;
 
-            // compensate for stock solar initialisation heating issies
+            // compensate for stock solar initialization heating issues
             part.temperature = storedTemp;
             requiresPower = powerReqKW > 0;
 
@@ -102,17 +102,16 @@ namespace FNPlugin
 
             if (state == StartState.Editor)
             {
-                if (autoConfigElectricChargeBuffer)
-                {
-                    var exitingElectricCharge = part.Resources["ElectricCharge"];
+                if (!autoConfigElectricChargeBuffer) return;
 
-                    bool hasHigherThanDefaultBuffer = exitingElectricCharge != null && exitingElectricCharge.maxAmount > powerReqKW / 50;
+                var exitingElectricCharge = part.Resources[ResourceSettings.Config.ElectricChargePower];
 
-                    //Debug.Log("[KSPI]: FNModuleCryostat: hasHigherThanDefaultBuffer: " + hasHigherThanDefaultBuffer);
+                bool hasHigherThanDefaultBuffer = exitingElectricCharge != null && exitingElectricCharge.maxAmount > powerReqKW / 50;
 
-                    maintainElectricChargeBuffer = hasHigherThanDefaultBuffer.IsFalse();
-                    autoConfigElectricChargeBuffer = false;
-                }
+                //Debug.Log("[KSPI]: FNModuleCryostat: hasHigherThanDefaultBuffer: " + hasHigherThanDefaultBuffer);
+
+                maintainElectricChargeBuffer = hasHigherThanDefaultBuffer.IsFalse();
+                autoConfigElectricChargeBuffer = false;
                 return;
             }
 
@@ -120,10 +119,10 @@ namespace FNPlugin
             part.skinTemperature = storedTemp;
 
             // if electricCharge buffer is missing, add it.
-            if (!part.Resources.Contains(ResourcesConfiguration.Instance.ElectricCharge))
+            if (!part.Resources.Contains(ResourceSettings.Config.ElectricChargePower))
             {
                 var node = new ConfigNode("RESOURCE");
-                node.AddValue("name", ResourcesConfiguration.Instance.ElectricCharge);
+                node.AddValue("name", ResourceSettings.Config.ElectricChargePower);
                 node.AddValue("maxAmount", requiresPower ? powerReqKW / 50 : 1);
                 node.AddValue("amount", requiresPower ? powerReqKW / 50 : 1);
                 part.AddResource(node);
@@ -132,7 +131,7 @@ namespace FNPlugin
             if (maintainElectricChargeBuffer)
             {
                 resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourcesConfiguration.Instance.ElectricCharge, 2));
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricChargePower, 2));
                 resourceBuffers.Init(this.part);
             }
         }
@@ -142,7 +141,7 @@ namespace FNPlugin
             if (resourceBuffers == null)
                 return;
 
-            resourceBuffers.UpdateVariable(ResourcesConfiguration.Instance.ElectricCharge, currentPowerUsage);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, currentPowerUsage);
             resourceBuffers.UpdateBuffers();
         }
 

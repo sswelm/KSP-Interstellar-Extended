@@ -1,12 +1,12 @@
 ﻿using FNPlugin.Beamedpower;
 using FNPlugin.Constants;
+using FNPlugin.Propulsion;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FNPlugin.Propulsion;
 using UnityEngine;
 
 namespace FNPlugin
@@ -258,40 +258,27 @@ namespace FNPlugin
 
         #region static Properties
 
-        public static bool TechnologyIsInUse
-        {
-            get { return (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX); }
-        }
+        public static bool TechnologyIsInUse => (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX);
 
-        public static ConfigNode PluginSettingsConfig
-        {
-            get { return GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH); }
-        }
+        public static ConfigNode PluginSettingsConfig => GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
 
-        public static string PluginSaveFilePath
-        {
-            get { return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg"; }
-        }
+        public static string PluginSaveFilePath => KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
 
-        public static string PluginSettingsFilePath
-        {
-            get { return KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/WarpPluginSettings.cfg"; }
-        }
+        public static string PluginSettingsFilePath => KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/WarpPluginSettings.cfg";
 
         public static Dictionary<string, string> PartTechUpgrades { get; private set; }
 
         public static Dictionary<string, string> OrsResourceMappings { get; private set; }
 
         private static KeyCode _thermalUiKey = KeyCode.I;
-        public static KeyCode ThermalUiKey { get { return _thermalUiKey; } }
+        public static KeyCode ThermalUiKey => _thermalUiKey;
 
         private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
-        public static int SecondsInDay { get { return _secondsInDay; } }
-        public static int HoursInDay { get { return GameConstants.KEBRIN_HOURS_DAY; } }
-        public static int SecondsInHour { get { return GameConstants.SECONDS_IN_HOUR; } }
+        public static int SecondsInDay => _secondsInDay;
+        public static int HoursInDay => GameConstants.KEBRIN_HOURS_DAY;
+        public static int SecondsInHour => GameConstants.SECONDS_IN_HOUR;
 
-        private static double _spotsizeMult = 1.22;
-        public static double SpotsizeMult { get { return _spotsizeMult; } }
+        public static double SpotsizeMult { get; private set; } = 1.22;
 
         private static double _microwaveApertureDiameterMult = 10;
         public static double MicrowaveApertureDiameterMult { get { return _microwaveApertureDiameterMult; } }
@@ -971,7 +958,7 @@ namespace FNPlugin
                     }
                     if (plugin_settings.HasValue("SpotsizeMult"))
                     {
-                        _spotsizeMult = double.Parse(plugin_settings.GetValue("SpotsizeMult"));
+                        SpotsizeMult = double.Parse(plugin_settings.GetValue("SpotsizeMult"));
                         Debug.Log("[KSPI]: Spotsize Multiplier set to: " + SpotsizeMult.ToString());
                     }
 

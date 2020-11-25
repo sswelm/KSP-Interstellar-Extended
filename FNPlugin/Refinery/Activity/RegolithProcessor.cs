@@ -76,16 +76,16 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _strRegolithResourceName = ResourcesConfiguration.Instance.Regolith;
-            _strHydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
-            _stDeuteriumResourceName = ResourcesConfiguration.Instance.DeuteriumGas;
-            _strLiquidHelium3ResourceName = ResourcesConfiguration.Instance.Helium3Gas;
-            _strLiquidHelium4ResourceName = ResourcesConfiguration.Instance.Helium4Gas;
-            _strMonoxideResourceName = ResourcesConfiguration.Instance.CarbonMonoxideGas;
-            _strDioxideResourceName = ResourcesConfiguration.Instance.CarbonDioxideLqd;
-            _strMethaneResourceName = ResourcesConfiguration.Instance.Methane;
-            _strNitrogenResourceName = ResourcesConfiguration.Instance.Nitrogen;
-            _strWaterResourceName = ResourcesConfiguration.Instance.Water;
+            _strRegolithResourceName = ResourceSettings.Config.Regolith;
+            _strHydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
+            _stDeuteriumResourceName = ResourceSettings.Config.DeuteriumGas;
+            _strLiquidHelium3ResourceName = ResourceSettings.Config.Helium3Gas;
+            _strLiquidHelium4ResourceName = ResourceSettings.Config.Helium4Gas;
+            _strMonoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
+            _strDioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
+            _strMethaneResourceName = ResourceSettings.Config.Methane;
+            _strNitrogenResourceName = ResourceSettings.Config.Nitrogen;
+            _strWaterResourceName = ResourceSettings.Config.Water;
 
             // should add Nitrogen15 and Argon
 
@@ -358,7 +358,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Postmsg") +" " + ResourcesConfiguration.Instance.Regolith, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Postmsg") +" " + ResourceSettings.Config.Regolith, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

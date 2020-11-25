@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Refinery.Activity;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -105,7 +106,7 @@ namespace FNPlugin.Refinery
                 ScreenMessages.PostScreenMessage(found + " " + resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
             }
         }
-         * 
+         *
          */
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Refinery_ToggleRefineryWindow", active = true)]//Toggle Refinery Window
@@ -164,7 +165,7 @@ namespace FNPlugin.Refinery
             // initialize refineries
             availableRefineries.ForEach(m => m.Initialize(part));
 
-            // load same 
+            // load same
             if (refinery_is_enabled && !string.IsNullOrEmpty(lastActivityName))
             {
                 Debug.Log("[KSPI]: ISRU Refinery looking to restart " + lastActivityName);
@@ -261,7 +262,7 @@ namespace FNPlugin.Refinery
 
             var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
 
-            var receivedElectricCharge = part.RequestResource("ElectricCharge", shortage *
+            var receivedElectricCharge = part.RequestResource(ResourceSettings.Config.ElectricChargePower, shortage *
                 GameConstants.ecPerMJ * fixedDeltaTime) / fixedDeltaTime;
 
             consumedPowerMW += receivedElectricCharge / GameConstants.ecPerMJ;

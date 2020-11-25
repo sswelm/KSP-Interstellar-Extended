@@ -5,6 +5,7 @@ using FNPlugin.Microwave;
 using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
@@ -26,7 +27,7 @@ namespace FNPlugin
     class MicrowavePowerReceiverDish : MicrowavePowerReceiver { }
 
     [KSPModule("#LOC_KSPIE_BeamPowerReceiver_ModulueName4")]//Microwave Power Receiver Panel
-    class MicrowavePowerReceiverPanel : MicrowavePowerReceiver { } 
+    class MicrowavePowerReceiverPanel : MicrowavePowerReceiver { }
 
     [KSPModule("#LOC_KSPIE_BeamPowerReceiver_ModulueName5")]//Microwave Power Receiver
     class MicrowavePowerReceiver : BeamedPowerReceiver { }
@@ -126,7 +127,7 @@ namespace FNPlugin
 
         //Persistent False
         [KSPField]
-        public bool autoDeploy = true; 
+        public bool autoDeploy = true;
         [KSPField]
         public int supportedPropellantAtoms = 511;
         [KSPField]
@@ -397,10 +398,10 @@ namespace FNPlugin
 
         public Queue<double> beamedPowerQueue = new Queue<double>(10);
         public Queue<double> beamedPowerMaxQueue = new Queue<double>(10);
-        
+
         public Queue<double> solarFluxQueue = new Queue<double>(50);
 
-        //Internal 
+        //Internal
         protected bool isLoaded;
         protected double total_conversion_waste_heat_production;
         protected double connectedRecieversSum;
@@ -535,7 +536,7 @@ namespace FNPlugin
 
         public double PowerCapacityEfficiency
         {
-            get 
+            get
             {
                 if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || isThermalReceiver)
                     return 1;
@@ -595,7 +596,7 @@ namespace FNPlugin
 
         public double WasteheatElectricConversionEfficiency
         {
-            get 
+            get
             {
                 if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || electricWasteheatExponent == 0) return 1;
 
@@ -612,8 +613,8 @@ namespace FNPlugin
             {
                 var maxPower = thermalMode && maximumThermalPower > 0
                     ? maximumThermalPower
-                    : maximumElectricPower > 0 
-                        ? maximumElectricPower 
+                    : maximumElectricPower > 0
+                        ? maximumElectricPower
                         : maximumPower;
 
                 var scaledPower = maxPower * powerMult;
@@ -795,7 +796,7 @@ namespace FNPlugin
         public void ToggleWindow()
         {
             showWindow = !showWindow;
-        }        
+        }
 
         private void ActivateRecieverState(bool forced = false)
         {
@@ -953,7 +954,7 @@ namespace FNPlugin
         private List<BandwidthConverter> _bandwidthConverters;
         public  List<BandwidthConverter> BandwidthConverters
         {
-            get 
+            get
             {
                 if (_bandwidthConverters != null)
                     return _bandwidthConverters;
@@ -1026,7 +1027,7 @@ namespace FNPlugin
 
             Fields["hothBathtechLevel"].guiActiveEditor = isThermalReceiver;
             Fields["hothBathTemperature"].guiActiveEditor = isThermalReceiver;
-            
+
             _linkReceiverBaseEvent = Events["LinkReceiver"];
             _unlinkReceiverBaseEvent = Events["UnlinkReceiver"];
             _activateReceiverBaseEvent = Events["ActivateReceiver"];
@@ -1157,11 +1158,11 @@ namespace FNPlugin
                     _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
                     _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
                     _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 100.0));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.ElectricCharge, 100.0));
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, StableMaximumReactorPower);
                     _resourceBuffers.Init(part);
                 }
 
@@ -1214,7 +1215,7 @@ namespace FNPlugin
                 {
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                     _resourceBuffers.UpdateBuffers();
                 }
@@ -1239,7 +1240,7 @@ namespace FNPlugin
                 {
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
-                    _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower * powerDownFraction);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, StableMaximumReactorPower * powerDownFraction);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                     _resourceBuffers.UpdateBuffers();
                 }
@@ -1297,7 +1298,7 @@ namespace FNPlugin
 
         private void InitializeThermalModeSwitcher()
         {
-            // ensure valid values 
+            // ensure valid values
             if (isThermalReceiver && !isEnergyReceiver)
                 thermalMode = true;
             else if (!isThermalReceiver && isEnergyReceiver)
@@ -1490,7 +1491,7 @@ namespace FNPlugin
 
             _linkReceiverBaseEvent.active = canLinkup && !linkedForRelay && !receiverIsEnabled && !transmitterOn && canBeActive;
             _unlinkReceiverBaseEvent.active = linkedForRelay;
-            
+
             _activateReceiverBaseEvent.active = !linkedForRelay && !receiverIsEnabled && !transmitterOn && canBeActive;
             _disableReceiverBaseEvent.active = receiverIsEnabled;
 
@@ -1659,7 +1660,7 @@ namespace FNPlugin
                         GUILayout.Label(vesselPersistance.Aperture + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistance.Diameter + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(WavelengthToText(vesselPersistance.MinimumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));
-                        GUILayout.Label(WavelengthToText(vesselPersistance.MaximumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));  
+                        GUILayout.Label(WavelengthToText(vesselPersistance.MaximumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.EndHorizontal();
                     }
                 }
@@ -1891,7 +1892,7 @@ namespace FNPlugin
         {
             storedIsThermalEnergyGeneratorEfficiency = currentIsThermalEnergyGeneratorEfficiency;
             currentIsThermalEnergyGeneratorEfficiency = 0;
-            
+
             storedGeneratorThermalEnergyRequestRatio = Math.Min(1, currentGeneratorThermalEnergyRequestRatio);
             currentGeneratorThermalEnergyRequestRatio = 0;
         }
@@ -1969,7 +1970,7 @@ namespace FNPlugin
                     {
                         // select active or compatible brandWith Converter
                         var selectedBrandWith = canSwitchBandwidthInEditor
-                            ? activeBandwidthConfiguration 
+                            ? activeBandwidthConfiguration
                             : BandwidthConverters.FirstOrDefault(m => (powerBeam.wavelength >= m.minimumWavelength && powerBeam.wavelength <= m.maximumWavelength));
 
                         // skip if no compatible receiver brandwith found
@@ -1995,7 +1996,7 @@ namespace FNPlugin
                             ? Math.Min(remainingPowerInBeam, beamedPowerData.Relays.Min(m => m.PowerCapacity))
                             : remainingPowerInBeam;
 
-                        // substract from remaining power 
+                        // substract from remaining power
                         beamedPowerData.RemainingPower = Math.Max(0, beamedPowerData.RemainingPower - beamNetworkPower);
 
                         // determine allowed power
@@ -2249,7 +2250,7 @@ namespace FNPlugin
             if (stockModuleGenerator == null)
                 return;
 
-            outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
+            outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceSettings.Config.ElectricChargePower);
 
             if (outputModuleResource != null)
             {

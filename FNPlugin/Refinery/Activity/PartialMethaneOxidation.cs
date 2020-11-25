@@ -69,10 +69,10 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _monoxideResourceName = ResourcesConfiguration.Instance.CarbonMonoxideGas;
-            _hydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
-            _methaneResourceName = ResourcesConfiguration.Instance.Methane;
-            _oxygenResourceName = ResourcesConfiguration.Instance.LqdOxygen;
+            _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
+            _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
+            _methaneResourceName = ResourceSettings.Config.Methane;
+            _oxygenResourceName = ResourceSettings.Config.LqdOxygen;
 
             _monoxideDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
@@ -216,10 +216,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.Methane).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PartialOxiMethane_Postmsg") + " " + ResourcesConfiguration.Instance.Methane, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PartialOxiMethane_Postmsg") + " " + ResourcesConfiguration.Instance.LqdOxygen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.Methane).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PartialOxiMethane_Postmsg") + " " + ResourceSettings.Config.Methane, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.LqdOxygen).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PartialOxiMethane_Postmsg") + " " + ResourceSettings.Config.LqdOxygen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

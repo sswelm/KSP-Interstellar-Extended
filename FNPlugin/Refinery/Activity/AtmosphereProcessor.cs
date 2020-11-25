@@ -197,28 +197,28 @@ namespace FNPlugin.Refinery.Activity
             }
 
             // get the name of all relevant resources
-            _atmosphereResourceName = ResourcesConfiguration.Instance.IntakeAtmosphere;
+            _atmosphereResourceName = ResourceSettings.Config.IntakeAtmosphere;
 
-            _ammoniaResourceName = ResourcesConfiguration.Instance.AmmoniaLqd;
-            _argonResourceName = ResourcesConfiguration.Instance.ArgonLqd;
-            _chlorineResourceName = ResourcesConfiguration._CHLORINE;
-            _dioxideResourceName = ResourcesConfiguration._LIQUID_CO2;
-            _monoxideResourceName = ResourcesConfiguration._CARBONMONOXIDE_LIQUID;
-            _helium3ResourceName = ResourcesConfiguration._HELIUM3_LIQUID;
-            _helium4ResourceName = ResourcesConfiguration._HELIUM4_LIQUID;
-            _hydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
-            _methaneResourceName = ResourcesConfiguration._LIQUID_METHANE;
-            _neonResourceName = ResourcesConfiguration._NEON_LIQUID;
-            _nitrogenResourceName = ResourcesConfiguration._NITROGEN_LIQUID;
-            _nitrogen15ResourceName = ResourcesConfiguration._LIQUID_NITROGEN_15;
-            _oxygenResourceName = ResourcesConfiguration._LIQUID_OXYGEN;
-            _waterResourceName = ResourcesConfiguration._LIQUID_WATER;
-            _heavyWaterResourceName = ResourcesConfiguration._LIQUID_HEAVYWATER;
-            _xenonResourceName = ResourcesConfiguration._LIQUID_XENON;
-            _deuteriumResourceName = ResourcesConfiguration._DEUTERIUM_LIQUID;
-            _kryptonResourceName = ResourcesConfiguration._LIQUID_KRYPTON;
+            _ammoniaResourceName = ResourceSettings.Config.AmmoniaLqd;
+            _argonResourceName = ResourceSettings.Config.ArgonLqd;
+            _chlorineResourceName = ResourceSettings._CHLORINE;
+            _dioxideResourceName = ResourceSettings._LIQUID_CO2;
+            _monoxideResourceName = ResourceSettings._CARBONMONOXIDE_LIQUID;
+            _helium3ResourceName = ResourceSettings._HELIUM3_LIQUID;
+            _helium4ResourceName = ResourceSettings._HELIUM4_LIQUID;
+            _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
+            _methaneResourceName = ResourceSettings._LIQUID_METHANE;
+            _neonResourceName = ResourceSettings._NEON_LIQUID;
+            _nitrogenResourceName = ResourceSettings._NITROGEN_LIQUID;
+            _nitrogen15ResourceName = ResourceSettings._LIQUID_NITROGEN_15;
+            _oxygenResourceName = ResourceSettings._LIQUID_OXYGEN;
+            _waterResourceName = ResourceSettings._LIQUID_WATER;
+            _heavyWaterResourceName = ResourceSettings._LIQUID_HEAVYWATER;
+            _xenonResourceName = ResourceSettings._LIQUID_XENON;
+            _deuteriumResourceName = ResourceSettings.Config.DeuteriumLqd;
+            _kryptonResourceName = ResourceSettings._LIQUID_KRYPTON;
 
-            _sodiumResourceName = ResourcesConfiguration.Instance.Sodium;
+            _sodiumResourceName = ResourceSettings.Config.Sodium;
 
             // get the densities of all relevant resources
             _atmosphere = PartResourceLibrary.Instance.GetDefinition(_atmosphereResourceName);
@@ -692,7 +692,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + ResourcesConfiguration.Instance.IntakeAtmosphere, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + ResourceSettings.Config.IntakeAtmosphere, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
 
         public void Update()

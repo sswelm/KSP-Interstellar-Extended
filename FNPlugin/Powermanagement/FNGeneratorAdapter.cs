@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Power;
+using FNPlugin.Resources;
 using System;
 using UnityEngine;
 
@@ -69,7 +70,7 @@ namespace FNPlugin
                 _outputType = ResourceType.other;
                 foreach (ModuleResource moduleResource in _moduleGenerator.resHandler.outputResources)
                 {
-                    if (moduleResource.name != ResourceManager.FNRESOURCE_MEGAJOULES && (moduleResource.name != ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE))
+                    if (moduleResource.name != ResourceManager.FNRESOURCE_MEGAJOULES && (moduleResource.name != ResourceSettings.Config.ElectricChargePower))
                         continue;
 
                     // assuming only one of those two is present

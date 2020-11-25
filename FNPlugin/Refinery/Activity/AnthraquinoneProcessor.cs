@@ -48,8 +48,8 @@ namespace FNPlugin.Refinery.Activity
 
         public bool HasActivityRequirements()
         {
-            return _part.GetConnectedResources(ResourcesConfiguration.Instance.HydrogenLqd).Any(rs => rs.amount > 0) &
-                _part.GetConnectedResources(ResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0);
+            return _part.GetConnectedResources(ResourceSettings.Config.HydrogenLqd).Any(rs => rs.amount > 0) &
+                _part.GetConnectedResources(ResourceSettings.Config.LqdOxygen).Any(rs => rs.amount > 0);
         }
 
         public string Status => string.Copy(_status);
@@ -59,13 +59,13 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _oxygenResourceName = ResourcesConfiguration.Instance.LqdOxygen;
-            _hydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
-            _hydrogenPeroxideResourceName = ResourcesConfiguration.Instance.HydrogenPeroxide;
+            _oxygenResourceName = ResourceSettings.Config.LqdOxygen;
+            _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
+            _hydrogenPeroxideResourceName = ResourceSettings.Config.HydrogenPeroxide;
 
-            _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.HydrogenLqd).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.LqdOxygen).density;
-            _hydrogenPeroxideDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.HydrogenPeroxide).density;
+            _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.LqdOxygen).density;
+            _hydrogenPeroxideDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenPeroxide).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -181,10 +181,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.HydrogenLqd).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + ResourcesConfiguration.Instance.HydrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + ResourcesConfiguration.Instance.LqdOxygen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.HydrogenLqd).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + ResourceSettings.Config.HydrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.LqdOxygen).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + ResourceSettings.Config.LqdOxygen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

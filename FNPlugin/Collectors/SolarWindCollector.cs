@@ -63,7 +63,7 @@ namespace FNPlugin.Collectors
         public double squareVelocityDragRatio = 0.075;
         [KSPField]
         public double interstellarIonRatio = 0.001;
-        [KSPField] 
+        [KSPField]
         public double heliumRequirement = 0.2;
         [KSPField]
         public string animName = "";
@@ -87,7 +87,7 @@ namespace FNPlugin.Collectors
         protected double effectiveDiameterInKilometer;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_solarWindIons", guiUnits = " mol/m\xB2/s")]
         protected float fSolarWindConcentrationPerSquareMeter;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarIons", guiUnits = " mol/m\xB2/s")] 
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarIons", guiUnits = " mol/m\xB2/s")]
         protected float fInterstellarIonsPerSquareMeter;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_interstellarParticles", guiUnits = " mol/m\xB3")]
         protected float fInterstellarIonsPerCubicMeter;
@@ -167,7 +167,7 @@ namespace FNPlugin.Collectors
         double _dHydrogenResourceFlow = 0;
         double _dHeliumResourceFlow = 0;
         double _heliumRequirementTonPerSecond;
-        
+
         double _dSolarWindSpareCapacity;
         double _dHydrogenSpareCapacity;
         double _dShieldedEffectiveness = 0;
@@ -180,7 +180,7 @@ namespace FNPlugin.Collectors
         Animation _deployAnimation;
         Animation _ionizationAnimation;
         CelestialBody _localStar;
-        CelestialBody _homeWorld; 
+        CelestialBody _homeWorld;
 
         PartResourceDefinition _helium4GasResourceDefinition;
         PartResourceDefinition _lqdHelium4ResourceDefinition;
@@ -251,10 +251,10 @@ namespace FNPlugin.Collectors
             if (state == StartState.Editor) return; // collecting won't work in editor
 
             _heliumRequirementTonPerSecond = heliumRequirement * 1e-6 / GameConstants.SECONDS_IN_HOUR ;
-            _helium4GasResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.Helium4Gas);
-            _lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.LqdHelium4);
-            _solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.SolarWind);
-            _hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.HydrogenLqd);
+            _helium4GasResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Helium4Gas);
+            _lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.LqdHelium4);
+            _solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.SolarWind);
+            _hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd);
 
             _localStar = KopernicusHelper.GetLocalStar(vessel.mainBody);
             _homeWorld = FlightGlobals.GetHomeBody();
@@ -267,7 +267,7 @@ namespace FNPlugin.Collectors
                 mag.Fields["status"].guiActiveEditor = false;
             }
 
-            // verify collector was enabled 
+            // verify collector was enabled
             if (!bIsEnabled) return;
 
             // verify a timestamp is available
@@ -312,8 +312,8 @@ namespace FNPlugin.Collectors
 
             var maxInterstellarDustMolesPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
 
-            var currentInterstellarIonRatio = vessel.mainBody == _localStar 
-                ? Math.Max(interstellarIonRatio, 1 - heliosphereFactor * heliosphereFactor) 
+            var currentInterstellarIonRatio = vessel.mainBody == _localStar
+                ? Math.Max(interstellarIonRatio, 1 - heliosphereFactor * heliosphereFactor)
                 : interstellarIonRatio;
 
             dInterstellarIonsConcentrationPerSquareMeter = maxInterstellarDustMolesPerSquareMeter * (_effectiveIonizationFactor * (1 - currentInterstellarIonRatio) + _effectiveNonIonizationFactor * currentInterstellarIonRatio);
@@ -407,7 +407,7 @@ namespace FNPlugin.Collectors
                 strCollectingStatus = Localizer.Format("#LOC_KSPIE_SolarwindCollector_Disabled");//"Disabled"
                 fEffectiveOrbitalDragInKiloNewton = 0;
                 fSolarWindVesselForceInNewton = 0;
-                    
+
                 return;
             }
 
@@ -423,14 +423,14 @@ namespace FNPlugin.Collectors
 
             // store current time in case vessel is unloaded
             dLastActiveTime = Planetarium.GetUniversalTime();
-                
+
             // store current strength of the magnetic field in case vessel is unloaded
             dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
         }
 
 
-        /* Calculates the strength of the magnetosphere. Will return 1 if in atmosphere, otherwise a ratio of max atmospheric altitude to current 
-         * altitude - so the ratio slowly lowers the higher the vessel is. Once above 10 times the max atmosphere altitude, 
+        /* Calculates the strength of the magnetosphere. Will return 1 if in atmosphere, otherwise a ratio of max atmospheric altitude to current
+         * altitude - so the ratio slowly lowers the higher the vessel is. Once above 10 times the max atmosphere altitude,
          * it returns 0 (we consider this to be the end of the magnetosphere reach). The atmospheric check is there to make the GUI less messy.
         */
         private static double GetMagnetosphereRatio(double altitude, double maxAltitude)
@@ -767,7 +767,7 @@ namespace FNPlugin.Collectors
             {
                 var strNumberFormat = dHydrogenResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg3", dHydrogenResourceChange.ToString(strNumberFormat),_hydrogenResourceDefinition.name), 10, ScreenMessageStyle.LOWER_CENTER);//"We collected <<1>> units of <<2>> 
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg3", dHydrogenResourceChange.ToString(strNumberFormat),_hydrogenResourceDefinition.name), 10, ScreenMessageStyle.LOWER_CENTER);//"We collected <<1>> units of <<2>>
             }
 
             var dHeliumCollectedPerSecond = heliumMolarMassPerSquareMeterPerSecond * effectiveMagneticSurfaceAreaForCollection;

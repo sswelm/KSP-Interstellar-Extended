@@ -66,10 +66,10 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _waterResourceName = ResourcesConfiguration.Instance.Water;
-            _monoxideResourceName = ResourcesConfiguration.Instance.CarbonMonoxideGas;
-            _dioxideResourceName = ResourcesConfiguration.Instance.CarbonDioxideLqd;
-            _hydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
+            _waterResourceName = ResourceSettings.Config.Water;
+            _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
+            _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
+            _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
 
             _waterDensity = PartResourceLibrary.Instance.GetDefinition(_waterResourceName).density;
             _dioxideDensity = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;
@@ -223,10 +223,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.CarbonDioxideLqd).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + ResourcesConfiguration.Instance.CarbonDioxideLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.HydrogenLqd).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + ResourcesConfiguration.Instance.HydrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.CarbonDioxideLqd).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + ResourceSettings.Config.CarbonDioxideLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.HydrogenLqd).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + ResourceSettings.Config.HydrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

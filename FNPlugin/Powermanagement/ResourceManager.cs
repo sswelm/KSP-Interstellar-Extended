@@ -42,7 +42,7 @@ namespace FNPlugin
         public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
         public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
-        public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
+        
 
         public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
         public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
@@ -677,7 +677,7 @@ namespace FNPlugin
                 double powerSupplied = Math.Max(Math.Min(current.Supply, curRequest), 0.0);
                 if (!powerSupplied.IsInfinityOrNaNorZero())
                 {
-                    current.Supply -= powerSupplied;                       
+                    current.Supply -= powerSupplied;
                     current.TotalSupplied += powerSupplied;
                     currentDistributed[priority] += powerSupplied;
                 }

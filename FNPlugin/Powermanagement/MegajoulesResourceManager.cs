@@ -2,6 +2,7 @@
 using FNPlugin.Extensions;
 using KSP.Localization;
 using System;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Powermanagement
@@ -34,7 +35,7 @@ namespace FNPlugin.Powermanagement
         public MegajoulesResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, FNRESOURCE_MEGAJOULES, FNRESOURCE_FLOWTYPE_SMALLEST_FIRST)
         {
             WindowPosition = new Rect(50, 50, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
-            electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(STOCK_RESOURCE_ELECTRICCHARGE);
+            electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.ElectricChargePower);
             lastECNeeded = 0.0;
             lastMJConverted = 0.0;
             mjConverted = 0.0;

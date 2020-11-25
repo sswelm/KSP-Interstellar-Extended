@@ -1748,7 +1748,7 @@ namespace FNPlugin.Propulsion
             if (isOpenCycleCooler && isJet && part.atmDensity > 0)
             {
                 var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-                airFlowForCooling = max_fuel_flow_rate * part.GetResourceRatio(ResourcesConfiguration.Instance.IntakeOxygenAir);
+                airFlowForCooling = max_fuel_flow_rate * part.GetResourceRatio(ResourceSettings.Config.IntakeOxygenAir);
                 consumeFNResourcePerSecond(40 * wasteheatRatio * wasteheatRatio * airFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
             }
 

@@ -2,12 +2,12 @@ using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
 using FNPlugin.Powermanagement;
+using FNPlugin.Propulsion;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FNPlugin.Propulsion;
-using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Wasteheat
@@ -312,7 +312,7 @@ namespace FNPlugin.Wasteheat
             processUpgrades();
 
             var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeLqd");
-            var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.IntakeOxygenAir);
+            var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeOxygenAir);
             var intakeAtmDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeAtm");
 
             if (intakeLqdDefinition == null || intakeAirDefinition == null || intakeAtmDefinition == null)
@@ -1339,9 +1339,9 @@ namespace FNPlugin.Wasteheat
                     _moduleActiveRadiator.Shutdown();
             }
 
-            var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.IntakeLiquid);
-            var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.IntakeOxygenAir);
-            var intakeAtmDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.IntakeAtmosphere);
+            var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeLiquid);
+            var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeOxygenAir);
+            var intakeAtmDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeAtmosphere);
 
             if (intakeLqdDefinition != null && intakeAirDefinition != null && intakeAtmDefinition != null)
             {

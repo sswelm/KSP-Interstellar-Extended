@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Extensions;
 using KSP.Localization;
 using System;
+using FNPlugin.Resources;
 
 namespace FNPlugin.Reactors
 {
@@ -24,7 +25,7 @@ namespace FNPlugin.Reactors
     {
         // Configs
         [KSPField] public string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
-        [KSPField] public string secondaryInputResource = ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
+        [KSPField] public string secondaryInputResource = ResourceSettings.ElectricCharge;
         [KSPField] public double primaryInputMultiplier = 1;
         [KSPField] public double secondaryInputMultiplier = 1000;
         [KSPField] public bool canJumpstart = true;

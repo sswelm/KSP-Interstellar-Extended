@@ -67,10 +67,10 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _ammoniaResourceName = ResourcesConfiguration.Instance.AmmoniaLqd;
-            _hydrazineResourceName = ResourcesConfiguration.Instance.Hydrazine;
-            _waterResourceName = ResourcesConfiguration.Instance.Water;
-            _hydrogenPeroxideName = ResourcesConfiguration.Instance.HydrogenPeroxide;
+            _ammoniaResourceName = ResourceSettings.Config.AmmoniaLqd;
+            _hydrazineResourceName = ResourceSettings.Config.Hydrazine;
+            _waterResourceName = ResourceSettings.Config.Water;
+            _hydrogenPeroxideName = ResourceSettings.Config.HydrogenPeroxide;
 
             _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(_ammoniaResourceName).density;
             _waterDensity = PartResourceLibrary.Instance.GetDefinition(_waterResourceName).density;
@@ -233,10 +233,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.HydrogenPeroxide).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg1", ResourcesConfiguration.Instance.HydrogenPeroxide), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " +  + " (Hydrogen Peroxide)"
-            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.AmmoniaLqd).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg2", ResourcesConfiguration.Instance.AmmoniaLqd), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " +
+            if (!_part.GetConnectedResources(ResourceSettings.Config.HydrogenPeroxide).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg1", ResourceSettings.Config.HydrogenPeroxide), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " +  + " (Hydrogen Peroxide)"
+            if (!_part.GetConnectedResources(ResourceSettings.Config.AmmoniaLqd).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PeroxideProcess_Postmsg2", ResourceSettings.Config.AmmoniaLqd), 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing " +
         }
     }
 }

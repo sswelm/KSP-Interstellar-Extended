@@ -181,24 +181,24 @@ namespace FNPlugin.Resources
         {
             try
             {
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.AmmoniaLqd, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.ArgonLqd, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.DeuteriumGas, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.Nitrogen, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.OxygenGas, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
-                AddResource(refBody, bodyComposition, ResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.AmmoniaLqd, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.ArgonLqd, "LqdArgon", "ArgonGas", "Argon", "Argon");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.DeuteriumGas, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.Nitrogen, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.OxygenGas, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.Water, "LqdWater", "H2O", "Water", "Water");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
 
-                AddResource(ResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
-                AddResource(ResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
-                AddResource(ResourcesConfiguration.Instance.HydrogenLqd, "Hydrogen", refBody, bodyComposition, new[] { ResourcesConfiguration.LqdHydrogen, "HydrogenGas", "Hydrogen", "H2", "Protium", "LqdProtium"});
+                AddResource(ResourceSettings.Config.LqdHelium4, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(ResourceSettings.Config.LqdHelium3, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
+                AddResource(ResourceSettings.Config.HydrogenLqd, "Hydrogen", refBody, bodyComposition, new[] { ResourceSettings.LqdHydrogen, "HydrogenGas", "Hydrogen", "H2", "Protium", "LqdProtium"});
             }
             catch (Exception ex)
             {
@@ -294,7 +294,7 @@ namespace FNPlugin.Resources
             Debug.Log("[KSPI]: Checking for missing rare isotopes");
 
             // add Heavy Water based on water abundance in ocean
-            if (bodyOceanicComposition.All(m => m.ResourceName != ResourcesConfiguration.Instance.HeavyWater) && bodyOceanicComposition.Any(m => m.ResourceName == "Water" || m.ResourceName == "LqdWater"))
+            if (bodyOceanicComposition.All(m => m.ResourceName != ResourceSettings.Config.HeavyWater) && bodyOceanicComposition.Any(m => m.ResourceName == "Water" || m.ResourceName == "LqdWater"))
             {
                 Debug.Log("[KSPI]: Added heavy water based on presence water in ocean");
                 var waterResource = bodyOceanicComposition.FirstOrDefault(m => m.ResourceName == "Water") ?? bodyOceanicComposition.FirstOrDefault(m => m.ResourceName == "LqdWater");
@@ -302,16 +302,16 @@ namespace FNPlugin.Resources
                 if (waterResource != null)
                 {
                     var heavyWaterAbundance = waterResource.ResourceAbundance / 6420;
-                    bodyOceanicComposition.Add(new OceanicResource(ResourcesConfiguration.Instance.HeavyWater, heavyWaterAbundance, "HeavyWater", new[] {"HeavyWater", "D2O", "DeuteriumWater"}));
+                    bodyOceanicComposition.Add(new OceanicResource(ResourceSettings.Config.HeavyWater, heavyWaterAbundance, "HeavyWater", new[] {"HeavyWater", "D2O", "DeuteriumWater"}));
                 }
             }
 
-            if (bodyOceanicComposition.All(m => m.ResourceName != ResourcesConfiguration.Instance.Lithium6) && bodyOceanicComposition.Any(m => m.ResourceName == ResourcesConfiguration.Instance.Lithium7))
+            if (bodyOceanicComposition.All(m => m.ResourceName != ResourceSettings.Config.Lithium6) && bodyOceanicComposition.Any(m => m.ResourceName == ResourceSettings.Config.Lithium7))
             {
                 Debug.Log("[KSPI]: Added lithium-6 based on presence Lithium in ocean");
-                var lithium = bodyOceanicComposition.First(m => m.ResourceName == ResourcesConfiguration.Instance.Lithium7);
+                var lithium = bodyOceanicComposition.First(m => m.ResourceName == ResourceSettings.Config.Lithium7);
                 var heavyWaterAbundance = lithium.ResourceAbundance * 0.0759;
-                bodyOceanicComposition.Add(new OceanicResource(ResourcesConfiguration.Instance.Lithium6, heavyWaterAbundance, "Lithium-6", new[] { "Lithium6", "Lithium-6", "Li6", "Li-6" }));
+                bodyOceanicComposition.Add(new OceanicResource(ResourceSettings.Config.Lithium6, heavyWaterAbundance, "Lithium-6", new[] { "Lithium6", "Lithium-6", "Li6", "Li-6" }));
             }
         }
 

@@ -110,7 +110,7 @@ namespace FNPlugin.Collectors
         AbundanceRequest _regolithRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
         {
             ResourceType = HarvestTypes.Planetary,
-            ResourceName = ResourcesConfiguration.Instance.Regolith,
+            ResourceName = ResourceSettings.Config.Regolith,
             BodyId = 1, // this will need to be updated before 'sending the request'
             Latitude = 0, // this will need to be updated before 'sending the request'
             Longitude = 0, // this will need to be updated before 'sending the request'
@@ -129,7 +129,7 @@ namespace FNPlugin.Collectors
             localStar = KopernicusHelper.GetLocalStar(vessel.mainBody);
 
             // gets density of the regolith resource
-            strRegolithResourceName = ResourcesConfiguration.Instance.Regolith;
+            strRegolithResourceName = ResourceSettings.Config.Regolith;
             dRegolithDensity = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(strRegolithResourceName).density;
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI part window so that it's less crowded
@@ -140,7 +140,7 @@ namespace FNPlugin.Collectors
                 MAG.Fields[nameof(MAG.status)].guiActiveEditor = false;
             }
 
-            // verify collector was enabled 
+            // verify collector was enabled
             if (!bIsEnabled) return;
 
             // verify a timestamp is available
@@ -169,7 +169,7 @@ namespace FNPlugin.Collectors
 
             Fields[nameof(strReceivedPower)].guiActive = bIsEnabled;
 
-            /* Regolith concentration doesn't really need to be calculated and updated in gui on every update. 
+            /* Regolith concentration doesn't really need to be calculated and updated in gui on every update.
              * By hiding it behind a counter that only runs this code once per ten cycles, it should be more performance friendly.
             */
             if (++_counter % 10 != 0) return;
@@ -177,7 +177,7 @@ namespace FNPlugin.Collectors
             //dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
             dConcentrationRegolith = GetFinalConcentration();
 
-            /* If collecting is legal, update the regolith concentration in GUI, otherwise pass a zero string. 
+            /* If collecting is legal, update the regolith concentration in GUI, otherwise pass a zero string.
                  * This way we shouldn't get readings when the vessel is flying or splashed or on a planet with an atmosphere.
                  */
             strRegolithConc = IsCollectLegal() ? dConcentrationRegolith.ToString("P0") : "0"; // F1 string format means fixed point number with one decimal place (i.e. number 1234.567 would be formatted as 1234.5). I might change this eventually to P1 or P0 (num multiplied by hundred and percentage sign with 1 or 0 dec. places).
@@ -202,7 +202,7 @@ namespace FNPlugin.Collectors
                 DisableCollector();
                 return;
             }
-             
+
             strStarDist = UpdateDistanceInGUI();
 
             // collect solar wind for a single frame
@@ -265,11 +265,11 @@ namespace FNPlugin.Collectors
 
             /* This little bit will fire a ray from the part, straight down, in the distance that the part should be able to reach.
              * It returns true if there is solid terrain in the reach AND the drill is extended. Otherwise false.
-             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact 
-             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing 
-             * this module in a difficult terrain, it just doesn't work properly. 
+             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact
+             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing
+             * this module in a difficult terrain, it just doesn't work properly.
             */
-            Physics.Raycast(drillPartRay, out var hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
+            Physics.Raycast(drillPartRay, out var hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask
             if (hit.collider == null) return false;
 
             return IsDrillExtended();
@@ -296,11 +296,11 @@ namespace FNPlugin.Collectors
         private static double CalculateRegolithConcentration(Vector3d planetPosition, Vector3d sunPosition, double altitude)
         {
             double dAvgMunDistance = GameConstants.kerbin_sun_distance; // if my reasoning is correct, this is not only the average distance of Kerbin, but also for the Mun. Maybe this is obvious to everyone else or wrong, but I'm tired, so there.
-             
+
              /* I decided to incorporate an altitude modifier. According to https://curator.jsc.nasa.gov/lunar/letss/regolith.pdf, most regolith on Moon is deposited in
-             * higher altitudes. This is great from a gameplay perspective, because it makes an incentive for players to collect regolith in more difficult circumstances 
+             * higher altitudes. This is great from a gameplay perspective, because it makes an incentive for players to collect regolith in more difficult circumstances
              * (i.e. landing on highlands instead of flats etc.) and breaks the flatter-is-better base building strategy at least a bit.
-             * This check will divide current altitude by 2500. At that arbitrarily-chosen altitude, we should be getting the basic concentration for the planet. 
+             * This check will divide current altitude by 2500. At that arbitrarily-chosen altitude, we should be getting the basic concentration for the planet.
              * Go to a higher terrain and you will find **more** regolith. The + 500 shift is there so that even at altitude of 0 (i.e. Minmus flats etc.) there will
              * still be at least SOME regolith to be mined.
              */
@@ -328,7 +328,7 @@ namespace FNPlugin.Collectors
         {
             double dt = TimeWarp.fixedDeltaTime;
             dConcentrationRegolith = GetFinalConcentration();
-            
+
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
 
             dRegolithSpareCapacity = part.GetConnectedResources(strRegolithResourceName).Sum(r => r.maxAmount - r.amount);
@@ -355,7 +355,7 @@ namespace FNPlugin.Collectors
 
             strReceivedPower = PluginHelper.getFormattedPowerString(dLastPowerPercentage * dPowerRequirementsMW) + " / " +
                 PluginHelper.getFormattedPowerString(dPowerRequirementsMW);
-            
+
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
