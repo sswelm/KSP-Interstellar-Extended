@@ -7,7 +7,7 @@ namespace FNPlugin
     {
         private static InterstellarResourcesConfiguration _instance;
 
-        #region autoproerties
+        #region autoproperties
 
         public string Actinides { get; private set; } = "Actinides";
         public string Alumina { get; private set; } = "Alumina";
@@ -23,21 +23,20 @@ namespace FNPlugin
         public string FluorineGas { get; private set; } = "Fluorine";
         public string Uranium233 { get; private set; } = "Uranium-233";
         public string UraniumNitride { get; private set; } = "UraniumNitride";
+        public string EnrichedUranium { get; private set; } = "EnrichedUranium";
+        public string DepletedFuel { get; private set; } = "DepletedFuel";
+        public string VacuumPlasma { get; private set; } = "VacuumPlasma";
+        public string ExoticMatter { get; private set; } = "ExoticMatter";
+        public string IntakeAir { get; private set; } = "IntakeAir";
+        public string Lithium7 { get; private set; } = "Lithium";
+        public string IntakeLiquid { get; private set; } = "IntakeLqd";
 
         #endregion
 
-        //public const String _URANIUM_NITRIDE = "UraniumNitride";
-        public const String _ENRICHED_URANIUM = "EnrichedUranium";
-        public const String _DEPLETED_FUEL = "DepletedFuel";
-        public const String _VACUUM_PLASMA = "VacuumPlasma";
-        public const String _EXOTIC_MATTER = "ExoticMatter";
-        public const String _INTAKE_AIR = "IntakeAir";
-        public const String _LITHIUM7 = "Lithium";
         public const String _LITHIUM6 = "Lithium6";
         public const String _PLUTONIUM_238 = "Plutonium-238";
         public const String _DEUTERIUM_LIQUID = "LqdDeuterium";
         public const String _DEUTERIUM_GAS = "Deuterium";
-        public const String _INTAKE_LIQUID = "IntakeLqd";
         public const String _ELECTRIC_CHARGE = "ElectricCharge";
         public const String _LIQUID_CO2 = "LqdCO2";
         public const String _CARBONMONOXIDE_LIQUID = "LqdCO";
@@ -93,10 +92,9 @@ namespace FNPlugin
 
 
         // ToDo convert to auto property
-        public String DepletedFuel { get { return _DEPLETED_FUEL; } }
         public String LqdDeuterium { get { return _DEUTERIUM_LIQUID; } }
         public String DeuteriumGas { get { return _DEUTERIUM_GAS; } }
-        public String ExoticMatter { get { return _EXOTIC_MATTER; } }
+
         public String ElectricCharge { get { return _ELECTRIC_CHARGE; } }
         public String LqdHelium4 { get { return _liquid_helium4; } }
         public String Helium4Gas { get { return _helium4_gas; } }
@@ -106,10 +104,10 @@ namespace FNPlugin
         public String Hydrogen { get { return _hydrogen; } }
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
         public String Hydrazine { get { return _hydrazine; } }
-        public String IntakeLiquid { get { return _INTAKE_LIQUID; } }
+
         public String Lithium6 { get { return _LITHIUM6; } }
-        public String IntakeAir { get { return _INTAKE_AIR; } }
-        public String Lithium7 { get { return _LITHIUM7; } }
+
+
         public String Methane { get { return _methane; } }
         public String NeonGas { get { return _neon_gas; } }
         public String Nitrogen { get { return _nitrogen; } }
@@ -123,8 +121,8 @@ namespace FNPlugin
         public String TritiumGas { get { return _tritium_gas; } }
 
 
-        public String EnrichedUrarium { get { return _ENRICHED_URANIUM; } }
-        public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
+
+
         public String Water { get { return _water; } }
         public String HeavyWater { get { return _heavyWater; } }
         public String Xenon { get { return _xenon; } }
@@ -154,12 +152,24 @@ namespace FNPlugin
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonDioxideLqd), value => CarbonDioxideLqd = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonMonoxideGas), value => CarbonMonoxideGas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(FluorineGas), value => FluorineGas = value);
-                UpdatePropertyWithConfigNode(pluginSettings, nameof(UraniumTetraflouride), value => UraniumTetraflouride = value);
-                UpdatePropertyWithConfigNode(pluginSettings, nameof(ThoriumTetraflouride), value => ThoriumTetraflouride = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Lithium7), value => Lithium7 = value);
+
+                // abstract resources
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(IntakeAtmosphere), value => IntakeAtmosphere = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(IntakeAir), value => IntakeAir = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(IntakeLiquid), value => IntakeAir = value);
+
+                // nuclear resources
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(DepletedFuel), value => DepletedFuel = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(EnrichedUranium), value => EnrichedUranium = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Uranium233), value => Uranium233 = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(UraniumNitride), value => UraniumNitride = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(UraniumTetraflouride), value => UraniumTetraflouride = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(ThoriumTetraflouride), value => ThoriumTetraflouride = value);
 
+                // pseudo resources
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(ExoticMatter), value => ExoticMatter = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(VacuumPlasma), value => VacuumPlasma = value);
 
                 // ToDo convert to method call
                 if (pluginSettings.HasValue("Helium4GasResourceName"))

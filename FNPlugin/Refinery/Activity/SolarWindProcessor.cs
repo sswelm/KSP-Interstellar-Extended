@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Refinery.Activity
 {
     class SolarWindProcessor : RefineryActivity, IRefineryActivity
     {
@@ -100,7 +100,7 @@ namespace FNPlugin.Refinery
             _helium4LiquidResourceName = InterstellarResourcesConfiguration._HELIUM4_LIQUID;
             _helium4GasResourceName = InterstellarResourcesConfiguration._HELIUM4_GAS;
             _monoxideLiquidResourceName = InterstellarResourcesConfiguration._CARBONMONOXIDE_LIQUID;
-            _monoxideGasResourceName = InterstellarResourcesConfiguration._CARBONMONOXIDE_GAS;
+            _monoxideGasResourceName = InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas;
             _nitrogenLiquidResourceName = InterstellarResourcesConfiguration._NITROGEN_LIQUID;
             _nitrogenGasResourceName = InterstellarResourcesConfiguration._NITROGEN_GAS;
             _neonLiquidResourceName = InterstellarResourcesConfiguration._NEON_LIQUID;

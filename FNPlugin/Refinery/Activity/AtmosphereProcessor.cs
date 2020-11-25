@@ -102,7 +102,7 @@ namespace FNPlugin.Refinery.Activity
         private PartResourceDefinition _nitrogen;
         private PartResourceDefinition _nitrogen15;
         private PartResourceDefinition _oxygen;
-        private PartResourceDefinition _water; // water vapour can form a localPart of atmosphere as well
+        private PartResourceDefinition _water; // water vapor can form a localPart of atmosphere as well
         private PartResourceDefinition _heavyWater;
         private PartResourceDefinition _xenon;
         private PartResourceDefinition _deuterium;
@@ -197,10 +197,10 @@ namespace FNPlugin.Refinery.Activity
             }
 
             // get the name of all relevant resources
-            _atmosphereResourceName = InterstellarResourcesConfiguration._INTAKEATMOSPHERE;
+            _atmosphereResourceName = InterstellarResourcesConfiguration.Instance.IntakeAtmosphere;
 
-            _ammoniaResourceName = InterstellarResourcesConfiguration._LIQUID_AMMONIA;
-            _argonResourceName = InterstellarResourcesConfiguration._LIQUID_ARGON;
+            _ammoniaResourceName = InterstellarResourcesConfiguration.Instance.AmmoniaLqd;
+            _argonResourceName = InterstellarResourcesConfiguration.Instance.ArgonLqd;
             _chlorineResourceName = InterstellarResourcesConfiguration._CHLORINE;
             _dioxideResourceName = InterstellarResourcesConfiguration._LIQUID_CO2;
             _monoxideResourceName = InterstellarResourcesConfiguration._CARBONMONOXIDE_LIQUID;
@@ -692,7 +692,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + InterstellarResourcesConfiguration._INTAKEATMOSPHERE, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
 
         public void Update()

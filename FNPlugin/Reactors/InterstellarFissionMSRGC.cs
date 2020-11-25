@@ -268,12 +268,12 @@ namespace FNPlugin.Reactors
             oxygenGasDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.OxygenGas);
             fluorineGasDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.FluorineGas);
             depletedFuelDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.DepletedFuel);
-            enrichedUraniumDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.EnrichedUrarium);
+            enrichedUraniumDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.EnrichedUranium);
 
-            depletedToEnrichVolumeMultplier = (double)(decimal)enrichedUraniumDefinition.density / (double)(decimal)depletedFuelDefinition.density;
-            fluorineDepletedFuelVolumeMultiplier = ((19 * 4) / 232d) * ((double)(decimal)depletedFuelDefinition.density / fluorineGasDefinition.density);
-            enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * ((double)(decimal)depletedFuelDefinition.density / enrichedUraniumDefinition.density);
-            oxygenDepletedUraniumVolumeMultipler = ((16 * 2) / (16 * 2 + 232d)) * ((double)(decimal)depletedFuelDefinition.density / oxygenGasDefinition.density);
+            depletedToEnrichVolumeMultplier = enrichedUraniumDefinition.density / depletedFuelDefinition.density;
+            fluorineDepletedFuelVolumeMultiplier = ((19 * 4) / 232d) * (depletedFuelDefinition.density / fluorineGasDefinition.density);
+            enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
+            oxygenDepletedUraniumVolumeMultipler = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
 
             var mainReactorFuel = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName);
             if (mainReactorFuel != null)
