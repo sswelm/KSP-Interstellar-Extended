@@ -39,7 +39,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            _antimatterDef = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter);
+            _antimatterDef = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.AntiProtium);
 
             _moduleAnimateGeneric = part.FindModuleImplementing<ModuleAnimateGeneric>();
 

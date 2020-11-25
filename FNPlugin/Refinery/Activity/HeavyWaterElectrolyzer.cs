@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace FNPlugin.Refinery.Activity
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() {  return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HeavyWater).Any(rs => rs.amount > 0);   }
+        public bool HasActivityRequirements() {  return _part.GetConnectedResources(ResourcesConfiguration.Instance.HeavyWater).Any(rs => rs.amount > 0);   }
 
         public string Status => string.Copy(_status);
 
@@ -51,9 +52,9 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
 
             _vessel = localPart.vessel;
-            _heavyWaterDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HeavyWater).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
-            _deuteriumDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
+            _heavyWaterDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.HeavyWater).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.LqdOxygen).density;
+            _deuteriumDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.LqdDeuterium).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -62,9 +63,9 @@ namespace FNPlugin.Refinery.Activity
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / EnergyPerTon;
 
-            var partsThatContainWater = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HeavyWater).ToList();
-            var partsThatContainOxygen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).ToList();
-            var partsThatContainDeuterium = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
+            var partsThatContainWater = _part.GetConnectedResources(ResourcesConfiguration.Instance.HeavyWater).ToList();
+            var partsThatContainOxygen = _part.GetConnectedResources(ResourcesConfiguration.Instance.LqdOxygen).ToList();
+            var partsThatContainDeuterium = _part.GetConnectedResources(ResourcesConfiguration.Instance.LqdDeuterium).ToList();
 
             _maxCapacityHeavyWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _heavyWaterDensity;
             _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygenDensity;
@@ -91,13 +92,13 @@ namespace FNPlugin.Refinery.Activity
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrogenRatio, fixedMaxPossibleOxygenRatio);
 
                 // now we do the real electrolysis
-                _heavyWaterConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.HeavyWater, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _heavyWaterDensity) / fixedDeltaTime * _heavyWaterDensity;
+                _heavyWaterConsumptionRate = _part.RequestResource(ResourcesConfiguration.Instance.HeavyWater, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _heavyWaterDensity) / fixedDeltaTime * _heavyWaterDensity;
 
                 var deuteriumRateTemp = _heavyWaterConsumptionRate * DeuteriumMassByFraction;
                 var oxygenRateTemp = _heavyWaterConsumptionRate * OxygenMassByFraction;
 
-                _deuteriumProductionRate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deuteriumRateTemp * fixedDeltaTime / _deuteriumDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuteriumDensity;
-                _oxygenProductionRate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdOxygen, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
+                _deuteriumProductionRate = -_part.RequestResource(ResourcesConfiguration.Instance.LqdDeuterium, -deuteriumRateTemp * fixedDeltaTime / _deuteriumDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuteriumDensity;
+                _oxygenProductionRate = -_part.RequestResource(ResourcesConfiguration.Instance.LqdOxygen, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
             }
             else
             {
@@ -161,9 +162,9 @@ namespace FNPlugin.Refinery.Activity
             else if (_fixedMaxConsumptionWaterRate <= 0.0000000001)
                 _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg2");//"Out of water"
             else if (_deuteriumProductionRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", InterstellarResourcesConfiguration.Instance.LqdOxygen);//"Insufficient " +  + " Storage"
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", ResourcesConfiguration.Instance.LqdOxygen);//"Insufficient " +  + " Storage"
             else if (_oxygenProductionRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", InterstellarResourcesConfiguration.Instance.Hydrogen);//"Insufficient " +  + " Storage"
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", ResourcesConfiguration.Instance.HydrogenLqd);//"Insufficient " +  + " Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg4");//"Insufficient Power"
             else
@@ -172,7 +173,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.HeavyWater, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Postmsg") + " " + ResourcesConfiguration.Instance.HeavyWater, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

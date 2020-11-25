@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
@@ -9,7 +10,7 @@ using System.Linq;
 using TweakScale;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
     [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
     class ElectrostaticEngineControllerFX : ElectricEngineControllerFX { }
@@ -940,13 +941,13 @@ namespace FNPlugin
                 effectPower = currentEffectPower * (1 - maxEffectPowerRatio) + maximumEffectPower * maxEffectPowerRatio;
             }
 
-            var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
+            var vacuumPlasmaResource = part.Resources[ResourcesConfiguration.Instance.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
                 var calculatedConsumptionInTon = vessel.packed ? 0 : simulatedThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
                 var vacuumPlasmaResourceAmount = calculatedConsumptionInTon * 2000 * TimeWarp.fixedDeltaTime;
                 vacuumPlasmaResource.maxAmount = vacuumPlasmaResourceAmount;
-                part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
+                part.RequestResource(ResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
             }
         }
 
@@ -1043,7 +1044,7 @@ namespace FNPlugin
             {
                 vacplasmaadded = true;
                 var node = new ConfigNode("RESOURCE");
-                node.AddValue("name", InterstellarResourcesConfiguration.Instance.VacuumPlasma);
+                node.AddValue("name", ResourcesConfiguration.Instance.VacuumPlasma);
                 node.AddValue("maxAmount", scaledMaxPower * 0.0000001);
                 node.AddValue("amount", scaledMaxPower * 0.0000001);
                 part.AddResource(node);

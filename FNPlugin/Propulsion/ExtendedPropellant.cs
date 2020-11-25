@@ -5,15 +5,9 @@
         private string _secondaryPropellantName;
         private PartResourceDefinition _resourceDefinition;
 
-        public string StoragePropellantName
-        {
-            get { return _secondaryPropellantName; }
-        }
+        public string StoragePropellantName => _secondaryPropellantName;
 
-        public PartResourceDefinition ResourceDefinition
-        {
-            get { return _resourceDefinition; }
-        }
+        public PartResourceDefinition ResourceDefinition => _resourceDefinition;
 
         public new void Load(ConfigNode node)
         {

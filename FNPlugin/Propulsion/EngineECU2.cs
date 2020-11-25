@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
     enum GenerationType { Mk1 = 0, Mk2 = 1, Mk3 = 2, Mk4 = 3, Mk5 = 4, Mk6 = 5, Mk7 = 6, Mk8 = 7, Mk9 = 8 }
 
@@ -22,7 +22,7 @@ namespace FNPlugin
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedFuel;
 
-        // Persistant
+        // Persistent
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
@@ -105,7 +105,7 @@ namespace FNPlugin
 
         private UI_ChooseOption chooseOptionEditor;
         private UI_ChooseOption chooseOptionFlight;
- 
+
         public GenerationType EngineGenerationType { get; private set; }
 
         public double MaxThrust => maxThrust * ThrustMult();
@@ -310,14 +310,14 @@ namespace FNPlugin
             UpdateFuel();
 
             selectedTank = selectedFuel;
-            selectedTankName = FuelConfigurations[selectedFuel].ConfigName;   
+            selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
         }
 
         public void SymmetricUpdateEditorGUI(BaseField field, object oldFieldValueObj)
         {
             UpdateFromGUI(field, oldFieldValueObj);
             selectedTank = selectedFuel;
-            selectedTankName = FuelConfigurations[selectedFuel].ConfigName;  
+            selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
         }
 
         private void UpdateFlightGUI(BaseField field, object oldFieldValueObj)
@@ -368,7 +368,7 @@ namespace FNPlugin
                 curEngineT.Load(akPropellants);
 
                 //booleans
-                curEngineT.atmChangeFlow = CurrentActiveConfiguration.atmChangeFlow;                
+                curEngineT.atmChangeFlow = CurrentActiveConfiguration.atmChangeFlow;
                 curEngineT.clampPropReceived = CurrentActiveConfiguration.clampPropReceived;
                 curEngineT.useEngineResponseTime = CurrentActiveConfiguration.useEngineResponseTime;
 
@@ -421,7 +421,7 @@ namespace FNPlugin
             curEngineWarp.propellant1 = fuelCount > 0 ? fuels[0] : null;
             curEngineWarp.ratio1 = ratiosCount > 0 ? (double)(decimal)ratios[0] : 0;
             if (typeMasksCount > 0 && typeMasks[0] == 1)
-                curEngineWarp.ratio1 *= rateMultplier;                
+                curEngineWarp.ratio1 *= rateMultplier;
 
             curEngineWarp.propellant2 = fuelCount > 1 ? fuels[1] : null;
             curEngineWarp.ratio2 = ratiosCount > 1 ? (double)(decimal)ratios[1] : 0;
@@ -577,7 +577,7 @@ namespace FNPlugin
 
             base.OnStart(state);
         }
-      
+
         private IList<FuelConfiguration> _usefulConfigurations;
         public IList<FuelConfiguration> UsefulConfigurations
         {
@@ -602,7 +602,7 @@ namespace FNPlugin
             }
         }
 
-        
+
         public IList<FuelConfiguration> ActiveConfigurations => hideEmpty ? UsefulConfigurations : FuelConfigurations;
 
         private IList<FuelConfiguration> GetUsableConfigurations(IList<FuelConfiguration> akConfigs)
@@ -614,13 +614,13 @@ namespace FNPlugin
             {
                 var currentConfig = akConfigs[I];
 
-                if ((_currentActiveConfiguration != null && currentConfig.fuelConfigurationName == _currentActiveConfiguration.fuelConfigurationName) 
+                if ((_currentActiveConfiguration != null && currentConfig.fuelConfigurationName == _currentActiveConfiguration.fuelConfigurationName)
                     || ConfigurationHasFuel(currentConfig))
                 {
                     nwConfigs.Add(currentConfig);
                 }
-                else 
-                    if (I < selectedFuel && I > 0) 
+                else
+                    if (I < selectedFuel && I > 0)
                         selectedFuel--;
                 I++;
             }
@@ -762,7 +762,7 @@ namespace FNPlugin
         {
             get
             {
-                if (akConfigName == "") 
+                if (akConfigName == "")
                     akConfigName = fuelConfigurationName;
                 return akConfigName;
             }

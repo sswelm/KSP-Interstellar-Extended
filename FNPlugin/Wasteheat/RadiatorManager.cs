@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using FNPlugin.Extensions;
+using FNPlugin.Propulsion;
 
 namespace FNPlugin.Wasteheat
 {

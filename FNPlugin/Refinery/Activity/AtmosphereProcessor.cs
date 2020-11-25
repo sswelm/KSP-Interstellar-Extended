@@ -197,28 +197,28 @@ namespace FNPlugin.Refinery.Activity
             }
 
             // get the name of all relevant resources
-            _atmosphereResourceName = InterstellarResourcesConfiguration.Instance.IntakeAtmosphere;
+            _atmosphereResourceName = ResourcesConfiguration.Instance.IntakeAtmosphere;
 
-            _ammoniaResourceName = InterstellarResourcesConfiguration.Instance.AmmoniaLqd;
-            _argonResourceName = InterstellarResourcesConfiguration.Instance.ArgonLqd;
-            _chlorineResourceName = InterstellarResourcesConfiguration._CHLORINE;
-            _dioxideResourceName = InterstellarResourcesConfiguration._LIQUID_CO2;
-            _monoxideResourceName = InterstellarResourcesConfiguration._CARBONMONOXIDE_LIQUID;
-            _helium3ResourceName = InterstellarResourcesConfiguration._HELIUM3_LIQUID;
-            _helium4ResourceName = InterstellarResourcesConfiguration._HELIUM4_LIQUID;
-            _hydrogenResourceName = InterstellarResourcesConfiguration._HYDROGEN_LIQUID;
-            _methaneResourceName = InterstellarResourcesConfiguration._LIQUID_METHANE;
-            _neonResourceName = InterstellarResourcesConfiguration._NEON_LIQUID;
-            _nitrogenResourceName = InterstellarResourcesConfiguration._NITROGEN_LIQUID;
-            _nitrogen15ResourceName = InterstellarResourcesConfiguration._LIQUID_NITROGEN_15;
-            _oxygenResourceName = InterstellarResourcesConfiguration._LIQUID_OXYGEN;
-            _waterResourceName = InterstellarResourcesConfiguration._LIQUID_WATER;
-            _heavyWaterResourceName = InterstellarResourcesConfiguration._LIQUID_HEAVYWATER;
-            _xenonResourceName = InterstellarResourcesConfiguration._LIQUID_XENON;
-            _deuteriumResourceName = InterstellarResourcesConfiguration._DEUTERIUM_LIQUID;
-            _kryptonResourceName = InterstellarResourcesConfiguration._LIQUID_KRYPTON;
+            _ammoniaResourceName = ResourcesConfiguration.Instance.AmmoniaLqd;
+            _argonResourceName = ResourcesConfiguration.Instance.ArgonLqd;
+            _chlorineResourceName = ResourcesConfiguration._CHLORINE;
+            _dioxideResourceName = ResourcesConfiguration._LIQUID_CO2;
+            _monoxideResourceName = ResourcesConfiguration._CARBONMONOXIDE_LIQUID;
+            _helium3ResourceName = ResourcesConfiguration._HELIUM3_LIQUID;
+            _helium4ResourceName = ResourcesConfiguration._HELIUM4_LIQUID;
+            _hydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
+            _methaneResourceName = ResourcesConfiguration._LIQUID_METHANE;
+            _neonResourceName = ResourcesConfiguration._NEON_LIQUID;
+            _nitrogenResourceName = ResourcesConfiguration._NITROGEN_LIQUID;
+            _nitrogen15ResourceName = ResourcesConfiguration._LIQUID_NITROGEN_15;
+            _oxygenResourceName = ResourcesConfiguration._LIQUID_OXYGEN;
+            _waterResourceName = ResourcesConfiguration._LIQUID_WATER;
+            _heavyWaterResourceName = ResourcesConfiguration._LIQUID_HEAVYWATER;
+            _xenonResourceName = ResourcesConfiguration._LIQUID_XENON;
+            _deuteriumResourceName = ResourcesConfiguration._DEUTERIUM_LIQUID;
+            _kryptonResourceName = ResourcesConfiguration._LIQUID_KRYPTON;
 
-            _sodiumResourceName = InterstellarResourcesConfiguration.Instance.Sodium;
+            _sodiumResourceName = ResourcesConfiguration.Instance.Sodium;
 
             // get the densities of all relevant resources
             _atmosphere = PartResourceLibrary.Instance.GetDefinition(_atmosphereResourceName);
@@ -692,7 +692,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + ResourcesConfiguration.Instance.IntakeAtmosphere, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
 
         public void Update()

@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
@@ -119,12 +120,12 @@ namespace FNPlugin.Refinery.Activity
                 var oxygenRateTemp = _waterConsumptionRate * OxygenMassByFraction;
 
                 var hydrogenProductionAmount = -_part.RequestResource(
-                    resourceName: InterstellarResourcesConfiguration.Instance.Hydrogen,
+                    resourceName: ResourcesConfiguration.Instance.HydrogenLqd,
                     demand: -hydrogenRateTemp * fixedDeltaTime / _hydrogen.density,
                     flowMode: ResourceFlowMode.ALL_VESSEL);
 
                 var oxygenProductionAmount = -_part.RequestResource(
-                    resourceName: InterstellarResourcesConfiguration.Instance.LqdOxygen,
+                    resourceName: ResourcesConfiguration.Instance.LqdOxygen,
                     demand: -oxygenRateTemp * fixedDeltaTime / _oxygen.density,
                     flowMode: ResourceFlowMode.ALL_VESSEL);
 

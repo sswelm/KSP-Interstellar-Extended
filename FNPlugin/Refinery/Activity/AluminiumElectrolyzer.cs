@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System.Linq;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace FNPlugin.Refinery.Activity
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Alumina).Any(rs => rs.amount > 0);  }
+        public bool HasActivityRequirements() { return _part.GetConnectedResources(ResourcesConfiguration.Instance.Alumina).Any(rs => rs.amount > 0);  }
 
         private double _effectivePowerRequirements;
 
@@ -36,9 +37,9 @@ namespace FNPlugin.Refinery.Activity
         {
             _part = localPart;
             _vessel = localPart.vessel;
-            _aluminaDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Alumina).density;
-            _aluminiumDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Aluminium).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
+            _aluminaDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.Alumina).density;
+            _aluminiumDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.Aluminium).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.LqdOxygen).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -47,9 +48,9 @@ namespace FNPlugin.Refinery.Activity
             _current_power = powerFraction * _effectivePowerRequirements;
 
             _current_rate = CurrentPower / EnergyPerTon;
-            _aluminaConsumptionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * fixedDeltaTime / _aluminaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _aluminaDensity;
-            _aluminiumProductionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_aluminaConsumptionRate * fixedDeltaTime / _aluminiumDensity, ResourceFlowMode.ALL_VESSEL) * _aluminiumDensity / fixedDeltaTime;
-            _oxygenProductionRate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdOxygen, -GameConstants.aluminiumElectrolysisMassRatio * _aluminaConsumptionRate * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) * _oxygenDensity / fixedDeltaTime;
+            _aluminaConsumptionRate = _part.RequestResource(ResourcesConfiguration.Instance.Alumina, _current_rate * fixedDeltaTime / _aluminaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _aluminaDensity;
+            _aluminiumProductionRate = _part.RequestResource(ResourcesConfiguration.Instance.Aluminium, -_aluminaConsumptionRate * fixedDeltaTime / _aluminiumDensity, ResourceFlowMode.ALL_VESSEL) * _aluminiumDensity / fixedDeltaTime;
+            _oxygenProductionRate = _part.RequestResource(ResourcesConfiguration.Instance.LqdOxygen, -GameConstants.aluminiumElectrolysisMassRatio * _aluminaConsumptionRate * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) * _oxygenDensity / fixedDeltaTime;
             UpdateStatusMessage();
         }
 
@@ -92,7 +93,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.Alumina, 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing "
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_Postmsg") + " " + ResourcesConfiguration.Instance.Alumina, 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing "
         }
     }
 }

@@ -1,14 +1,13 @@
-﻿using FNPlugin.Constants;
-using FNPlugin.Extensions;
-using KSP.UI.Screens.DebugToolbar.Screens.Cheats;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Constants;
+using FNPlugin.Extensions;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
-    class ElectricRCSController : ResourceSuppliableModule 
+    class ElectricRCSController : ResourceSuppliableModule
     {
         public const string GROUP = "InterstellarRCSModule";
         public const string GROUP_TITLE = "#LOC_KSPIE_RCSModule_groupName";
@@ -180,7 +179,7 @@ namespace FNPlugin
 
             currentThrustMultiplier = hasSufficientPower ? CurrentPropellant.
                 ThrustMultiplier : CurrentPropellant.ThrustMultiplierCold;
-            
+
             var effectiveBaseIsp = hasSufficientPower ? maxIsp : minIsp;
             maxPropellantIsp = (float)(effectiveBaseIsp * effectiveIspMultiplier *
                 currentThrustMultiplier);
@@ -205,7 +204,7 @@ namespace FNPlugin
                 maxPropellantIsp.ToString("F0") + " s";
         }
 
-        public override void OnStart(StartState state) 
+        public override void OnStart(StartState state)
         {
             var rcs = part.FindModulesImplementing<ModuleRCSFX>();
             int fm;
@@ -274,7 +273,7 @@ namespace FNPlugin
             return 2;
         }
 
-        public override string getResourceManagerDisplayName() 
+        public override string getResourceManagerDisplayName()
         {
             return part.partInfo.title + " (" + propNameStr + ")";
         }

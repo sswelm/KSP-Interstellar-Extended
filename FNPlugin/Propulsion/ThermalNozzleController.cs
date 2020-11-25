@@ -1,8 +1,8 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
-using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
@@ -11,7 +11,7 @@ using System.Linq;
 using TweakScale;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
     [KSPModule("Thermal Aerospike")]
     class ThermalAerospikeController : ThermalEngineController { }
@@ -1748,7 +1748,7 @@ namespace FNPlugin
             if (isOpenCycleCooler && isJet && part.atmDensity > 0)
             {
                 var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-                airFlowForCooling = max_fuel_flow_rate * part.GetResourceRatio(InterstellarResourcesConfiguration.Instance.IntakeAir);
+                airFlowForCooling = max_fuel_flow_rate * part.GetResourceRatio(ResourcesConfiguration.Instance.IntakeOxygenAir);
                 consumeFNResourcePerSecond(40 * wasteheatRatio * wasteheatRatio * airFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
             }
 

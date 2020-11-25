@@ -42,7 +42,7 @@ namespace FNPlugin.Refinery.Activity
             _vessel = localPart.vessel;
 
             // get the definition of the 'generic' input resource
-            _intakeLiquidDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeLiquid);
+            _intakeLiquidDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.IntakeLiquid);
         }
 
         List<OceanicResource> _localResources = new List<OceanicResource>(); // create a list for keeping track of localResources
@@ -278,7 +278,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SeawaterExtract_Postmsg2") + " " + InterstellarResourcesConfiguration.Instance.IntakeLiquid, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SeawaterExtract_Postmsg2") + " " + ResourcesConfiguration.Instance.IntakeLiquid, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

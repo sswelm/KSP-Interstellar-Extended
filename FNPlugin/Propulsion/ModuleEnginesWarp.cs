@@ -1,10 +1,11 @@
-﻿using FNPlugin.Extensions;
-using FNPlugin.Constants;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
+using FNPlugin.Resources;
+using KSP.Localization;
 using System;
 using UnityEngine;
-using KSP.Localization;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
     public class ModuleEnginesWarp : ModuleEnginesFX
     {
@@ -16,7 +17,7 @@ namespace FNPlugin
         [KSPField]
         public double GThreshold = 9;
         [KSPField]
-        public string propellant1 = "LqdHydrogen";
+        public string propellant1 = ResourcesConfiguration.LqdHydrogen;
         [KSPField]
         public string propellant2;
         [KSPField]
@@ -191,7 +192,7 @@ namespace FNPlugin
                     densitySum += propellantResourceDefinition4.density * ratio4;
                 }
             }
-            
+
             averageDensityInTonPerLiter = densitySum / ratioSumWithMass;
             massPropellantRatio = ratioSumWithMass / ratioSumOveral;
             ratioSumWithoutMass = ratioSumOveral - ratioSumWithMass;
@@ -368,7 +369,7 @@ namespace FNPlugin
                         TimeWarp.SetRate(0, true);
                         return;
                     }
-                    
+
                     fuelRatio = CollectFuel(demandMass, ResourceFlowMode.ALL_VESSEL);
 
                     // Calculate thrust and deltaV if demand output > 0

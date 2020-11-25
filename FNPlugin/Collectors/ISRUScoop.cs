@@ -1,24 +1,23 @@
 ﻿using FNPlugin.Extensions;
 using FNPlugin.Resources;
+using KSP.Localization;
 using System;
 using System.Linq;
+using FNPlugin.Propulsion;
 using UnityEngine;
-using KSP.Localization;
-using FNPlugin.Powermanagement;
-using FNPlugin.Constants;
 
-namespace FNPlugin 
+namespace FNPlugin
 {
-    class ISRUScoop : ResourceSuppliableModule 
+    class ISRUScoop : ResourceSuppliableModule
     {
         public const string GROUP = "ISRUScoop";
         public const string GROUP_TITLE = "#LOC_KSPIE_ISRUScoop_groupName";
 
-        // persistants
+        // persistent fields
         [KSPField(isPersistant = true)]
-        public bool scoopIsEnabled = false;
+        public bool scoopIsEnabled;
         [KSPField(isPersistant = true)]
-        public int currentresource = 0;
+        public int currentresource;
         [KSPField(isPersistant = true)]
         public double last_active_time;
         [KSPField(isPersistant = true)]
@@ -48,26 +47,26 @@ namespace FNPlugin
         [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_TraceAtmosphere")]//Trace Atmosphere
         public string densityFractionOfUpperAthmosphere;
 
-        
+
         // internals
         protected double resflowf = 0;
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ActivateScoop", active = true)]//Activate Scoop
-        public void ActivateScoop() 
+        public void ActivateScoop()
         {
             scoopIsEnabled = true;
             OnUpdate();
         }
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_DisableScoop", active = true)]//Disable Scoop
-        public void DisableScoop() 
+        public void DisableScoop()
         {
             scoopIsEnabled = false;
             OnUpdate();
         }
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ToggleResource", active = true)]//Toggle Resource
-        public void ToggleResource() 
+        public void ToggleResource()
         {
             currentresource++;
 
@@ -77,8 +76,8 @@ namespace FNPlugin
             {
                 ToggleResource();
             }
-            
-            if (currentresource >= AtmosphericResourceHandler.GetAtmosphericCompositionForBody(vessel.mainBody).Count) 
+
+            if (currentresource >= AtmosphericResourceHandler.GetAtmosphericCompositionForBody(vessel.mainBody).Count)
                 currentresource = 0;
 
             resflow = String.Empty;
@@ -86,33 +85,33 @@ namespace FNPlugin
         }
 
         [KSPAction("Activate Scoop")]
-        public void ActivateScoopAction(KSPActionParam param) 
+        public void ActivateScoopAction(KSPActionParam param)
         {
             ActivateScoop();
         }
 
         [KSPAction("Disable Scoop")]
-        public void DisableScoopAction(KSPActionParam param) 
+        public void DisableScoopAction(KSPActionParam param)
         {
             DisableScoop();
         }
 
         [KSPAction("Toggle Scoop")]
-        public void ToggleScoopAction(KSPActionParam param) 
+        public void ToggleScoopAction(KSPActionParam param)
         {
-            if (scoopIsEnabled) 
+            if (scoopIsEnabled)
                 DisableScoop();
-            else 
+            else
                 ActivateScoop();
         }
 
         [KSPAction("Toggle Resource")]
-        public void ToggleToggleResourceAction(KSPActionParam param) 
+        public void ToggleToggleResourceAction(KSPActionParam param)
         {
             ToggleResource();
         }
 
-        public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
             Actions["ToggleToggleResourceAction"].guiName = Events["ToggleResource"].guiName = Localizer.Format("#LOC_KSPIE_ISRUScoop_ToggleResource");//String.Format("Toggle Resource")
 
@@ -124,13 +123,13 @@ namespace FNPlugin
             // verify if body has atmosphere at all
             if (!vessel.mainBody.atmosphere) return;
 
-            // verify scoop was enabled 
+            // verify scoop was enabled
             if (!scoopIsEnabled) return;
 
             // verify a timestamp is available
             if (last_active_time == 0) return;
 
-            // verify any power was avaialble in previous save
+            // verify any power was available in previous save
             if (last_power_percentage < 0.01) return;
 
             // verify altitude is not too high
@@ -155,7 +154,7 @@ namespace FNPlugin
                 return;
             }
 
-            // verify that an electric or Thermal engine is available with high enough ISP 
+            // verify that an electric or Thermal engine is available with high enough ISP
             var highIspEngine = part.vessel.parts.Find(p =>
                 p.FindModulesImplementing<ElectricEngineControllerFX>().Any(e => e.baseISP > 4200) ||
                 p.FindModulesImplementing<ThermalEngineController>().Any(e => e.AttachedReactor.CoreTemperature > 40000));
@@ -165,14 +164,14 @@ namespace FNPlugin
                 return;
             }
 
-            // calcualte time past since last frame
+            // calculate time past since last frame
             double time_diff = (Planetarium.GetUniversalTime() - last_active_time) * 55;
 
-            // scoop athmosphere for entire durration
-            ScoopAthmosphere(time_diff, true);
+            // scoop atmosphere for entire duration
+            ScoopAtmosphere(time_diff, true);
         }
 
-        public override void OnUpdate() 
+        public override void OnUpdate()
         {
             Events["ActivateScoop"].active = !scoopIsEnabled;
             Events["DisableScoop"].active = scoopIsEnabled;
@@ -184,31 +183,31 @@ namespace FNPlugin
 
             double resourcePercentage = AtmosphericResourceHandler.GetAtmosphericResourceContent(vessel.mainBody, currentresource)*100;
             string resourceDisplayName = AtmosphericResourceHandler.GetAtmosphericResourceDisplayName(vessel.mainBody, currentresource);
-            if (resourceDisplayName != null) 
+            if (resourceDisplayName != null)
                 currentresourceStr = resourceDisplayName + "(" + resourcePercentage + "%)";
-            
+
             UpdateResourceFlow();
         }
 
-        public override void OnFixedUpdate() 
+        public override void OnFixedUpdate()
         {
             if (!scoopIsEnabled) return;
 
             if (!vessel.mainBody.atmosphere) return;
-            
-            // scoop athmosphere for a single frame
-            ScoopAthmosphere(TimeWarp.fixedDeltaTime, false);
 
-            // store current time in case vesel is unloaded
+            // scoop atmosphere for a single frame
+            ScoopAtmosphere(TimeWarp.fixedDeltaTime, false);
+
+            // store current time in case vessel is unloaded
             last_active_time = Planetarium.GetUniversalTime();
         }
 
-        private void ScoopAthmosphere(double deltaTimeInSeconds, bool offlineCollecting)
+        private void ScoopAtmosphere(double deltaTimeInSeconds, bool offlineCollecting)
         {
-            string ors_atmospheric_resource_name = AtmosphericResourceHandler.GetAtmosphericResourceName(vessel.mainBody, currentresource);
+            string currentResourceName = AtmosphericResourceHandler.GetAtmosphericResourceName(vessel.mainBody, currentresource);
             string resourceDisplayName = AtmosphericResourceHandler.GetAtmosphericResourceDisplayName(vessel.mainBody, currentresource);
 
-            if (ors_atmospheric_resource_name == null)
+            if (currentResourceName == null)
             {
                 resflowf = 0;
                 recievedPower = Localizer.Format("#LOC_KSPIE_ISRUScoop_error");//"error"
@@ -217,39 +216,39 @@ namespace FNPlugin
             }
 
             // map ors resource to kspi resource
-            if (PluginHelper.OrsResourceMappings == null || !PluginHelper.OrsResourceMappings.TryGetValue(ors_atmospheric_resource_name, out resourceStoragename))
-                resourceStoragename = ors_atmospheric_resource_name;
+            if (PluginHelper.OrsResourceMappings == null || !PluginHelper.OrsResourceMappings.TryGetValue(currentResourceName, out resourceStoragename))
+                resourceStoragename = currentResourceName;
             else if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(resourceStoragename))
-                resourceStoragename = ors_atmospheric_resource_name;
+                resourceStoragename = currentResourceName;
 
             var definition = PartResourceLibrary.Instance.GetDefinition(resourceStoragename);
 
             if (definition == null)
                 return;
 
-            double resourcedensity = (double)(decimal)definition.density;
+            double resourceDensity = definition.density;
             double maxAltitudeAtmosphere = PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody);
-            
-            double upperAtmospherFraction = Math.Max(0, (vessel.altitude - maxAltitudeAtmosphere) / Math.Max(0.000001, maxAltitudeAtmosphere * PluginHelper.MaxAtmosphericAltitudeMult - maxAltitudeAtmosphere));
-            double upperatmosphereDensity = 1 - upperAtmospherFraction;
-            
-            double airDensity = part.vessel.atmDensity + (PluginHelper.MinAtmosphericAirDensity * upperatmosphereDensity);
+
+            double upperAtmosphereFraction = Math.Max(0, (vessel.altitude - maxAltitudeAtmosphere) / Math.Max(0.000001, maxAltitudeAtmosphere * PluginHelper.MaxAtmosphericAltitudeMult - maxAltitudeAtmosphere));
+            double upperAtmosphereDensity = 1 - upperAtmosphereFraction;
+
+            double airDensity = part.vessel.atmDensity + (PluginHelper.MinAtmosphericAirDensity * upperAtmosphereDensity);
             atmosphericDensity = airDensity.ToString("0.00000000");
 
-            var hydrogenTax = 0.4 * Math.Sin(upperAtmospherFraction * Math.PI * 0.5);
-            var heliumTax = 0.2 * Math.Sin(upperAtmospherFraction * Math.PI);
+            var hydrogenTax = 0.4 * Math.Sin(upperAtmosphereFraction * Math.PI * 0.5);
+            var heliumTax = 0.2 * Math.Sin(upperAtmosphereFraction * Math.PI);
 
-            double rescourceFraction = (1.0 - hydrogenTax - heliumTax) * AtmosphericResourceHandler.GetAtmosphericResourceContent(vessel.mainBody, currentresource);
+            double resourceFraction = (1.0 - hydrogenTax - heliumTax) * AtmosphericResourceHandler.GetAtmosphericResourceContent(vessel.mainBody, currentresource);
 
             // increase density hydrogen
-            if (resourceDisplayName == "Hydrogen")
-                rescourceFraction += hydrogenTax;
-            else if (resourceDisplayName == "Helium")
-                rescourceFraction += heliumTax;
+            if (resourceDisplayName == ResourcesConfiguration.Instance.HydrogenGas)
+                resourceFraction += hydrogenTax;
+            else if (resourceDisplayName == ResourcesConfiguration.Instance.Helium4Gas)
+                resourceFraction += heliumTax;
 
-            densityFractionOfUpperAthmosphere = upperatmosphereDensity.ToString("P3");
-            rescourcePercentage = rescourceFraction * 100;
-            if (rescourceFraction <= 0 || vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
+            densityFractionOfUpperAthmosphere = upperAtmosphereDensity.ToString("P3");
+            rescourcePercentage = resourceFraction * 100;
+            if (resourceFraction <= 0 || vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
             {
                 resflowf = 0;
                 recievedPower = Localizer.Format("#LOC_KSPIE_ISRUScoop_off");//"off"
@@ -259,33 +258,32 @@ namespace FNPlugin
             }
 
             double airspeed = part.vessel.srf_velocity.magnitude + 40.0;
-            double air = airspeed * airDensity * 0.001 * scoopair / resourcedensity;
-            double scoopedAtm = air * rescourceFraction;
-            double powerrequirementsMW = 40.0 * scoopair * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
+            double air = airspeed * airDensity * 0.001 * scoopair / resourceDensity;
+            double scoopedAtm = air * resourceFraction;
+            double powerRequirementsInMegawatt = 40.0 * scoopair * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
 
             if (scoopedAtm > 0 && part.GetResourceSpareCapacity(resourceStoragename) > 0)
             {
                 // Determine available power, using EC if below 2 MW required
-                double powerreceivedMW = consumeMegawatts(powerrequirementsMW, true,
-                    false, powerrequirementsMW < 2.0);
+                double powerReceivedInMegawatt = consumeMegawatts(powerRequirementsInMegawatt, true,
+                    false, powerRequirementsInMegawatt < 2.0);
 
-                last_power_percentage = offlineCollecting ? last_power_percentage : powerreceivedMW / powerrequirementsMW;
+                last_power_percentage = offlineCollecting ? last_power_percentage : powerReceivedInMegawatt / powerRequirementsInMegawatt;
             }
             else
             {
                 last_power_percentage = 0;
-                powerrequirementsMW = 0;
+                powerRequirementsInMegawatt = 0;
             }
 
-            recievedPower = PluginHelper.getFormattedPowerString(last_power_percentage * powerrequirementsMW) + " / " +
-                PluginHelper.getFormattedPowerString(powerrequirementsMW);
+            recievedPower = PluginHelper.getFormattedPowerString(last_power_percentage * powerRequirementsInMegawatt) + " / " + PluginHelper.getFormattedPowerString(powerRequirementsInMegawatt);
 
             double resourceChange = scoopedAtm * last_power_percentage * deltaTimeInSeconds;
 
             if (offlineCollecting)
             {
-                string numberformat = resourceChange > 100 ? "0" : "0.00";
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ISRUScoop_CollectedMsg") +" " + resourceChange.ToString(numberformat) + " " + resourceStoragename, 10.0f, ScreenMessageStyle.LOWER_CENTER);//Atmospheric Scoop collected
+                string format = resourceChange > 100 ? "0" : "0.00";
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ISRUScoop_CollectedMsg") +" " + resourceChange.ToString(format) + " " + resourceStoragename, 10.0f, ScreenMessageStyle.LOWER_CENTER);//Atmospheric Scoop collected
             }
 
             resflowf = part.RequestResource(resourceStoragename, -resourceChange);
@@ -298,7 +296,7 @@ namespace FNPlugin
             resflow = resflowf.ToString("0.0000000");
         }
 
-        public override string getResourceManagerDisplayName() 
+        public override string getResourceManagerDisplayName()
         {
             return part.partInfo.title;
         }

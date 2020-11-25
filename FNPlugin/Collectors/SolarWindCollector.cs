@@ -251,10 +251,10 @@ namespace FNPlugin.Collectors
             if (state == StartState.Editor) return; // collecting won't work in editor
 
             _heliumRequirementTonPerSecond = heliumRequirement * 1e-6 / GameConstants.SECONDS_IN_HOUR ;
-            _helium4GasResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
-            _lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium4);
-            _solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
-            _hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
+            _helium4GasResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.Helium4Gas);
+            _lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.LqdHelium4);
+            _solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.SolarWind);
+            _hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.HydrogenLqd);
 
             _localStar = KopernicusHelper.GetLocalStar(vessel.mainBody);
             _homeWorld = FlightGlobals.GetHomeBody();

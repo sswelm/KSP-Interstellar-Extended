@@ -6,6 +6,7 @@ using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Propulsion;
 using UnityEngine;
 
 namespace FNPlugin

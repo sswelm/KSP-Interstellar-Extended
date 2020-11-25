@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
     abstract class FusionECU2 : EngineECU2
     {
@@ -16,7 +16,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         bool rad_safety_features = true;
 
-        // None Persistant
+        // None Persistent fields
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Fuels")]//Fuels
         public string fuels;
         [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionECU2_Ratios")]//Ratios
@@ -114,7 +114,7 @@ namespace FNPlugin
         [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_Radhazardstr")]//Radiation Hazard To
         public string radhazardstr = "";
         [KSPField]
-        protected float curveMaxISP; // ToDo: make sure it is properly initialized after  comming from assembly 
+        protected float curveMaxISP; // ToDo: make sure it is properly initialized after  comming from assembly
         [KSPField]
         public double radius = 1;
 
@@ -137,7 +137,7 @@ namespace FNPlugin
         protected abstract float MaxThrustEfficiencyByIspPower { get; }
         protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
         protected abstract FloatCurve BaseFloatCurve { get; set; }
-        protected abstract bool ShowIspThrottle { get; set; } 
+        protected abstract bool ShowIspThrottle { get; set; }
 
         // protected
         protected bool hasrequiredupgrade = false;
@@ -148,7 +148,7 @@ namespace FNPlugin
         protected double lastAltitude;
 
         protected ResourceBuffers resourceBuffers;
-        protected FNEmitterController emitterController;        
+        protected FNEmitterController emitterController;
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_DisableRadiationSafety", active = true)]//Disable Radiation Safety
         public void DeactivateRadSafety()
@@ -176,7 +176,7 @@ namespace FNPlugin
                 return;
 
             emitterController = part.FindModuleImplementing<FNEmitterController>();
-            
+
             if (emitterController == null)
                 UnityEngine.Debug.LogWarning("[KSPI]: No Emitter Found om " + part.partInfo.title);
         }
@@ -262,7 +262,7 @@ namespace FNPlugin
                 else if (EngineGenerationType == GenerationType.Mk4)
                     return powerRequirementUpgraded3;
                 else
-                    return powerRequirementUpgraded4; 
+                    return powerRequirementUpgraded4;
             }
         }
 
@@ -358,7 +358,7 @@ namespace FNPlugin
 
         private void IspField_OnValueModified(object arg1)
         {
-            
+
         }
 
         public override void UpdateFuel(bool isEditor = false)
@@ -389,7 +389,7 @@ namespace FNPlugin
 
             Fields[nameof(powerRequirementMax)].guiActiveEditor = powerRequirement > 0;
             Fields[nameof(fusionWasteHeatMax)].guiActiveEditor = fusionWasteHeat > 0;
-               
+
             part.maxTemp = maxTemp;
             part.thermalMass = 1;
             part.thermalMassModifier = 1;
@@ -481,7 +481,7 @@ namespace FNPlugin
             Fields["localIsp"].guiActive = selectableIsp;
             Fields["localIsp"].guiActiveEditor = selectableIsp;
 
-            if (selectableIsp) 
+            if (selectableIsp)
                 FcUpdate();
             else
                 SelectedIsp = MinIsp;
@@ -610,7 +610,7 @@ namespace FNPlugin
             {
                 requestedPowerPerSecond = Math.Min(requiredPowerPerSecond, availablePower);
 
-                recievedPowerPerSecond = requestedPowerPerSecond <= 0 ? 0 
+                recievedPowerPerSecond = requestedPowerPerSecond <= 0 ? 0
                     : CheatOptions.InfiniteElectricity
                         ? requiredPowerPerSecond
                         : consumeFNResourcePerSecond(requestedPowerPerSecond, ResourceManager.FNRESOURCE_MEGAJOULES);
@@ -681,7 +681,7 @@ namespace FNPlugin
                 maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
                 UpdateAtmosphereCurve(currentIsp);
-                
+
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
 
                 maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;

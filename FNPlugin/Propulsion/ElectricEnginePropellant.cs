@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FNPlugin 
+namespace FNPlugin.Propulsion
 {
-    public enum ElectricEngineType 
+    public enum ElectricEngineType
     {
         PLASMA = 1,
         ARCJET = 2,
@@ -14,7 +14,7 @@ namespace FNPlugin
         ION = 32
     }
 
-    public class ElectricEnginePropellant 
+    public class ElectricEnginePropellant
     {
         protected bool isInfinite;
         protected int prop_type;
@@ -59,7 +59,7 @@ namespace FNPlugin
 
         public bool IsInfinite { get { return isInfinite; } }
 
-        public ElectricEnginePropellant(ConfigNode node) 
+        public ElectricEnginePropellant(ConfigNode node)
         {
             propellantname = node.GetValue("name");
 
@@ -104,6 +104,6 @@ namespace FNPlugin
 
             return propellant_list;
         }
-        
+
     }
 }

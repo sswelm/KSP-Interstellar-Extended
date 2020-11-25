@@ -110,7 +110,7 @@ namespace FNPlugin.Collectors
         AbundanceRequest _regolithRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
         {
             ResourceType = HarvestTypes.Planetary,
-            ResourceName = InterstellarResourcesConfiguration.Instance.Regolith,
+            ResourceName = ResourcesConfiguration.Instance.Regolith,
             BodyId = 1, // this will need to be updated before 'sending the request'
             Latitude = 0, // this will need to be updated before 'sending the request'
             Longitude = 0, // this will need to be updated before 'sending the request'
@@ -129,7 +129,7 @@ namespace FNPlugin.Collectors
             localStar = KopernicusHelper.GetLocalStar(vessel.mainBody);
 
             // gets density of the regolith resource
-            strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
+            strRegolithResourceName = ResourcesConfiguration.Instance.Regolith;
             dRegolithDensity = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(strRegolithResourceName).density;
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI part window so that it's less crowded

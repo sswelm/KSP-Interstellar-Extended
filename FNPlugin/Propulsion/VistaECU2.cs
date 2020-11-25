@@ -1,4 +1,4 @@
-﻿namespace FNPlugin
+﻿namespace FNPlugin.Propulsion
 {
     class ChemicalEngineTag : PartModule { }
 
@@ -20,7 +20,7 @@
         // Persistent setting
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_VistaECU2_SelectedIsp"), UI_FloatRange(stepIncrement = defaultSteps, maxValue = defaultMaxIsp, minValue = defaultMinIsp)]//Selected Isp
         public float localIsp = defaultMinIsp + (stepNumb * defaultSteps);
-       
+
         // settings
         [KSPField]
         public float neutronAbsorptionFractionAtMinIsp = 0.5f;
@@ -41,11 +41,11 @@
             set { _atmosphereCurve = value; }
         }
 
-        protected override bool ShowIspThrottle 
-        { 
-            get { return Fields["localIsp"].guiActive; } 
-            set { Fields["localIsp"].guiActive = value; } 
-        } 
+        protected override bool ShowIspThrottle
+        {
+            get { return Fields["localIsp"].guiActive; }
+            set { Fields["localIsp"].guiActive = value; }
+        }
 
         protected override float InitialGearRatio => initialGearRatio;
         protected override float SelectedIsp { get => localIsp; set { if (value > 0) { localIsp = value; } } }

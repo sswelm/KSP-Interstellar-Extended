@@ -199,7 +199,7 @@
     <Compile Include="Science\FNSeismicProbe.cs" />
     <Compile Include="Powermanagement\FNThermalPowerGenerator.cs" />
     <Compile Include="Refinery\InterstellarRefinery.cs" />
-    <Compile Include="InterstellarResourcesConfiguration.cs" />
+    <Compile Include="Resources\ResourcesConfiguration.cs" />
     <Compile Include="Science\InterstellarTelescope.cs" />
     <Compile Include="Science\ITelescopeController.cs" />
     <Compile Include="Refinery\Activity\NuclearFuelReprocessor.cs" />

@@ -243,28 +243,28 @@ namespace FNPlugin.Resources
         {
             try
             {
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.OxygenGas, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.ArgonLqd, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.UraniumNitride, "UraniumNitride", "UN", "UraniumNitride", "UraniumNitride");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, "UraniumTetrafluoride", "UraniumTerraFloride", "UF4", "UF");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Lithium6, "Lithium", "Lithium6", "Lithium-6", "LI");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Lithium7, "Lithium7", "Lithium-7", "LI7", "Li7");
-                AddResource(refBody, bodyCrustalComposition, InterstellarResourcesConfiguration.Instance.Plutonium238, "Plutionium", "Blutonium", "PU", "PU238");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Water, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.OxygenGas, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.ArgonLqd, "LqdArgon", "ArgonGas", "Argon", "Argon");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.UraniumNitride, "UraniumNitride", "UN", "UraniumNitride", "UraniumNitride");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.UraniumTetraflouride, "UraniumTetrafluoride", "UraniumTerraFloride", "UF4", "UF");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Lithium6, "Lithium", "Lithium6", "Lithium-6", "LI");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Lithium7, "Lithium7", "Lithium-7", "LI7", "Li7");
+                AddResource(refBody, bodyCrustalComposition, ResourcesConfiguration.Instance.Plutonium238, "Plutionium", "Blutonium", "PU", "PU238");
 
-                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyCrustalComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
-                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyCrustalComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
-                AddResource(InterstellarResourcesConfiguration.Instance.Hydrogen, "Hydrogen", refBody, bodyCrustalComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium" });
+                AddResource(ResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyCrustalComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(ResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyCrustalComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
+                AddResource(ResourcesConfiguration.Instance.HydrogenLqd, "Hydrogen", refBody, bodyCrustalComposition, new[] { ResourcesConfiguration.LqdHydrogen, "HydrogenGas", "Hydrogen", "H2", "Protium" });
             }
             catch (Exception ex)
             {
@@ -290,7 +290,7 @@ namespace FNPlugin.Resources
 
         private static void AddMissingResource(string resourname, int refBody, List<CrustalResource> bodyCrustalComposition)
         {
-            if (resourname == InterstellarResourcesConfiguration.Instance.Regolith)
+            if (resourname == ResourcesConfiguration.Instance.Regolith)
             {
                 Debug.Log("[KSPI]: AddMissingResource : Ignored Regolith");
                 return;
@@ -363,11 +363,11 @@ namespace FNPlugin.Resources
         private static void AddRaresAndIsotopesToCrustComposition(List<CrustalResource> bodyCrustalComposition)
         {
             // add heavywater based on water abundance in crust
-            if (!bodyCrustalComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.HeavyWater) && bodyCrustalComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water))
+            if (!bodyCrustalComposition.Any(m => m.ResourceName == ResourcesConfiguration.Instance.HeavyWater) && bodyCrustalComposition.Any(m => m.ResourceName == ResourcesConfiguration.Instance.Water))
             {
-                var water = bodyCrustalComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water);
+                var water = bodyCrustalComposition.FirstOrDefault(m => m.ResourceName == ResourcesConfiguration.Instance.Water);
                 var heavywaterAbundance = water.ResourceAbundance / 6420;
-                bodyCrustalComposition.Add(new CrustalResource(InterstellarResourcesConfiguration.Instance.HeavyWater, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater" }));
+                bodyCrustalComposition.Add(new CrustalResource(ResourcesConfiguration.Instance.HeavyWater, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater" }));
             }
         }
 

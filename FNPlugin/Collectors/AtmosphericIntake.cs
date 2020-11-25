@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Power;
 using System;
 using System.Linq;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin  
@@ -109,8 +110,8 @@ namespace FNPlugin
             var jetTech = Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
             jetTechBonus = 5 * (1 + (jetTech / 9.92992f));
 
-            _moduleResourceIntake = this.part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir);
-            _resourceAtmosphereDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
+            _moduleResourceIntake = this.part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == ResourcesConfiguration.Instance.IntakeOxygenAir);
+            _resourceAtmosphereDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.IntakeAtmosphere);
 
             if (_moduleResourceIntake == null)
                 Debug.LogWarning("[KSPI]: ModuleResourceIntake with IntakeAir is missing on " + part.partInfo.title);
@@ -127,7 +128,7 @@ namespace FNPlugin
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * 100));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * 100));
             resourceBuffers.Init(this.part);
         }
 
@@ -242,7 +243,7 @@ namespace FNPlugin
         {
             if (!storesResource)
             {
-                var _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
+                var _intake_atmosphere_resource = part.Resources[ResourcesConfiguration.Instance.IntakeAtmosphere];
                 if (_intake_atmosphere_resource == null)
                     return;
 

@@ -1,14 +1,14 @@
 using FNPlugin.Constants;
 using FNPlugin.Power;
-using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using FNPlugin.Resources;
+using FNPlugin.Wasteheat;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
-using FNPlugin.Wasteheat;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
     class InterstellarMagneticNozzleControllerFX : ResourceSuppliableModule, IFNEngineNoozle
     {
@@ -39,7 +39,7 @@ namespace FNPlugin
         [KSPField]
         public double minimumPropellantBuffer = 0.01;
         [KSPField]
-        public string propellantBufferResourceName = "LqdHydrogen";
+        public string propellantBufferResourceName = ResourcesConfiguration.LqdHydrogen;
         [KSPField]
         public string runningEffectName = String.Empty;
         [KSPField]
@@ -158,8 +158,8 @@ namespace FNPlugin
             throtleExponent = Math.Abs(Math.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
 
             simulatedThrottleFloatRange = Fields["simulatedThrottle"].uiControlEditor as UI_FloatRange;
-            simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;  
- 
+            simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;
+
             if (_attached_reactor == null)
             {
                 Debug.LogWarning("[KSPI]: InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
@@ -327,9 +327,9 @@ namespace FNPlugin
             partMass = part.mass;
 
             if (HighLogic.LoadedSceneIsFlight)
-                UpdateEngineStats(false); 
+                UpdateEngineStats(false);
             else
-                UpdateEngineStats(true);            
+                UpdateEngineStats(true);
         }
 
         // FixedUpdate is also called in the Editor
@@ -342,8 +342,8 @@ namespace FNPlugin
             UpdatePowerEffect();
         }
 
-        
-        public override void OnFixedUpdate() 
+
+        public override void OnFixedUpdate()
         {
             base.OnFixedUpdate();
 
@@ -387,7 +387,7 @@ namespace FNPlugin
 
                 var powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * powerThrustMultiplier;
                 var max_engine_thrust_at_max_isp = powerThrustModifier * _charged_particles_received / maximum_isp / GameConstants.STANDARD_GRAVITY;
-                
+
                 var calculatedConsumptionInTon = max_engine_thrust_at_max_isp / maximum_isp / GameConstants.STANDARD_GRAVITY;
 
                 UpdatePropellantBuffer(calculatedConsumptionInTon);
@@ -402,7 +402,7 @@ namespace FNPlugin
                 {
                     if (_attached_engine.isOperational && _attached_engine.currentThrottle > 0)
                     {
-                        wasteheatConsumption = _charged_particles_received > _previous_charged_particles_received 
+                        wasteheatConsumption = _charged_particles_received > _previous_charged_particles_received
                             ? _charged_particles_received + (_charged_particles_received - _previous_charged_particles_received)
                             : _charged_particles_received - (_previous_charged_particles_received - _charged_particles_received);
 
@@ -501,8 +501,8 @@ namespace FNPlugin
                     _attached_engine.status = Localizer.Format("#LOC_KSPIE_MagneticNozzleControllerFX_statu2");//"Insufficient Electricity"
                 else if (effectiveThrustRatio < 0.01 && vessel.atmDensity > 0)
                     _attached_engine.status = Localizer.Format("#LOC_KSPIE_MagneticNozzleControllerFX_statu3");//"Too dense atmospherere"
-            } 
-            else 
+            }
+            else
             {
                 _chargedParticleMaximumPercentageUsage = 0;
                 _attached_engine.maxFuelFlow = 0.0000000001f;
@@ -563,7 +563,7 @@ namespace FNPlugin
                 part.RequestResource(propellantBufferResourceName, -storageShortage);
         }
 
-        public override string GetInfo() 
+        public override string GetInfo()
         {
             return "";
         }

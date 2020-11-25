@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
@@ -64,10 +65,10 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _waterResourceName = InterstellarResourcesConfiguration.Instance.Water;
-            _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas;
-            _dioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd;
-            _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
+            _waterResourceName = ResourcesConfiguration.Instance.Water;
+            _monoxideResourceName = ResourcesConfiguration.Instance.CarbonMonoxideGas;
+            _dioxideResourceName = ResourcesConfiguration.Instance.CarbonDioxideLqd;
+            _hydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
 
             _waterDensity = PartResourceLibrary.Instance.GetDefinition(_waterResourceName).density;
             _dioxideDensity = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;
@@ -223,10 +224,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Water).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterGasShift_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.Water, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterGasShift_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.Water).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterGasShift_Postmsg") +" " + ResourcesConfiguration.Instance.Water, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.CarbonMonoxideGas).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterGasShift_Postmsg") + " " + ResourcesConfiguration.Instance.CarbonMonoxideGas, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

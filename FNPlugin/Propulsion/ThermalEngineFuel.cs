@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace FNPlugin.Propulsion
 {
     public class ThermalEngineFuel
     {
         private int _index;
-        
+
         private string _guiName;
 
         private bool _isLFO;
@@ -108,7 +105,7 @@ namespace FNPlugin.Propulsion
             }
 
             return true;
-        }        
+        }
 
     }
 }

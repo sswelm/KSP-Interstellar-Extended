@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
@@ -65,10 +66,10 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas;
-            _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
-            _methaneResourceName = InterstellarResourcesConfiguration.Instance.Methane;
-            _oxygenResourceName = InterstellarResourcesConfiguration.Instance.LqdOxygen;
+            _monoxideResourceName = ResourcesConfiguration.Instance.CarbonMonoxideGas;
+            _hydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
+            _methaneResourceName = ResourcesConfiguration.Instance.Methane;
+            _oxygenResourceName = ResourcesConfiguration.Instance.LqdOxygen;
 
             _monoxideDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
@@ -214,10 +215,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Methane).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MethanePyrolysis_PostMsg") +" " + InterstellarResourcesConfiguration.Instance.Methane, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MethanePyrolysis_PostMsg") +" " + InterstellarResourcesConfiguration.Instance.LqdOxygen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.Methane).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MethanePyrolysis_PostMsg") +" " + ResourcesConfiguration.Instance.Methane, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MethanePyrolysis_PostMsg") +" " + ResourcesConfiguration.Instance.LqdOxygen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

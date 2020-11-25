@@ -1,15 +1,16 @@
 using FNPlugin.Constants;
 using FNPlugin.Power;
+using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
-    class VistaEngineController : ResourceSuppliableModule, IUpgradeableModule 
+    class VistaEngineController : ResourceSuppliableModule, IUpgradeableModule
     {
         public const string GROUP = "VistaEngineController";
         public const string GROUP_TITLE = "#LOC_KSPIE_VistaEngineController_groupName";
@@ -53,7 +54,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float maxTemp = 3200;
 
-        
+
 
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
@@ -87,13 +88,13 @@ namespace FNPlugin
         protected ResourceBuffers resourceBuffers;
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_DeactivateRadSafety", active = true)]//Disable Radiation Safety
-        public void DeactivateRadSafety() 
+        public void DeactivateRadSafety()
         {
             rad_safety_features = false;
         }
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_VistaEngineController_ActivateRadSafety", active = false)]//Activate Radiation Safety
-        public void ActivateRadSafety() 
+        public void ActivateRadSafety()
         {
             rad_safety_features = true;
         }
@@ -122,7 +123,7 @@ namespace FNPlugin
 
         #endregion
 
-        public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
             part.maxTemp = maxTemp;
             part.thermalMass = 1;
@@ -136,8 +137,8 @@ namespace FNPlugin
 
             minISP = curEngineT.atmosphereCurve.Evaluate(0);
 
-            standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio;
-            standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
+            standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourcesConfiguration.Instance.LqdDeuterium).ratio;
+            standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourcesConfiguration.Instance.LqdTritium).ratio;
 
             // if we can upgrade, let's do so
             if (isupgraded)
@@ -155,12 +156,12 @@ namespace FNPlugin
                 isupgraded = true;
                 upgradePartModule();
             }
-            
+
             if (state != StartState.Editor)
                 part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
         }
 
-        public override void OnUpdate() 
+        public override void OnUpdate()
         {
             if (curEngineT == null) return;
 
@@ -168,7 +169,7 @@ namespace FNPlugin
             Events["ActivateRadSafety"].active = !rad_safety_features;
             Events["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
 
-            if (curEngineT.isOperational && !IsEnabled) 
+            if (curEngineT.isOperational && !IsEnabled)
             {
                 IsEnabled = true;
                 UnityEngine.Debug.Log("[KSPI]: VistaEngineController on " + part.name + " was Force Activated");
@@ -176,24 +177,24 @@ namespace FNPlugin
             }
 
             int kerbal_hazard_count = 0;
-            foreach (Vessel vess in FlightGlobals.Vessels) 
+            foreach (Vessel vess in FlightGlobals.Vessels)
             {
                 float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
                 if (distance < leathalDistance && vess != this.vessel)
                     kerbal_hazard_count += vess.GetCrewCount ();
             }
 
-            if (kerbal_hazard_count > 0) 
+            if (kerbal_hazard_count > 0)
             {
                 radhazard = true;
                 if (kerbal_hazard_count > 1)
                     radhazardstr = Localizer.Format("#LOC_KSPIE_VistaEngineController_kerbalhazardcount2", kerbal_hazard_count.ToString());//<<1>> Kerbals.
                 else
                     radhazardstr = Localizer.Format("#LOC_KSPIE_VistaEngineController_kerbalhazardcount1", kerbal_hazard_count.ToString());//<<1>> Kerbal.
-                
+
                 Fields["radhazardstr"].guiActive = true;
-            } 
-            else 
+            }
+            else
             {
                 Fields["radhazardstr"].guiActive = false;
                 radhazard = false;
@@ -244,7 +245,7 @@ namespace FNPlugin
             if (throttle > 0)
             {
                 // Calculate Fusion Ratio
-                var recievedPower = CheatOptions.InfiniteElectricity  
+                var recievedPower = CheatOptions.InfiniteElectricity
                     ? powerRequirement
                     : consumeFNResourcePerSecond(powerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
 
@@ -261,8 +262,8 @@ namespace FNPlugin
                 }
 
                 // change ratio propellants Hydrogen/Fusion
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate / throttle / throttle);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate / throttle / throttle);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate / throttle / throttle);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate / throttle / throttle);
 
                 // Update ISP
                 var newISP = new FloatCurve();
@@ -291,8 +292,8 @@ namespace FNPlugin
 				var maxFuelFlow = MaximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
 
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate);
             }
 
             radiatorPerformance = (float)Math.Max(1 - (float)(coldBathTemp / maxTempatureRadiators), 0.000001);
@@ -347,7 +348,7 @@ namespace FNPlugin
             }
         }
 
-        public override int getPowerPriority() 
+        public override int getPowerPriority()
         {
             return 3;
         }

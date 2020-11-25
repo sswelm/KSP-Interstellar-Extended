@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Collectors;
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -75,16 +76,16 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
-            _strHydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
-            _stDeuteriumResourceName = InterstellarResourcesConfiguration.Instance.DeuteriumGas;
-            _strLiquidHelium3ResourceName = InterstellarResourcesConfiguration.Instance.Helium3Gas;
-            _strLiquidHelium4ResourceName = InterstellarResourcesConfiguration.Instance.Helium4Gas;
-            _strMonoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMonoxideGas;
-            _strDioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxideLqd;
-            _strMethaneResourceName = InterstellarResourcesConfiguration.Instance.Methane;
-            _strNitrogenResourceName = InterstellarResourcesConfiguration.Instance.Nitrogen;
-            _strWaterResourceName = InterstellarResourcesConfiguration.Instance.Water;
+            _strRegolithResourceName = ResourcesConfiguration.Instance.Regolith;
+            _strHydrogenResourceName = ResourcesConfiguration.Instance.HydrogenLqd;
+            _stDeuteriumResourceName = ResourcesConfiguration.Instance.DeuteriumGas;
+            _strLiquidHelium3ResourceName = ResourcesConfiguration.Instance.Helium3Gas;
+            _strLiquidHelium4ResourceName = ResourcesConfiguration.Instance.Helium4Gas;
+            _strMonoxideResourceName = ResourcesConfiguration.Instance.CarbonMonoxideGas;
+            _strDioxideResourceName = ResourcesConfiguration.Instance.CarbonDioxideLqd;
+            _strMethaneResourceName = ResourcesConfiguration.Instance.Methane;
+            _strNitrogenResourceName = ResourcesConfiguration.Instance.Nitrogen;
+            _strWaterResourceName = ResourcesConfiguration.Instance.Water;
 
             // should add Nitrogen15 and Argon
 
@@ -357,7 +358,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Postmsg") +" " + InterstellarResourcesConfiguration.Instance.Regolith, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Postmsg") +" " + ResourcesConfiguration.Instance.Regolith, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

@@ -4,6 +4,7 @@ using FNPlugin.External;
 using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
@@ -1205,7 +1206,7 @@ namespace FNPlugin.Reactors
 
             InitializeKerbalismEmitter();
 
-            hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration._HYDROGEN_LIQUID);
+            hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.HydrogenLqd);
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
@@ -1297,9 +1298,9 @@ namespace FNPlugin.Reactors
                     _runningSound.Play();
             }
 
-            _tritiumDef = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.TritiumGas);
-            _heliumDef = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
-            _lithium6Def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
+            _tritiumDef = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.TritiumGas);
+            _heliumDef = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.Helium4Gas);
+            _lithium6Def = PartResourceLibrary.Instance.GetDefinition(ResourcesConfiguration.Instance.Lithium6);
 
             _tritiumDensity = _tritiumDef.density;
             _helium4Density = _heliumDef.density;
@@ -2074,7 +2075,7 @@ namespace FNPlugin.Reactors
                 return;
 
             // verify if there is any lithium6 present
-            var partResourceLithium6 = part.Resources[InterstellarResourcesConfiguration.Instance.Lithium6];
+            var partResourceLithium6 = part.Resources[ResourcesConfiguration.Instance.Lithium6];
             if (partResourceLithium6 == null)
                 return;
 

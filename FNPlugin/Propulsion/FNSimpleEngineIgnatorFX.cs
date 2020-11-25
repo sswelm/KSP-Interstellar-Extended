@@ -1,7 +1,7 @@
-﻿using System;
+﻿using KSP.Localization;
+using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin.Propulsion
 {

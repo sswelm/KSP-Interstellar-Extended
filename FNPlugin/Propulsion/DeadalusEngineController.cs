@@ -4,12 +4,10 @@ using FNPlugin.External;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using TweakScale;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
     [KSPModule("Fission Engine")]
     class FissionEngineController : DaedalusEngineController { }
@@ -18,7 +16,7 @@ namespace FNPlugin
     class FusionEngineController : DaedalusEngineController { }
 
     [KSPModule("Confinement Fusion Engine")]
-    class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule , IRescalable<DaedalusEngineController> 
+    class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule , IRescalable<DaedalusEngineController>
     {
         public const string GROUP = "FusionEngine";
         public const string GROUP_TITLE = "#LOC_KSPIE_FusionEngine_groupName";
@@ -323,14 +321,14 @@ namespace FNPlugin
         PartResourceDefinition fuelResourceDefinition3;
 
         const string LIGHTBLUE = "#7fdfffff";
-        
+
         bool radhazard;
         bool warpToReal;
         double engineIsp;
         double universalTime;
         double percentageFuelRemaining;
         int vesselChangedSIOCountdown;
-        int totalNumberOfGenerations;        
+        int totalNumberOfGenerations;
 
         private int _engineGenerationType;
         public GenerationType EngineGenerationType
@@ -340,13 +338,13 @@ namespace FNPlugin
         }
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_DeadalusEngineController_DeactivateRadSafety", active = true)]//Disable Radiation Safety
-        public void DeactivateRadSafety() 
+        public void DeactivateRadSafety()
         {
             rad_safety_features = false;
         }
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_DeadalusEngineController_ActivateRadSafety", active = false)]//Activate Radiation Safety
-        public void ActivateRadSafety() 
+        public void ActivateRadSafety()
         {
             rad_safety_features = true;
         }
@@ -524,7 +522,7 @@ namespace FNPlugin
 
         #endregion
 
-        public override void OnStart(StartState state) 
+        public override void OnStart(StartState state)
         {
             string[] resources_to_supply = { ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;
@@ -586,7 +584,7 @@ namespace FNPlugin
 
         private void UpdateFuelFactors()
         {
-            
+
             if (!string.IsNullOrEmpty(fuelName1))
                 fuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fuelName1);
             else if (!string.IsNullOrEmpty(fusionFuel1))
@@ -608,17 +606,17 @@ namespace FNPlugin
             if (fuelResourceDefinition1 != null)
             {
                 ratioSum += fuelRatio1;
-                densitySum += fuelResourceDefinition1.density * fuelRatio1; 
+                densitySum += fuelResourceDefinition1.density * fuelRatio1;
             }
             if (fuelResourceDefinition2 != null)
             {
                 ratioSum += fuelRatio2;
-                densitySum += fuelResourceDefinition2.density * fuelRatio2; 
+                densitySum += fuelResourceDefinition2.density * fuelRatio2;
             }
             if (fuelResourceDefinition3 != null)
             {
                 ratioSum += fuelRatio3;
-                densitySum += fuelResourceDefinition3.density * fuelRatio3; 
+                densitySum += fuelResourceDefinition3.density * fuelRatio3;
             }
 
             averageDensity = densitySum / ratioSum;
@@ -764,8 +762,8 @@ namespace FNPlugin
             if (kerbalHazardCount > 0)
             {
                 radhazard = true;
-                radhazardstr = Localizer.Format(kerbalHazardCount > 1 
-                    ? "#LOC_KSPIE_DeadalusEngineController_radhazardstr2" 
+                radhazardstr = Localizer.Format(kerbalHazardCount > 1
+                    ? "#LOC_KSPIE_DeadalusEngineController_radhazardstr2"
                     : "#LOC_KSPIE_DeadalusEngineController_radhazardstr1", kerbalHazardCount);
 
                 radhazardstrField.guiActive = true;
@@ -802,7 +800,7 @@ namespace FNPlugin
 
             timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
 
-            relativity = 1 / timeDilation;                
+            relativity = 1 / timeDilation;
         }
 
         public void FixedUpdate()
@@ -887,10 +885,10 @@ namespace FNPlugin
             {
                 warpToReal = true; // Set to true for transition to realtime
 
-                fusionRatio = CheatOptions.InfiniteElectricity 
-                    ? 1 
-                    : maximizeThrust 
-                        ? ProcessPowerAndWasteHeat(1) 
+                fusionRatio = CheatOptions.InfiniteElectricity
+                    ? 1
+                    : maximizeThrust
+                        ? ProcessPowerAndWasteHeat(1)
                         : ProcessPowerAndWasteHeat(storedThrotle);
 
                 if (fusionRatio <= 0.01)
@@ -955,7 +953,7 @@ namespace FNPlugin
 
             curEngineT.maxFuelFlow = Mathf.Max((float)calculatedFuelflow,  1e-10f);
             curEngineT.maxThrust =  Mathf.Max((float)effectiveMaxThrustInKiloNewton, 0.0001f);
-                
+
             massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
             thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * GameConstants.STANDARD_GRAVITY * 1e-12;
 
@@ -978,7 +976,7 @@ namespace FNPlugin
                 UnityEngine.Debug.Log("[KSPI]: " + "quit persistent heading: " + ratioHeadingVersusRequest);
                 return;
             }
-            
+
             timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
 
             var deltaVv = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * engineIsp, out demandMass);
@@ -1134,7 +1132,7 @@ namespace FNPlugin
             }
         }
 
-        public override int getPowerPriority() 
+        public override int getPowerPriority()
         {
             // when providing surplus power, we want to be one of the first to consume and therefore provide power
             return PowerProduction > PowerRequirement ? 1 : powerPriority;

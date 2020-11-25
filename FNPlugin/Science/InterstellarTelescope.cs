@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FNPlugin.Extensions;
 using FNPlugin.Constants;
+using FNPlugin.Resources;
 using KSP.Localization;
 
 namespace FNPlugin
@@ -237,7 +238,7 @@ namespace FNPlugin
 
         private void calculateTimeToHeliumDepletion()
         {
-            var helium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium4).ToList();
+            var helium_resources = part.GetConnectedResources(ResourcesConfiguration.Instance.LqdHelium4).ToList();
             var max_helium = helium_resources.Sum(hr => hr.maxAmount);
             var cur_helium = helium_resources.Sum(hr => hr.amount);
             var helium_fraction = (max_helium > 0) ? cur_helium / max_helium : cur_helium;

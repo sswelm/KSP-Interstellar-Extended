@@ -1,13 +1,13 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
-namespace FNPlugin 
+namespace FNPlugin.Propulsion
 {
-    class ModuleSabreHeating : PartModule 
+    class ModuleSabreHeating : PartModule
     {
         // State
         [KSPField(isPersistant = true)]
@@ -31,7 +31,7 @@ namespace FNPlugin
         double temp1;
         double temp2;
 
-        public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return;
 
@@ -39,7 +39,7 @@ namespace FNPlugin
             rapier_engine2 = part.FindModulesImplementing<ModuleEngines>().FirstOrDefault();
         }
 
-        public override void OnUpdate() 
+        public override void OnUpdate()
         {
             if (rapier_engine != null && rapier_engine.isOperational && !IsEnabled)
             {
@@ -82,7 +82,7 @@ namespace FNPlugin
                         }
                         else
                             part.temperature = temp1;
-                    } 
+                    }
                     else
                         part.temperature = 1;
                 }
@@ -99,13 +99,13 @@ namespace FNPlugin
                             part.temperature = 1;
                             return;
                         }
-                        else 
+                        else
                             part.temperature = temp2;
-                    } 
+                    }
                     else
                         part.temperature = 1;
                 }
-            } 
+            }
             catch (Exception ex)
             {
                 Debug.Log("[KSPI]: ModuleSabreHeating threw Exception in FixedUpdate(): " + ex);

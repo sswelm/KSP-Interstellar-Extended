@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using FNPlugin.Power;
 using KSP.Localization;
 using System;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin
@@ -119,10 +120,10 @@ namespace FNPlugin
             part.skinTemperature = storedTemp;
 
             // if electricCharge buffer is missing, add it.
-            if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.ElectricCharge))
+            if (!part.Resources.Contains(ResourcesConfiguration.Instance.ElectricCharge))
             {
                 var node = new ConfigNode("RESOURCE");
-                node.AddValue("name", InterstellarResourcesConfiguration.Instance.ElectricCharge);
+                node.AddValue("name", ResourcesConfiguration.Instance.ElectricCharge);
                 node.AddValue("maxAmount", requiresPower ? powerReqKW / 50 : 1);
                 node.AddValue("amount", requiresPower ? powerReqKW / 50 : 1);
                 part.AddResource(node);
@@ -131,7 +132,7 @@ namespace FNPlugin
             if (maintainElectricChargeBuffer)
             {
                 resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.ElectricCharge, 2));
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourcesConfiguration.Instance.ElectricCharge, 2));
                 resourceBuffers.Init(this.part);
             }
         }
@@ -141,7 +142,7 @@ namespace FNPlugin
             if (resourceBuffers == null)
                 return;
 
-            resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ElectricCharge, currentPowerUsage);
+            resourceBuffers.UpdateVariable(ResourcesConfiguration.Instance.ElectricCharge, currentPowerUsage);
             resourceBuffers.UpdateBuffers();
         }
 
