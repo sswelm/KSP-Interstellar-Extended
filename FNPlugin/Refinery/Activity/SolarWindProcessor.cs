@@ -100,7 +100,7 @@ namespace FNPlugin.Refinery.Activity
             _helium3GasResourceName = ResourceSettings._HELIUM3_GAS;
             _helium4LiquidResourceName = ResourceSettings._HELIUM4_LIQUID;
             _helium4GasResourceName = ResourceSettings.Config.Helium4Gas;
-            _monoxideLiquidResourceName = ResourceSettings._CARBONMONOXIDE_LIQUID;
+            _monoxideLiquidResourceName = ResourceSettings.Config.CarbonMonoxideLqd;
             _monoxideGasResourceName = ResourceSettings.Config.CarbonMonoxideGas;
             _nitrogenLiquidResourceName = ResourceSettings._NITROGEN_LIQUID;
             _nitrogenGasResourceName = ResourceSettings._NITROGEN_GAS;

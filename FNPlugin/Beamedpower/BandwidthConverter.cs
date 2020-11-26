@@ -13,7 +13,7 @@ namespace FNPlugin.Microwave
         public string bandwidthName = Localizer.Format("#LOC_KSPIE_BandwidthCoverter_missing");//"missing"
         [KSPField(groupName = BeamedPowerReceiver.GROUP, isPersistant = true, guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
         public double targetWavelength = 0;
-        
+
         [KSPField(groupName = BeamedPowerReceiver.GROUP, guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
         public double minimumWavelength = 0.001;
         [KSPField(groupName = BeamedPowerReceiver.GROUP, guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
@@ -123,11 +123,11 @@ namespace FNPlugin.Microwave
 
         public double TargetWavelength
         {
-            get 
+            get
             {
                 if (targetWavelength == 0)
                     targetWavelength = (minimumWavelength + maximumWavelength) / 2;
-                
+
                 return targetWavelength;
             }
         }

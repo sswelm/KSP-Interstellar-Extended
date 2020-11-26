@@ -238,7 +238,7 @@ namespace FNPlugin
 
         private void calculateTimeToHeliumDepletion()
         {
-            var helium_resources = part.GetConnectedResources(ResourceSettings.Config.LqdHelium4).ToList();
+            var helium_resources = part.GetConnectedResources(ResourceSettings.Config.Helium4Lqd).ToList();
             var max_helium = helium_resources.Sum(hr => hr.maxAmount);
             var cur_helium = helium_resources.Sum(hr => hr.amount);
             var helium_fraction = (max_helium > 0) ? cur_helium / max_helium : cur_helium;

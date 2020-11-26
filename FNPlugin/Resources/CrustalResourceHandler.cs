@@ -262,7 +262,7 @@ namespace FNPlugin.Resources
                 AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Lithium7, "Lithium7", "Lithium-7", "LI7", "Li7");
                 AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.Plutonium238, "Plutionium", "Blutonium", "PU", "PU238");
 
-                AddResource(ResourceSettings.Config.LqdHelium4, "Helium-4", refBody, bodyCrustalComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(ResourceSettings.Config.Helium4Lqd, "Helium-4", refBody, bodyCrustalComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
                 AddResource(ResourceSettings.Config.LqdHelium3, "Helium-3", refBody, bodyCrustalComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
                 AddResource(ResourceSettings.Config.HydrogenLqd, "Hydrogen", refBody, bodyCrustalComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium" });
             }

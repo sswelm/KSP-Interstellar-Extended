@@ -196,7 +196,7 @@ namespace FNPlugin.Resources
                 AddResource(refBody, bodyComposition, ResourceSettings.Config.Water, "LqdWater", "H2O", "Water", "Water");
                 AddResource(refBody, bodyComposition, ResourceSettings.Config.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
 
-                AddResource(ResourceSettings.Config.LqdHelium4, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(ResourceSettings.Config.Helium4Lqd, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
                 AddResource(ResourceSettings.Config.LqdHelium3, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
                 AddResource(ResourceSettings.Config.HydrogenLqd, "Hydrogen", refBody, bodyComposition, new[] { ResourceSettings.LqdHydrogen, "HydrogenGas", "Hydrogen", "H2", "Protium", "LqdProtium"});
             }

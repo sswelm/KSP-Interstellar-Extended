@@ -18,11 +18,15 @@ namespace FNPlugin.Resources
         public string Aluminium { get; private set; } = "Aluminium";
         public string AmmoniaLqd { get; private set; } = "LqdAmmonia";
         public string ArgonLqd { get; private set; } = "LqdArgon";
+        public string CarbonDioxideGas { get; private set; } = "CarbonDioxide";
         public string CarbonDioxideLqd { get; private set; } = "LqdCO2";
         public string CarbonMonoxideGas { get; private set; } = "CarbonMonoxide";
+        public string CarbonMonoxideLqd { get; private set; } = "LqdCO";
         public string DeuteriumLqd { get; private set; } = "LqdDeuterium";
         public string DeuteriumGas { get; private set; } = "Deuterium";
         public string Helium4Gas { get; private set; } = "Helium";
+        public string Helium4Lqd { get; private set; } = "LqdHelium";
+
         public string HydrogenLqd { get; private set; } = LqdHydrogen;
         public string HydrogenGas { get; private set; } = "Hydrogen";
         public string FluorineGas { get; private set; } = "Fluorine";
@@ -51,8 +55,6 @@ namespace FNPlugin.Resources
 
         #endregion
 
-        public const String _LIQUID_CO2 = "LqdCO2";
-        public const String _CARBONMONOXIDE_LIQUID = "LqdCO";
         public const String _CHLORINE = "Chlorine";
         public const String _LIQUID_METHANE = "LqdMethane";
         public const String _HELIUM4_LIQUID = "LqdHelium";
@@ -75,7 +77,6 @@ namespace FNPlugin.Resources
         public const String _LIQUID_TRITIUM = "LqdTritium";
         public const String _TRITIUM_GAS = "Tritium";
 
-        private String _liquid_helium4 = _HELIUM4_LIQUID;
         private String _helium3_gas = _HELIUM3_GAS;
         private String _liquid_helium3 = _HELIUM3_LIQUID;
         private String _sodium = "Sodium";
@@ -100,7 +101,7 @@ namespace FNPlugin.Resources
 
         // ToDo convert to auto property
 
-        public String LqdHelium4 { get { return _liquid_helium4; } }
+
         public String LqdHelium3 { get { return _liquid_helium3; } }
         public String Sodium { get { return _sodium; } }
         public String Helium3Gas { get { return _helium3_gas; } }
@@ -144,12 +145,21 @@ namespace FNPlugin.Resources
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Aluminium), value => Aluminium = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Alumina), value => Alumina = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(AmmoniaLqd), value => AmmoniaLqd = value);
+
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonDioxideGas), value => CarbonDioxideGas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonDioxideLqd), value => CarbonDioxideLqd = value);
+
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonMonoxideGas), value => CarbonMonoxideGas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonMonoxideLqd), value => CarbonMonoxideLqd = value);
+
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(DeuteriumGas), value => DeuteriumGas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(DeuteriumLqd), value => DeuteriumLqd = value);
+
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(FluorineGas), value => FluorineGas = value);
+
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Helium4Gas), value => Helium4Gas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Helium4Lqd), value => Helium4Lqd = value);
+
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(HydrogenLqd), value => HydrogenLqd = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(HydrogenGas), value => HydrogenGas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Lithium6), value => Lithium6 = value);
@@ -176,16 +186,17 @@ namespace FNPlugin.Resources
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(VacuumPlasma), value => VacuumPlasma = value);
 
 
+
                 if (pluginSettings.HasValue("Helium3GasResourceName"))
                 {
                     _helium3_gas = pluginSettings.GetValue("Helium3GasResourceName");
                     Debug.Log("[KSPI]: Helium3 Gas resource name set to " + Helium3Gas);
                 }
-                if (pluginSettings.HasValue("HeliumResourceName"))
-                {
-                    _liquid_helium4 = pluginSettings.GetValue("HeliumResourceName");
-                    Debug.Log("[KSPI]: Helium4 Liquid resource name set to " + LqdHelium4);
-                }
+                //if (pluginSettings.HasValue("HeliumResourceName"))
+                //{
+                //    _liquid_helium4 = pluginSettings.GetValue("HeliumResourceName");
+                //    Debug.Log("[KSPI]: Helium4 Liquid resource name set to " + LqdHelium4);
+                //}
                 if (pluginSettings.HasValue("Helium3ResourceName"))
                 {
                     _liquid_helium3 = pluginSettings.GetValue("Helium3ResourceName");

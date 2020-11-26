@@ -252,7 +252,7 @@ namespace FNPlugin.Collectors
 
             _heliumRequirementTonPerSecond = heliumRequirement * 1e-6 / GameConstants.SECONDS_IN_HOUR ;
             _helium4GasResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Helium4Gas);
-            _lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.LqdHelium4);
+            _lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Helium4Lqd);
             _solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.SolarWind);
             _hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd);
 

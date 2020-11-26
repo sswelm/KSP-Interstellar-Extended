@@ -202,8 +202,8 @@ namespace FNPlugin.Refinery.Activity
             _ammoniaResourceName = ResourceSettings.Config.AmmoniaLqd;
             _argonResourceName = ResourceSettings.Config.ArgonLqd;
             _chlorineResourceName = ResourceSettings._CHLORINE;
-            _dioxideResourceName = ResourceSettings._LIQUID_CO2;
-            _monoxideResourceName = ResourceSettings._CARBONMONOXIDE_LIQUID;
+            _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
+            _monoxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
             _helium3ResourceName = ResourceSettings._HELIUM3_LIQUID;
             _helium4ResourceName = ResourceSettings._HELIUM4_LIQUID;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
