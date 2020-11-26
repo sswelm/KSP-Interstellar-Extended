@@ -512,10 +512,7 @@ namespace FNPlugin
         public static string GetTechTitleById(string id)
         {
             if (string.IsNullOrEmpty(id))
-            {
-                Debug.LogError("[KSPI]: GetTechTitleById - id is null");
                 return id;
-            }
 
             var result = ResearchAndDevelopment.GetTechnologyTitle(id);
             if (!string.IsNullOrEmpty(result))
@@ -525,11 +522,10 @@ namespace FNPlugin
             {
                 if (partUpgrade != null && !string.IsNullOrEmpty(partUpgrade.techRequired))
                 {
-                    Debug.LogError("[KSPI]: GetTechTitleById - id is null");
                     if (RDTechByName.TryGetValue(partUpgrade.techRequired, out var upgradeTechNode))
                         return upgradeTechNode?.title;
                 }
-                else if (partUpgrade != null)
+                else if (partUpgrade == null)
                     Debug.LogError("[KSPI]: GetTechTitleById - partUpgrade is null");
                 else
                     Debug.LogError("[KSPI]: GetTechTitleById - partUpgrade.techRequired is null");
