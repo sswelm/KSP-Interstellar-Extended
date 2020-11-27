@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin 
+namespace FNPlugin
 {
     class FNModulePreecooler : PartModule
     {
@@ -20,7 +20,7 @@ namespace FNPlugin
         AtmosphericIntake attachedIntake;
         List<AtmosphericIntake> radialAttachedIntakes = new List<AtmosphericIntake>();
 
-        public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
             Debug.Log("[KSPI]: FNModulePreecooler - Onstart start search for Air Intake module to cool");
 
@@ -87,7 +87,7 @@ namespace FNPlugin
                         }
 
                         if (attachNode.attachedPart.FindModulesImplementing<FNModulePreecooler>().Any()) continue;
-                        
+
                         foreach (var subAttachNode in attachNode.attachedPart.attachNodes.Where(a => a.attachedPart != null))
                         {
                             Debug.Log("[KSPI]: FNModulePreecooler - look for Air intakes in part " + subAttachNode.attachedPart.name);

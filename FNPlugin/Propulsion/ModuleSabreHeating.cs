@@ -26,10 +26,10 @@ namespace FNPlugin.Propulsion
         ModuleEngines rapier_engine2;
 
         // Help
-        double pre_coolers_active;
-        double intakes_open_area;
-        double temp1;
-        double temp2;
+        double _preCoolersActiveArea;
+        double _openIntakesArea;
+        double _temp1;
+        double _temp2;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -62,18 +62,21 @@ namespace FNPlugin.Propulsion
 
             try
             {
-                pre_coolers_active = vessel.FindPartModulesImplementing<FNModulePreecooler>().Where(prc => prc.functional).Sum(prc => prc.area);
-                intakes_open_area = vessel.FindPartModulesImplementing<AtmosphericIntake>().Where(mre => mre.intakeOpen).Sum(mre => mre.area);
+                var activePreCoolers =  vessel.FindPartModulesImplementing<FNModulePreecooler>().Where(prc => prc.functional).ToList();
+                _preCoolersActiveArea = activePreCoolers.Any() ? activePreCoolers.Sum(prc => prc.area) : 0;
 
-                missingPrecoolerRatio = intakes_open_area > 0 ? Math.Min(1, Math.Max(0, Math.Pow((intakes_open_area - pre_coolers_active) / intakes_open_area, missingPrecoolerProportionExponent))) : 0;
+                var openIntakes = vessel.FindPartModulesImplementing<AtmosphericIntake>().Where(mre => mre.intakeOpen).ToList();
+                _openIntakesArea = openIntakes.Any()  ? openIntakes.Sum(mre => mre.area) : 0;
+
+                missingPrecoolerRatio = _openIntakesArea > 0 ? Math.Min(1, Math.Max(0, Math.Pow(Math.Max(0, _openIntakesArea - _preCoolersActiveArea) / _openIntakesArea, missingPrecoolerProportionExponent))) : 0;
                 missingPrecoolerRatio = missingPrecoolerRatio.IsInfinityOrNaN() ? 1 : missingPrecoolerRatio;
 
                 if (rapier_engine != null && vessel.atmDensity > 0)
                 {
                     if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0 && rapier_engine.useVelCurve)
                     {
-                        temp1 = Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 10.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * missingPrecoolerRatio, 1);
-                        if (temp1 >= (part.maxTemp - 10))
+                        _temp1 = Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 10.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * missingPrecoolerRatio, 1);
+                        if (_temp1 >= (part.maxTemp - 10))
                         {
                             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ModuleSabreHeating_PostMsg"), 5.0f, ScreenMessageStyle.UPPER_CENTER);//"Engine Shutdown: Catastrophic overheating was imminent!"
                             rapier_engine.Shutdown();
@@ -81,7 +84,7 @@ namespace FNPlugin.Propulsion
                             return;
                         }
                         else
-                            part.temperature = temp1;
+                            part.temperature = _temp1;
                     }
                     else
                         part.temperature = 1;
@@ -91,16 +94,15 @@ namespace FNPlugin.Propulsion
                 {
                     if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0 && rapier_engine2.useVelCurve)
                     {
-                        temp2 = Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * missingPrecoolerRatio, 1);
-                        if (temp2 >= (part.maxTemp - 10))
+                        _temp2 = Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * missingPrecoolerRatio, 1);
+                        if (_temp2 >= (part.maxTemp - 10))
                         {
                             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ModuleSabreHeating_PostMsg"), 5.0f, ScreenMessageStyle.UPPER_CENTER);//"Engine Shutdown: Catastrophic overheating was imminent!"
                             rapier_engine2.Shutdown();
                             part.temperature = 1;
-                            return;
                         }
                         else
-                            part.temperature = temp2;
+                            part.temperature = _temp2;
                     }
                     else
                         part.temperature = 1;
