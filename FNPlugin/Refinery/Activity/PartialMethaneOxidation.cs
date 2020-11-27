@@ -71,8 +71,8 @@ namespace FNPlugin.Refinery.Activity
 
             _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
-            _methaneResourceName = ResourceSettings.Config.Methane;
-            _oxygenResourceName = ResourceSettings.Config.LqdOxygen;
+            _methaneResourceName = ResourceSettings.Config.MethaneLqd;
+            _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
 
             _monoxideDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
@@ -216,10 +216,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(ResourceSettings.Config.Methane).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PartialOxiMethane_Postmsg") + " " + ResourceSettings.Config.Methane, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(ResourceSettings.Config.LqdOxygen).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PartialOxiMethane_Postmsg") + " " + ResourceSettings.Config.LqdOxygen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.MethaneLqd).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PartialOxiMethane_Postmsg") + " " + ResourceSettings.Config.MethaneLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.OxygenLqd).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_PartialOxiMethane_Postmsg") + " " + ResourceSettings.Config.OxygenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

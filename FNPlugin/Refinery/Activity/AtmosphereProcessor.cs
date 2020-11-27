@@ -201,22 +201,22 @@ namespace FNPlugin.Refinery.Activity
 
             _ammoniaResourceName = ResourceSettings.Config.AmmoniaLqd;
             _argonResourceName = ResourceSettings.Config.ArgonLqd;
-            _chlorineResourceName = ResourceSettings._CHLORINE;
+            _chlorineResourceName = ResourceSettings.Config.ChlorineGas;
             _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
             _monoxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
-            _helium3ResourceName = ResourceSettings._HELIUM3_LIQUID;
-            _helium4ResourceName = ResourceSettings._HELIUM4_LIQUID;
+            _helium3ResourceName = ResourceSettings.Config.Helium3Lqd;
+            _helium4ResourceName = ResourceSettings.Config.Helium4Lqd;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
-            _methaneResourceName = ResourceSettings._LIQUID_METHANE;
-            _neonResourceName = ResourceSettings._NEON_LIQUID;
-            _nitrogenResourceName = ResourceSettings._NITROGEN_LIQUID;
-            _nitrogen15ResourceName = ResourceSettings._LIQUID_NITROGEN_15;
-            _oxygenResourceName = ResourceSettings._LIQUID_OXYGEN;
-            _waterResourceName = ResourceSettings._LIQUID_WATER;
+            _methaneResourceName = ResourceSettings.Config.MethaneLqd;
+            _neonResourceName = ResourceSettings.Config.NeonLqd;
+            _nitrogenResourceName = ResourceSettings.Config.NitrogenLqd;
+            _nitrogen15ResourceName = ResourceSettings.Config.Nitrogen15Lqd;
+            _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
+            _waterResourceName = ResourceSettings.Config.WaterPure;
             _heavyWaterResourceName = ResourceSettings._LIQUID_HEAVYWATER;
             _xenonResourceName = ResourceSettings._LIQUID_XENON;
             _deuteriumResourceName = ResourceSettings.Config.DeuteriumLqd;
-            _kryptonResourceName = ResourceSettings._LIQUID_KRYPTON;
+            _kryptonResourceName = ResourceSettings.Config.KryptonLqd;
 
             _sodiumResourceName = ResourceSettings.Config.Sodium;
 

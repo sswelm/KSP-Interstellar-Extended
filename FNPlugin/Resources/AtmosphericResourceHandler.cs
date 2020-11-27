@@ -54,7 +54,6 @@ namespace FNPlugin.Resources
 
             try
             {
-
                 foreach (var atmosphericResourcePack in GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI"))
                 {
                     Debug.Log("[KSPI]: Loading atmospheric data from pack: " + (atmosphericResourcePack.HasValue("name") ? atmosphericResourcePack.GetValue("name") : "unknown pack"));
@@ -293,23 +292,23 @@ namespace FNPlugin.Resources
                 AddResource(ResourceSettings.Config.ArgonLqd, "Argon", body, bodyComposition, new[] { "LqdArgon", "ArgonGas", "Argon", "Ar" }, 1);
                 AddResource(ResourceSettings.Config.CarbonDioxideLqd, "CarbonDioxide", body, bodyComposition, new[] { "LqdCO2", "CarbonDioxideGas", "CarbonDioxide", "CO2" }, 1);
                 AddResource(ResourceSettings.Config.CarbonMonoxideLqd, "CarbonMonoxide", body, bodyComposition, new[] { "LqdCO", "CarbonMonoxideGas", "CarbonMonoxide", "CO", }, 1);
-                AddResource(ResourceSettings._CHLORINE, "Chlorine", body, bodyComposition, new[] { "Chlorine", "ChlorineGas", "LqdChlorine", "Cl", }, 1);
+                AddResource(ResourceSettings.Config.ChlorineGas, "Chlorine", body, bodyComposition, new[] { "Chlorine", "ChlorineGas", "LqdChlorine", "Cl", }, 1);
                 AddResource(ResourceSettings._LIQUID_HEAVYWATER, "HeavyWater", body, bodyComposition, new[] { "DeuteriumWater", "HeavyWater", "D2O" }, 1);
-                AddResource(ResourceSettings._LIQUID_KRYPTON, "Krypton", body, bodyComposition, new[] { "LqdKrypton", "KryptonGas", "Krypton" , "Kr"}, 1);
-                AddResource(ResourceSettings._LIQUID_METHANE, "Methane", body, bodyComposition, new[] { "LqdMethane", "MethaneGas", "Methane", "CH4" }, 1);
-                AddResource(ResourceSettings._NITROGEN_LIQUID, "Nitrogen", body, bodyComposition, new[] { "LqdNitrogen", "NitrogenGas", "Nitrogen", "N", "N2" }, 1);
-                AddResource(ResourceSettings._NEON_LIQUID, "Neon", body, bodyComposition, new[] { "LqdNeon", "NeonGas", "Neon", "Ne" }, 1);
-                AddResource(ResourceSettings._LIQUID_OXYGEN, "Oxygen", body, bodyComposition, new[] { "LqdOxygen", "OxygenGas", "Oxygen", "O", "O2" }, 1);
-                AddResource(ResourceSettings._LIQUID_WATER, "LqdWater", body, bodyComposition, new[] { "LqdWater", "Water", "WaterGas", "DihydrogenMonoxide", "H2O", "DHMO" }, 1);
+                AddResource(ResourceSettings.Config.KryptonLqd, "Krypton", body, bodyComposition, new[] { "LqdKrypton", "KryptonGas", "Krypton" , "Kr"}, 1);
+                AddResource(ResourceSettings.Config.MethaneLqd, "Methane", body, bodyComposition, new[] { "LqdMethane", "MethaneGas", "Methane", "CH4" }, 1);
+                AddResource(ResourceSettings.Config.NitrogenLqd, "Nitrogen", body, bodyComposition, new[] { "LqdNitrogen", "NitrogenGas", "Nitrogen", "N", "N2" }, 1);
+                AddResource(ResourceSettings.Config.NeonLqd, "Neon", body, bodyComposition, new[] { "LqdNeon", "NeonGas", "Neon", "Ne" }, 1);
+                AddResource(ResourceSettings.Config.OxygenLqd, "Oxygen", body, bodyComposition, new[] { "LqdOxygen", "OxygenGas", "Oxygen", "O", "O2" }, 1);
+                AddResource(ResourceSettings.Config.WaterPure, "LqdWater", body, bodyComposition, new[] { "LqdWater", "Water", "WaterGas", "DihydrogenMonoxide", "H2O", "DHMO" }, 1);
                 AddResource(ResourceSettings._LIQUID_XENON, "Xenon", body, bodyComposition, new[] { "LqdXenon", "XenonGas", "Xenon", "Xe" }, 1);
-                AddResource(ResourceSettings._SODIUM, "Sodium", body, bodyComposition, new[] { "LqdSodium", "SodiumGas", "Sodium", "Natrium", "Na" }, 1);
+                AddResource(ResourceSettings.Config.Sodium, "Sodium", body, bodyComposition, new[] { "LqdSodium", "SodiumGas", "Sodium", "Natrium", "Na" }, 1);
                 AddResource(ResourceSettings.Config.Lithium7, "Lithium7", body, bodyComposition, new[] { "Lithium", "LithiumGas", "Lithium7", "Li", "Li7" }, 1);
                 AddResource(ResourceSettings.Config.Lithium6, "Lithium6", body, bodyComposition, new[] { "Lithium6", "Lithium-6", "Li6" }, 1);
                 AddResource(ResourceSettings.Config.HydrogenLqd , "Hydrogen", body, bodyComposition, new[] { ResourceSettings.LqdHydrogen, "HydrogenGas", "Hydrogen", "LiquidHydrogen", "H2", "Protium", "LqdProtium", "H" }, 1);
-                AddResource(ResourceSettings._HELIUM4_LIQUID, "Helium-4", body, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas", "He" }, 1);
+                AddResource(ResourceSettings.Config.Helium4Lqd, "Helium-4", body, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas", "He" }, 1);
 
                 // exotic isotopes
-                AddResource(ResourceSettings._HELIUM3_LIQUID, "Helium-3", body, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3", "LqdHelium3" }, 5);
+                AddResource(ResourceSettings.Config.Helium3Lqd, "Helium-3", body, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3", "LqdHelium3" }, 5);
                 AddResource(ResourceSettings.Config.DeuteriumLqd, "Deuterium", body, bodyComposition, new[] { "LqdDeuterium", "DeuteriumGas", "Deuterium", "D" }, 5);
                 AddResource(ResourceSettings._LIQUID_TRITIUM, "Tritium", body, bodyComposition, new[] { "LqdTritium", "TritiumGas", "Tritium", "T" }, 5);
             }
@@ -383,92 +382,121 @@ namespace FNPlugin.Resources
         {
             // add heavyWater based on water abundance in atmosphere
             if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings._LIQUID_HEAVYWATER) &&
-                (bodyAtmosphericComposition.TryGetValue("Water", out var waterResource) ||
-                 bodyAtmosphericComposition.TryGetValue("LqdWater", out waterResource)))
+                (bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.WaterPure, out var waterResource) ||
+                 bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.WaterRaw, out waterResource)))
             {
                 var heavyWaterAbundance = waterResource.ResourceAbundance / 6420;
-                bodyAtmosphericComposition.Add(ResourceSettings._LIQUID_HEAVYWATER,
-                    new AtmosphericResource(ResourceSettings._LIQUID_HEAVYWATER, heavyWaterAbundance,
-                        ResourceSettings._LIQUID_HEAVYWATER));
+                bodyAtmosphericComposition.Add(
+                    ResourceSettings._LIQUID_HEAVYWATER,
+                    new AtmosphericResource(ResourceSettings._LIQUID_HEAVYWATER, heavyWaterAbundance, ResourceSettings._LIQUID_HEAVYWATER));
             }
         }
 
         private static void SupplementWithHelium(IDictionary<string, AtmosphericResource> bodyAtmosphericComposition)
         {
             // add helium4 comparable to earth
-            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings._HELIUM4_LIQUID))
+            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.Helium4Lqd))
             {
                 const double helium4Abundance = 5.2e-6;
                 Debug.Log("[KSPI]: Added helium-4 to atmosphere with abundance " + helium4Abundance);
-                bodyAtmosphericComposition.Add(ResourceSettings._HELIUM4_LIQUID,
-                    new AtmosphericResource(ResourceSettings._HELIUM4_LIQUID, helium4Abundance, "Helium-4"));
+                bodyAtmosphericComposition.Add(ResourceSettings.Config.Helium4Lqd,
+                    new AtmosphericResource(ResourceSettings.Config.Helium4Lqd, helium4Abundance, "Helium-4"));
             }
             else
+            {
                 Debug.Log("[KSPI]: Helium is already present in atmosphere specification at " +
-                          bodyAtmosphericComposition[ResourceSettings._HELIUM4_LIQUID].ResourceAbundance);
+                          bodyAtmosphericComposition[ResourceSettings.Config.Helium4Lqd].ResourceAbundance);
+            }
         }
 
         private static void SupplementWithHelium3(IDictionary<string, AtmosphericResource> bodyAtmosphericComposition, CelestialBody body)
         {
-            // if helium3 is undefined, but helium is, derive it
-            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings._HELIUM3_LIQUID) &&
-                bodyAtmosphericComposition.TryGetValue(ResourceSettings._HELIUM4_LIQUID, out var helium))
+            // if helium3 is undefined, but liquid helium is, derive it
+            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.Helium3Lqd) &&
+                bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.Helium4Lqd, out var heliumLqd))
             {
                 var helium3Abundance = body.GetPressure(0) > 1000
-                    ? helium.ResourceAbundance * 0.001
-                    : helium.ResourceAbundance * 1.38e-6;
+                    ? heliumLqd.ResourceAbundance * 0.001
+                    : heliumLqd.ResourceAbundance * 1.38e-6;
 
                 Debug.Log("[KSPI]: Added helium-3 to atmosphere either abundance " + helium3Abundance);
-                bodyAtmosphericComposition.Add(ResourceSettings._HELIUM3_LIQUID,
-                    new AtmosphericResource(ResourceSettings._HELIUM3_LIQUID, helium3Abundance, "Helium-3"));
+                bodyAtmosphericComposition.Add(ResourceSettings.Config.Helium3Lqd,
+                    new AtmosphericResource(ResourceSettings.Config.Helium3Lqd, helium3Abundance, "Helium-3"));
             }
-            else if (bodyAtmosphericComposition.ContainsKey(ResourceSettings._HELIUM3_LIQUID))
+            // if helium3 is undefined, but helium gas is, derive it
+            else if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.Helium3Lqd) &&
+                bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.Helium4Gas, out var heliumGas))
+            {
+                var helium3Abundance = body.GetPressure(0) > 1000
+                    ? heliumGas.ResourceAbundance * 0.001
+                    : heliumGas.ResourceAbundance * 1.38e-6;
+
+                Debug.Log("[KSPI]: Added helium-3 to atmosphere either abundance " + helium3Abundance);
+                bodyAtmosphericComposition.Add(ResourceSettings.Config.Helium3Lqd,
+                    new AtmosphericResource(ResourceSettings.Config.Helium3Lqd, helium3Abundance, "Helium-3"));
+            }
+            else if (bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.Helium3Lqd))
+            {
                 Debug.Log("[KSPI]: Helium-3 is already present in atmosphere specification at " +
-                          bodyAtmosphericComposition[ResourceSettings._HELIUM3_LIQUID].ResourceAbundance);
+                          bodyAtmosphericComposition[ResourceSettings.Config.Helium3Lqd].ResourceAbundance);
+            }
             else
+            {
                 Debug.Log("[KSPI]: No Helium is present in atmosphere specification, helium-4 will not be added");
+            }
         }
 
         private static void SupplementWithNitrogen15(IDictionary<string, AtmosphericResource> bodyAtmosphericComposition)
         {
             // if nitrogen-15 is undefined, but nitrogen is, derive it
-            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings._LIQUID_NITROGEN_15) &&
-                bodyAtmosphericComposition.TryGetValue(ResourceSettings._NITROGEN_LIQUID, out var nitrogen))
+            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.Nitrogen15Lqd) &&
+                bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.NitrogenLqd, out var nitrogenLqd))
             {
-                var nitrogen15Abundance = nitrogen.ResourceAbundance * 0.00364;
+                var nitrogen15Abundance = nitrogenLqd.ResourceAbundance * 0.00364;
                 Debug.Log("[KSPI]: Added nitrogen-15 to atmosphere with abundance " + nitrogen15Abundance);
-                bodyAtmosphericComposition.Add(ResourceSettings._LIQUID_NITROGEN_15,
-                    new AtmosphericResource(ResourceSettings._LIQUID_NITROGEN_15, nitrogen15Abundance,
+                bodyAtmosphericComposition.Add(ResourceSettings.Config.Nitrogen15Lqd,
+                    new AtmosphericResource(ResourceSettings.Config.Nitrogen15Lqd, nitrogen15Abundance,
                         "Nitrogen-15"));
             }
-            else if (bodyAtmosphericComposition.ContainsKey(ResourceSettings._LIQUID_NITROGEN_15))
+            // if nitrogen-15 is undefined, but nitrogen is, derive it
+            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.Nitrogen15Lqd) &&
+                bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.NitrogenGas, out var nitrogenGas))
+            {
+                var nitrogen15Abundance = nitrogenGas.ResourceAbundance * 0.00364;
+                Debug.Log("[KSPI]: Added nitrogen-15 to atmosphere with abundance " + nitrogen15Abundance);
+                bodyAtmosphericComposition.Add(ResourceSettings.Config.Nitrogen15Lqd,
+                    new AtmosphericResource(ResourceSettings.Config.Nitrogen15Lqd, nitrogen15Abundance,
+                        "Nitrogen-15"));
+            }
+            else if (bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.Nitrogen15Lqd))
+            {
                 Debug.Log("[KSPI]: Nitrogen-15 is already present in atmosphere specification at " +
-                          bodyAtmosphericComposition[ResourceSettings._LIQUID_NITROGEN_15].ResourceAbundance);
+                          bodyAtmosphericComposition[ResourceSettings.Config.Nitrogen15Lqd].ResourceAbundance);
+            }
             else
+            {
                 Debug.Log("[KSPI]: No Nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
+            }
         }
 
         private static void AddDeuteriumWhenMissing(IDictionary<string, AtmosphericResource> bodyAtmosphericComposition)
         {
-            // if deuterium is undefined, but hydrogen is, derive it
-            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.DeuteriumGas)
-                && bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.HydrogenGas,
-                    out var hydrogenGas))
-            {
-                var deuteriumAbundance = hydrogenGas.ResourceAbundance / 6420;
-                Debug.Log("[KSPI]: Added deuterium to atmosphere with abundance " + deuteriumAbundance);
-                bodyAtmosphericComposition.Add(ResourceSettings.Config.DeuteriumLqd,
-                    new AtmosphericResource(ResourceSettings.Config.DeuteriumLqd, deuteriumAbundance, "Deuterium"));
-            }
-            else if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.DeuteriumLqd)
-                     && bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.HydrogenLqd,
-                         out var hydrogenLqd))
+            if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.DeuteriumLqd) &&
+                bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.HydrogenLqd, out var hydrogenLqd))
             {
                 var deuteriumAbundance = hydrogenLqd.ResourceAbundance / 6420;
                 Debug.Log("[KSPI]: Added deuterium to atmosphere with abundance " + deuteriumAbundance);
                 bodyAtmosphericComposition.Add(ResourceSettings.Config.DeuteriumLqd,
                     new AtmosphericResource(ResourceSettings.Config.DeuteriumLqd, deuteriumAbundance,
                         "Deuterium"));
+            }
+            else if (!bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.DeuteriumGas) &&
+                     bodyAtmosphericComposition.TryGetValue(ResourceSettings.Config.HydrogenGas, out var hydrogenGas))
+            {
+                var deuteriumAbundance = hydrogenGas.ResourceAbundance / 6420;
+                Debug.Log("[KSPI]: Added deuterium to atmosphere with abundance " + deuteriumAbundance);
+                bodyAtmosphericComposition.Add(ResourceSettings.Config.DeuteriumLqd,
+                    new AtmosphericResource(ResourceSettings.Config.DeuteriumLqd, deuteriumAbundance, "Deuterium"));
             }
             else if (bodyAtmosphericComposition.ContainsKey(ResourceSettings.Config.DeuteriumLqd))
             {

@@ -65,7 +65,7 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _waterResourceName = ResourceSettings.Config.Water;
+            _waterResourceName = ResourceSettings.Config.WaterPure;
             _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
             _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
@@ -224,8 +224,8 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(ResourceSettings.Config.Water).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterGasShift_Postmsg") +" " + ResourceSettings.Config.Water, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.WaterPure).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterGasShift_Postmsg") +" " + ResourceSettings.Config.WaterPure, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
             if (!_part.GetConnectedResources(ResourceSettings.Config.CarbonMonoxideGas).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterGasShift_Postmsg") + " " + ResourceSettings.Config.CarbonMonoxideGas, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

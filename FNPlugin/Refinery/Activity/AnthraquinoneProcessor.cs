@@ -49,7 +49,7 @@ namespace FNPlugin.Refinery.Activity
         public bool HasActivityRequirements()
         {
             return _part.GetConnectedResources(ResourceSettings.Config.HydrogenLqd).Any(rs => rs.amount > 0) &
-                _part.GetConnectedResources(ResourceSettings.Config.LqdOxygen).Any(rs => rs.amount > 0);
+                _part.GetConnectedResources(ResourceSettings.Config.OxygenLqd).Any(rs => rs.amount > 0);
         }
 
         public string Status => string.Copy(_status);
@@ -59,12 +59,12 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _oxygenResourceName = ResourceSettings.Config.LqdOxygen;
+            _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
             _hydrogenPeroxideResourceName = ResourceSettings.Config.HydrogenPeroxide;
 
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.LqdOxygen).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenLqd).density;
             _hydrogenPeroxideDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenPeroxide).density;
         }
 
@@ -183,8 +183,8 @@ namespace FNPlugin.Refinery.Activity
         {
             if (!_part.GetConnectedResources(ResourceSettings.Config.HydrogenLqd).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + ResourceSettings.Config.HydrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(ResourceSettings.Config.LqdOxygen).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + ResourceSettings.Config.LqdOxygen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(ResourceSettings.Config.OxygenLqd).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + ResourceSettings.Config.OxygenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

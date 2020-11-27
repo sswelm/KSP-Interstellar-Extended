@@ -66,7 +66,7 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _waterResourceName = ResourceSettings.Config.Water;
+            _waterResourceName = ResourceSettings.Config.WaterPure;
             _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
             _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;

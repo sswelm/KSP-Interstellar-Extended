@@ -56,7 +56,7 @@ namespace FNPlugin.Refinery.Activity
             _vessel = localPart.vessel;
 
             _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
-            _oxygenResourceName = ResourceSettings.Config.LqdOxygen;
+            _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
             _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
 
             _dioxideDensity = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;

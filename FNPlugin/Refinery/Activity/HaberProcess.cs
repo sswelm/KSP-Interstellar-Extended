@@ -72,7 +72,7 @@ namespace FNPlugin.Refinery.Activity
 
             _definitionAmmonia = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AmmoniaLqd);
             _definitionHydrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd);
-            _definitionNitrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Nitrogen);
+            _definitionNitrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.NitrogenLqd);
 
             _ammoniaDensity = _definitionAmmonia.density;
             _hydrogenDensity = _definitionHydrogen.density;
@@ -183,7 +183,7 @@ namespace FNPlugin.Refinery.Activity
             if (!HasAccessToHydrogen())
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HaberProcess_Postmsg1") + " " + ResourceSettings.Config.HydrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
             if (!HasAccessToNitrogen())
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HaberProcess_Postmsg1") + " " + ResourceSettings.Config.Nitrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HaberProcess_Postmsg1") + " " + ResourceSettings.Config.NitrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
             if (!HasSpareCapacityAmmonia())
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HaberProcess_Postmsg2") + " " + ResourceSettings.Config.AmmoniaLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//No Spare Capacity
         }

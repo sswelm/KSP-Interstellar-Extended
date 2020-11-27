@@ -39,7 +39,7 @@ namespace FNPlugin.Refinery.Activity
             _vessel = localPart.vessel;
             _aluminaDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Alumina).density;
             _aluminiumDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Aluminium).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.LqdOxygen).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenLqd).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -50,7 +50,7 @@ namespace FNPlugin.Refinery.Activity
             _current_rate = CurrentPower / EnergyPerTon;
             _aluminaConsumptionRate = _part.RequestResource(ResourceSettings.Config.Alumina, _current_rate * fixedDeltaTime / _aluminaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _aluminaDensity;
             _aluminiumProductionRate = _part.RequestResource(ResourceSettings.Config.Aluminium, -_aluminaConsumptionRate * fixedDeltaTime / _aluminiumDensity, ResourceFlowMode.ALL_VESSEL) * _aluminiumDensity / fixedDeltaTime;
-            _oxygenProductionRate = _part.RequestResource(ResourceSettings.Config.LqdOxygen, -GameConstants.aluminiumElectrolysisMassRatio * _aluminaConsumptionRate * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) * _oxygenDensity / fixedDeltaTime;
+            _oxygenProductionRate = _part.RequestResource(ResourceSettings.Config.OxygenLqd, -GameConstants.aluminiumElectrolysisMassRatio * _aluminaConsumptionRate * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) * _oxygenDensity / fixedDeltaTime;
             UpdateStatusMessage();
         }
 

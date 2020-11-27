@@ -83,9 +83,9 @@ namespace FNPlugin.Refinery.Activity
             _strLiquidHelium4ResourceName = ResourceSettings.Config.Helium4Gas;
             _strMonoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
             _strDioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
-            _strMethaneResourceName = ResourceSettings.Config.Methane;
-            _strNitrogenResourceName = ResourceSettings.Config.Nitrogen;
-            _strWaterResourceName = ResourceSettings.Config.Water;
+            _strMethaneResourceName = ResourceSettings.Config.MethaneLqd;
+            _strNitrogenResourceName = ResourceSettings.Config.NitrogenLqd;
+            _strWaterResourceName = ResourceSettings.Config.WaterPure;
 
             // should add Nitrogen15 and Argon
 

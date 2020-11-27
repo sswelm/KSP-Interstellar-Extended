@@ -71,8 +71,8 @@ namespace FNPlugin.Refinery.Activity
 
             _carbonDioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
-            _methaneResourceName = ResourceSettings.Config.Methane;
-            _oxygenResourceName = ResourceSettings.Config.LqdOxygen;
+            _methaneResourceName = ResourceSettings.Config.MethaneLqd;
+            _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
 
             _carbonDioxideDensity = PartResourceLibrary.Instance.GetDefinition(_carbonDioxideResourceName).density;
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;

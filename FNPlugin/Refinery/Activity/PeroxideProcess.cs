@@ -69,7 +69,7 @@ namespace FNPlugin.Refinery.Activity
 
             _ammoniaResourceName = ResourceSettings.Config.AmmoniaLqd;
             _hydrazineResourceName = ResourceSettings.Config.Hydrazine;
-            _waterResourceName = ResourceSettings.Config.Water;
+            _waterResourceName = ResourceSettings.Config.WaterPure;
             _hydrogenPeroxideName = ResourceSettings.Config.HydrogenPeroxide;
 
             _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(_ammoniaResourceName).density;

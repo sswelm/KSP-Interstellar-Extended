@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace FNPlugin.Resources 
+namespace FNPlugin.Resources
 {
-    public class AtmosphericResource 
+    public class AtmosphericResource
     {
         public AtmosphericResource(PartResourceDefinition definition, double abundance)
         {
@@ -13,7 +13,7 @@ namespace FNPlugin.Resources
             this.Synonyms = new[] { ResourceName, DisplayName }.Distinct().ToList();
         }
 
-        public AtmosphericResource(string resourcename, double abundance, string displayname) 
+        public AtmosphericResource(string resourcename, double abundance, string displayname)
         {
             this.ResourceName = resourcename;
             this.ResourceAbundance = abundance;

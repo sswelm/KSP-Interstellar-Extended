@@ -96,16 +96,16 @@ namespace FNPlugin.Refinery.Activity
             _hydrogenGasResourceName = ResourceSettings.Config.HydrogenGas;
             _deuteriumLiquidResourceName = ResourceSettings.Config.DeuteriumLqd;
             _deuteriumGasResourceName = ResourceSettings.Config.DeuteriumGas;
-            _helium3LiquidResourceName = ResourceSettings._HELIUM3_LIQUID;
-            _helium3GasResourceName = ResourceSettings._HELIUM3_GAS;
-            _helium4LiquidResourceName = ResourceSettings._HELIUM4_LIQUID;
+            _helium3LiquidResourceName = ResourceSettings.Config.Helium3Lqd;
+            _helium3GasResourceName = ResourceSettings.Config.Helium3Gas;
+            _helium4LiquidResourceName = ResourceSettings.Config.Helium4Lqd;
             _helium4GasResourceName = ResourceSettings.Config.Helium4Gas;
             _monoxideLiquidResourceName = ResourceSettings.Config.CarbonMonoxideLqd;
             _monoxideGasResourceName = ResourceSettings.Config.CarbonMonoxideGas;
-            _nitrogenLiquidResourceName = ResourceSettings._NITROGEN_LIQUID;
-            _nitrogenGasResourceName = ResourceSettings._NITROGEN_GAS;
-            _neonLiquidResourceName = ResourceSettings._NEON_LIQUID;
-            _neonGasResourceName = ResourceSettings._NEON_GAS;
+            _nitrogenLiquidResourceName = ResourceSettings.Config.NitrogenLqd;
+            _nitrogenGasResourceName = ResourceSettings.Config.NitrogenGas;
+            _neonLiquidResourceName = ResourceSettings.Config.NeonLqd;
+            _neonGasResourceName = ResourceSettings.Config.NeonGas;
 
             _solarWindDensity = PartResourceLibrary.Instance.GetDefinition(_solarWindResourceName).density;
 

@@ -53,7 +53,7 @@ namespace FNPlugin.Refinery.Activity
 
             _vessel = localPart.vessel;
             _heavyWaterDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HeavyWater).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.LqdOxygen).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenLqd).density;
             _deuteriumDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.DeuteriumLqd).density;
         }
 
@@ -64,7 +64,7 @@ namespace FNPlugin.Refinery.Activity
             _current_rate = CurrentPower / EnergyPerTon;
 
             var partsThatContainWater = _part.GetConnectedResources(ResourceSettings.Config.HeavyWater).ToList();
-            var partsThatContainOxygen = _part.GetConnectedResources(ResourceSettings.Config.LqdOxygen).ToList();
+            var partsThatContainOxygen = _part.GetConnectedResources(ResourceSettings.Config.OxygenLqd).ToList();
             var partsThatContainDeuterium = _part.GetConnectedResources(ResourceSettings.Config.DeuteriumLqd).ToList();
 
             _maxCapacityHeavyWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _heavyWaterDensity;
@@ -98,7 +98,7 @@ namespace FNPlugin.Refinery.Activity
                 var oxygenRateTemp = _heavyWaterConsumptionRate * OxygenMassByFraction;
 
                 _deuteriumProductionRate = -_part.RequestResource(ResourceSettings.Config.DeuteriumLqd, -deuteriumRateTemp * fixedDeltaTime / _deuteriumDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuteriumDensity;
-                _oxygenProductionRate = -_part.RequestResource(ResourceSettings.Config.LqdOxygen, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
+                _oxygenProductionRate = -_part.RequestResource(ResourceSettings.Config.OxygenLqd, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
             }
             else
             {
@@ -162,7 +162,7 @@ namespace FNPlugin.Refinery.Activity
             else if (_fixedMaxConsumptionWaterRate <= 0.0000000001)
                 _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg2");//"Out of water"
             else if (_deuteriumProductionRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", ResourceSettings.Config.LqdOxygen);//"Insufficient " +  + " Storage"
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", ResourceSettings.Config.OxygenLqd);//"Insufficient " +  + " Storage"
             else if (_oxygenProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", ResourceSettings.Config.HydrogenLqd);//"Insufficient " +  + " Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)

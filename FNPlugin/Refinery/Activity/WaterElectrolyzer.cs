@@ -29,7 +29,7 @@ namespace FNPlugin.Refinery.Activity
         private double _fixedMaxConsumptionWaterRate;
         private double _consumptionStorageRatio;
 
-        private PartResourceDefinition _water;
+        private PartResourceDefinition _pureWater;
         private PartResourceDefinition _lqdWater;
         private PartResourceDefinition _oxygen;
         private PartResourceDefinition _hydrogen;
@@ -47,7 +47,7 @@ namespace FNPlugin.Refinery.Activity
 
         public bool HasActivityRequirements()
         {
-            return _part.GetConnectedResources(_water.name).Any(rs => rs.amount > 0)
+            return _part.GetConnectedResources(_pureWater.name).Any(rs => rs.amount > 0)
                    || _part.GetConnectedResources(_lqdWater.name).Any(rs => rs.amount > 0);
         }
 
@@ -58,10 +58,10 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
 
             _vessel = localPart.vessel;
-            _water = PartResourceLibrary.Instance.GetDefinition("Water");
-            _lqdWater = PartResourceLibrary.Instance.GetDefinition("LqdWater");
-            _oxygen = PartResourceLibrary.Instance.GetDefinition("Oxygen");
-            _hydrogen = PartResourceLibrary.Instance.GetDefinition("Hydrogen");
+            _pureWater = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.WaterPure);
+            _lqdWater = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.WaterRaw);
+            _oxygen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenGas);
+            _hydrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenGas);
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -72,18 +72,18 @@ namespace FNPlugin.Refinery.Activity
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / EnergyPerTon;
 
-            var partsThatContainWater = _part.GetConnectedResources(_water.name).ToList();
+            var partsThatContainWater = _part.GetConnectedResources(_pureWater.name).ToList();
             var partsThatContainLqdWater = _part.GetConnectedResources(_lqdWater.name).ToList();
             var partsThatContainOxygen = _part.GetConnectedResources(_oxygen.name).ToList();
             var partsThatContainHydrogen = _part.GetConnectedResources(_hydrogen.name).ToList();
 
-            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _water.density
+            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _pureWater.density
                                     + partsThatContainLqdWater.Sum(p => p.maxAmount) * _lqdWater.density;
 
             _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygen.density;
             _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogen.density;
 
-            _availableWaterMass = partsThatContainWater.Sum(p => p.amount) * _water.density;
+            _availableWaterMass = partsThatContainWater.Sum(p => p.amount) * _pureWater.density;
             _availableLqdWaterMass = partsThatContainWater.Sum(p => p.amount) * _lqdWater.density;
             _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen.density;
             _spareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * _hydrogen.density;
@@ -110,8 +110,8 @@ namespace FNPlugin.Refinery.Activity
                 var fixedWaterConsumptionRate = _part.RequestResource(_lqdWater.name, waterRequested) * _lqdWater.density;
                 if (fixedWaterConsumptionRate < _fixedMaxConsumptionWaterRate)
                 {
-                    var lqdWaterRequested = _consumptionStorageRatio * (_fixedMaxConsumptionWaterRate - fixedWaterConsumptionRate) / _water.density;
-                    fixedWaterConsumptionRate += _part.RequestResource(_water.name, lqdWaterRequested) * _water.density;
+                    var lqdWaterRequested = _consumptionStorageRatio * (_fixedMaxConsumptionWaterRate - fixedWaterConsumptionRate) / _pureWater.density;
+                    fixedWaterConsumptionRate += _part.RequestResource(_pureWater.name, lqdWaterRequested) * _pureWater.density;
                 }
 
                 // now we do the real electrolysis
@@ -125,7 +125,7 @@ namespace FNPlugin.Refinery.Activity
                     flowMode: ResourceFlowMode.ALL_VESSEL);
 
                 var oxygenProductionAmount = -_part.RequestResource(
-                    resourceName: ResourceSettings.Config.LqdOxygen,
+                    resourceName: ResourceSettings.Config.OxygenLqd,
                     demand: -oxygenRateTemp * fixedDeltaTime / _oxygen.density,
                     flowMode: ResourceFlowMode.ALL_VESSEL);
 
@@ -205,7 +205,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterElectroliser_Postmsg") +" " + _water.name, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_WaterElectroliser_Postmsg") +" " + _pureWater.name, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

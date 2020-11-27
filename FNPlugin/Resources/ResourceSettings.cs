@@ -8,7 +8,7 @@ namespace FNPlugin.Resources
         private static ResourceSettings _config;
 
         public const string LqdHydrogen = nameof(LqdHydrogen);
-        public const string ElectricCharge = "ElectricCharge";
+        public const string ElectricCharge = nameof(ElectricCharge);
 
         #region autoproperties
 
@@ -26,12 +26,27 @@ namespace FNPlugin.Resources
         public string DeuteriumGas { get; private set; } = "Deuterium";
         public string Helium4Gas { get; private set; } = "Helium";
         public string Helium4Lqd { get; private set; } = "LqdHelium";
-
-        public string HydrogenLqd { get; private set; } = LqdHydrogen;
+        public string Helium3Gas { get; private set; } = "Helium3";
+        public string Helium3Lqd { get; private set; } = "LqdHe3";
         public string HydrogenGas { get; private set; } = "Hydrogen";
+        public string HydrogenLqd { get; private set; } = LqdHydrogen;
         public string FluorineGas { get; private set; } = "Fluorine";
+        public string KryptonGas { get; private set; } = "KryptonGas";
+        public string KryptonLqd { get; private set; } = "LqdKrypton";
         public string Lithium6 { get; private set; } = "Lithium6";
         public string Lithium7 { get; private set; } = "Lithium";
+        public string ChlorineGas { get; private set; } = "Chlorine";
+        public string MethaneLqd { get; private set; } = "LqdMethane";
+        public string NeonGas { get; private set; } = "LqdGas";
+        public string NeonLqd { get; private set; } = "LqdNeon";
+        public string NitrogenLqd { get; private set; } = "LqdNitrogen";
+        public string NitrogenGas { get; private set; } = "Nitrogen";
+        public string Nitrogen15Lqd { get; private set; } = "LqdNitrogen15";
+        public string Sodium { get; private set; } = "Sodium";
+        public string OxygenGas { get; private set; } = "Oxygen";
+        public string OxygenLqd { get; private set; } = "LqdOxygen";
+        public string WaterPure { get; private set; } = "Water";
+        public string WaterRaw { get; private set; } = "LqdWater";
 
         // Nuclear resources
         public string DepletedFuel { get; private set; } = "DepletedFuel";
@@ -53,78 +68,36 @@ namespace FNPlugin.Resources
         public string VacuumPlasma { get; private set; } = "VacuumPlasma";
         public string ExoticMatter { get; private set; } = "ExoticMatter";
 
+
         #endregion
 
-        public const String _CHLORINE = "Chlorine";
-        public const String _LIQUID_METHANE = "LqdMethane";
-        public const String _HELIUM4_LIQUID = "LqdHelium";
-        public const String _HELIUM3_LIQUID = "LqdHe3";
-        public const String _HELIUM3_GAS = "Helium3";
-        public const String _NEON_LIQUID = "LqdNeon";
-        public const String _NEON_GAS = "NeonGas";
-        public const String _NITROGEN_LIQUID = "LqdNitrogen";
-        public const String _NITROGEN_GAS = "Nitrogen";
-        public const String _LIQUID_NITROGEN_15 = "LqdNitrogen15";
-        public const String _LIQUID_OXYGEN = "LqdOxygen";
-        public const String _OXYGEN_GAS = "Oxygen";
-        public const String _LIQUID_WATER = "Water";
         public const String _LIQUID_HEAVYWATER = "HeavyWater";
         public const String _LIQUID_XENON = "LqdXenon";
-        public const String _SODIUM = "Sodium";
         public const String _XENON_GAS = "LqdXenon";
-        public const String _LIQUID_KRYPTON = "LqdKrypton";
-        public const String _KRYPTON_GAS = "KryptonGas";
         public const String _LIQUID_TRITIUM = "LqdTritium";
         public const String _TRITIUM_GAS = "Tritium";
 
-        private String _helium3_gas = _HELIUM3_GAS;
-        private String _liquid_helium3 = _HELIUM3_LIQUID;
-        private String _sodium = "Sodium";
         private String _hydrogen_peroxide = "HTP";
         private String _hydrazine = "Hydrazine";
-        private String _methane = _LIQUID_METHANE;
-        private String _nitrogen = _NITROGEN_LIQUID;
-        private String _nitrogen15 = _LIQUID_NITROGEN_15;
-        private String _lqdOxygen = _LIQUID_OXYGEN;
-        private String _oxygen_gas = _OXYGEN_GAS;
-        private String _water = _LIQUID_WATER;
         private String _heavyWater = _LIQUID_HEAVYWATER;
         private String _tritium = _LIQUID_TRITIUM;
         private String _tritium_gas = _TRITIUM_GAS;
         private String _solarWind = "SolarWind";
-        private String _neon_gas = _NEON_LIQUID;
         private String _regolith = "Regolith";
         private String _xenongas = _XENON_GAS;
         private String _xenon = _LIQUID_XENON;
-        private string _kryton = _LIQUID_KRYPTON;
-        private string _krytongas = _KRYPTON_GAS;
 
         // ToDo convert to auto property
-
-
-        public String LqdHelium3 { get { return _liquid_helium3; } }
-        public String Sodium { get { return _sodium; } }
-        public String Helium3Gas { get { return _helium3_gas; } }
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
         public String Hydrazine { get { return _hydrazine; } }
-
-        public String Methane { get { return _methane; } }
-        public String NeonGas { get { return _neon_gas; } }
-        public String Nitrogen { get { return _nitrogen; } }
-        public String Nitrogen15 { get { return _nitrogen15; } }
-        public String LqdOxygen { get { return _lqdOxygen; } }
-        public String OxygenGas { get { return _oxygen_gas; } }
-
         public String Regolith { get { return _regolith; } }
         public String SolarWind { get { return _solarWind; } }
         public String LqdTritium { get { return _tritium; } }
         public String TritiumGas { get { return _tritium_gas; } }
-        public String Water { get { return _water; } }
+
         public String HeavyWater { get { return _heavyWater; } }
         public String Xenon { get { return _xenon; } }
         public String XenonGas { get { return _xenongas; } }
-        public String KryptonGas { get { return _krytongas; } }
-        public String Krypton { get { return _kryton; } }
 
         private void UpdatePropertyWithConfigNode(ConfigNode pluginSettings, string resourceName, Action<string> property)
         {
@@ -145,25 +118,35 @@ namespace FNPlugin.Resources
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Aluminium), value => Aluminium = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Alumina), value => Alumina = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(AmmoniaLqd), value => AmmoniaLqd = value);
-
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonDioxideGas), value => CarbonDioxideGas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonDioxideLqd), value => CarbonDioxideLqd = value);
-
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonMonoxideGas), value => CarbonMonoxideGas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonMonoxideLqd), value => CarbonMonoxideLqd = value);
-
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(ChlorineGas), value => ChlorineGas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(DeuteriumGas), value => DeuteriumGas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(DeuteriumLqd), value => DeuteriumLqd = value);
-
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(FluorineGas), value => FluorineGas = value);
-
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Helium4Gas), value => Helium4Gas = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Helium4Lqd), value => Helium4Lqd = value);
-
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Helium3Gas), value => Helium3Gas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Helium3Lqd), value => Helium3Lqd = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(HydrogenLqd), value => HydrogenLqd = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(HydrogenGas), value => HydrogenGas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(KryptonGas), value => KryptonGas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(KryptonLqd), value => KryptonLqd = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Lithium6), value => Lithium6 = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(Lithium7), value => Lithium7 = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(MethaneLqd), value => MethaneLqd = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(NeonGas), value => NeonGas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(NeonLqd), value => NeonLqd = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(NitrogenGas), value => NitrogenGas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(NitrogenLqd), value => NitrogenLqd = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Nitrogen15Lqd), value => Nitrogen15Lqd = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(OxygenGas), value => OxygenGas = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(OxygenLqd), value => OxygenLqd = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(Sodium), value => Sodium = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(WaterPure), value => WaterPure = value);
+                UpdatePropertyWithConfigNode(pluginSettings, nameof(WaterRaw), value => WaterRaw = value);
 
                 // abstract resources
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(IntakeAtmosphere), value => IntakeAtmosphere = value);
@@ -185,23 +168,6 @@ namespace FNPlugin.Resources
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(ExoticMatter), value => ExoticMatter = value);
                 UpdatePropertyWithConfigNode(pluginSettings, nameof(VacuumPlasma), value => VacuumPlasma = value);
 
-
-
-                if (pluginSettings.HasValue("Helium3GasResourceName"))
-                {
-                    _helium3_gas = pluginSettings.GetValue("Helium3GasResourceName");
-                    Debug.Log("[KSPI]: Helium3 Gas resource name set to " + Helium3Gas);
-                }
-                //if (pluginSettings.HasValue("HeliumResourceName"))
-                //{
-                //    _liquid_helium4 = pluginSettings.GetValue("HeliumResourceName");
-                //    Debug.Log("[KSPI]: Helium4 Liquid resource name set to " + LqdHelium4);
-                //}
-                if (pluginSettings.HasValue("Helium3ResourceName"))
-                {
-                    _liquid_helium3 = pluginSettings.GetValue("Helium3ResourceName");
-                    Debug.Log("[KSPI]: Helium3 resource name set to " + LqdHelium3);
-                }
                 if (pluginSettings.HasValue("HydrazineResourceName"))
                 {
                     _hydrazine = pluginSettings.GetValue("HydrazineResourceName");
@@ -212,26 +178,6 @@ namespace FNPlugin.Resources
                 {
                     _hydrogen_peroxide = pluginSettings.GetValue("HydrogenPeroxideResourceName");
                     Debug.Log("[KSPI]: Hydrogen Peroxide resource name set to " + HydrogenPeroxide);
-                }
-                if (pluginSettings.HasValue("MethaneResourceName"))
-                {
-                    _methane = pluginSettings.GetValue("MethaneResourceName");
-                    Debug.Log("[KSPI]: Methane resource name set to " + Methane);
-                }
-                if (pluginSettings.HasValue("NeonResourceName"))
-                {
-                    _neon_gas = pluginSettings.GetValue("NeonResourceName");
-                    Debug.Log("[KSPI]: Neon resource name set to " + NeonGas);
-                }
-                if (pluginSettings.HasValue("NitrogenResourceName"))
-                {
-                    _nitrogen = pluginSettings.GetValue("NitrogenResourceName");
-                    Debug.Log("[KSPI]: Nitrogen resource name set to " + Nitrogen);
-                }
-                if (pluginSettings.HasValue("OxygenResourceName"))
-                {
-                    _lqdOxygen = pluginSettings.GetValue("OxygenResourceName");
-                    Debug.Log("[KSPI]: Oxygen resource name set to " + LqdOxygen);
                 }
                 if (pluginSettings.HasValue("RegolithResourceName"))
                 {
@@ -252,11 +198,6 @@ namespace FNPlugin.Resources
                 {
                     _tritium = pluginSettings.GetValue("TritiumResourceName");
                     Debug.Log("[KSPI]: Tritium resource name set to " + LqdTritium);
-                }
-                if (pluginSettings.HasValue("WaterResourceName"))
-                {
-                    _water = pluginSettings.GetValue("WaterResourceName");
-                    Debug.Log("[KSPI]: Water resource name set to " + Water);
                 }
                 if (pluginSettings.HasValue("HeavyWaterResourceName"))
                 {

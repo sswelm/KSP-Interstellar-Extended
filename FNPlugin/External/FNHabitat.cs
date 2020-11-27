@@ -2,20 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin
 {
     public class FNHabitat : PartModule, IMultipleDragCube
     {
-        private List<IAnimatedModule> _Modules;
-        private bool _hasBeenInitialized = false;
+        private List<IAnimatedModule> modules;
+        private bool _hasBeenInitialized;
 
         private void FindModules()
         {
             if (vessel != null)
             {
-                _Modules = part.FindModulesImplementing<IAnimatedModule>();
+                modules = part.FindModulesImplementing<IAnimatedModule>();
             }
         }
 
@@ -27,7 +28,7 @@ namespace FNPlugin
         public double oxygen = -1;
 
         [KSPField(isPersistant = true)]
-        public bool nitrogenRefiled = false;
+        public bool nitrogenRefiled;
 
         [KSPField]
         public string deployedComfortBonus = "";
@@ -592,7 +593,7 @@ namespace FNPlugin
                 foodPartResource.amount = ratio * foodPartResource.maxAmount;
             }
 
-            var waterPartResource = part.Resources["Water"];
+            var waterPartResource = part.Resources[ResourceSettings.Config.WaterPure];
             if (waterPartResource != null && water >= 0)
             {
                 var ratio = waterPartResource.amount / waterPartResource.maxAmount;
@@ -600,7 +601,7 @@ namespace FNPlugin
                 waterPartResource.amount = water * waterPartResource.maxAmount;
             }
 
-            var oxygenPartResource = part.Resources["Oxygen"];
+            var oxygenPartResource = part.Resources[ResourceSettings.Config.OxygenGas];
             if (oxygenPartResource != null && oxygen >= 0)
             {
                 var ratio = oxygenPartResource.amount / oxygenPartResource.maxAmount;
@@ -669,21 +670,21 @@ namespace FNPlugin
 
         private void DisableModules()
         {
-            if (vessel == null || _Modules == null) return;
-            for (int i = 0, iC = _Modules.Count; i < iC; ++i)
+            if (vessel == null || modules == null) return;
+            for (int i = 0, iC = modules.Count; i < iC; ++i)
             {
-                _Modules[i].DisableModule();
+                modules[i].DisableModule();
             }
         }
 
         private void EnableModules()
         {
-            if (vessel == null || _Modules == null)
+            if (vessel == null || modules == null)
                 return;
 
-            for (int i = 0, iC = _Modules.Count; i < iC; ++i)
+            for (int i = 0, iC = modules.Count; i < iC; ++i)
             {
-                var mod = _Modules[i];
+                var mod = modules[i];
                 if (mod.IsSituationValid())
                     mod.EnableModule();
             }
@@ -855,7 +856,7 @@ namespace FNPlugin
             return false;
         }
 
-        public bool IsMultipleCubesActive { get { return true; } }
+        public bool IsMultipleCubesActive => true;
 
         public void AssumeDragCubePosition(string name)
         {
@@ -932,6 +933,3 @@ namespace FNPlugin
         }
     }
 }
-
-
-
