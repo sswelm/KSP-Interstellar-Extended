@@ -17,6 +17,10 @@ namespace FNPlugin.Refinery.Activity
             EnergyPerTon = PluginHelper.AluminiumElectrolysisEnergyPerTon;
         }
 
+        private string _aluminaResourceName;
+        private string _aluminiumResourceName;
+        private string _oxygenResourceName;
+
         private double _aluminaDensity;
         private double _aluminiumDensity;
         private double _oxygenDensity;
@@ -27,7 +31,7 @@ namespace FNPlugin.Refinery.Activity
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() { return _part.GetConnectedResources(ResourceSettings.Config.Alumina).Any(rs => rs.amount > 0);  }
+        public bool HasActivityRequirements() { return _part.GetConnectedResources(_aluminaResourceName).Any(rs => rs.amount > 0);  }
 
         private double _effectivePowerRequirements;
 
@@ -37,9 +41,14 @@ namespace FNPlugin.Refinery.Activity
         {
             _part = localPart;
             _vessel = localPart.vessel;
-            _aluminaDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Alumina).density;
-            _aluminiumDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Aluminium).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenLqd).density;
+
+            _aluminaResourceName = ResourceSettings.Config.Alumina;
+            _aluminiumResourceName = ResourceSettings.Config.Aluminium;
+            _oxygenResourceName = ResourceSettings.Config.OxygenGas;
+
+            _aluminaDensity = PartResourceLibrary.Instance.GetDefinition(_aluminaResourceName).density;
+            _aluminiumDensity = PartResourceLibrary.Instance.GetDefinition(_aluminiumResourceName).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(_oxygenResourceName).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -48,9 +57,9 @@ namespace FNPlugin.Refinery.Activity
             _current_power = powerFraction * _effectivePowerRequirements;
 
             _current_rate = CurrentPower / EnergyPerTon;
-            _aluminaConsumptionRate = _part.RequestResource(ResourceSettings.Config.Alumina, _current_rate * fixedDeltaTime / _aluminaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _aluminaDensity;
-            _aluminiumProductionRate = _part.RequestResource(ResourceSettings.Config.Aluminium, -_aluminaConsumptionRate * fixedDeltaTime / _aluminiumDensity, ResourceFlowMode.ALL_VESSEL) * _aluminiumDensity / fixedDeltaTime;
-            _oxygenProductionRate = _part.RequestResource(ResourceSettings.Config.OxygenLqd, -GameConstants.aluminiumElectrolysisMassRatio * _aluminaConsumptionRate * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) * _oxygenDensity / fixedDeltaTime;
+            _aluminaConsumptionRate = _part.RequestResource(_aluminaResourceName, _current_rate * fixedDeltaTime / _aluminaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _aluminaDensity;
+            _aluminiumProductionRate = _part.RequestResource(_aluminiumResourceName, -_aluminaConsumptionRate * fixedDeltaTime / _aluminiumDensity, ResourceFlowMode.ALL_VESSEL) * _aluminiumDensity / fixedDeltaTime;
+            _oxygenProductionRate = _part.RequestResource(_oxygenResourceName, -GameConstants.aluminiumElectrolysisMassRatio * _aluminaConsumptionRate * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) * _oxygenDensity / fixedDeltaTime;
             UpdateStatusMessage();
         }
 
@@ -93,7 +102,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_Postmsg") + " " + ResourceSettings.Config.Alumina, 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing "
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_Postmsg") + " " + _aluminaResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing "
         }
     }
 }

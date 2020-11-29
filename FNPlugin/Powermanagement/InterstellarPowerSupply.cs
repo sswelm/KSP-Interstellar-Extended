@@ -39,7 +39,7 @@ namespace FNPlugin.Power
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricChargePower, 1000));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000));
             resourceBuffers.Init(this.part);
 
             Debug.Log("[KSPI]: PowerSupply on " + part.name + " was Force Activated");
@@ -91,7 +91,7 @@ namespace FNPlugin.Power
             base.OnFixedUpdate();
 
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, currentPowerSupply);
-            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, currentPowerSupply);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, currentPowerSupply);
             resourceBuffers.UpdateBuffers();
 
             currentPowerSupply = 0;

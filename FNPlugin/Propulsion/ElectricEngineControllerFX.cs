@@ -357,7 +357,7 @@ namespace FNPlugin.Propulsion
                 if (HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || ignoreWasteheat)
                     return 1;
 
-                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 
                 return 1 - wasteheatRatio * wasteheatRatio * wasteheatRatio;
             }
@@ -501,7 +501,7 @@ namespace FNPlugin.Propulsion
             ScaleParameters();
 
             // initialise resources
-            resources_to_supply = new string[] { ResourceManager.FNRESOURCE_WASTEHEAT };
+            resources_to_supply = new [] { ResourceSettings.Config.WasteHeatInMegawatt };
             base.OnStart(state);
 
             AttachToEngine();
@@ -523,7 +523,7 @@ namespace FNPlugin.Propulsion
 
             _resourceBuffers = new ResourceBuffers();
             _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+4, true));
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             _resourceBuffers.Init(part);
 
             InitializePropellantMode();
@@ -774,7 +774,7 @@ namespace FNPlugin.Propulsion
 
             if (CurrentPropellant == null) return;
 
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, (double)(decimal)part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, (double)(decimal)part.mass);
             _resourceBuffers.UpdateBuffers();
 
             if (!vessel.packed && !_warpToReal)
@@ -789,15 +789,15 @@ namespace FNPlugin.Propulsion
             modifiedThrotte = ModifiedThrottle;
             modifiedMaxThrottlePower = maxEffectivePower * modifiedThrotte;
 
-            totalPowerSupplied = getTotalPowerSupplied(ResourceManager.FNRESOURCE_MEGAJOULES);
-            megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+            totalPowerSupplied = getTotalPowerSupplied(ResourceSettings.Config.ElectricPowerInMegawatt);
+            megaJoulesBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
-            availableMaximumPower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            availableMaximumPower = getAvailablePrioritisedStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
             availableCurrentPower = CheatOptions.InfiniteElectricity
                 ? availableMaximumPower
-                : getAvailablePrioritisedCurrentSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                : getAvailablePrioritisedCurrentSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             maximumAvailablePowerForEngine = availableMaximumPower * _electricalShareF;
             currentAvailablePowerForEngine = availableCurrentPower * _electricalShareF;
@@ -826,7 +826,7 @@ namespace FNPlugin.Propulsion
             // request electric power
             actualPowerReceived = CheatOptions.InfiniteElectricity
                 ? current_power_request
-                : consumeFNResourcePerSecond(current_power_request, maximum_power_request, ResourceManager.FNRESOURCE_MEGAJOULES);
+                : consumeFNResourcePerSecond(current_power_request, maximum_power_request, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             simulatedPowerReceived = Math.Min(effectiveMaximumAvailablePowerForEngine, maxEffectivePower);
 
@@ -837,7 +837,7 @@ namespace FNPlugin.Propulsion
 
             _heatProductionF = CheatOptions.IgnoreMaxTemperature
                 ? heatToProduce
-                : supplyFNResourcePerSecondWithMax(heatToProduce, maxHeatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
+                : supplyFNResourcePerSecondWithMax(heatToProduce, maxHeatToProduce, ResourceSettings.Config.WasteHeatInMegawatt);
 
             // update GUI Values
             _electricalConsumptionF = actualPowerReceived;

@@ -70,7 +70,7 @@ namespace FNPlugin
                 _outputType = ResourceType.other;
                 foreach (ModuleResource moduleResource in _moduleGenerator.resHandler.outputResources)
                 {
-                    if (moduleResource.name != ResourceManager.FNRESOURCE_MEGAJOULES && (moduleResource.name != ResourceSettings.Config.ElectricChargePower))
+                    if (moduleResource.name != ResourceManager.FNRESOURCE_MEGAJOULES && (moduleResource.name != ResourceSettings.Config.ElectricPowerInKilowatt))
                         continue;
 
                     // assuming only one of those two is present

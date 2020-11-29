@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using KSP.UI.Screens.Flight.Dialogs;
 
 namespace FNPlugin
 {
-    
+
     class ModuleModableScienceGenerator : ResourceSuppliableModule, IScienceDataContainer
     {
         [KSPField(isPersistant = false)]
@@ -84,17 +83,17 @@ namespace FNPlugin
                 if (merdp == null || !data_gend)
                 {
                     merdp = new ExperimentResultDialogPage(
-                        base.part, 
-                        this.science_data, 
-                        1f, 
-                        0f, 
-                        false, 
-                        "", 
-                        true, 
-                        new ScienceLabSearch(this.vessel, this.science_data), 
-                        this.endExperiment, 
-                        this.keepData, 
-                        this.sendDataToComms, 
+                        base.part,
+                        this.science_data,
+                        1f,
+                        0f,
+                        false,
+                        "",
+                        true,
+                        new ScienceLabSearch(this.vessel, this.science_data),
+                        this.endExperiment,
+                        this.keepData,
+                        this.sendDataToComms,
                         this.sendDataToLab);
 
                     //merdp = new ModableExperimentResultDialogPage(

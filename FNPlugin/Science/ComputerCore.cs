@@ -1,6 +1,6 @@
 using CommNet;
-using FNPlugin;
 using FNPlugin.Constants;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
@@ -104,7 +104,7 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Type")]//Type
         public string computercoreType;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ComputerCore_Upgrade")]//Upgrade
-        public string upgradeCostStr;        
+        public string upgradeCostStr;
 
         // Privates
         double _scienceRateF;
@@ -142,7 +142,7 @@ namespace FNPlugin
         // Public Overrides
         public override void OnStart(StartState state)
         {
-            string[] resourcesToSupply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, };
+            string[] resourcesToSupply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceSettings.Config.ChargedParticleInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT, };
             this.resources_to_supply = resourcesToSupply;
 
             _isEnabledField = Fields[nameof(IsEnabled)];
@@ -184,7 +184,7 @@ namespace FNPlugin
                 var scienceToIncrement = baseScienceRate * timeDifference / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * scienceMultiplier / (Math.Sqrt(altitudeMultiplier));
                 scienceToIncrement = (double.IsNaN(scienceToIncrement) || double.IsInfinity(scienceToIncrement)) ? 0 : scienceToIncrement;
                 science_to_add += scienceToIncrement;
-            } 
+            }
 
             _effectivePowerRequirement = (isupgraded ? upgradedMegajouleRate : megajouleRate) * powerReqMult;
         }
@@ -224,7 +224,7 @@ namespace FNPlugin
             {
                 var powerReturned = CheatOptions.InfiniteElectricity
                     ? _effectivePowerRequirement
-                    : consumeFNResourcePerSecond(_effectivePowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(_effectivePowerRequirement, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 electrical_power_ratio = powerReturned / _effectivePowerRequirement;
                 IsPowered = electrical_power_ratio > 0.99;
@@ -245,7 +245,7 @@ namespace FNPlugin
                             vessel.connection.Comm.isControlSource = true;
                         }
                     }
-                    
+
                     var altitudeMultiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
                     var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
@@ -270,7 +270,7 @@ namespace FNPlugin
                         }
                     }
 
-                    part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -powerReturned * TimeWarp.fixedDeltaTime);
+                    part.RequestResource(ResourceSettings.Config.ElectricPowerInMegawatt, -powerReturned * TimeWarp.fixedDeltaTime);
                 }
             }
             else
@@ -300,7 +300,7 @@ namespace FNPlugin
                 if (subject == null)
                     return false;
                 subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
-                subject.scienceCap = 167 * subject.subjectValue; 
+                subject.scienceCap = 167 * subject.subjectValue;
                 subject.dataScale = 1.25f;
 
                 science_to_add = Math.Min(science_to_add, (subject.scienceCap - subject.science) / subject.subjectValue);
@@ -367,7 +367,7 @@ namespace FNPlugin
             {
                 string[] resultStrings = _experimentNode.GetNode("RESULTS").GetValuesStartsWith("default");
                 return resultStrings[new System.Random().Next(resultStrings.Length)];
-            } 
+            }
             catch (Exception ex)
             {
                 Debug.Log("[KSPI]: Exception Generation Experiment Result: " + ex.Message + ": " + ex.StackTrace);
@@ -390,7 +390,7 @@ namespace FNPlugin
         public bool IsCommCapable() => vessel.connection.IsConnected;
 
 
-        // IRelayEnabler documentation: 
+        // IRelayEnabler documentation:
         // Any module that implements this interface can make all antennae, not just those of type RELAY, work as a relay.
 
         // This allows f.e. the XFELT antennas to be used as a RELAY while in AI mode. This will be useful for Galaxies

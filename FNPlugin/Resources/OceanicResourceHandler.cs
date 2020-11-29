@@ -186,7 +186,7 @@ namespace FNPlugin.Resources
                 AddResource(refBody, bodyComposition, ResourceSettings.Config.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
                 AddResource(refBody, bodyComposition, ResourceSettings.Config.CarbonMonoxideGas, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
                 AddResource(refBody, bodyComposition, ResourceSettings.Config.DeuteriumGas, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
-                AddResource(refBody, bodyComposition, ResourceSettings.Config.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
+                AddResource(refBody, bodyComposition, ResourceSettings.Config.WaterHeavy, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
                 AddResource(refBody, bodyComposition, ResourceSettings.Config.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
                 AddResource(refBody, bodyComposition, ResourceSettings.Config.MethaneLqd, "LqdMethane", "MethaneGas", "Methane", "Methane");
                 AddResource(refBody, bodyComposition, ResourceSettings.Config.NitrogenLqd, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
@@ -198,7 +198,7 @@ namespace FNPlugin.Resources
 
                 AddResource(ResourceSettings.Config.Helium4Lqd, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
                 AddResource(ResourceSettings.Config.Helium3Lqd, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
-                AddResource(ResourceSettings.Config.HydrogenLqd, "Hydrogen", refBody, bodyComposition, new[] { ResourceSettings.LqdHydrogen, "HydrogenGas", "Hydrogen", "H2", "Protium", "LqdProtium"});
+                AddResource(ResourceSettings.Config.HydrogenLqd, "Hydrogen", refBody, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium", "LqdProtium"});
             }
             catch (Exception ex)
             {
@@ -294,7 +294,7 @@ namespace FNPlugin.Resources
             Debug.Log("[KSPI]: Checking for missing rare isotopes");
 
             // add Heavy Water based on water abundance in ocean
-            if (bodyOceanicComposition.All(m => m.ResourceName != ResourceSettings.Config.HeavyWater) &&
+            if (bodyOceanicComposition.All(m => m.ResourceName != ResourceSettings.Config.WaterHeavy) &&
                 bodyOceanicComposition.Any(m => m.ResourceName == ResourceSettings.Config.WaterPure || m.ResourceName == ResourceSettings.Config.WaterRaw))
             {
                 Debug.Log("[KSPI]: Added heavy water based on presence water in ocean");
@@ -303,7 +303,7 @@ namespace FNPlugin.Resources
                 if (waterResource != null)
                 {
                     var heavyWaterAbundance = waterResource.ResourceAbundance / 6420;
-                    bodyOceanicComposition.Add(new OceanicResource(ResourceSettings.Config.HeavyWater, heavyWaterAbundance, "HeavyWater", new[] {"HeavyWater", "D2O", "DeuteriumWater"}));
+                    bodyOceanicComposition.Add(new OceanicResource(ResourceSettings.Config.WaterHeavy, heavyWaterAbundance, "HeavyWater", new[] {"HeavyWater", "D2O", "DeuteriumWater"}));
                 }
             }
 

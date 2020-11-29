@@ -490,18 +490,18 @@ namespace FNPlugin
         {
             ConnectToModuleGenerator();
 
-            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_CHARGED_PARTICLES };
+            String[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt };
             this.resources_to_supply = resources_to_supply;
 
             _resourceBuffers = new ResourceBuffers();
 
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricChargePower, 1000 / powerOutputMultiplier));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000 / powerOutputMultiplier));
 
             if (controlWasteHeatBuffer)
             {
                 _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+5, true));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             }
 
             _resourceBuffers.Init(this.part);
@@ -605,7 +605,7 @@ namespace FNPlugin
 
             if (stockModuleGenerator != null)
             {
-                outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceSettings.Config.ElectricChargePower);
+                outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceSettings.Config.ElectricPowerInKilowatt);
 
                 if (outputModuleResource != null)
                 {
@@ -1096,7 +1096,7 @@ namespace FNPlugin
 
                 powerDownFraction = 1;
 
-                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
                 overheatingModifier = wasteheatRatio < 0.9 ? 1 : (1 - wasteheatRatio) * 10;
 
                 var thermalPowerRatio = 1 - attachedPowerSource.ChargedPowerRatio;
@@ -1133,11 +1133,11 @@ namespace FNPlugin
 
                         if (isMHD)
                         {
-                            initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower * thermalPowerRatio, ResourceManager.FNRESOURCE_THERMALPOWER);
-                            initialChargedPowerReceived = consumeFNResourcePerSecond(requestedThermalPower * chargedPowerRatio, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                            initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower * thermalPowerRatio, ResourceSettings.Config.ThermalPowerInMegawatt);
+                            initialChargedPowerReceived = consumeFNResourcePerSecond(requestedThermalPower * chargedPowerRatio, ResourceSettings.Config.ChargedParticleInMegawatt);
                         }
                         else
-                            initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
+                            initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
 
                         thermalPowerRequestRatio = Math.Min(1, effectiveMaximumThermalPower > 0 ? requestedThermalPower / attachedPowerSource.MaximumThermalPower : 0);
                         attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD, isLimitedByMinThrotle ? part.mass * 0.05 : part.mass);
@@ -1155,7 +1155,7 @@ namespace FNPlugin
                     {
                         requestedChargedPower = reactorPowerRequested;
 
-                        chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                        chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
 
                         var maximumChargedPower = attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
                         var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? thermalPowerRequested / maximumChargedPower : 0);
@@ -1165,11 +1165,11 @@ namespace FNPlugin
                     else if (shouldUseChargedPower && thermalPowerReceived < reactorPowerRequested)
                     {
                         requestedChargedPower = Math.Min(Math.Min(reactorPowerRequested - thermalPowerReceived, maxChargedPowerForThermalGenerator), Math.Max(0, maxReactorPower - thermalPowerReceived));
-                        chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                        chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
                     }
                     else
                     {
-                        consumeFNResourcePerSecond(0, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                        consumeFNResourcePerSecond(0, ResourceSettings.Config.ChargedParticleInMegawatt);
                         chargedPowerReceived = 0;
                         requestedChargedPower = 0;
                     }
@@ -1180,7 +1180,7 @@ namespace FNPlugin
                     if (shouldUseChargedPower && chargedPowerRatio != 1 && totalPowerReceived < reactorPowerRequested)
                     {
                         finalRequest = Math.Max(0, reactorPowerRequested - totalPowerReceived);
-                        thermalPowerReceived += consumeFNResourcePerSecond(finalRequest, ResourceManager.FNRESOURCE_THERMALPOWER);
+                        thermalPowerReceived += consumeFNResourcePerSecond(finalRequest, ResourceSettings.Config.ThermalPowerInMegawatt);
                     }
                 }
                 else // charged particle mode
@@ -1202,14 +1202,14 @@ namespace FNPlugin
                     var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? requestedChargedPower / maximumChargedPower : 0);
                     attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio, part.mass);
 
-                    chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
                 }
 
                 received_power_per_second = thermalPowerReceived + chargedPowerReceived;
                 effectiveInputPowerPerSecond = received_power_per_second * _totalEff;
 
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    consumeFNResourcePerSecond(effectiveInputPowerPerSecond, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(effectiveInputPowerPerSecond, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 if (!chargedParticleMode)
                 {
@@ -1231,15 +1231,15 @@ namespace FNPlugin
                 }
 
                 outputPower = isLimitedByMinThrotle
-                    ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES)
-                    : -supplyFNResourcePerSecondWithMaxAndEfficiency(electricdtps, maxElectricdtps, hotColdBathRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceSettings.Config.ElectricPowerInMegawatt)
+                    : -supplyFNResourcePerSecondWithMaxAndEfficiency(electricdtps, maxElectricdtps, hotColdBathRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
             }
             else
             {
                 electricdtps = 0;
                 maxElectricdtps = 0;
                 generatorInit = true;
-                supplyManagedFNResourcePerSecond(0, ResourceManager.FNRESOURCE_MEGAJOULES);
+                supplyManagedFNResourcePerSecond(0, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 if (stockModuleGenerator != null && stockModuleGenerator.generatorIsActive == true)
                     stockModuleGenerator.Shutdown();
@@ -1282,7 +1282,7 @@ namespace FNPlugin
             {
                 if (attachedPowerSource.ChargedPowerRatio != 1)
                 {
-                    postThermalPowerReceived += consumeFNResourcePerSecond(requestedPostThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
+                    postThermalPowerReceived += consumeFNResourcePerSecond(requestedPostThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
                 }
 
                 totalPowerReceived = thermalPowerReceived + chargedPowerReceived + postThermalPowerReceived;
@@ -1290,18 +1290,18 @@ namespace FNPlugin
                 // Collect charged power when needed
                 if (attachedPowerSource.ChargedPowerRatio == 1)
                 {
-                    postChargedPowerReceived += consumeFNResourcePerSecond(requestedPostReactorPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    postChargedPowerReceived += consumeFNResourcePerSecond(requestedPostReactorPower, ResourceSettings.Config.ChargedParticleInMegawatt);
                 }
                 else if (shouldUseChargedPower && totalPowerReceived < reactorPowerRequested)
                 {
                     var postPowerRequest = Math.Min(Math.Min(requestedPostReactorPower - totalPowerReceived, maxChargedPowerForThermalGenerator), Math.Max(0, maxReactorPower - totalPowerReceived));
 
-                    postChargedPowerReceived += consumeFNResourcePerSecond(postPowerRequest, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    postChargedPowerReceived += consumeFNResourcePerSecond(postPowerRequest, ResourceSettings.Config.ChargedParticleInMegawatt);
                 }
             }
             else // charged power mode
             {
-                postChargedPowerReceived += consumeFNResourcePerSecond(requestedPostChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                postChargedPowerReceived += consumeFNResourcePerSecond(requestedPostChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
             }
 
             post_received_power_per_second = postThermalPowerReceived + postChargedPowerReceived;
@@ -1309,9 +1309,9 @@ namespace FNPlugin
             postEffectiveInputPowerPerSecond = Math.Max(0, Math.Min(post_received_power_per_second * _totalEff, maximumElectricPower - electricdtps));
 
             if (!CheatOptions.IgnoreMaxTemperature)
-                consumeFNResourcePerSecond(postEffectiveInputPowerPerSecond, ResourceManager.FNRESOURCE_WASTEHEAT);
+                consumeFNResourcePerSecond(postEffectiveInputPowerPerSecond, ResourceSettings.Config.WasteHeatInMegawatt);
 
-            supplyManagedFNResourcePerSecond(postEffectiveInputPowerPerSecond, ResourceManager.FNRESOURCE_MEGAJOULES);
+            supplyManagedFNResourcePerSecond(postEffectiveInputPowerPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         private void UpdateBuffers()
@@ -1320,7 +1320,7 @@ namespace FNPlugin
                 return;
 
             if (controlWasteHeatBuffer)
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
 
             if (maxStableMegaWattPower > 0)
             {
@@ -1333,8 +1333,8 @@ namespace FNPlugin
                 powerBufferBonus = attachedPowerSource.PowerBufferBonus;
 
                 megawattBufferAmount = (minimumBufferSize * 50) + (powerBufferBonus + 1) * stablePowerForBuffer;
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, megawattBufferAmount);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, megawattBufferAmount);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, megawattBufferAmount);
             }
 
             _resourceBuffers.UpdateBuffers();
@@ -1342,15 +1342,15 @@ namespace FNPlugin
 
         private double CalculateElectricalPowerCurrentlyNeeded()
         {
-            megajouleBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+            megajouleBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
             megajoulePecentage = megajouleBarRatio * 100;
 
             if (isLimitedByMinThrotle)
                 return attachedPowerSource.MinimumPower;
 
-            currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
+            currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
 
-            spareResourceCapacity = getSpareResourceCapacity(ResourceManager.FNRESOURCE_MEGAJOULES);
+            spareResourceCapacity = getSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
             maxStableMegaWattPower = MaxStableMegaWattPower;
 
             possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity, maxStableMegaWattPower);
@@ -1378,8 +1378,8 @@ namespace FNPlugin
             if (controlWasteHeatBuffer)
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
 
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
-            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, megawattBufferAmount);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, megawattBufferAmount);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, megawattBufferAmount);
             _resourceBuffers.UpdateBuffers();
         }
 

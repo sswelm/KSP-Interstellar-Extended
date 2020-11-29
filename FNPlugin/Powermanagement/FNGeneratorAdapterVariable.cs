@@ -106,7 +106,7 @@ namespace FNPlugin
                 {
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                         inputType = ResourceType.megajoule;
-                    else if (moduleResource.name == ResourceSettings.Config.ElectricChargePower)
+                    else if (moduleResource.name == ResourceSettings.Config.ElectricPowerInKilowatt)
                         inputType = ResourceType.electricCharge;
 
                     if (inputType != ResourceType.other)
@@ -140,7 +140,7 @@ namespace FNPlugin
                     // assuming only one of those two is present
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                         outputType = ResourceType.megajoule;
-                    else if (moduleResource.name == ResourceSettings.Config.ElectricChargePower)
+                    else if (moduleResource.name == ResourceSettings.Config.ElectricPowerInKilowatt)
                         outputType = ResourceType.electricCharge;
 
                     if (outputType != ResourceType.other)

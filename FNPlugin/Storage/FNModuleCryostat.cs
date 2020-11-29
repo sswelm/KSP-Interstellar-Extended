@@ -75,7 +75,7 @@ namespace FNPlugin
         private BaseField powerStatusStrField;
         private BaseField externalTemperatureField;
         private BaseField maintainElectricChargeBufferField;
-            
+
         private double environmentBoiloff;
         private double environmentFactor;
         private double recievedPowerKW;
@@ -104,7 +104,7 @@ namespace FNPlugin
             {
                 if (!autoConfigElectricChargeBuffer) return;
 
-                var exitingElectricCharge = part.Resources[ResourceSettings.Config.ElectricChargePower];
+                var exitingElectricCharge = part.Resources[ResourceSettings.Config.ElectricPowerInKilowatt];
 
                 bool hasHigherThanDefaultBuffer = exitingElectricCharge != null && exitingElectricCharge.maxAmount > powerReqKW / 50;
 
@@ -119,10 +119,10 @@ namespace FNPlugin
             part.skinTemperature = storedTemp;
 
             // if electricCharge buffer is missing, add it.
-            if (!part.Resources.Contains(ResourceSettings.Config.ElectricChargePower))
+            if (!part.Resources.Contains(ResourceSettings.Config.ElectricPowerInKilowatt))
             {
                 var node = new ConfigNode("RESOURCE");
-                node.AddValue("name", ResourceSettings.Config.ElectricChargePower);
+                node.AddValue("name", ResourceSettings.Config.ElectricPowerInKilowatt);
                 node.AddValue("maxAmount", requiresPower ? powerReqKW / 50 : 1);
                 node.AddValue("amount", requiresPower ? powerReqKW / 50 : 1);
                 part.AddResource(node);
@@ -131,7 +131,7 @@ namespace FNPlugin
             if (maintainElectricChargeBuffer)
             {
                 resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricChargePower, 2));
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 2));
                 resourceBuffers.Init(this.part);
             }
         }
@@ -141,7 +141,7 @@ namespace FNPlugin
             if (resourceBuffers == null)
                 return;
 
-            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, currentPowerUsage);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, currentPowerUsage);
             resourceBuffers.UpdateBuffers();
         }
 

@@ -262,7 +262,7 @@ namespace FNPlugin.Refinery
 
             var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
 
-            var receivedElectricCharge = part.RequestResource(ResourceSettings.Config.ElectricChargePower, shortage *
+            var receivedElectricCharge = part.RequestResource(ResourceSettings.Config.ElectricPowerInKilowatt, shortage *
                 GameConstants.ecPerMJ * fixedDeltaTime) / fixedDeltaTime;
 
             consumedPowerMW += receivedElectricCharge / GameConstants.ecPerMJ;

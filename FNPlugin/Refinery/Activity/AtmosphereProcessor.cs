@@ -213,8 +213,8 @@ namespace FNPlugin.Refinery.Activity
             _nitrogen15ResourceName = ResourceSettings.Config.Nitrogen15Lqd;
             _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
             _waterResourceName = ResourceSettings.Config.WaterPure;
-            _heavyWaterResourceName = ResourceSettings._LIQUID_HEAVYWATER;
-            _xenonResourceName = ResourceSettings._LIQUID_XENON;
+            _heavyWaterResourceName = ResourceSettings.Config.WaterHeavy;
+            _xenonResourceName = ResourceSettings.Config.XenonLqd;
             _deuteriumResourceName = ResourceSettings.Config.DeuteriumLqd;
             _kryptonResourceName = ResourceSettings.Config.KryptonLqd;
 

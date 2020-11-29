@@ -5,6 +5,7 @@ using UnityEngine;
 using FNPlugin.Extensions;
 using KSP.Localization;
 using FNPlugin.Powermanagement;
+using FNPlugin.Resources;
 
 namespace FNPlugin
 {
@@ -14,24 +15,18 @@ namespace FNPlugin
         public static ResourceManager Create(Guid id, PartModule pm, string resourceName)
         {
             ResourceManager result;
-            switch (resourceName)
-            {
-            case ResourceManager.FNRESOURCE_MEGAJOULES:
+
+            if (resourceName == ResourceSettings.Config.ElectricPowerInMegawatt)
                 result = new MegajoulesResourceManager(id, pm);
-                break;
-            case ResourceManager.FNRESOURCE_WASTEHEAT:
+            else if (resourceName == ResourceSettings.Config.WasteHeatInMegawatt)
                 result = new WasteHeatResourceManager(id, pm);
-                break;
-            case ResourceManager.FNRESOURCE_CHARGED_PARTICLES:
+            else if(resourceName == ResourceSettings.Config.ChargedParticleInMegawatt)
                 result = new CPResourceManager(id, pm);
-                break;
-            case ResourceManager.FNRESOURCE_THERMALPOWER:
+            else if(resourceName == ResourceSettings.Config.ThermalPowerInMegawatt)
                 result = new TPResourceManager(id, pm);
-                break;
-            default:
+            else
                 result = new DefaultResourceManager(id, pm, resourceName);
-                break;
-            }
+
             return result;
         }
     }
@@ -42,7 +37,6 @@ namespace FNPlugin
         public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
         public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
-        
 
         public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
         public const int FNRESOURCE_FLOWTYPE_EVEN = 1;

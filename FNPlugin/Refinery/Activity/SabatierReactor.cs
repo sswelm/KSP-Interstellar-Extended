@@ -37,8 +37,8 @@ namespace FNPlugin.Refinery.Activity
         private double _oxygenProductionRate;
 
         private string _carbonDioxideResourceName;
-        private string _methaneResourceName;
         private string _hydrogenResourceName;
+        private string _methaneResourceName;
         private string _oxygenResourceName;
 
         private double _maxCapacityCarbonDioxideMass;
@@ -69,10 +69,10 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _carbonDioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
-            _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
-            _methaneResourceName = ResourceSettings.Config.MethaneLqd;
-            _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
+            _carbonDioxideResourceName = ResourceSettings.Config.CarbonDioxideGas;
+            _hydrogenResourceName = ResourceSettings.Config.HydrogenGas;
+            _methaneResourceName = ResourceSettings.Config.MethaneGas;
+            _oxygenResourceName = ResourceSettings.Config.OxygenGas;
 
             _carbonDioxideDensity = PartResourceLibrary.Instance.GetDefinition(_carbonDioxideResourceName).density;
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
@@ -207,10 +207,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(ResourceSettings.Config.CarbonDioxideLqd).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SabatierReactor_Postmsg") + " " + ResourceSettings.Config.CarbonDioxideLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(ResourceSettings.Config.HydrogenLqd).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SabatierReactor_Postmsg") + " " + ResourceSettings.Config.HydrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(_carbonDioxideResourceName).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SabatierReactor_Postmsg") + " " + _carbonDioxideResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(_hydrogenResourceName).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SabatierReactor_Postmsg") + " " + _hydrogenResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

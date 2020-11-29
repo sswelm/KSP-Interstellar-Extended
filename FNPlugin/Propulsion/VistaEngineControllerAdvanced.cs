@@ -319,7 +319,7 @@ namespace FNPlugin.Propulsion
                 minISP = curEngineT.atmosphereCurve.Evaluate(0);
 
                 standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.DeuteriumLqd).ratio;
-                standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.LqdTritium).ratio;
+                standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.TritiumLqd).ratio;
 
                 DetermineTechLevel();
 
@@ -440,7 +440,7 @@ namespace FNPlugin.Propulsion
 
                 // change ratio propellants Hydrogen/Fusion
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.DeuteriumLqd).ratio = (float)(standard_deuterium_rate / rateMultplier);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.LqdTritium).ratio = (float)(standard_tritium_rate / rateMultplier);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.DeuteriumLqd).ratio = (float)(standard_tritium_rate / rateMultplier);
 
                 // Update ISP
                 var currentIsp = SelectedIsp;
@@ -477,7 +477,7 @@ namespace FNPlugin.Propulsion
 				var maxFuelFlow = MaximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.DeuteriumLqd).ratio = (float)(standard_deuterium_rate / rateMultplier);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.LqdTritium).ratio = (float)(standard_tritium_rate / rateMultplier);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.TritiumLqd).ratio = (float)(standard_tritium_rate / rateMultplier);
             }
 
             coldBathTemp = FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel);

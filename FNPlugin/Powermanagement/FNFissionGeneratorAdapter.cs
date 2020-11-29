@@ -100,7 +100,7 @@ namespace FNPlugin.Powermanagement
             efficiency = generatorEfficiency.ToString("P2");
 
             //extract power otherwise we end up with double power
-            part.RequestResource(ResourceSettings.Config.ElectricChargePower, generatorRate * fixedDeltaTime);
+            part.RequestResource(ResourceSettings.Config.ElectricPowerInKilowatt, generatorRate * fixedDeltaTime);
 
             double megajoulesRate = generatorRate / GameConstants.ecPerMJ;
             double maxMegajoulesRate = generatorMax / GameConstants.ecPerMJ;

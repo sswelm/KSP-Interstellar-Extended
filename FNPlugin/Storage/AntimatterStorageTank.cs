@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FNPlugin.Resources;
 using TweakScale;
 using UnityEngine;
 
@@ -97,7 +98,7 @@ namespace FNPlugin
 
         //settings
         [KSPField]
-        public float explosionPotentialMultiplier = 90000; 
+        public float explosionPotentialMultiplier = 90000;
         [KSPField]
         public int maximumTimewarpWithGeeforceWarning = 3;
         [KSPField]
@@ -106,14 +107,14 @@ namespace FNPlugin
         public double massExponent = 3;
         [KSPField]
         public double massTargetExponent = 3;
-        [KSPField] 
+        [KSPField]
         public double dryCostInitialExponent = 2.5;
         [KSPField]
         public double dryCostTargetExponent = 2;
         [KSPField]
         public double chargeNeeded = 100;
         [KSPField]
-        public string resourceName = "Antimatter";
+        public string resourceName = ResourceSettings.Config.AntiProtium;
         [KSPField]
         public double massTemperatureDivider = 12000;
         [KSPField]
@@ -121,7 +122,7 @@ namespace FNPlugin
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AntimatterStorageTank_RequiredPower")]//Required Power
         public double effectivePowerNeeded;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AntimatterStorageTank_Exploding")]//Exploding
-        public bool exploding = false;
+        public bool exploding;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AntimatterStorageTank_Charge")]//Charge
         public string chargeStatusStr;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AntimatterStorageTank_Status")]//Status
@@ -333,7 +334,7 @@ namespace FNPlugin
 
             if (antimatterResource.resourceName != resourceName)
             {
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg1", antimatterResource.info.displayName), 10, ScreenMessageStyle.UPPER_CENTER);//"List all" + 
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AntimatterStorageTank_Postmsg1", antimatterResource.info.displayName), 10, ScreenMessageStyle.UPPER_CENTER);//"List all" +
                 antimatterResource.amount = 0;
                 return;
             }
@@ -368,7 +369,7 @@ namespace FNPlugin
             _deploymentAnimation = part.FindModuleImplementing<ModuleAnimateGeneric>();
 
             part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
-            part.OnJustAboutToDie += OnJustAboutToDie; 
+            part.OnJustAboutToDie += OnJustAboutToDie;
 
             _antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
 
@@ -433,7 +434,7 @@ namespace FNPlugin
             if (antimatterResource == null) return false;
             return antimatterResource.amount > _minimumAntimatterAmount;
         }
-        
+
 
         void OnJustAboutToDie()
         {
@@ -595,7 +596,7 @@ namespace FNPlugin
             chargeStatusStr = chargeStatus.ToString("0.0") + " / " + maxCharge.ToString("0.0");
             TemperatureStr = part.temperature.ToString("0") + " / " + maxTemperature.ToString("0");
             GeeforceStr = _effectiveMaxGeeforce == 0
-                ? maxGeeforce.ToString("0.0") + " when full" 
+                ? maxGeeforce.ToString("0.0") + " when full"
                 : currentGeeForce.ToString("0.000") + " / " + _effectiveMaxGeeforce.ToString("0.000");
 
             _minimumAntimatterAmount = _antimatterDensityModifier * antimatterResource.maxAmount;
@@ -643,7 +644,7 @@ namespace FNPlugin
                     _geeforceQueue.Dequeue();
             }
             _previousSpeed = vessel.obt_speed;
-            _previousFixedTime = TimeWarp.fixedDeltaTime;              
+            _previousFixedTime = TimeWarp.fixedDeltaTime;
 
             MaintainContainment();
 
@@ -677,7 +678,7 @@ namespace FNPlugin
             if (!_shouldCharge && antimatterResource.amount <= _minimumAntimatterAmount) return;
 
             var powerModifier = canExplodeFromGeeForce
-                ? (resourceRatio * (currentGeeForce / 10) * 0.8) + ((part.temperature / 1000) * 0.2) 
+                ? (resourceRatio * (currentGeeForce / 10) * 0.8) + ((part.temperature / 1000) * 0.2)
                 :  Math.Pow(resourceRatio, 2);
 
             effectivePowerNeeded = chargeNeeded * powerModifier;

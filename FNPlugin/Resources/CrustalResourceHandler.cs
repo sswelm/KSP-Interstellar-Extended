@@ -244,7 +244,7 @@ namespace FNPlugin.Resources
             try
             {
                 AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.WaterPure, "LqdWater", "H2O", "Water", "Water");
-                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
+                AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.WaterHeavy, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
                 AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.WaterPure, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
                 AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.OxygenGas, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
                 AddResource(refBody, bodyCrustalComposition, ResourceSettings.Config.CarbonDioxideLqd, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
@@ -363,11 +363,11 @@ namespace FNPlugin.Resources
         private static void AddRaresAndIsotopesToCrustComposition(List<CrustalResource> bodyCrustalComposition)
         {
             // add heavywater based on water abundance in crust
-            if (!bodyCrustalComposition.Any(m => m.ResourceName == ResourceSettings.Config.HeavyWater) && bodyCrustalComposition.Any(m => m.ResourceName == ResourceSettings.Config.WaterPure))
+            if (!bodyCrustalComposition.Any(m => m.ResourceName == ResourceSettings.Config.WaterHeavy) && bodyCrustalComposition.Any(m => m.ResourceName == ResourceSettings.Config.WaterPure))
             {
                 var water = bodyCrustalComposition.FirstOrDefault(m => m.ResourceName == ResourceSettings.Config.WaterPure);
                 var heavywaterAbundance = water.ResourceAbundance / 6420;
-                bodyCrustalComposition.Add(new CrustalResource(ResourceSettings.Config.HeavyWater, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater" }));
+                bodyCrustalComposition.Add(new CrustalResource(ResourceSettings.Config.WaterHeavy, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater" }));
             }
         }
 

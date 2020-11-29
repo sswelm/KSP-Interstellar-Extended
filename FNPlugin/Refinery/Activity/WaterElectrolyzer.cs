@@ -125,7 +125,7 @@ namespace FNPlugin.Refinery.Activity
                     flowMode: ResourceFlowMode.ALL_VESSEL);
 
                 var oxygenProductionAmount = -_part.RequestResource(
-                    resourceName: ResourceSettings.Config.OxygenLqd,
+                    resourceName: ResourceSettings.Config.OxygenGas,
                     demand: -oxygenRateTemp * fixedDeltaTime / _oxygen.density,
                     flowMode: ResourceFlowMode.ALL_VESSEL);
 

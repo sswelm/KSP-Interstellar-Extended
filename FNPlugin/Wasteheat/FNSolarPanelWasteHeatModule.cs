@@ -117,7 +117,7 @@ namespace FNPlugin
 
             if (resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
                 _outputType = ResourceType.megajoule;
-            else if (resourceName == ResourceSettings.Config.ElectricChargePower)
+            else if (resourceName == ResourceSettings.Config.ElectricPowerInKilowatt)
                 _outputType = ResourceType.electricCharge;
             else
                 _outputType = ResourceType.other;
@@ -127,9 +127,9 @@ namespace FNPlugin
             {
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricChargePower));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt));
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate / GameConstants.ecPerMJ : _solarPanel.chargeRate);
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricChargePower, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * GameConstants.ecPerMJ);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * GameConstants.ecPerMJ);
                 _resourceBuffers.Init(part);
             }
 

@@ -25,7 +25,7 @@ namespace FNPlugin.Reactors
     {
         // Configs
         [KSPField] public string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
-        [KSPField] public string secondaryInputResource = ResourceSettings.ElectricCharge;
+        [KSPField] public string secondaryInputResource = "ElectricCharge";
         [KSPField] public double primaryInputMultiplier = 1;
         [KSPField] public double secondaryInputMultiplier = 1000;
         [KSPField] public bool canJumpstart = true;

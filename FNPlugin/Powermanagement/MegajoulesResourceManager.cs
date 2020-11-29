@@ -35,7 +35,7 @@ namespace FNPlugin.Powermanagement
         public MegajoulesResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, FNRESOURCE_MEGAJOULES, FNRESOURCE_FLOWTYPE_SMALLEST_FIRST)
         {
             WindowPosition = new Rect(50, 50, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
-            electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.ElectricChargePower);
+            electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.ElectricPowerInKilowatt);
             lastECNeeded = 0.0;
             lastMJConverted = 0.0;
             mjConverted = 0.0;

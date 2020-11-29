@@ -23,7 +23,7 @@ namespace FNPlugin.Powermanagement
         [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
         public string powerResourceName = "Megajoules";
         [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
-        public string electricChargeResourceName = ResourceSettings.ElectricCharge;
+        public string electricChargeResourceName = "ElectricCharge";
 
         [KSPField]
         public double powerConversionRate = 1000;

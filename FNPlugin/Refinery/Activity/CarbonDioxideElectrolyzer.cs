@@ -55,8 +55,8 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
-            _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
+            _dioxideResourceName = ResourceSettings.Config.CarbonDioxideGas;
+            _oxygenResourceName = ResourceSettings.Config.OxygenGas;
             _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
 
             _dioxideDensity = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;
@@ -180,7 +180,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Postmsg") + " " + ResourceSettings.Config.CarbonDioxideLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Postmsg") + " " + _dioxideResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

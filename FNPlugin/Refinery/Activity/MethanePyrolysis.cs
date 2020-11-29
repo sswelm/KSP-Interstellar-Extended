@@ -67,9 +67,9 @@ namespace FNPlugin.Refinery.Activity
             _vessel = localPart.vessel;
 
             _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
-            _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
-            _methaneResourceName = ResourceSettings.Config.MethaneLqd;
-            _oxygenResourceName = ResourceSettings.Config.OxygenLqd;
+            _hydrogenResourceName = ResourceSettings.Config.HydrogenGas;
+            _methaneResourceName = ResourceSettings.Config.MethaneGas;
+            _oxygenResourceName = ResourceSettings.Config.OxygenGas;
 
             _monoxideDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
@@ -215,10 +215,10 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            if (!_part.GetConnectedResources(ResourceSettings.Config.MethaneLqd).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MethanePyrolysis_PostMsg") +" " + ResourceSettings.Config.MethaneLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
-            if (!_part.GetConnectedResources(ResourceSettings.Config.OxygenLqd).Any(rs => rs.amount > 0))
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MethanePyrolysis_PostMsg") +" " + ResourceSettings.Config.OxygenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(_methaneResourceName).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MethanePyrolysis_PostMsg") +" " + _methaneResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            if (!_part.GetConnectedResources(_oxygenResourceName).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_MethanePyrolysis_PostMsg") +" " + _oxygenResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

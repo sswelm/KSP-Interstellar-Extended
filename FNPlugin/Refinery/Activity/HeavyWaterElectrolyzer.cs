@@ -23,27 +23,31 @@ namespace FNPlugin.Refinery.Activity
         private const double DeuteriumMassByFraction = (2 * DeuteriumAtomicMass) / (OxygenAtomicMass + (2 * DeuteriumAtomicMass)); // 0.201136
         private const double OxygenMassByFraction = 1 - DeuteriumMassByFraction;
 
-        double _heavyWaterConsumptionRate;
-        double _deuteriumProductionRate;
-        double _oxygenProductionRate;
-        double _fixedMaxConsumptionWaterRate;
-        double _consumptionStorageRatio;
+        private double _heavyWaterConsumptionRate;
+        private double _deuteriumProductionRate;
+        private double _oxygenProductionRate;
+        private double _fixedMaxConsumptionWaterRate;
+        private double _consumptionStorageRatio;
 
-        double _heavyWaterDensity;
-        double _oxygenDensity;
-        double _deuteriumDensity;
+        private string _waterHeavyResourceName;
+        private string _oxygenResourceName;
+        private string _deuteriumResourceName;
 
-        double _availableHeavyWaterMass;
-        double _spareRoomOxygenMass;
-        double _spareRoomDeuteriumMass;
+        private double _heavyWaterDensity;
+        private double _oxygenDensity;
+        private double _deuteriumDensity;
 
-        double _maxCapacityHeavyWaterMass;
-        double _maxCapacityDeuteriumMass;
-        double _maxCapacityOxygenMass;
+        private double _availableHeavyWaterMass;
+        private double _spareRoomOxygenMass;
+        private double _spareRoomDeuteriumMass;
+
+        private double _maxCapacityHeavyWaterMass;
+        private double _maxCapacityDeuteriumMass;
+        private double _maxCapacityOxygenMass;
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() {  return _part.GetConnectedResources(ResourceSettings.Config.HeavyWater).Any(rs => rs.amount > 0);   }
+        public bool HasActivityRequirements() {  return _part.GetConnectedResources(ResourceSettings.Config.WaterHeavy).Any(rs => rs.amount > 0);   }
 
         public string Status => string.Copy(_status);
 
@@ -51,10 +55,14 @@ namespace FNPlugin.Refinery.Activity
         {
             _part = localPart;
 
+            _waterHeavyResourceName = ResourceSettings.Config.WaterHeavy;
+            _oxygenResourceName = ResourceSettings.Config.OxygenGas;
+            _deuteriumResourceName = ResourceSettings.Config.DeuteriumGas;
+
             _vessel = localPart.vessel;
-            _heavyWaterDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HeavyWater).density;
-            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenLqd).density;
-            _deuteriumDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.DeuteriumLqd).density;
+            _heavyWaterDensity = PartResourceLibrary.Instance.GetDefinition(_waterHeavyResourceName).density;
+            _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(_oxygenResourceName).density;
+            _deuteriumDensity = PartResourceLibrary.Instance.GetDefinition(_deuteriumResourceName).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -63,9 +71,9 @@ namespace FNPlugin.Refinery.Activity
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / EnergyPerTon;
 
-            var partsThatContainWater = _part.GetConnectedResources(ResourceSettings.Config.HeavyWater).ToList();
-            var partsThatContainOxygen = _part.GetConnectedResources(ResourceSettings.Config.OxygenLqd).ToList();
-            var partsThatContainDeuterium = _part.GetConnectedResources(ResourceSettings.Config.DeuteriumLqd).ToList();
+            var partsThatContainWater = _part.GetConnectedResources(_waterHeavyResourceName).ToList();
+            var partsThatContainOxygen = _part.GetConnectedResources(_oxygenResourceName).ToList();
+            var partsThatContainDeuterium = _part.GetConnectedResources(_deuteriumResourceName).ToList();
 
             _maxCapacityHeavyWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _heavyWaterDensity;
             _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygenDensity;
@@ -92,13 +100,13 @@ namespace FNPlugin.Refinery.Activity
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrogenRatio, fixedMaxPossibleOxygenRatio);
 
                 // now we do the real electrolysis
-                _heavyWaterConsumptionRate = _part.RequestResource(ResourceSettings.Config.HeavyWater, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _heavyWaterDensity) / fixedDeltaTime * _heavyWaterDensity;
+                _heavyWaterConsumptionRate = _part.RequestResource(_waterHeavyResourceName, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _heavyWaterDensity) / fixedDeltaTime * _heavyWaterDensity;
 
                 var deuteriumRateTemp = _heavyWaterConsumptionRate * DeuteriumMassByFraction;
                 var oxygenRateTemp = _heavyWaterConsumptionRate * OxygenMassByFraction;
 
-                _deuteriumProductionRate = -_part.RequestResource(ResourceSettings.Config.DeuteriumLqd, -deuteriumRateTemp * fixedDeltaTime / _deuteriumDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuteriumDensity;
-                _oxygenProductionRate = -_part.RequestResource(ResourceSettings.Config.OxygenLqd, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
+                _deuteriumProductionRate = -_part.RequestResource(_deuteriumResourceName, -deuteriumRateTemp * fixedDeltaTime / _deuteriumDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuteriumDensity;
+                _oxygenProductionRate = -_part.RequestResource(_oxygenResourceName, -oxygenRateTemp * fixedDeltaTime / _oxygenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygenDensity;
             }
             else
             {
@@ -162,9 +170,9 @@ namespace FNPlugin.Refinery.Activity
             else if (_fixedMaxConsumptionWaterRate <= 0.0000000001)
                 _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg2");//"Out of water"
             else if (_deuteriumProductionRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", ResourceSettings.Config.OxygenLqd);//"Insufficient " +  + " Storage"
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", _oxygenResourceName);//"Insufficient " +  + " Storage"
             else if (_oxygenProductionRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", ResourceSettings.Config.HydrogenLqd);//"Insufficient " +  + " Storage"
+                _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg3", _deuteriumResourceName);//"Insufficient " +  + " Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg4");//"Insufficient Power"
             else
@@ -173,7 +181,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Postmsg") + " " + ResourceSettings.Config.HeavyWater, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Postmsg") + " " + _waterHeavyResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }

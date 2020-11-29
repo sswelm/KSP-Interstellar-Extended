@@ -138,7 +138,7 @@ namespace FNPlugin.Propulsion
             minISP = curEngineT.atmosphereCurve.Evaluate(0);
 
             standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.DeuteriumLqd).ratio;
-            standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.LqdTritium).ratio;
+            standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.TritiumLqd).ratio;
 
             // if we can upgrade, let's do so
             if (isupgraded)
@@ -263,7 +263,7 @@ namespace FNPlugin.Propulsion
 
                 // change ratio propellants Hydrogen/Fusion
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.DeuteriumLqd).ratio = (float)(standard_deuterium_rate / throttle / throttle);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.LqdTritium).ratio = (float)(standard_tritium_rate / throttle / throttle);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.TritiumLqd).ratio = (float)(standard_tritium_rate / throttle / throttle);
 
                 // Update ISP
                 var newISP = new FloatCurve();
@@ -293,7 +293,7 @@ namespace FNPlugin.Propulsion
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
 
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.DeuteriumLqd).ratio = (float)(standard_deuterium_rate);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.LqdTritium).ratio = (float)(standard_tritium_rate);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == ResourceSettings.Config.TritiumLqd).ratio = (float)(standard_tritium_rate);
             }
 
             radiatorPerformance = (float)Math.Max(1 - (float)(coldBathTemp / maxTempatureRadiators), 0.000001);

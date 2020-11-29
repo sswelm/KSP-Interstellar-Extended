@@ -202,7 +202,7 @@ namespace FNPlugin
             // If still no power, use any electric charge available
             if (requestedMW > 0.0 && allowEC)
             {
-                add = part.RequestResource(ResourceSettings.Config.ElectricChargePower, requestedMW * GameConstants.ecPerMJ * dt) / (GameConstants.ecPerMJ * dt);
+                add = part.RequestResource(ResourceSettings.Config.ElectricPowerInKilowatt, requestedMW * GameConstants.ecPerMJ * dt) / (GameConstants.ecPerMJ * dt);
                 result += add;
             }
 

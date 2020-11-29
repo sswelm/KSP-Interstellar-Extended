@@ -39,7 +39,7 @@ namespace FNPlugin.Propulsion
         [KSPField]
         public double minimumPropellantBuffer = 0.01;
         [KSPField]
-        public string propellantBufferResourceName = ResourceSettings.LqdHydrogen;
+        public string propellantBufferResourceName = "LqdHydrogen";
         [KSPField]
         public string runningEffectName = String.Empty;
         [KSPField]

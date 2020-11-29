@@ -17,7 +17,7 @@ namespace FNPlugin.Propulsion
         [KSPField]
         public double GThreshold = 9;
         [KSPField]
-        public string propellant1 = ResourceSettings.LqdHydrogen;
+        public string propellant1 = "LqdHydrogen";
         [KSPField]
         public string propellant2;
         [KSPField]
