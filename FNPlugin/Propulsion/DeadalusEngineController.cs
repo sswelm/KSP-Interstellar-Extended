@@ -91,7 +91,7 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiUnits = " m/s")]
         public double engineSpeedOfLight;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
-        public double lightSpeedRatio = 0;
+        public double lightSpeedRatio;
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_relativity", guiFormat = "F10")]
         public double relativity;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
@@ -749,7 +749,7 @@ namespace FNPlugin.Propulsion
             if (curEngineT.isOperational && !IsEnabled)
             {
                 IsEnabled = true;
-                UnityEngine.Debug.Log("[KSPI]: DeadalusEngineController on " + part.name + " was Force Activated");
+                Debug.Log("[KSPI]: DeadalusEngineController on " + part.name + " was Force Activated");
                 part.force_activate();
             }
 
@@ -777,13 +777,13 @@ namespace FNPlugin.Propulsion
                 radhazardstr = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_radhazardstr3");//"None."
             }
 
-            Fields["powerUsage"].guiActive = EffectiveMaxPowerRequirement > 0;
-            Fields["wasteHeat"].guiActive = EffectiveMaxFusionWasteHeat > 0;
+            Fields[nameof(powerUsage)].guiActive = EffectiveMaxPowerRequirement > 0;
+            Fields[nameof(wasteHeat)].guiActive = EffectiveMaxFusionWasteHeat > 0;
         }
 
         private void ShutDown(string reason)
         {
-            curEngineT.Events["Shutdown"].Invoke();
+            curEngineT.Events[nameof(ModuleEnginesFX.Shutdown)].Invoke();
             curEngineT.currentThrottle = 0;
             curEngineT.requestedThrottle = 0;
 

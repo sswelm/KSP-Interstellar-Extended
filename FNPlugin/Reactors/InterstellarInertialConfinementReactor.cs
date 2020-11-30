@@ -24,8 +24,8 @@ namespace FNPlugin.Reactors
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor
     {
         // Configs
-        [KSPField] public string primaryInputResource = "Megajoules";
-        [KSPField] public string secondaryInputResource = "ElectricCharge";
+        [KSPField] public string primaryInputResource = ResourceSettings.Config.ElectricPowerInMegawatt;
+        [KSPField] public string secondaryInputResource = ResourceSettings.Config.ElectricPowerInKilowatt;
         [KSPField] public double primaryInputMultiplier = 1;
         [KSPField] public double secondaryInputMultiplier = 1000;
         [KSPField] public bool canJumpstart = true;

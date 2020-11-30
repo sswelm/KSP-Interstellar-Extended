@@ -21,9 +21,9 @@ namespace FNPlugin.Powermanagement
         public float partMass = 0;
 
         [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
-        public string powerResourceName = "Megajoules";
+        public string powerResourceName = ResourceSettings.Config.ElectricPowerInMegawatt;
         [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
-        public string electricChargeResourceName = "ElectricCharge";
+        public string electricChargeResourceName = ResourceSettings.Config.ElectricPowerInKilowatt;
 
         [KSPField]
         public double powerConversionRate = 1000;
