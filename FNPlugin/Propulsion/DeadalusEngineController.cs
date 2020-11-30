@@ -525,7 +525,7 @@ namespace FNPlugin.Propulsion
 
         public override void OnStart(StartState state)
         {
-            string[] resources_to_supply = { ResourceManager.FNRESOURCE_WASTEHEAT, ResourceSettings.Config.ElectricPowerInMegawatt };
+            string[] resources_to_supply = { ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt };
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
@@ -1059,7 +1059,7 @@ namespace FNPlugin.Propulsion
             var effectiveMaxPowerProduction = EffectiveMaxPowerProduction;
             var effectiveMaxFusionWasteHeat = EffectiveMaxFusionWasteHeat;
 
-            var wasteheatRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_WASTEHEAT);
+            var wasteheatRatio = getResourceBarFraction(ResourceSettings.Config.WasteHeatInMegawatt);
 
             var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10;
 
@@ -1078,7 +1078,7 @@ namespace FNPlugin.Propulsion
             // The Absorbed wasteheat from Fusion production and reaction
             wasteHeat = requestedThrottle * plasmaRatio * effectiveMaxFusionWasteHeat;
             if (!CheatOptions.IgnoreMaxTemperature && effectiveMaxFusionWasteHeat > 0)
-                supplyFNResourcePerSecondWithMax(wasteHeat, effectiveMaxFusionWasteHeat, ResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecondWithMax(wasteHeat, effectiveMaxFusionWasteHeat, ResourceSettings.Config.WasteHeatInMegawatt);
 
             if (!CheatOptions.InfiniteElectricity && effectiveMaxPowerProduction > 0)
                 supplyFNResourcePerSecondWithMax(requestedThrottle * plasmaRatio * effectiveMaxPowerProduction, effectiveMaxPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);

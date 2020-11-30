@@ -705,7 +705,7 @@ namespace FNPlugin.Collectors
 
                 dLastPowerRatio = offlineCollecting ? dLastPowerRatio : (dPowerRequirementsMw > 0 ? receivedPowerMw / dPowerRequirementsMw : 0);
 
-                supplyManagedFNResourcePerSecond(dWasteheatProductionMw * dLastPowerRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyManagedFNResourcePerSecond(dWasteheatProductionMw * dLastPowerRatio, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 // show in GUI
                 strCollectingStatus = Localizer.Format("#LOC_KSPIE_SolarwindCollector_Collecting");//"Collecting solar wind"

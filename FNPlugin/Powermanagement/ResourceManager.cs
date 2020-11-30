@@ -35,8 +35,8 @@ namespace FNPlugin
     {
         //public const string FNRESOURCE_MEGAJOULES = "Megajoules";
         //public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
-        public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
-        public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
+        //public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
+        //public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
 
         public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
         public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
@@ -195,7 +195,7 @@ namespace FNPlugin
             {
                 green_label = new GUIStyle(GUI.skin.label)
                 {
-                    normal = { textColor = resourceName == FNRESOURCE_WASTEHEAT ? Color.red : Color.green },
+                    normal = { textColor = resourceName == ResourceSettings.Config.WasteHeatInMegawatt ? Color.red : Color.green },
                     font = PluginHelper.MainFont,
                     alignment = TextAnchor.MiddleRight
                 };
@@ -205,7 +205,7 @@ namespace FNPlugin
             {
                 red_label = new GUIStyle(GUI.skin.label)
                 {
-                    normal = { textColor = resourceName == FNRESOURCE_WASTEHEAT ? Color.green : Color.red },
+                    normal = { textColor = resourceName == ResourceSettings.Config.WasteHeatInMegawatt ? Color.green : Color.red },
                     font = PluginHelper.MainFont,
                     alignment = TextAnchor.MiddleRight
                 };
@@ -254,7 +254,7 @@ namespace FNPlugin
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            string new_power_label = (resourceName == FNRESOURCE_WASTEHEAT) ? Localizer.Format("#LOC_KSPIE_ResourceManager_NetChange") : Localizer.Format("#LOC_KSPIE_ResourceManager_NetPower");//"Net Change""Net Power"
+            string new_power_label = (resourceName == ResourceSettings.Config.WasteHeatInMegawatt) ? Localizer.Format("#LOC_KSPIE_ResourceManager_NetChange") : Localizer.Format("#LOC_KSPIE_ResourceManager_NetPower");//"Net Change""Net Power"
             GUILayout.Label(new_power_label, left_bold_label, GUILayout.ExpandWidth(true));
 
             GUIStyle net_poer_style = netChange < -0.001 ? red_label : green_label;

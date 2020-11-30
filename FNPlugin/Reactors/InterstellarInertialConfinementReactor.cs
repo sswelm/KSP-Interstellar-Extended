@@ -260,7 +260,7 @@ namespace FNPlugin.Reactors
                 primaryPowerReceived = powerRequested;
 
             if (maintenancePowerWasteheatRatio > 0)
-                supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * primaryPowerReceived, ResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * primaryPowerReceived, ResourceSettings.Config.WasteHeatInMegawatt);
 
             // calculate effective primary power ratio
             var powerReceived = primaryPowerReceived;
@@ -432,7 +432,7 @@ namespace FNPlugin.Reactors
                 var powerPerSecond = usePowerManagerForPrimaryInputPower ? returnedPrimaryPower : returnedPrimaryPower / timeWarpFixedDeltaTime;
 
                 if (!CheatOptions.IgnoreMaxTemperature && maintenancePowerWasteheatRatio > 0)
-                    supplyFNResourcePerSecond(0.05 * powerPerSecond, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(0.05 * powerPerSecond, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 if (powerPerSecond >= minimumChargingPower)
                     accumulatedElectricChargeInMW += returnedPrimaryPower * timeWarpFixedDeltaTime;

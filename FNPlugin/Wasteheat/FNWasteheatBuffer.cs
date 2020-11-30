@@ -1,8 +1,9 @@
 ﻿using FNPlugin.Power;
+using FNPlugin.Resources;
 
 namespace FNPlugin.Wasteheat
 {
-    class FNWasteheatBuffer : PartModule 
+    class FNWasteheatBuffer : PartModule
     {
         [KSPField]
         public double wasteHeatMultiplier = 1;
@@ -17,13 +18,13 @@ namespace FNPlugin.Wasteheat
         {
             _resourceBuffers = new ResourceBuffers();
             _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, baseResourceAmount * wasteHeatBufferMult, true));
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             _resourceBuffers.Init(this.part);
         }
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             _resourceBuffers.UpdateBuffers();
         }
     }

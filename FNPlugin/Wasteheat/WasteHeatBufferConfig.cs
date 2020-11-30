@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Power;
 using System;
+using FNPlugin.Resources;
 
 namespace FNPlugin.Wasteheat
 {
@@ -11,8 +12,7 @@ namespace FNPlugin.Wasteheat
 
         private bool Initialized = false;
 
-        public WasteHeatBufferConfig(double heatMultiplier = 1.0d, double baseHeatAmount = 1.0d, bool clampInitialMaxAmount = false)
-            : base(ResourceManager.FNRESOURCE_WASTEHEAT)
+        public WasteHeatBufferConfig(double heatMultiplier = 1.0d, double baseHeatAmount = 1.0d, bool clampInitialMaxAmount = false) : base(ResourceSettings.Config.WasteHeatInMegawatt)
         {
             ClampInitialMaxAmount = clampInitialMaxAmount;
             ResourceMultiplier = heatMultiplier;

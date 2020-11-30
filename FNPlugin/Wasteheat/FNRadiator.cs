@@ -358,7 +358,7 @@ namespace FNPlugin.Wasteheat
             var efficiency = DrawPower();
             if (efficiency == 0) return;
 
-            var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
+            var wasteheatManager = getManagerForVessel(ResourceSettings.Config.WasteHeatInMegawatt);
 
             maxSupplyOfHeat = wasteheatManager.CurrentSurplus + wasteheatManager.GetResourceAvailability();
             if (maxSupplyOfHeat == 0) return;
@@ -510,7 +510,7 @@ namespace FNPlugin.Wasteheat
                  */
             }
 
-            var heatTransferred = consumeFNResourcePerSecond(actuallyReduced, ResourceManager.FNRESOURCE_WASTEHEAT);
+            var heatTransferred = consumeFNResourcePerSecond(actuallyReduced, ResourceSettings.Config.WasteHeatInMegawatt);
 
             if (heatTransferred == 0) return;
 
@@ -1231,7 +1231,7 @@ namespace FNPlugin.Wasteheat
 
         public override void OnStart(StartState state)
         {
-            string[] resourcesToSupply = { ResourceManager.FNRESOURCE_WASTEHEAT };
+            string[] resourcesToSupply = { ResourceSettings.Config.WasteHeatInMegawatt };
             this.resources_to_supply = resourcesToSupply;
 
             base.OnStart(state);
@@ -1409,7 +1409,7 @@ namespace FNPlugin.Wasteheat
             {
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+6));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
                 _resourceBuffers.Init(this.part);
             }
 
@@ -1579,12 +1579,12 @@ namespace FNPlugin.Wasteheat
 
                 if (_resourceBuffers != null)
                 {
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, radiatorIsEnabled ? this.part.mass : this.part.mass * 1e-3);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, radiatorIsEnabled ? this.part.mass : this.part.mass * 1e-3);
                     _resourceBuffers.UpdateBuffers();
                 }
 
                 // get resource bar ratio at start of frame
-                var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT) as WasteHeatResourceManager;
+                var wasteheatManager = getManagerForVessel(ResourceSettings.Config.WasteHeatInMegawatt) as WasteHeatResourceManager;
 
                 if (double.IsNaN(wasteheatManager.TemperatureRatio))
                 {
@@ -1749,7 +1749,7 @@ namespace FNPlugin.Wasteheat
 
             var consumedWasteheat = CheatOptions.IgnoreMaxTemperature || wasteheatToConsume == 0
                 ? wasteheatToConsume
-                : consumeFNResourcePerSecond(wasteheatToConsume, ResourceManager.FNRESOURCE_WASTEHEAT, wasteheatManager);
+                : consumeFNResourcePerSecond(wasteheatToConsume, ResourceSettings.Config.WasteHeatInMegawatt, wasteheatManager);
 
             return Double.IsNaN(consumedWasteheat) ? 0 : consumedWasteheat;
         }

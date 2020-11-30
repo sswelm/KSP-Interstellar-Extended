@@ -1,4 +1,6 @@
-﻿namespace FNPlugin.Wasteheat 
+﻿using FNPlugin.Resources;
+
+namespace FNPlugin.Wasteheat 
 {
     class FNWasteheatExplode : PartModule
     {
@@ -29,7 +31,7 @@
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
-            var wasteheatResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
+            var wasteheatResource = part.Resources[ResourceSettings.Config.WasteHeatInMegawatt];
 
             if (!CheatOptions.IgnoreMaxTemperature && wasteheatResource != null && wasteheatResource.amount >= wasteheatResource.maxAmount * explodeRatio)
             {

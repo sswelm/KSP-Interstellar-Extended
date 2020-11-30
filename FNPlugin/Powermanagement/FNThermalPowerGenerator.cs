@@ -50,7 +50,7 @@ namespace FNPlugin.Reactors
 
         public override void OnStart(PartModule.StartState state)
         {
-            String[] resources = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT};
+            String[] resources = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
             this.resources_to_supply = resources;
             base.OnStart(state);
 
@@ -108,8 +108,7 @@ namespace FNPlugin.Reactors
             var wasteheatInMegaJoules = (1 - thermalConversionEfficiency) * currentPowerSupplyInMegaWatt;
 
             if (hasRadiators)
-                supplyFNResourcePerSecondWithMax(maximumPowerSupplyInMegaWatt, wasteheatInMegaJoules,
-                    ResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecondWithMax(maximumPowerSupplyInMegaWatt, wasteheatInMegaJoules, ResourceSettings.Config.WasteHeatInMegawatt);
             else // dump heat in attached part
                 DumpWasteheatInAttachedParts(fixedDeltaTime, wasteheatInMegaJoules);
 

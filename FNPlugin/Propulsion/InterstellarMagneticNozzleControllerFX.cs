@@ -140,7 +140,7 @@ namespace FNPlugin.Propulsion
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 1.0e+6, true));
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             resourceBuffers.Init(this.part);
 
             _attached_warpable_engine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
@@ -370,7 +370,7 @@ namespace FNPlugin.Propulsion
             {
                 if (_attached_reactor.Part != this.part)
                 {
-                    resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                    resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
                     resourceBuffers.UpdateBuffers();
                 }
 
@@ -420,7 +420,7 @@ namespace FNPlugin.Propulsion
                         _previous_charged_particles_received = 0;
                     }
 
-                    consumeFNResourcePerSecond(wasteheatConsumption, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(wasteheatConsumption, ResourceSettings.Config.WasteHeatInMegawatt);
                 }
 
                 if (_charged_particles_received == 0)

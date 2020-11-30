@@ -44,13 +44,13 @@ namespace FNPlugin.Powermanagement
 
                 if (_moduleGenerator == null) return;
 
-                resources_to_supply = new string[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT };
+                resources_to_supply = new string[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
                 base.OnStart(state);
 
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
                 _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+5, true));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
                 _resourceBuffers.Init(part);
             }
             catch (Exception e)
@@ -106,7 +106,7 @@ namespace FNPlugin.Powermanagement
             double maxMegajoulesRate = generatorMax / GameConstants.ecPerMJ;
 
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, megajoulesRate);
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             _resourceBuffers.UpdateBuffers();
 
             megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceSettings.Config.ElectricPowerInMegawatt);
@@ -115,7 +115,7 @@ namespace FNPlugin.Powermanagement
 
             double maxWasteheat = generatorEfficiency > 0.0 ? maxMegajoulesRate * (1.0 / generatorEfficiency - 1.0) : maxMegajoulesRate;
             double throttledWasteheat = generatorEfficiency > 0.0 ? megajoulesRate * (1.0 / generatorEfficiency - 1.0) : megajoulesRate;
-            supplyFNResourcePerSecondWithMax(throttledWasteheat, maxWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+            supplyFNResourcePerSecondWithMax(throttledWasteheat, maxWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
         }
     }
 }

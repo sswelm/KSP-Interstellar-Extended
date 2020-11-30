@@ -95,7 +95,7 @@ namespace FNPlugin.Powermanagement
             requestedPower = 0;
             consumedPower = 0;
 
-            wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+            wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
             inefficiency = 1 - efficiency;
             efficiencyModifier = inefficiency == 0 || wasteheatRatio < efficiency ? 1 : 1 - ((wasteheatRatio - efficiency) / inefficiency);
             currentMaxPower = Math.Round(powerPercentage * 0.01, 2) * maxPower;
@@ -179,7 +179,7 @@ namespace FNPlugin.Powermanagement
 
                     supplyFNResourcePerSecondWithMax(powerSupply, effectiveMaxPower, ResourceSettings.Config.ElectricPowerInMegawatt);
                     if (inefficiency > 0)
-                        supplyFNResourcePerSecondWithMax(wasteheat, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
+                        supplyFNResourcePerSecondWithMax(wasteheat, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceSettings.Config.WasteHeatInMegawatt);
                 }
             }
             else
@@ -187,7 +187,7 @@ namespace FNPlugin.Powermanagement
                 // there is either no demand, or we can't charge at the moment.
                 supplyFNResourcePerSecondWithMax(0, effectiveMaxPower, ResourceSettings.Config.ElectricPowerInMegawatt);
                 if (inefficiency > 0)
-                    supplyFNResourcePerSecondWithMax(0, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecondWithMax(0, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceSettings.Config.WasteHeatInMegawatt);
             }
         }
 

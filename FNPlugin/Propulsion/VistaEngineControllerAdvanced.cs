@@ -325,7 +325,7 @@ namespace FNPlugin.Propulsion
 
                 resourceBuffers = new ResourceBuffers();
                 resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+4, true));
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
                 resourceBuffers.Init(this.part);
 
                 if (state != StartState.Editor)
@@ -409,7 +409,7 @@ namespace FNPlugin.Propulsion
 
             KillKerbalsWithRadiation(throttle);
 
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             resourceBuffers.UpdateBuffers();
 
             if (throttle > 0)
@@ -434,8 +434,8 @@ namespace FNPlugin.Propulsion
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
-                    supplyFNResourcePerSecond(laserWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
-                    supplyFNResourcePerSecond(absorbedWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(laserWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
+                    supplyFNResourcePerSecond(absorbedWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
                 }
 
                 // change ratio propellants Hydrogen/Fusion

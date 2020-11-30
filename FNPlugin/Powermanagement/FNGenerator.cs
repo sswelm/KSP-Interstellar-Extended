@@ -1376,7 +1376,7 @@ namespace FNPlugin
             }
 
             if (controlWasteHeatBuffer)
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
 
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, megawattBufferAmount);
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, megawattBufferAmount);

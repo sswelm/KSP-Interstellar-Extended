@@ -809,7 +809,7 @@ namespace FNPlugin
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+5, true));
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             resourceBuffers.Init(part);
 
             try
@@ -1167,7 +1167,7 @@ namespace FNPlugin
             powerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(maximumAllowedWarpThrotle);
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(_engineThrottle[selected_factor]);
 
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             resourceBuffers.UpdateBuffers();
         }
 
@@ -1407,7 +1407,7 @@ namespace FNPlugin
 
             requiredExoticMaintenancePower = exoticMatterRatio * exoticMatterRatio * maximumExoticMaintenancePower;
 
-            var overheatingRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+            var overheatingRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 
             var overheatModifier = overheatingRatio < 0.9 ? 1 : (1 - overheatingRatio) * 10;
 
@@ -1516,7 +1516,7 @@ namespace FNPlugin
                 supplyFNResourcePerSecond(powerReturned *
                     (isupgraded
                         ? wasteheatRatioUpgraded
-                        : wasteheatRatio), ResourceManager.FNRESOURCE_WASTEHEAT);
+                        : wasteheatRatio), ResourceSettings.Config.WasteHeatInMegawatt);
         }
 
         private double GetPowerRequirementForWarp(double lightspeedFraction)

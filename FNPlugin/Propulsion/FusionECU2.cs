@@ -414,7 +414,7 @@ namespace FNPlugin.Propulsion
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 1.0e+4, true));
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             resourceBuffers.Init(this.part);
 
             if (state != StartState.Editor)
@@ -577,7 +577,7 @@ namespace FNPlugin.Propulsion
             temperatureStr = part.temperature.ToString("F0") + "K / " + part.maxTemp.ToString("F0") + "K";
             MinIsp = BaseFloatCurve.Evaluate((float)Altitude);
 
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             resourceBuffers.UpdateBuffers();
 
             if (curEngineT == null || !curEngineT.isEnabled) return;
@@ -628,13 +628,13 @@ namespace FNPlugin.Propulsion
 
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature && laserWasteheat > 0)
-                    supplyFNResourcePerSecondWithMax(laserWasteheat, currentMaximumPowerRequirement * inefficiency, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecondWithMax(laserWasteheat, currentMaximumPowerRequirement * inefficiency, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 // The Absorbed wasteheat from Fusion
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
                 neutronbsorbionBonus = hasIspThrottling ? 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp))) : 0.5;
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * curEngineT.currentThrottle * neutronbsorbionBonus;
-                supplyFNResourcePerSecond(absorbedWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecond(absorbedWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 SetRatios();
 

@@ -1221,10 +1221,10 @@ namespace FNPlugin.Reactors
             powerPercentageFloatRange[0].minValue = minimumPowerPercentage;
             powerPercentageFloatRange[1].minValue = minimumPowerPercentage;
 
-            if (!part.Resources.Contains(ResourceManager.FNRESOURCE_THERMALPOWER))
+            if (!part.Resources.Contains(ResourceSettings.Config.ThermalPowerInMegawatt))
             {
                 var node = new ConfigNode("RESOURCE");
-                node.AddValue("name", ResourceManager.FNRESOURCE_THERMALPOWER);
+                node.AddValue("name", ResourceSettings.Config.ThermalPowerInMegawatt);
                 node.AddValue("maxAmount", PowerOutput);
                 node.AddValue("amount", 0);
                 part.AddResource(node);
@@ -1237,14 +1237,14 @@ namespace FNPlugin.Reactors
                 part.OnEditorDetach += OnEditorDetach;
             }
 
-            string[] resourcesToSupply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceSettings.Config.ChargedParticleInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt };
+            string[] resourcesToSupply = { ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt };
             this.resources_to_supply = resourcesToSupply;
 
             _resourceBuffers = new ResourceBuffers();
             _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ThermalPowerInMegawatt, thermalPowerBufferMult));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ChargedParticleInMegawatt, chargedPowerBufferMult));
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             _resourceBuffers.Init(part);
 
             _windowId = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
@@ -1639,11 +1639,11 @@ namespace FNPlugin.Reactors
 
                 if (hasOverheatEffects && !CheatOptions.IgnoreMaxTemperature)
                 {
-                    averageOverheat.Enqueue(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT));
+                    averageOverheat.Enqueue(getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt));
                     if (averageOverheat.Count > 10)
                         averageOverheat.Dequeue();
 
-                    var scaledOverheating = Math.Pow(Math.Max(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
+                    var scaledOverheating = Math.Pow(Math.Max(getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt) - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
 
                     overheatModifier = Math.Min(Math.Max(1 - scaledOverheating, minOverheatModifier), 1);
                 }
@@ -1717,7 +1717,7 @@ namespace FNPlugin.Reactors
                 requestedChargedToSupplyPerSecond = maxChargedToSupplyPerSecond * power_request_ratio * maximum_charged_request_ratio;
 
                 var chargedParticlesManager = getManagerForVessel(ResourceSettings.Config.ChargedParticleInMegawatt);
-                var thermalHeatManager = getManagerForVessel(ResourceManager.FNRESOURCE_THERMALPOWER);
+                var thermalHeatManager = getManagerForVessel(ResourceSettings.Config.ThermalPowerInMegawatt);
 
                 minThrottle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
                 var neededChargedPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(maxChargedToSupplyPerSecond, minThrottle, ResourceSettings.Config.ChargedParticleInMegawatt, chargedParticlesManager);
@@ -1726,14 +1726,14 @@ namespace FNPlugin.Reactors
                 maxThermalToSupplyPerSecond = maximumThermalPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
                 requestedThermalToSupplyPerSecond = maxThermalToSupplyPerSecond * power_request_ratio * maximum_thermal_request_ratio;
 
-                var neededThermalPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(maxThermalToSupplyPerSecond, minThrottle, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+                var neededThermalPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(maxThermalToSupplyPerSecond, minThrottle, ResourceSettings.Config.ThermalPowerInMegawatt, thermalHeatManager);
                 requested_thermal_power_ratio =  maximumThermalPower > 0 ? neededThermalPowerPerSecond / maximumThermalPower : 0;
                 thermal_power_ratio = Math.Min(maximum_thermal_request_ratio, requested_thermal_power_ratio);
 
                 reactor_power_ratio = Math.Min(overheatModifier * maximum_reactor_request_ratio, PowerRatio);
 
                 ongoing_charged_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requestedChargedToSupplyPerSecond, maxChargedToSupplyPerSecond, reactor_power_ratio, ResourceSettings.Config.ChargedParticleInMegawatt, chargedParticlesManager);
-                ongoing_thermal_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requestedThermalToSupplyPerSecond, maxThermalToSupplyPerSecond, reactor_power_ratio, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+                ongoing_thermal_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requestedThermalToSupplyPerSecond, maxThermalToSupplyPerSecond, reactor_power_ratio, ResourceSettings.Config.ThermalPowerInMegawatt, thermalHeatManager);
                 ongoing_total_power_generated = ongoing_thermal_power_generated + ongoing_charged_power_generated;
 
                 var totalPowerReceivedFixed = ongoing_total_power_generated * timeWarpFixedDeltaTime;
@@ -1750,7 +1750,7 @@ namespace FNPlugin.Reactors
                     // skip first frame of wasteheat production
                     var delayedWasteheatRate = ongoing_consumption_rate > ongoing_wasteheat_rate ? Math.Min(ongoing_wasteheat_rate, ongoing_consumption_rate) : ongoing_consumption_rate;
 
-                    supplyFNResourcePerSecondWithMax(delayedWasteheatRate * maximumPower, StableMaximumReactorPower, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecondWithMax(delayedWasteheatRate * maximumPower, StableMaximumReactorPower, ResourceSettings.Config.WasteHeatInMegawatt);
 
                     ongoing_wasteheat_rate = ongoing_consumption_rate;
                 }
@@ -1788,7 +1788,7 @@ namespace FNPlugin.Reactors
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 var powerFraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginHelper.SecondsInDay / 24.0 * 9.0);
                 var powerToSupply = Math.Max(MaximumPower * powerFraction, 0);
-                ongoing_thermal_power_generated = supplyManagedFNResourcePerSecondWithMinimumRatio(powerToSupply, 1, ResourceManager.FNRESOURCE_THERMALPOWER);
+                ongoing_thermal_power_generated = supplyManagedFNResourcePerSecondWithMinimumRatio(powerToSupply, 1, ResourceSettings.Config.ThermalPowerInMegawatt);
                 ongoing_total_power_generated = ongoing_thermal_power_generated;
                 BreedTritium(ongoing_thermal_power_generated, timeWarpFixedDeltaTime);
                 ongoing_consumption_rate = MaximumPower > 0 ? ongoing_thermal_power_generated / MaximumPower : 0;
@@ -1814,8 +1814,8 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled) return;
 
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, 0);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, 0);
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedParticleInMegawatt, 0);
             _resourceBuffers.UpdateBuffers();
         }
@@ -2050,8 +2050,8 @@ namespace FNPlugin.Reactors
 
         private void UpdateCapacities()
         {
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, MaximumThermalPower);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, MaximumThermalPower);
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedParticleInMegawatt, MaximumChargedPower);
             _resourceBuffers.UpdateBuffers();
         }
@@ -2379,7 +2379,7 @@ namespace FNPlugin.Reactors
 
         protected bool ReactorIsOverheating()
         {
-            if (!CheatOptions.IgnoreMaxTemperature && getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) >= emergencyPowerShutdownFraction && canShutdown)
+            if (!CheatOptions.IgnoreMaxTemperature && getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt) >= emergencyPowerShutdownFraction && canShutdown)
             {
                 _deactivateTimer++;
                 if (_deactivateTimer > 3)

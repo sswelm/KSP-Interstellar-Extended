@@ -575,7 +575,7 @@ namespace FNPlugin.Beamedpower
                 else
                 {
                     var megajoulesRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
-                    var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                    var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 
                     var effectiveResourceThrotling = Math.Min(megajoulesRatio > 0.5 ? 1 : megajoulesRatio * 2, wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10);
 
@@ -591,7 +591,7 @@ namespace FNPlugin.Beamedpower
 
                 // generate wasteheat for converting electric power to beamed power
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecond(receivedPower * transmissionWasteRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(receivedPower * transmissionWasteRatio, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
             // extract solar power from stable power

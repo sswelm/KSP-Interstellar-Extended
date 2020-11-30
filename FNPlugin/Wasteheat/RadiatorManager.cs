@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using FNPlugin.Extensions;
 using FNPlugin.Propulsion;
+using FNPlugin.Resources;
 
 namespace FNPlugin.Wasteheat
 {
@@ -97,7 +98,7 @@ namespace FNPlugin.Wasteheat
 		{
 			Counter = UpdatingRadiator.updateCounter;
 
-			WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+			WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 			var sqrtWasteHeatRatio = Math.Sqrt(WasteHeatRatio);
 
 			if (Double.IsNaN(WasteHeatRatio))

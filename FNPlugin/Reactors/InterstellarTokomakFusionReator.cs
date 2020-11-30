@@ -140,7 +140,7 @@ namespace FNPlugin.Reactors
                     : consumeFNResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 if (maintenancePowerWasteheatRatio > 0)
-                    supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 if (isSwappingFuelMode)
                 {

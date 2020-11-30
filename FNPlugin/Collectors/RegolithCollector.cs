@@ -384,7 +384,7 @@ namespace FNPlugin.Collectors
             if (CheatOptions.IgnoreMaxTemperature) return;
 
             dTotalWasteHeatProduction = dPowerRequirementsMW * wasteHeatModifier; // calculate amount of heat to be produced
-            supplyFNResourcePerSecond(dTotalWasteHeatProduction, ResourceManager.FNRESOURCE_WASTEHEAT); // push the heat onto them
+            supplyFNResourcePerSecond(dTotalWasteHeatProduction, ResourceSettings.Config.WasteHeatInMegawatt); // push the heat onto them
         }
     }
 }

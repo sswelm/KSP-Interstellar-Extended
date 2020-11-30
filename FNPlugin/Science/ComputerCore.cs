@@ -142,7 +142,7 @@ namespace FNPlugin
         // Public Overrides
         public override void OnStart(StartState state)
         {
-            string[] resourcesToSupply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceSettings.Config.ChargedParticleInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT, };
+            string[] resourcesToSupply = { ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
             this.resources_to_supply = resourcesToSupply;
 
             _isEnabledField = Fields[nameof(IsEnabled)];

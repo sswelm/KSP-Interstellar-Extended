@@ -786,7 +786,7 @@ namespace FNPlugin.Propulsion
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
             resourceBuffers.Init(this.part);
 
             myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
@@ -1457,7 +1457,7 @@ namespace FNPlugin.Propulsion
 
                 atmosphereCurve.Add(0, effectiveIsp, 0, 0);
 
-                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
                 var wasteheatModifier = wasteheatRatioDecelerationMult > 0 ? Math.Max((1 - wasteheatRatio) * wasteheatRatioDecelerationMult, 1) : 1;
 
                 if (AttachedReactor != null)
@@ -1707,7 +1707,7 @@ namespace FNPlugin.Propulsion
 
             if (_myAttachedReactor.Part != this.part)
             {
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
                 resourceBuffers.UpdateBuffers();
             }
 
@@ -1721,7 +1721,7 @@ namespace FNPlugin.Propulsion
 
             effectiveThrustFraction = GetHeatExchangerThrustMultiplier();
 
-            effectiveThermalSupply = UseChargedPowerOnly == false ? effectiveThrustFraction * getAvailableStableSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
+            effectiveThermalSupply = UseChargedPowerOnly == false ? effectiveThrustFraction * getAvailableStableSupply(ResourceSettings.Config.ThermalPowerInMegawatt) : 0;
             effectiveChargedSupply = canUseChargedPower == true ? effectiveThrustFraction * getAvailableStableSupply(ResourceSettings.Config.ChargedParticleInMegawatt) : 0;
 
             maximumPowerUsageForPropulsionRatio = UsePlasmaPower
@@ -1734,7 +1734,7 @@ namespace FNPlugin.Propulsion
             currentMaxThermalPower = Math.Min(effectiveThermalSupply, effectiveThrustFraction * maximumThermalPower * maximumPowerUsageForPropulsionRatio * adjustedThrottle);
             currentMaxChargedPower = Math.Min(effectiveChargedSupply, effectiveThrustFraction * maximumChargedPower * maximumPowerUsageForPropulsionRatio * adjustedThrottle);
 
-            thermalResourceRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_THERMALPOWER);
+            thermalResourceRatio = getResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt);
             chargedResourceRatio = getResourceBarFraction(ResourceSettings.Config.ChargedParticleInMegawatt);
 
             availableThermalPower = exhaustAllowed ? currentMaxThermalPower * (thermalResourceRatio > 0.5 ? 1 : thermalResourceRatio * 2) : 0;
@@ -1747,9 +1747,9 @@ namespace FNPlugin.Propulsion
             // when in jet mode apply extra cooling from intake air
             if (isOpenCycleCooler && isJet && part.atmDensity > 0)
             {
-                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
                 airFlowForCooling = max_fuel_flow_rate * part.GetResourceRatio(ResourceSettings.Config.IntakeOxygenAir);
-                consumeFNResourcePerSecond(40 * wasteheatRatio * wasteheatRatio * airFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
+                consumeFNResourcePerSecond(40 * wasteheatRatio * wasteheatRatio * airFlowForCooling, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
             // flameout when reactor cannot produce power
@@ -1968,7 +1968,7 @@ namespace FNPlugin.Propulsion
 
             requested_thermal_power = received_megajoules_ratio * availableThermalPower;
 
-            reactor_power_received = consumeFNResourcePerSecond((double)requested_thermal_power, ResourceManager.FNRESOURCE_THERMALPOWER);
+            reactor_power_received = consumeFNResourcePerSecond((double)requested_thermal_power, ResourceSettings.Config.ThermalPowerInMegawatt);
 
             if (currentMaxChargedPower > 0)
             {
@@ -1999,7 +1999,7 @@ namespace FNPlugin.Propulsion
                 if (_fuelCoolingFactor > 0)
                     wasteheatEfficiencyModifier /= _fuelCoolingFactor;
 
-                consumeFNResourcePerSecond(sootModifier * (1 - wasteheatEfficiencyModifier) * reactor_power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
+                consumeFNResourcePerSecond(sootModifier * (1 - wasteheatEfficiencyModifier) * reactor_power_received, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
             if (reactor_power_received > 0 && _maxISP > 0)
@@ -2143,9 +2143,9 @@ namespace FNPlugin.Propulsion
             // act as open cycle cooler
             if (isOpenCycleCooler)
             {
-                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
                 fuelFlowForCooling = currentMassFlow;
-                consumeFNResourcePerSecond(_fuelCoolingFactor * wasteheatRatio * fuelFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
+                consumeFNResourcePerSecond(_fuelCoolingFactor * wasteheatRatio * fuelFlowForCooling, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
             // give back propellant

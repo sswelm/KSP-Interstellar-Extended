@@ -541,7 +541,7 @@ namespace FNPlugin
                 if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || isThermalReceiver)
                     return 1;
 
-                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 
                 return 1 - wasteheatRatio * wasteheatRatio;
             }
@@ -998,9 +998,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            string[] resources_to_supply = new string[] {
-                ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER
-            };
+            string[] resources_to_supply = new [] {ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt};
 
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
@@ -1156,11 +1154,11 @@ namespace FNPlugin
                 {
                     _resourceBuffers = new ResourceBuffers();
                     _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
-                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ThermalPowerInMegawatt, thermalPowerBufferMult));
                     _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
                     _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 100.0));
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower);
                     _resourceBuffers.Init(part);
@@ -1213,10 +1211,10 @@ namespace FNPlugin
 
                 if (maintainResourceBuffers)
                 {
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
                     _resourceBuffers.UpdateBuffers();
                 }
             }
@@ -1238,10 +1236,10 @@ namespace FNPlugin
 
                 if (maintainResourceBuffers)
                 {
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower * powerDownFraction);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower * powerDownFraction);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower * powerDownFraction);
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
                     _resourceBuffers.UpdateBuffers();
                 }
             }
@@ -1705,7 +1703,7 @@ namespace FNPlugin
 
             StoreGeneratorRequests();
 
-            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 
             CalculateThermalSolarPower();
 
@@ -1787,14 +1785,14 @@ namespace FNPlugin
                             var thermalEngineThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
                             var minimumRatio =  Math.Max(minimumConsumptionPercentage / 100d, Math.Max(storedGeneratorThermalEnergyRequestRatio, thermalEngineThrottleRatio));
 
-                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided_max, minimumRatio, ResourceManager.FNRESOURCE_THERMALPOWER);
+                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided_max, minimumRatio, ResourceSettings.Config.ThermalPowerInMegawatt);
 
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
                                 var supplyRatio = powerGeneratedResult.CurrentSupply / total_thermal_power_provided;
                                 var finalThermalWasteheat = powerGeneratedResult.CurrentSupply + supplyRatio * total_conversion_waste_heat_production;
 
-                                supplyFNResourcePerSecondWithMax(finalThermalWasteheat, total_thermal_power_provided_max, ResourceManager.FNRESOURCE_WASTEHEAT);
+                                supplyFNResourcePerSecondWithMax(finalThermalWasteheat, total_thermal_power_provided_max, ResourceSettings.Config.WasteHeatInMegawatt);
                             }
 
                             thermal_power_ratio = total_thermal_power_available > 0 ? powerGeneratedResult.CurrentSupply / total_thermal_power_available : 0;
@@ -1845,7 +1843,7 @@ namespace FNPlugin
                         if (!CheatOptions.IgnoreMaxTemperature)
                         {
                             var solarWasteheat = thermalSolarInputMegajoules * (1 - effectiveSolarThermalElectricEfficiency);
-                            supplyFNResourcePerSecond(supply_ratio * total_conversion_waste_heat_production + supply_ratio * solarWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+                            supplyFNResourcePerSecond(supply_ratio * total_conversion_waste_heat_production + supply_ratio * solarWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
                         }
 
                         foreach (var item in received_power)
@@ -2122,7 +2120,7 @@ namespace FNPlugin
             var alternatorWasteheat = Math.Min(alternatorPower * AverageEfficiencyFraction, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt) * AverageEfficiencyFraction);
 
             supplyFNResourcePerSecond(alternatorPower, ResourceSettings.Config.ElectricPowerInMegawatt);
-            supplyFNResourcePerSecond(alternatorWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
+            supplyFNResourcePerSecond(alternatorWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
 
             if (stockModuleGenerator != null)
                 stockModuleGenerator.generatorIsActive = alternatorPower > 0;
