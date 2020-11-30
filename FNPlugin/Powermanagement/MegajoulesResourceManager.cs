@@ -32,7 +32,7 @@ namespace FNPlugin.Powermanagement
             }
         }
 
-        public MegajoulesResourceManager(Guid overmanagerId, PartModule pm, string resource_name) : base(overmanagerId, pm, resource_name, FNRESOURCE_FLOWTYPE_SMALLEST_FIRST)
+        public MegajoulesResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ElectricPowerInMegawatt, FNRESOURCE_FLOWTYPE_SMALLEST_FIRST)
         {
             WindowPosition = new Rect(50, 50, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
             electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.ElectricPowerInKilowatt);

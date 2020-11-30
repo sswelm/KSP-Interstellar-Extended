@@ -1,4 +1,5 @@
-﻿using FNPlugin.Resources;
+﻿using FNPlugin.Powermanagement;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin

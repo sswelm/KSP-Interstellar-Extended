@@ -1,13 +1,12 @@
-﻿using System;
+﻿using FNPlugin.Extensions;
+using FNPlugin.Resources;
+using KSP.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using FNPlugin.Extensions;
-using KSP.Localization;
-using FNPlugin.Powermanagement;
-using FNPlugin.Resources;
 
-namespace FNPlugin
+namespace FNPlugin.Powermanagement
 {
     public static class ResourceManagerFactory
     {
@@ -17,13 +16,13 @@ namespace FNPlugin
             ResourceManager result;
 
             if (resourceName == ResourceSettings.Config.ElectricPowerInMegawatt)
-                result = new MegajoulesResourceManager(id, pm, ResourceSettings.Config.ElectricPowerInMegawatt);
+                result = new MegajoulesResourceManager(id, pm);
             else if (resourceName == ResourceSettings.Config.WasteHeatInMegawatt)
-                result = new WasteHeatResourceManager(id, pm, ResourceSettings.Config.WasteHeatInMegawatt);
+                result = new WasteHeatResourceManager(id, pm);
             else if(resourceName == ResourceSettings.Config.ChargedParticleInMegawatt)
-                result = new CPResourceManager(id, pm, ResourceSettings.Config.ChargedParticleInMegawatt);
+                result = new CPResourceManager(id, pm);
             else if(resourceName == ResourceSettings.Config.ThermalPowerInMegawatt)
-                result = new TPResourceManager(id, pm, ResourceSettings.Config.ThermalPowerInMegawatt);
+                result = new TPResourceManager(id, pm);
             else
                 result = new DefaultResourceManager(id, pm, resourceName);
 
@@ -72,13 +71,7 @@ namespace FNPlugin
         protected GUIStyle right_aligned_label;
         private readonly int windowID;
 
-        protected virtual double AuxiliaryResourceDemand
-        {
-            get
-            {
-                return 0.0;
-            }
-        }
+        protected virtual double AuxiliaryResourceDemand => 0.0;
 
         public long Counter { get; private set; }
 
@@ -86,13 +79,7 @@ namespace FNPlugin
 
         public double CurrentResourceSupply => current.Supply;
 
-        public virtual double CurrentSurplus
-        {
-            get
-            {
-                return Math.Max(0.0, current.Supply - CurrentConsumption);
-            }
-        }
+        public virtual double CurrentSurplus => Math.Max(0.0, current.Supply - CurrentConsumption);
 
         public double CurrentUnfilledResourceDemand => current.Demand - current.Supply;
 

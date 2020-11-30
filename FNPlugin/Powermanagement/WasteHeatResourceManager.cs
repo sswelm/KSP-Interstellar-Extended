@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Constants;
 using System;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Powermanagement
@@ -12,7 +13,7 @@ namespace FNPlugin.Powermanagement
 
         public double RadiatorEfficiency { get; private set; }
 
-        public WasteHeatResourceManager(Guid overmanagerId, PartModule pm, string resource_name) : base(overmanagerId, pm, resource_name, FNRESOURCE_FLOWTYPE_EVEN)
+        public WasteHeatResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.WasteHeatInMegawatt, FNRESOURCE_FLOWTYPE_EVEN)
         {
             WindowPosition = new Rect(600, 600, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
             TemperatureRatio = 0.0;
