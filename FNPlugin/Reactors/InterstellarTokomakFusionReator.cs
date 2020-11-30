@@ -1,4 +1,5 @@
 ﻿using System;
+using FNPlugin.Resources;
 using KSP.Localization;
 
 namespace FNPlugin.Reactors
@@ -45,7 +46,8 @@ namespace FNPlugin.Reactors
         public override void OnUpdate()
         {
             base.OnUpdate();
-            if (!isSwappingFuelMode && (!CheatOptions.InfiniteElectricity && getDemandStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES) > 1.01 && getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES) < 0.25) && IsEnabled && !fusion_alert)
+            if (!isSwappingFuelMode && (!CheatOptions.InfiniteElectricity && getDemandStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt) > 1.01 
+                                                                          && getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt) < 0.25) && IsEnabled && !fusion_alert)
                 fusionAlertFrames++;
             else
             {
@@ -90,7 +92,7 @@ namespace FNPlugin.Reactors
 
             var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
 
-            var availablePower = getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var availablePower = getResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             var fusionPowerRequirement = PowerRequirement;
 
@@ -99,7 +101,7 @@ namespace FNPlugin.Reactors
                 // consume from any stored megajoule source
                 power_consumed = CheatOptions.InfiniteElectricity
                     ? fusionPowerRequirement
-                    : part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, fusionPowerRequirement * fixedDeltaTime) / fixedDeltaTime;
+                    : part.RequestResource(ResourceSettings.Config.ElectricPowerInMegawatt, fusionPowerRequirement * fixedDeltaTime) / fixedDeltaTime;
             }
             else
             {
@@ -135,7 +137,7 @@ namespace FNPlugin.Reactors
                 // consume power from managed power source
                 power_consumed = CheatOptions.InfiniteElectricity
                     ? requestedPower
-                    : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 if (maintenancePowerWasteheatRatio > 0)
                     supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed, ResourceManager.FNRESOURCE_WASTEHEAT);

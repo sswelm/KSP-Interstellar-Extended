@@ -2,6 +2,7 @@ using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using System;
 using System.Collections.Generic;
+using FNPlugin.Resources;
 
 namespace FNPlugin.Powermanagement
 {
@@ -75,7 +76,7 @@ namespace FNPlugin.Powermanagement
         {
             if (state == StartState.Editor) return;
 
-            string[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+            string[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt };
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
@@ -100,8 +101,8 @@ namespace FNPlugin.Powermanagement
             currentMaxPower = Math.Round(powerPercentage * 0.01, 2) * maxPower;
             effectiveMaxPower = currentMaxPower * efficiency;
 
-            powerSurplus = GetCurrentSurplus(ResourceManager.FNRESOURCE_MEGAJOULES);
-            currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
+            powerSurplus = GetCurrentSurplus(ResourceSettings.Config.ElectricPowerInMegawatt);
+            currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
 
             if (currentUnfilledResourceDemand == 0 && powerSurplus > 0 && canRecharge)
             {
@@ -122,7 +123,7 @@ namespace FNPlugin.Powermanagement
                     var maxPowerNeeded = currentInputConversionRate > 0 ? spareRoom / currentInputConversionRate / fixedDeltaTime : 0;
 
                     requestedPower = Math.Min(powerSurplus * 0.995, maxPowerNeeded);
-                    consumedPower = consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    consumedPower = consumeFNResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
                     // TODO: waste heat when charging?
 
                     currentRequestedConsumptionRate = consumedPower * currentInputConversionRate;
@@ -134,7 +135,7 @@ namespace FNPlugin.Powermanagement
             }
             else if (currentUnfilledResourceDemand > 0)
             {
-                spareResourceCapacity = getSpareResourceCapacity(ResourceManager.FNRESOURCE_MEGAJOULES);
+                spareResourceCapacity = getSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 electrical_power_currently_needed = efficiency == 0 ? 0 : efficiencyModifier * Math.Min(currentUnfilledResourceDemand + spareResourceCapacity, currentMaxPower) / efficiency;
 
@@ -176,7 +177,7 @@ namespace FNPlugin.Powermanagement
                 {
                     powerSurplus = 0;
 
-                    supplyFNResourcePerSecondWithMax(powerSupply, effectiveMaxPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    supplyFNResourcePerSecondWithMax(powerSupply, effectiveMaxPower, ResourceSettings.Config.ElectricPowerInMegawatt);
                     if (inefficiency > 0)
                         supplyFNResourcePerSecondWithMax(wasteheat, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
@@ -184,7 +185,7 @@ namespace FNPlugin.Powermanagement
             else
             {
                 // there is either no demand, or we can't charge at the moment.
-                supplyFNResourcePerSecondWithMax(0, effectiveMaxPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                supplyFNResourcePerSecondWithMax(0, effectiveMaxPower, ResourceSettings.Config.ElectricPowerInMegawatt);
                 if (inefficiency > 0)
                     supplyFNResourcePerSecondWithMax(0, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
             }

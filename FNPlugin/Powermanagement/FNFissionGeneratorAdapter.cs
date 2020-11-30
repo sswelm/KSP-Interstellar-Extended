@@ -44,11 +44,11 @@ namespace FNPlugin.Powermanagement
 
                 if (_moduleGenerator == null) return;
 
-                resources_to_supply = new string[] { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
+                resources_to_supply = new string[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT };
                 base.OnStart(state);
 
                 _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
                 _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+5, true));
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                 _resourceBuffers.Init(part);
@@ -105,11 +105,11 @@ namespace FNPlugin.Powermanagement
             double megajoulesRate = generatorRate / GameConstants.ecPerMJ;
             double maxMegajoulesRate = generatorMax / GameConstants.ecPerMJ;
 
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megajoulesRate);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, megajoulesRate);
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
             _resourceBuffers.UpdateBuffers();
 
-            megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceManager.FNRESOURCE_MEGAJOULES);
+            megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             if (CheatOptions.IgnoreMaxTemperature) return;
 

@@ -419,7 +419,7 @@ namespace FNPlugin.Propulsion
 
                 var recievedPower = CheatOptions.InfiniteElectricity
                     ? enginePowerRequirement
-                    : consumeFNResourcePerSecond(enginePowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(enginePowerRequirement, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 var plasma_ratio = recievedPower / enginePowerRequirement;
 				fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio : 0;

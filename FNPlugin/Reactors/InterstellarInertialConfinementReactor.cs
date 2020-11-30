@@ -24,7 +24,7 @@ namespace FNPlugin.Reactors
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor
     {
         // Configs
-        [KSPField] public string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
+        [KSPField] public string primaryInputResource = "Megajoules";
         [KSPField] public string secondaryInputResource = "ElectricCharge";
         [KSPField] public double primaryInputMultiplier = 1;
         [KSPField] public double secondaryInputMultiplier = 1000;
@@ -398,7 +398,7 @@ namespace FNPlugin.Reactors
             if (neededPower <= 0)
                 return;
 
-            var availableStablePower = getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var availableStablePower = getStableResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             var minimumChargingPower = startupMinimumChargePercentage * RawPowerOutput;
             if (startupCostGravityMultiplier > 0)

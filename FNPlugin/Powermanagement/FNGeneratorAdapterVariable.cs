@@ -92,7 +92,7 @@ namespace FNPlugin
 
                 if (moduleGenerator == null) return;
 
-                string[] resourcesToSupply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+                string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
                 this.resources_to_supply = resourcesToSupply;
                 base.OnStart(state);
 
@@ -104,7 +104,7 @@ namespace FNPlugin
 
                 foreach (ModuleResource moduleResource in moduleGenerator.resHandler.inputResources)
                 {
-                    if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
+                    if (moduleResource.name == ResourceSettings.Config.ElectricPowerInMegawatt)
                         inputType = ResourceType.megajoule;
                     else if (moduleResource.name == ResourceSettings.Config.ElectricPowerInKilowatt)
                         inputType = ResourceType.electricCharge;
@@ -138,7 +138,7 @@ namespace FNPlugin
                 foreach (ModuleResource moduleResource in moduleGenerator.resHandler.outputResources)
                 {
                     // assuming only one of those two is present
-                    if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
+                    if (moduleResource.name == ResourceSettings.Config.ElectricPowerInMegawatt)
                         outputType = ResourceType.megajoule;
                     else if (moduleResource.name == ResourceSettings.Config.ElectricPowerInKilowatt)
                         outputType = ResourceType.electricCharge;
@@ -268,7 +268,7 @@ namespace FNPlugin
             if (!moduleGenerator.generatorIsActive && !moduleGenerator.isAlwaysActive)
             {
                 mockInputResource.rate = 0;
-                supplyFNResourcePerSecondWithMax(0, 0, ResourceManager.FNRESOURCE_MEGAJOULES);
+                supplyFNResourcePerSecondWithMax(0, 0, ResourceSettings.Config.ElectricPowerInMegawatt);
                 return;
             }
 
@@ -277,7 +277,7 @@ namespace FNPlugin
 
             if (maximumPowerGeneration != 0)
             {
-                currentMegajoulesDemand =  Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
+                currentMegajoulesDemand =  Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
                 currentMegajoulesSupply = Math.Min(currentMegajoulesDemand, maximumPowerGeneration);
             }
 
@@ -313,7 +313,7 @@ namespace FNPlugin
                 double generatorSupplyInMegajoules = outputType == ResourceType.megajoule ?
                     generatorOutputRateInElectricCharge : generatorOutputRateInElectricCharge / GameConstants.ecPerMJ;
 
-                powerGeneratorPowerOutput = supplyFNResourcePerSecondWithMax(generatorSupplyInMegajoules, generatorSupplyInMegajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
+                powerGeneratorPowerOutput = supplyFNResourcePerSecondWithMax(generatorSupplyInMegajoules, generatorSupplyInMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
             }
         }
     }

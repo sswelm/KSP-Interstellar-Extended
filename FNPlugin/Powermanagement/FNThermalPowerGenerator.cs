@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FNPlugin.Resources;
 
 namespace FNPlugin.Reactors
 {
@@ -49,7 +50,7 @@ namespace FNPlugin.Reactors
 
         public override void OnStart(PartModule.StartState state)
         {
-            String[] resources = {ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT};
+            String[] resources = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT};
             this.resources_to_supply = resources;
             base.OnStart(state);
 
@@ -98,8 +99,7 @@ namespace FNPlugin.Reactors
                 : thermalConversionEfficiency * maximumPowerCapacity * (1 / maxConversionEfficiency) *
                   Math.Pow(hotColdBathRatio * (1 / requiredTemperatureRatio), hotColdBathRatioExponent);
 
-            var currentUnfilledResourceDemand =
-                Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
+            var currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
 
             var requiredRatio = Math.Min(1, currentUnfilledResourceDemand / maximumPowerSupplyInMegaWatt);
 
@@ -116,8 +116,7 @@ namespace FNPlugin.Reactors
             ExtractSystemHeat(fixedDeltaTime);
 
             // generate thermal power
-            supplyFNResourcePerSecondWithMax(currentPowerSupplyInMegaWatt, maximumPowerSupplyInMegaWatt,
-                ResourceManager.FNRESOURCE_MEGAJOULES);
+            supplyFNResourcePerSecondWithMax(currentPowerSupplyInMegaWatt, maximumPowerSupplyInMegaWatt, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         private void ExtractSystemHeat(double fixedDeltaTime)

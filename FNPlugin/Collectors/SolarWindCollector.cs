@@ -701,7 +701,7 @@ namespace FNPlugin.Collectors
                 var heliumRatio = Math.Min(1,  requiredHeliumMass > 0 ? (receivedHeliumGasMass + receiverLqdHeliumMass) / requiredHeliumMass : 0);
 
                 // calculate available power
-                var receivedPowerMw = consumeFNResourcePerSecond(dPowerRequirementsMw * heliumRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var receivedPowerMw = consumeFNResourcePerSecond(dPowerRequirementsMw * heliumRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 dLastPowerRatio = offlineCollecting ? dLastPowerRatio : (dPowerRequirementsMw > 0 ? receivedPowerMw / dPowerRequirementsMw : 0);
 

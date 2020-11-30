@@ -1,5 +1,6 @@
 ﻿using KSP.Localization;
 using System;
+using FNPlugin.Resources;
 
 namespace FNPlugin.Refinery
 {
@@ -90,15 +91,15 @@ namespace FNPlugin.Refinery
             if (!isActive)
                 return;
 
-            var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-            var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var availablePower = getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var resourceBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
             var effectiveResourceThrottling = resourceBarRatio > ONE_THIRD ? 1 : resourceBarRatio * 3;
 
             var energyRequestedInMegajoulesPerSecond = Math.Min(powerCapacity, effectiveResourceThrottling * availablePower * (double)(decimal)powerPercentage * 0.01);
 
             var energyProvidedInMegajoulesPerSecond = CheatOptions.InfiniteElectricity
                 ? energyRequestedInMegajoulesPerSecond
-                : consumeFNResourcePerSecond(energyRequestedInMegajoulesPerSecond, ResourceManager.FNRESOURCE_MEGAJOULES);
+                : consumeFNResourcePerSecond(energyRequestedInMegajoulesPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             electricalPowerRatio = energyRequestedInMegajoulesPerSecond > 0 ? energyProvidedInMegajoulesPerSecond / energyRequestedInMegajoulesPerSecond : 0;
 

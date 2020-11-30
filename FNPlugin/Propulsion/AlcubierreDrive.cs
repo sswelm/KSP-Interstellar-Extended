@@ -72,7 +72,7 @@ namespace FNPlugin
         public double powerRequirementMultiplier = 1;
         [KSPField]
         public long maxPowerTimeout = 50;
-        [KSPField] 
+        [KSPField]
         public float warpPowerMultTech0 = 10;
         [KSPField]
         public float warpPowerMultTech1 = 20;
@@ -90,11 +90,11 @@ namespace FNPlugin
         public double exotic_power_required = 1000;
         [KSPField]
         public bool useRotateStability = true;
-        [KSPField] 
+        [KSPField]
         public bool allowWarpTurning = true;
-        [KSPField] 
+        [KSPField]
         public float headingChangedTimeout = 50;
-        [KSPField] 
+        [KSPField]
         public double gravityMaintenancePowerMultiplier = 4;
 
         [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_SafetyDistance", guiUnits = " Km"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 1)]//Safety Distance
@@ -350,7 +350,7 @@ namespace FNPlugin
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
 
-            if (!CheatOptions.InfiniteElectricity && GetPowerRequirementForWarp(_engineThrottle[selected_factor]) > getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES))
+            if (!CheatOptions.InfiniteElectricity && GetPowerRequirementForWarp(_engineThrottle[selected_factor]) > getStableResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt))
             {
                 var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpPowerReqIsHigherThanMaxPowerSupply");
                 Debug.Log("[KSPI]: " + message);
@@ -395,18 +395,18 @@ namespace FNPlugin
 
             if (vessel.altitude < ((vessel.mainBody.atmosphere ? vessel.mainBody.atmosphereDepth : 20000) + allowedWarpDistancePerFrame + safetyDistance))
             {
-                var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg1", vessel.mainBody.name);//"Warp initiation aborted, cannot warp into " + 
+                var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg1", vessel.mainBody.name);//"Warp initiation aborted, cannot warp into " +
                 Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 initiateWarpTimeout = 0;
                 return;
-            }            
+            }
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(selectedWarpSpeed);
 
-            var powerReturned = CheatOptions.InfiniteElectricity 
+            var powerReturned = CheatOptions.InfiniteElectricity
                 ? currentPowerRequirementForWarp
-                : consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceManager.FNRESOURCE_MEGAJOULES);
+                : consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             if (powerReturned < 0.99 * currentPowerRequirementForWarp)
             {
@@ -437,7 +437,7 @@ namespace FNPlugin
             initiateWarpTimeout = 0; // stop initiating to warp
 
             vesselWasInOuterspace = false;
- 
+
             // consume all exotic matter to create warp field
             part.RequestResource(ResourceSettings.Config.ExoticMatter, exotic_power_required);
 
@@ -462,7 +462,7 @@ namespace FNPlugin
 
             if (!vessel.packed)
                 vessel.GoOffRails();
-            
+
             IsEnabled = true;
             activeTrail = true;
 
@@ -549,7 +549,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    var timeAtApoapsis = vessel.orbit.timeToAp < vessel.orbit.period / 2 
+                    var timeAtApoapsis = vessel.orbit.timeToAp < vessel.orbit.period / 2
                         ? vessel.orbit.timeToAp + universalTime
                         : universalTime - (vessel.orbit.period - vessel.orbit.timeToAp);
 
@@ -839,7 +839,7 @@ namespace FNPlugin
                 {
                     holdAltitudeToggle = holdAltitudeField.uiControlFlight as UI_Toggle;
                     if (holdAltitudeToggle != null)
-                        holdAltitudeToggle.onFieldChanged += HoldAltitudeChanged; 
+                        holdAltitudeToggle.onFieldChanged += HoldAltitudeChanged;
                 }
 
                 antigravityField = Fields[nameof(antigravityPercentage)];
@@ -1119,7 +1119,7 @@ namespace FNPlugin
             if (!IsSlave)
                 PluginHelper.UpdateIgnoredGForces();
 
-            if (vessel == null) 
+            if (vessel == null)
                 return;
 
             warpEngineThrottle = _engineThrottle[selected_factor];
@@ -1214,7 +1214,7 @@ namespace FNPlugin
         {
             var slowestSublightSpeed = GetLowestThrottleForAvailablePower();
 
-            if (!(slowestSublightSpeed < warpEngineThrottle)) 
+            if (!(slowestSublightSpeed < warpEngineThrottle))
                 return;
 
             selected_factor = _engineThrottle.IndexOf(slowestSublightSpeed);
@@ -1413,7 +1413,7 @@ namespace FNPlugin
 
             receivedExoticMaintenancePower = CheatOptions.InfiniteElectricity
                    ? requiredExoticMaintenancePower
-                   : consumeFNResourcePerSecond(overheatModifier * requiredExoticMaintenancePower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                   : consumeFNResourcePerSecond(overheatModifier * requiredExoticMaintenancePower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             minimumExoticMatterMaintenanceRatio = minimumExoticMaintenancePower > 0 ? receivedExoticMaintenancePower / minimumExoticMaintenancePower : 0;
 
@@ -1438,18 +1438,18 @@ namespace FNPlugin
                 }
                 else
                 {
-                    stablePowerSupply = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    stablePowerSupply = getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
                     chargePowerDraw = CheatOptions.InfiniteElectricity
                         ? maxChargePowerRequired
                         : Math.Min(maxChargePowerRequired / TimeWarp.fixedDeltaTime, Math.Max(minPowerRequirementForLightSpeed, stablePowerSupply));
 
-                    var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    var resourceBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
                     var effectiveResourceThrottling = resourceBarRatio > 0.5 ? 1 : resourceBarRatio * 2;
 
                     exoticMatterProduced = CheatOptions.InfiniteElectricity
                         ? chargePowerDraw
-                        : consumeFNResourcePerSecond(overheatModifier * chargePowerDraw * effectiveResourceThrottling, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        : consumeFNResourcePerSecond(overheatModifier * chargePowerDraw * effectiveResourceThrottling, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                     if (!CheatOptions.InfinitePropellant && stablePowerSupply < minPowerRequirementForLightSpeed)
                         insufficientPowerTimeout--;
@@ -1500,7 +1500,7 @@ namespace FNPlugin
 
             verticalSpeed = vessel.verticalSpeed;
 
-            stablePowerSupply = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            stablePowerSupply = getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             if (holdAltitude)
             {
@@ -1513,9 +1513,9 @@ namespace FNPlugin
         private void ProduceWasteheat(double powerReturned)
         {
             if (!CheatOptions.IgnoreMaxTemperature)
-                supplyFNResourcePerSecond(powerReturned * 
-                    (isupgraded 
-                        ? wasteheatRatioUpgraded 
+                supplyFNResourcePerSecond(powerReturned *
+                    (isupgraded
+                        ? wasteheatRatioUpgraded
                         : wasteheatRatio), ResourceManager.FNRESOURCE_WASTEHEAT);
         }
 
@@ -1523,8 +1523,8 @@ namespace FNPlugin
         {
             var sqrtSpeed = Math.Sqrt(lightspeedFraction);
 
-            var powerModifier = lightspeedFraction < 1 
-                ? 1 / sqrtSpeed 
+            var powerModifier = lightspeedFraction < 1
+                ? 1 / sqrtSpeed
                 : sqrtSpeed;
 
             return powerModifier * exotic_power_required * warpPowerReqMult;
@@ -1538,9 +1538,9 @@ namespace FNPlugin
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(selectedLightSpeed);
 
-            availablePower = CheatOptions.InfiniteElectricity 
+            availablePower = CheatOptions.InfiniteElectricity
                 ? currentPowerRequirementForWarp
-                : getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                : getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             double powerReturned;
 
@@ -1548,7 +1548,7 @@ namespace FNPlugin
                 powerReturned = currentPowerRequirementForWarp;
             else
             {
-                powerReturned = consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceManager.FNRESOURCE_MEGAJOULES) ;
+                powerReturned = consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceSettings.Config.ElectricPowerInMegawatt) ;
                 ProduceWasteheat(powerReturned);
             }
 
@@ -1566,7 +1566,7 @@ namespace FNPlugin
             {
                 if (vesselWasInOuterspace)
                 {
-                    var message = FlightGlobals.fetch.VesselTarget == null 
+                    var message = FlightGlobals.fetch.VesselTarget == null
                         ? closestCelestrialBody.atmosphere
                             ? "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToAtmosphere"
                             : "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToSurface"
@@ -1689,7 +1689,7 @@ namespace FNPlugin
             Vector3d velocityToCancel = currentOrbitalVelocity;
 
             // apply gravity drag modifier
-            velocityToCancel *= gravityDragRatio; 
+            velocityToCancel *= gravityDragRatio;
 
             // Extremely small velocities cause the game to mess up very badly, so try something small and increase...
             long multiplier = 0;
@@ -1718,8 +1718,8 @@ namespace FNPlugin
             {
                 Debug.LogWarning("[KSPI]: NullReferenceException during Develocitize");
             }
-            var allVessels = FlightGlobals.fetch == null 
-                ? (IEnumerable<Vessel>)new[] { vessel } 
+            var allVessels = FlightGlobals.fetch == null
+                ? (IEnumerable<Vessel>)new[] { vessel }
                 : FlightGlobals.Vessels;
 
             foreach (var currentVessel in allVessels.Where(v => v.packed == false))
@@ -1794,7 +1794,7 @@ namespace FNPlugin
 
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_CosineToClosestBody"), cosineAngleToClosestBody.ToString("0.000"), bold_black_style, text_black_style);//"Cosine To Closest Body"
 
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_status"), driveStatus, bold_black_style, text_black_style);                
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_status"), driveStatus, bold_black_style, text_black_style);
 
                 var speedText = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_speed");
 
@@ -1810,7 +1810,7 @@ namespace FNPlugin
                     ToggleWarpSpeedDown3();
                 if (GUILayout.Button("(+) " + speedText + " x3", GUILayout.MinWidth(150)))
                     ToggleWarpSpeedUp3();
-                GUILayout.EndHorizontal(); 
+                GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("(-) " + speedText + " x10", GUILayout.MinWidth(150)))

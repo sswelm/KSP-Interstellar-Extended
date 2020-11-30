@@ -179,13 +179,13 @@ namespace FNPlugin
 
             // First try to consume MJ from ResourceManager
             double add, result = CheatOptions.InfiniteElectricity ? requestedMW :
-                consumeFNResourcePerSecond(requestedMW, ResourceManager.FNRESOURCE_MEGAJOULES);
+                consumeFNResourcePerSecond(requestedMW, ResourceSettings.Config.ElectricPowerInMegawatt);
             requestedMW -= result;
 
             // Use MJ from storage such as super capacitors
             if (requestedMW > 0.0 && allowCapacitor)
             {
-                add = part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, requestedMW * dt) / dt;
+                add = part.RequestResource(ResourceSettings.Config.ElectricPowerInMegawatt, requestedMW * dt) / dt;
                 result += add;
                 requestedMW -= add;
             }

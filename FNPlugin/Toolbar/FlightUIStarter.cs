@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using FNPlugin.Resources;
+using UnityEngine;
 
 namespace FNPlugin
 {
@@ -27,7 +28,7 @@ namespace FNPlugin
 
             if (vessel == null) return;
 
-            var megajoules_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var megajoules_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceSettings.Config.ElectricPowerInMegawatt);
             if (megajoules_overmanager.hasManagerForVessel(vessel) && !hide_button)
             {
                 ResourceManager mega_manager = megajoules_overmanager.getManagerForVessel(vessel);
@@ -42,7 +43,7 @@ namespace FNPlugin
                 }
             }
 
-            var thermalpower_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_THERMALPOWER);
+            var thermalpower_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceSettings.Config.ThermalPowerInMegawatt);
             if (thermalpower_overmanager.hasManagerForVessel(vessel) && !hide_button)
             {
                 ResourceManager thermal_manager = thermalpower_overmanager.getManagerForVessel(vessel);
@@ -57,7 +58,7 @@ namespace FNPlugin
                 }
             }
 
-            var charged_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+            var charged_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceSettings.Config.ChargedParticleInMegawatt);
             if (charged_overmanager.hasManagerForVessel(vessel) && !hide_button)
             {
                 ResourceManager charged_manager = charged_overmanager.getManagerForVessel(vessel);
@@ -72,7 +73,7 @@ namespace FNPlugin
                 }
             }
 
-            var wasteheat_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_WASTEHEAT);
+            var wasteheat_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceSettings.Config.WasteHeatInMegawatt);
             if (wasteheat_overmanager.hasManagerForVessel(vessel) && !hide_button)
             {
                 ResourceManager waste_manager = wasteheat_overmanager.getManagerForVessel(vessel);

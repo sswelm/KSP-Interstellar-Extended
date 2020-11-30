@@ -335,7 +335,7 @@ namespace FNPlugin.Wasteheat
             // what does electricity look like, anyways?
 
             var powerNeeded = powerDrawInJoules;
-            var powerAvail = consumeFNResourcePerSecond(powerNeeded, ResourceManager.FNRESOURCE_MEGAJOULES);
+            var powerAvail = consumeFNResourcePerSecond(powerNeeded, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             return Math.Round(powerAvail / powerNeeded, 2);
         }

@@ -999,7 +999,7 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             string[] resources_to_supply = new string[] {
-                ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER
+                ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER
             };
 
             this.resources_to_supply = resources_to_supply;
@@ -1157,11 +1157,11 @@ namespace FNPlugin
                     _resourceBuffers = new ResourceBuffers();
                     _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
                     _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
-                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
                     _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 100.0));
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower);
                     _resourceBuffers.Init(part);
                 }
@@ -1214,7 +1214,7 @@ namespace FNPlugin
                 if (maintainResourceBuffers)
                 {
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                     _resourceBuffers.UpdateBuffers();
@@ -1239,7 +1239,7 @@ namespace FNPlugin
                 if (maintainResourceBuffers)
                 {
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
-                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower * powerDownFraction);
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower * powerDownFraction);
                     _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, part.mass);
                     _resourceBuffers.UpdateBuffers();
@@ -1838,7 +1838,7 @@ namespace FNPlugin
                         var minimumRequestedPower = MaximumRecievePower * (minimumConsumptionPercentage / 100d);
                         var calculatedMinimumRatio = Math.Min(1, minimumRequestedPower / total_beamed_electric_power_provided);
 
-                        var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, calculatedMinimumRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, calculatedMinimumRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
                         var supply_ratio = powerGeneratedResult.CurrentProvided / total_beamed_electric_power_provided;
 
                         // only generate wasteheat from beamed power when actualy using the energy
@@ -2119,9 +2119,9 @@ namespace FNPlugin
 
             var alternatorPower = alternatorRatio * powerInputMegajoules * 0.001;
 
-            var alternatorWasteheat = Math.Min(alternatorPower * AverageEfficiencyFraction, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES) * AverageEfficiencyFraction);
+            var alternatorWasteheat = Math.Min(alternatorPower * AverageEfficiencyFraction, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt) * AverageEfficiencyFraction);
 
-            supplyFNResourcePerSecond(alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+            supplyFNResourcePerSecond(alternatorPower, ResourceSettings.Config.ElectricPowerInMegawatt);
             supplyFNResourcePerSecond(alternatorWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             if (stockModuleGenerator != null)

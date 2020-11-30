@@ -6,6 +6,7 @@ using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Propulsion
@@ -599,7 +600,7 @@ namespace FNPlugin.Propulsion
 
             ShowIspThrottle = hasIspThrottling;
 
-            availablePower = Math.Max(getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES), getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
+            availablePower = Math.Max(getResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt), getAvailablePrioritisedStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt));
 
             currentMaximumPowerProduction = GetCurrentMaximumPowerProduction();
             currentMaximumPowerRequirement = GetCurrentMaximumPowerRequirement();
@@ -613,7 +614,7 @@ namespace FNPlugin.Propulsion
                 recievedPowerPerSecond = requestedPowerPerSecond <= 0 ? 0
                     : CheatOptions.InfiniteElectricity
                         ? requiredPowerPerSecond
-                        : consumeFNResourcePerSecond(requestedPowerPerSecond, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        : consumeFNResourcePerSecond(requestedPowerPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 fusionRatio = requiredPowerPerSecond > 0 ? Math.Min(1, recievedPowerPerSecond / requiredPowerPerSecond) : 1;
 
@@ -623,7 +624,7 @@ namespace FNPlugin.Propulsion
                 producedPowerPerSecond = fusionRatio * currentMaximumPowerProduction;
 
                 if (!CheatOptions.InfiniteElectricity && currentMaximumPowerProduction > 0)
-                    supplyFNResourcePerSecondWithMax(producedPowerPerSecond, currentMaximumPowerProduction, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    supplyFNResourcePerSecondWithMax(producedPowerPerSecond, currentMaximumPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature && laserWasteheat > 0)

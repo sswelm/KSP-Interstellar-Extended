@@ -60,7 +60,7 @@ namespace FNPlugin
                     return;
                 }
 
-                string[] resourcesToSupply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+                string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
                 this.resources_to_supply = resourcesToSupply;
                 base.OnStart(state);
 
@@ -70,11 +70,11 @@ namespace FNPlugin
                 _outputType = ResourceType.other;
                 foreach (ModuleResource moduleResource in _moduleGenerator.resHandler.outputResources)
                 {
-                    if (moduleResource.name != ResourceManager.FNRESOURCE_MEGAJOULES && (moduleResource.name != ResourceSettings.Config.ElectricPowerInKilowatt))
+                    if (moduleResource.name != ResourceSettings.Config.ElectricPowerInMegawatt && (moduleResource.name != ResourceSettings.Config.ElectricPowerInKilowatt))
                         continue;
 
                     // assuming only one of those two is present
-                    _outputType = moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES ? ResourceType.megajoule : ResourceType.electricCharge;
+                    _outputType = moduleResource.name == ResourceSettings.Config.ElectricPowerInMegawatt ? ResourceType.megajoule : ResourceType.electricCharge;
 
                     if (maintainsBuffer)
                         _resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(moduleResource.name, 50));
@@ -153,8 +153,7 @@ namespace FNPlugin
             if (maintainsBuffer)
                 _resourceBuffers.UpdateBuffers();
 
-            megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorSupply,
-                generatorSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+            megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
     }
 }

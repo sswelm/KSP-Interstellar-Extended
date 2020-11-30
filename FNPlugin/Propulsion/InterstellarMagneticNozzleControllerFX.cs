@@ -380,7 +380,7 @@ namespace FNPlugin.Propulsion
                 _max_charged_particles_power = currentMaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = exhaustAllowed && _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0;
 
-                _charged_particles_received = _charged_particles_requested > 0 ? consumeFNResourcePerSecond(_charged_particles_requested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
+                _charged_particles_received = _charged_particles_requested > 0 ? consumeFNResourcePerSecond(_charged_particles_requested, ResourceSettings.Config.ChargedParticleInMegawatt) : 0;
 
                 // update Isp
                 currentIsp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
@@ -434,12 +434,12 @@ namespace FNPlugin.Propulsion
                 // calculate power cost
                 var ispPowerCostMultiplier = 1 + max_power_multiplier - Math.Log10(currentIsp / minimum_isp);
                 var minimumEnginePower = _attached_reactor.MagneticNozzlePowerMult * _charged_particles_received * ispPowerCostMultiplier * 0.005 * Math.Max(_attached_reactor_distance, 1);
-                var neededBufferPower = Math.Min(getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES) ,  Math.Min(Math.Max(powerBufferMax - powerBufferStore, 0), minimumEnginePower));
+                var neededBufferPower = Math.Min(getResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt) ,  Math.Min(Math.Max(powerBufferMax - powerBufferStore, 0), minimumEnginePower));
                 _requestedElectricPower = minimumEnginePower + neededBufferPower;
 
                 _recievedElectricPower = CheatOptions.InfiniteElectricity || _requestedElectricPower == 0
                     ? _requestedElectricPower
-                    : consumeFNResourcePerSecond(_requestedElectricPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(_requestedElectricPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 // adjust power buffer
                 var powerSurplus = _recievedElectricPower - minimumEnginePower;

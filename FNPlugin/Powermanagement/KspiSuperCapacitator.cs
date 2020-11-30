@@ -32,7 +32,7 @@ namespace FNPlugin.Powermanagement
 
         public override void OnStart(StartState state)
         {
-            string[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+            string[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt };
             this.resources_to_supply = resources_to_supply;
 
             part.force_activate();

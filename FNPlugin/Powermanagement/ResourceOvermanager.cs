@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FNPlugin 
+namespace FNPlugin
 {
-    public class ResourceOvermanager 
+    public class ResourceOvermanager
     {
         private static readonly Dictionary<string, ResourceOvermanager> resourceOverManagers = new Dictionary<string, ResourceOvermanager>();
 
-        public static ResourceOvermanager getResourceOvermanagerForResource(string resource_name) 
+        public static ResourceOvermanager getResourceOvermanagerForResource(string resource_name)
         {
             if (!resourceOverManagers.TryGetValue(resource_name, out ResourceOvermanager fnro))
             {
@@ -36,7 +36,7 @@ namespace FNPlugin
         protected readonly IDictionary<Vessel, ResourceManager> managers;
         protected string resourceName;
 
-        public ResourceOvermanager(string name) 
+        public ResourceOvermanager(string name)
         {
             Id = Guid.NewGuid();
             managers = new Dictionary<Vessel, ResourceManager>();
@@ -60,7 +60,7 @@ namespace FNPlugin
             managers.Remove(manager.Vessel);
         }
 
-        public ResourceManager getManagerForVessel(Vessel vess) 
+        public ResourceManager getManagerForVessel(Vessel vess)
         {
             if (vess == null)
                 return null;

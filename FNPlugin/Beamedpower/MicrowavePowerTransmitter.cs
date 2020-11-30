@@ -5,6 +5,7 @@ using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Beamedpower
@@ -565,7 +566,7 @@ namespace FNPlugin.Beamedpower
                 double transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100d;
                 double transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100d;
 
-                availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                availablePower = getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 if (CheatOptions.InfiniteElectricity)
                 {
@@ -573,7 +574,7 @@ namespace FNPlugin.Beamedpower
                 }
                 else
                 {
-                    var megajoulesRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    var megajoulesRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
                     var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
                     var effectiveResourceThrotling = Math.Min(megajoulesRatio > 0.5 ? 1 : megajoulesRatio * 2, wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10);
@@ -582,7 +583,7 @@ namespace FNPlugin.Beamedpower
                 }
 
                 double receivedPower = CheatOptions.InfiniteElectricity ? requestedPower :
-                    consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    consumeFNResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 nuclear_power += GameConstants.ecPerMJ * transmissionEfficiencyRatio * receivedPower;
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Propulsion
@@ -542,7 +543,7 @@ namespace FNPlugin.Propulsion
 
         public override void OnStart(StartState state)
         {
-            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
+            String[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceManager.FNRESOURCE_WASTEHEAT };
             this.resources_to_supply = resources_to_supply;
 
             Debug.Log("[KSPI]: Start Current State: " + (int)state + " " + state.ToString());

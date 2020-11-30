@@ -4,6 +4,7 @@ using FNPlugin.External;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
+using FNPlugin.Resources;
 using TweakScale;
 using UnityEngine;
 
@@ -524,7 +525,7 @@ namespace FNPlugin.Propulsion
 
         public override void OnStart(StartState state)
         {
-            string[] resources_to_supply = { ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_MEGAJOULES };
+            string[] resources_to_supply = { ResourceManager.FNRESOURCE_WASTEHEAT, ResourceSettings.Config.ElectricPowerInMegawatt };
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
@@ -1068,7 +1069,7 @@ namespace FNPlugin.Propulsion
 
             var receivedPower = CheatOptions.InfiniteElectricity || requestedPower <= 0
                 ? finalRequestedPower
-                : consumeFNResourcePerSecond(finalRequestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                : consumeFNResourcePerSecond(finalRequestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             var plasmaRatio = !requestedPower.IsInfinityOrNaNorZero() && !receivedPower.IsInfinityOrNaNorZero() ? Math.Min(1, receivedPower / requestedPower) : 0;
 
@@ -1080,7 +1081,7 @@ namespace FNPlugin.Propulsion
                 supplyFNResourcePerSecondWithMax(wasteHeat, effectiveMaxFusionWasteHeat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             if (!CheatOptions.InfiniteElectricity && effectiveMaxPowerProduction > 0)
-                supplyFNResourcePerSecondWithMax(requestedThrottle * plasmaRatio * effectiveMaxPowerProduction, effectiveMaxPowerProduction, ResourceManager.FNRESOURCE_MEGAJOULES);
+                supplyFNResourcePerSecondWithMax(requestedThrottle * plasmaRatio * effectiveMaxPowerProduction, effectiveMaxPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             return plasmaRatio;
         }

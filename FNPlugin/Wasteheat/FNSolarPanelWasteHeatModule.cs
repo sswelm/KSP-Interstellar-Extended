@@ -107,7 +107,7 @@ namespace FNPlugin
                 part.force_activate();
             }
 
-            string[] resourcesToSupply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+            string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
             this.resources_to_supply = resourcesToSupply;
             base.OnStart(state);
 
@@ -115,7 +115,7 @@ namespace FNPlugin
 
             resourceName = _solarPanel.resourceName;
 
-            if (resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
+            if (resourceName == ResourceSettings.Config.ElectricPowerInMegawatt)
                 _outputType = ResourceType.megajoule;
             else if (resourceName == ResourceSettings.Config.ElectricPowerInKilowatt)
                 _outputType = ResourceType.electricCharge;
@@ -126,9 +126,9 @@ namespace FNPlugin
             if (_outputType !=  ResourceType.other && _microwavePowerReceiver == null)
             {
                 _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate / GameConstants.ecPerMJ : _solarPanel.chargeRate);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate / GameConstants.ecPerMJ : _solarPanel.chargeRate);
                 _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * GameConstants.ecPerMJ);
                 _resourceBuffers.Init(part);
             }
@@ -229,7 +229,7 @@ namespace FNPlugin
             solar_supply = _outputType == ResourceType.megajoule ? solarRate : solarRate / GameConstants.ecPerMJ;
             solarMaxSupply = _outputType == ResourceType.megajoule ? maxSupply : maxSupply / GameConstants.ecPerMJ;
 
-            mjSolarSupply = PluginHelper.getFormattedPowerString(supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES));
+            mjSolarSupply = PluginHelper.getFormattedPowerString(supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceSettings.Config.ElectricPowerInMegawatt));
             mjMaxSupply = PluginHelper.getFormattedPowerString(solarMaxSupply);
         }
 

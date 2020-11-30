@@ -247,7 +247,7 @@ namespace FNPlugin.Propulsion
                 // Calculate Fusion Ratio
                 var recievedPower = CheatOptions.InfiniteElectricity
                     ? powerRequirement
-                    : consumeFNResourcePerSecond(powerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(powerRequirement, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 var plasma_ratio = recievedPower / powerRequirement;
                 var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio : 0;

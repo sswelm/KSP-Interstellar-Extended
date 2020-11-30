@@ -1722,7 +1722,7 @@ namespace FNPlugin.Propulsion
             effectiveThrustFraction = GetHeatExchangerThrustMultiplier();
 
             effectiveThermalSupply = UseChargedPowerOnly == false ? effectiveThrustFraction * getAvailableStableSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
-            effectiveChargedSupply = canUseChargedPower == true ? effectiveThrustFraction * getAvailableStableSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
+            effectiveChargedSupply = canUseChargedPower == true ? effectiveThrustFraction * getAvailableStableSupply(ResourceSettings.Config.ChargedParticleInMegawatt) : 0;
 
             maximumPowerUsageForPropulsionRatio = UsePlasmaPower
                 ? AttachedReactor.PlasmaPropulsionEfficiency
@@ -1735,7 +1735,7 @@ namespace FNPlugin.Propulsion
             currentMaxChargedPower = Math.Min(effectiveChargedSupply, effectiveThrustFraction * maximumChargedPower * maximumPowerUsageForPropulsionRatio * adjustedThrottle);
 
             thermalResourceRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_THERMALPOWER);
-            chargedResourceRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+            chargedResourceRatio = getResourceBarFraction(ResourceSettings.Config.ChargedParticleInMegawatt);
 
             availableThermalPower = exhaustAllowed ? currentMaxThermalPower * (thermalResourceRatio > 0.5 ? 1 : thermalResourceRatio * 2) : 0;
             availableChargedPower = exhaustAllowed ? currentMaxChargedPower * (chargedResourceRatio > 0.5 ? 1 : chargedResourceRatio * 2) : 0;
@@ -1958,7 +1958,7 @@ namespace FNPlugin.Propulsion
             if (requiredMegajouleRatio > 0)
             {
                 var requested_megajoules = (availableThermalPower + availableChargedPower) * requiredMegajouleRatio * AttachedReactor.MagneticNozzlePowerMult;
-                var received_megajoules = consumeFNResourcePerSecond(requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var received_megajoules = consumeFNResourcePerSecond(requested_megajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
                 received_megajoules_ratio = requested_megajoules > 0 ? received_megajoules / requested_megajoules : 0;
 
                 received_megajoules_percentage = received_megajoules_ratio * 100;
@@ -1973,7 +1973,7 @@ namespace FNPlugin.Propulsion
             if (currentMaxChargedPower > 0)
             {
                 requested_charge_particles = received_megajoules_ratio * availableChargedPower;
-                reactor_power_received += consumeFNResourcePerSecond((double)requested_charge_particles, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                reactor_power_received += consumeFNResourcePerSecond((double)requested_charge_particles, ResourceSettings.Config.ChargedParticleInMegawatt);
             }
 
             // shutdown engine when connected heatsource cannot produce power

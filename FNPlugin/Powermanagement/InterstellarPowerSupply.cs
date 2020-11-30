@@ -32,13 +32,13 @@ namespace FNPlugin.Power
         public override void OnStart(PartModule.StartState state)
         {
             displayName = part.partInfo.title;
-            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+            String[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt };
             this.resources_to_supply = resources_to_supply;
 
             if (state == StartState.Editor) return;
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000));
             resourceBuffers.Init(this.part);
 
@@ -48,19 +48,19 @@ namespace FNPlugin.Power
 
         public double ConsumeMegajoulesFixed(double powerRequest, double fixedDeltaTime)
         {
-            return consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES, fixedDeltaTime);
+            return consumeFNResource(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt, fixedDeltaTime);
         }
 
         public double ConsumeMegajoulesPerSecond(double powerRequest)
         {
-            return consumeFNResourcePerSecond(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
+            return consumeFNResourcePerSecond(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         public void SupplyMegajoulesPerSecondWithMax(double supply, double maxsupply)
         {
             currentPowerSupply += supply;
 
-            supplyFNResourcePerSecondWithMax(supply, maxsupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+            supplyFNResourcePerSecondWithMax(supply, maxsupply, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         public override string getResourceManagerDisplayName()
@@ -83,14 +83,14 @@ namespace FNPlugin.Power
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            totalPowerSupply = getCurrentResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            totalPowerSupply = getCurrentResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         public override void OnFixedUpdate()
         {
             base.OnFixedUpdate();
 
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, currentPowerSupply);
+            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, currentPowerSupply);
             resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, currentPowerSupply);
             resourceBuffers.UpdateBuffers();
 

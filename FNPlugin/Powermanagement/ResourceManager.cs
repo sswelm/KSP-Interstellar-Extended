@@ -17,13 +17,13 @@ namespace FNPlugin
             ResourceManager result;
 
             if (resourceName == ResourceSettings.Config.ElectricPowerInMegawatt)
-                result = new MegajoulesResourceManager(id, pm);
+                result = new MegajoulesResourceManager(id, pm, ResourceSettings.Config.ElectricPowerInMegawatt);
             else if (resourceName == ResourceSettings.Config.WasteHeatInMegawatt)
-                result = new WasteHeatResourceManager(id, pm);
+                result = new WasteHeatResourceManager(id, pm, ResourceSettings.Config.WasteHeatInMegawatt);
             else if(resourceName == ResourceSettings.Config.ChargedParticleInMegawatt)
-                result = new CPResourceManager(id, pm);
+                result = new CPResourceManager(id, pm, ResourceSettings.Config.ChargedParticleInMegawatt);
             else if(resourceName == ResourceSettings.Config.ThermalPowerInMegawatt)
-                result = new TPResourceManager(id, pm);
+                result = new TPResourceManager(id, pm, ResourceSettings.Config.ThermalPowerInMegawatt);
             else
                 result = new DefaultResourceManager(id, pm, resourceName);
 
@@ -33,8 +33,8 @@ namespace FNPlugin
 
     public abstract class ResourceManager
     {
-        public const string FNRESOURCE_MEGAJOULES = "Megajoules";
-        public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
+        //public const string FNRESOURCE_MEGAJOULES = "Megajoules";
+        //public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
         public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
 
@@ -262,7 +262,7 @@ namespace FNPlugin
             GUILayout.Label(PluginHelper.getFormattedPowerString(netChange), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
-            if (!netUtilization.IsInfinityOrNaN() && (resourceName != FNRESOURCE_MEGAJOULES || netUtilization < 2.0 || ResourceSupply >= last.Demand))
+            if (!netUtilization.IsInfinityOrNaN() && (resourceName != ResourceSettings.Config.ElectricPowerInMegawatt || netUtilization < 2.0 || ResourceSupply >= last.Demand))
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Utilisation"), left_bold_label, GUILayout.ExpandWidth(true));//"Utilisation"
@@ -342,7 +342,7 @@ namespace FNPlugin
                     int count = group.Count();
                     if (count > 1)
                         name = count + " * " + name;
-                    if (sumRequest > 0.0 && resourceName == FNRESOURCE_MEGAJOULES && utilization < 0.995)
+                    if (sumRequest > 0.0 && resourceName == ResourceSettings.Config.ElectricPowerInMegawatt && utilization < 0.995)
                         name = name + " " + utilization.ToString("P0");
 
                     summaryList.Add(new PowerConsumption(name, priority, sumRequest));
@@ -655,7 +655,7 @@ namespace FNPlugin
                 }
 
                 // Efficiency throttling - prefer starving low priority consumers if supply efficiency is very low
-                if (supplyEfficiencyRatio < minRatio && resourceName == FNRESOURCE_MEGAJOULES)
+                if (supplyEfficiencyRatio < minRatio && resourceName == ResourceSettings.Config.ElectricPowerInMegawatt)
                     maxRequest *= Math.Max(0.0, supplyEfficiencyRatio) / minRatio;
 
                 if (!maxRequest.IsInfinityOrNaNorZero())
