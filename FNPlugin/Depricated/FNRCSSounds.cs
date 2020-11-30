@@ -87,7 +87,7 @@ namespace FNPlugin
                 CreateGroup(RcsSound, rcsSoundFile, false);
                 CreateGroup(RcsShutoffSound, rcsShutoffSoundFile, false);
                 CreateGroup(RcsColdGasSound, rcsColdGasSoundFile, false);
-                
+
                 GameEvents.onGamePause.Add(new EventVoid.OnEvent(OnPause));
                 GameEvents.onGameUnpause.Add(new EventVoid.OnEvent(OnUnPause));
             }
@@ -127,14 +127,15 @@ namespace FNPlugin
                     bool rcsActive = false;
                     float rcsHighestPower = 0f;
 
-                    if (!internalRcsSoundsOnly || CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
+                    if (!internalRcsSoundsOnly ||
+                        CameraManager.Instance.currentCameraMode == CameraManager.CameraMode.IVA)
                     {
                         // Check for the resource as the effects still fire slightly without fuel.
                         var resourceList = new List<PartResource>();
                         ResourceFlowMode m;
                         try
                         {
-                            m = (ResourceFlowMode)Enum.Parse(typeof(ResourceFlowMode), rcsModule.resourceFlowMode);
+                            m = (ResourceFlowMode) Enum.Parse(typeof(ResourceFlowMode), rcsModule.resourceFlowMode);
                         }
                         catch (Exception ex)
                         {
@@ -142,13 +143,14 @@ namespace FNPlugin
                             m = ResourceFlowMode.ALL_VESSEL;
                         }
 
-                            for (int i = 0; i < rcsModule.thrusterFX.Count; i++)
-                            {
-                                rcsHighestPower = Mathf.Max(rcsHighestPower, rcsModule.thrusterFX[i].Power);
-                            }
-                            if (rcsHighestPower > 0.1f)
-                                // Don't respond to SAS idling.
-                                rcsActive = true;
+                        for (int i = 0; i < rcsModule.thrusterFX.Count; i++)
+                        {
+                            rcsHighestPower = Mathf.Max(rcsHighestPower, rcsModule.thrusterFX[i].Power);
+                        }
+
+                        if (rcsHighestPower > 0.1f)
+                            // Don't respond to SAS idling.
+                            rcsActive = true;
                     }
 
                     if (rcsActive)

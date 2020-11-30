@@ -1,6 +1,6 @@
 ﻿using FNPlugin.Constants;
 
-namespace FNPlugin.Refinery 
+namespace FNPlugin.Refinery
 {
     class AntimatterGenerator : RefineryActivity
     {
@@ -45,7 +45,7 @@ namespace FNPlugin.Refinery
                 _efficiency /= 50000;
         }
 
-        public void Produce(double energyProvidedInMegajoules) 
+        public void Produce(double energyProvidedInMegajoules)
         {
             if (energyProvidedInMegajoules <= 0)
                 return;
@@ -53,6 +53,6 @@ namespace FNPlugin.Refinery
             double antimatterUnits = energyProvidedInMegajoules * 1E6 / GameConstants.lightSpeedSquared / 2000 / _antimatterDefinition.density * _efficiency;
 
             _current_rate = -_part.RequestResource(_antimatterDefinition.id, -antimatterUnits, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-        }        
+        }
     }
 }

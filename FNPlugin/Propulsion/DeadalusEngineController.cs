@@ -1,10 +1,11 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.External;
+using FNPlugin.Powermanagement;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
-using FNPlugin.Resources;
 using TweakScale;
 using UnityEngine;
 

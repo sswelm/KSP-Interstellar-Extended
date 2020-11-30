@@ -1,11 +1,11 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using FNPlugin.Constants;
 using FNPlugin.Power;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Powermanagement
 {
     [KSPModule("Generator Adapter")]
     class FNGeneratorAdapterVariable : ResourceSuppliableModule

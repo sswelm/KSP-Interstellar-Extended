@@ -1,10 +1,9 @@
 ﻿using FNPlugin.Power;
-using FNPlugin.Resources;
 using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Resources
 {
     class AtmosphericIntake : PartModule
     {

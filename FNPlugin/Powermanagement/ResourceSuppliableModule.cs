@@ -4,10 +4,9 @@ using FNPlugin.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FNPlugin.Powermanagement;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Powermanagement
 {
     abstract class ResourceSuppliableModule : PartModule, IResourceSuppliable, IResourceSupplier
     {

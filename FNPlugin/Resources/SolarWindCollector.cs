@@ -1,12 +1,12 @@
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
-using FNPlugin.Resources;
+using FNPlugin.Powermanagement;
 using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Collectors
+namespace FNPlugin.Resources
 {
     [KSPModule("Solar Wind Collector")]
     class SolarWindCollector : ResourceSuppliableModule

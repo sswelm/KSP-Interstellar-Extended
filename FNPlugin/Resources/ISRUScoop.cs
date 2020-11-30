@@ -1,12 +1,12 @@
 ﻿using FNPlugin.Extensions;
+using FNPlugin.Powermanagement;
 using FNPlugin.Propulsion;
-using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Resources
 {
     class ISRUScoop : ResourceSuppliableModule
     {
@@ -49,7 +49,7 @@ namespace FNPlugin
 
 
         // internals
-        protected double resflowf = 0;
+        protected double resflowf;
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ActivateScoop", active = true)]//Activate Scoop
         public void ActivateScoop()

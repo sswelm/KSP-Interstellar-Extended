@@ -79,8 +79,8 @@ namespace FNPlugin.Resources
                 return starlight.relativeLuminocity;
             else
                 return 0;
-        }       
-        
+        }
+
 
         const string moduleName = "KSPI";
         const double kerbinAU = 13599840256;

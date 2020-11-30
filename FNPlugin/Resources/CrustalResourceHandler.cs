@@ -16,7 +16,7 @@ namespace FNPlugin.Resources
 
             CrustalResource resource = bodyCrustalComposition.FirstOrDefault(oor => oor.ResourceName == resourcename);
 
-            return resource != null ? resource.ResourceAbundance : 0;
+            return resource?.ResourceAbundance ?? 0;
         }
 
         public static double getCrustalResourceContent(int refBody, int resource)

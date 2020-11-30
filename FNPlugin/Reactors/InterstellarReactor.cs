@@ -2,6 +2,7 @@
 using FNPlugin.Extensions;
 using FNPlugin.External;
 using FNPlugin.Power;
+using FNPlugin.Powermanagement;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
 using FNPlugin.Resources;

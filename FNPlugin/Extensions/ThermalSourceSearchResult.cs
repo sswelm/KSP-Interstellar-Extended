@@ -1,6 +1,8 @@
 ﻿using FNPlugin.Redist;
 using System;
 using System.Linq;
+using FNPlugin.Powermanagement;
+using FNPlugin.Reactors;
 
 namespace FNPlugin.Extensions
 {

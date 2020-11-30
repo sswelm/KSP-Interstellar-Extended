@@ -1,12 +1,11 @@
-﻿using FNPlugin.Extensions;
-using FNPlugin.Wasteheat;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using FNPlugin.Extensions;
 using FNPlugin.Resources;
+using FNPlugin.Wasteheat;
 
-namespace FNPlugin.Reactors
+namespace FNPlugin.Powermanagement
 {
     [KSPModule("Flat Thermal Power Generator")]
     class FNFlatThermalPowerGenerator : FNThermalPowerGenerator
@@ -17,7 +16,7 @@ namespace FNPlugin.Reactors
     [KSPModule("Thermal Power Generator")]
     class FNThermalPowerGenerator : ResourceSuppliableModule
     {
-        //Configuration 
+        //Configuration
         [KSPField] public double maximumPowerCapacity = 0.02; // 20 Kw
         [KSPField] public double maxConversionEfficiency = 0.5; // 50%
         [KSPField] public double requiredTemperatureRatio = 0.1; // 50%
@@ -138,7 +137,7 @@ namespace FNPlugin.Reactors
 
             var stackThermalMassPerKilogram = timeWarpModifer * stackAttachedPart.mass * stackAttachedPart.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
 
-            var stackWasteTemperatureChange = 
+            var stackWasteTemperatureChange =
                 0.5 * fixedDeltaTime * (wasteheatInMegaJoules / _stackAttachedParts.Count / stackThermalMassPerKilogram);
 
             // increase stack part with waste temperature

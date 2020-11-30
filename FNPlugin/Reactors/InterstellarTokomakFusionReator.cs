@@ -1,6 +1,6 @@
-﻿using System;
-using FNPlugin.Resources;
+﻿using FNPlugin.Resources;
 using KSP.Localization;
+using System;
 
 namespace FNPlugin.Reactors
 {
@@ -46,7 +46,7 @@ namespace FNPlugin.Reactors
         public override void OnUpdate()
         {
             base.OnUpdate();
-            if (!isSwappingFuelMode && (!CheatOptions.InfiniteElectricity && getDemandStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt) > 1.01 
+            if (!isSwappingFuelMode && (!CheatOptions.InfiniteElectricity && getDemandStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt) > 1.01
                                                                           && getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt) < 0.25) && IsEnabled && !fusion_alert)
                 fusionAlertFrames++;
             else

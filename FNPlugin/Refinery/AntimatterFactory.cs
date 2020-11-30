@@ -1,5 +1,6 @@
 ﻿using KSP.Localization;
 using System;
+using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 
 namespace FNPlugin.Refinery

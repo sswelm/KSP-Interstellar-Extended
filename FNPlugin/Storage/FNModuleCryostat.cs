@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using FNPlugin.Power;
 using KSP.Localization;
 using System;
+using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using UnityEngine;
 

@@ -1,7 +1,7 @@
 ﻿using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
-using FNPlugin.Resources;
 
 namespace FNPlugin.Reactors
 {

@@ -1,8 +1,9 @@
-﻿using FNPlugin.Resources;
-using System;
+﻿using System;
+using FNPlugin.Power;
+using FNPlugin.Resources;
 using UnityEngine;
 
-namespace FNPlugin.Power
+namespace FNPlugin.Powermanagement
 {
     [KSPModule("Power Supply")]
     class InterstellarPowerSupply : ResourceSuppliableModule, IPowerSupply

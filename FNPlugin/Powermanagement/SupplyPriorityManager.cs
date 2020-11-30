@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Powermanagement
 {
     class SupplyPriorityManager
     {
@@ -20,7 +20,7 @@ namespace FNPlugin
             supply_priority_managers.Clear();
         }
 
-        public static SupplyPriorityManager GetSupplyPriorityManagerForVessel(Vessel vessel) 
+        public static SupplyPriorityManager GetSupplyPriorityManagerForVessel(Vessel vessel)
         {
             if (vessel == null)
                 return null;
@@ -29,7 +29,7 @@ namespace FNPlugin
             {
                 Debug.Log("[KSPI]: Creating new supply priority manager for " + vessel.GetName());
                 manager = new SupplyPriorityManager(vessel);
-                
+
                 supply_priority_managers.Add(vessel, manager);
             }
             return manager;
@@ -83,7 +83,7 @@ namespace FNPlugin
                 throw;
             }
         }
-       
+
     }
 
 }

@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace FNPlugin 
+namespace FNPlugin
 {
-    public interface IResourceSupplier 
+    public interface IResourceSupplier
     {
         Guid Id { get; }
 

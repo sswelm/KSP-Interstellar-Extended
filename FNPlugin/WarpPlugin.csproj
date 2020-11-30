@@ -87,9 +87,9 @@
     <Compile Include="Animate\FNLightSwitch.cs" />
     <Compile Include="Beamedpower\BeamedPowerTransmitterTag.cs" />
     <Compile Include="Beamedpower\InterstellarBeamedPowerHelper.cs" />
-    <Compile Include="Collectors\RegolithCollector.cs" />
-    <Compile Include="Collectors\SolarWindCollector.cs" />
-    <Compile Include="Collectors\UniversalCrustExtractor.cs" />
+    <Compile Include="Resources\RegolithCollector.cs" />
+    <Compile Include="Resources\SolarWindCollector.cs" />
+    <Compile Include="Resources\UniversalCrustExtractor.cs" />
     <Compile Include="Extensions\Approximate.cs" />
     <Compile Include="Extensions\BoolExtensions.cs" />
     <Compile Include="Extensions\Decimal.cs" />
@@ -144,13 +144,13 @@
     <Compile Include="Propulsion\ModuleEnginesWarp.cs" />
     <Compile Include="Depricated\FNModuleRCSFX.cs" />
     <Compile Include="Depricated\FNRCSSounds.cs" />
-    <Compile Include="Propulsion\ThermalPowerTransport.cs" />
+    <Compile Include="Reactors\ThermalPowerTransport.cs" />
     <Compile Include="Propulsion\VistaECU2.cs" />
     <Compile Include="Propulsion\DeadalusEngineController.cs" />
     <Compile Include="Reactors\InterstellarFissionDP.cs" />
     <Compile Include="Reactors\InterstellarFissionPB.cs" />
     <Compile Include="Refinery\Activity\AluminiumElectrolyzer.cs" />
-    <Compile Include="Collectors\AntimatterCollector.cs" />
+    <Compile Include="Resources\AntimatterCollector.cs" />
     <Compile Include="Refinery\AntimatterFactory.cs" />
     <Compile Include="Refinery\Activity\AtmosphereProcessor.cs" />
     <Compile Include="Refinery\RefineryActivity.cs" />
@@ -160,7 +160,7 @@
     <Compile Include="Refinery\Activity\OceanProcessor.cs" />
     <Compile Include="Refinery\Activity\SolarWindProcessor.cs" />
     <Compile Include="Refinery\AntimatterGenerator.cs" />
-    <Compile Include="Collectors\AtmosphericIntake.cs" />
+    <Compile Include="Resources\AtmosphericIntake.cs" />
     <Compile Include="Refinery\Activity\AnthraquinoneProcessor.cs" />
     <Compile Include="Refinery\Activity\AmmoniaElectrolyzer.cs" />
     <Compile Include="Propulsion\ThermalNozzleController.cs" />
@@ -204,7 +204,7 @@
     <Compile Include="Refinery\Activity\NuclearFuelReprocessor.cs" />
     <Compile Include="Reactors\InterstellarReactor.cs" />
     <Compile Include="Reactors\InterstellarTokomakFusionReator.cs" />
-    <Compile Include="Collectors\ISRUScoop.cs" />
+    <Compile Include="Resources\ISRUScoop.cs" />
     <Compile Include="Beamedpower\BeamedPowerReceiver.cs" />
     <Compile Include="Beamedpower\MicrowavePowerTransmitter.cs" />
     <Compile Include="Science\ModableExperimentResultDialogPage.cs" />
@@ -252,5 +252,7 @@
       <Name>Interstellar_Redist</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Collectors\" />
+  </ItemGroup>
 </Project>

@@ -1,12 +1,12 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.External;
 using FNPlugin.Power;
+using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Propulsion

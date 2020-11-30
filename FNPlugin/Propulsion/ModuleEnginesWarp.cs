@@ -1,6 +1,5 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
-using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using UnityEngine;

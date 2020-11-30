@@ -1,13 +1,12 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Powermanagement;
-using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Collectors
+namespace FNPlugin.Resources
 {
     class RegolithCollector : ResourceSuppliableModule
     {
@@ -16,7 +15,7 @@ namespace FNPlugin.Collectors
 
         // Persistent True
         [KSPField(isPersistant = true)]
-        public bool bIsEnabled = false;
+        public bool bIsEnabled;
         [KSPField(isPersistant = true)]
         public double dLastActiveTime;
         [KSPField(isPersistant = true)]
@@ -215,7 +214,7 @@ namespace FNPlugin.Collectors
             //dLastRegolithConcentration = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
             dLastRegolithConcentration = GetFinalConcentration();
 
-            /* This bit will check if the regolith drill has not lost contact with ground. Raycasts are apparently not all that expensive, but still, 
+            /* This bit will check if the regolith drill has not lost contact with ground. Raycasts are apparently not all that expensive, but still,
                  * the counter will delay the check so that it runs only once per hundred cycles. This should be enough and should make it more performance friendly and
                  * also less prone to kraken glitches. It also makes sure that this doesn't run before the vessel is fully loaded and shown to the player.
                  */
@@ -369,7 +368,7 @@ namespace FNPlugin.Collectors
             {
                 string strNumberFormat = dResourceChange > 100 ? "0" : "0.00";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg3", dResourceChange.ToString(strNumberFormat),strRegolithResourceName), 10.0f, ScreenMessageStyle.LOWER_CENTER);//"The Regolith Drill collected <<1>> units of <<2>> 
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg3", dResourceChange.ToString(strNumberFormat),strRegolithResourceName), 10.0f, ScreenMessageStyle.LOWER_CENTER);//"The Regolith Drill collected <<1>> units of <<2>>
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel

@@ -1,4 +1,4 @@
-﻿namespace FNPlugin
+﻿namespace FNPlugin.Reactors
 {
     public class ThermalPowerTransport : PartModule
     {

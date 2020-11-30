@@ -3,6 +3,7 @@ using FNPlugin.Redist;
 using FNPlugin.Wasteheat;
 using System;
 using System.Collections.Generic;
+using FNPlugin.Powermanagement;
 using UnityEngine;
 using KSP.Localization;
 

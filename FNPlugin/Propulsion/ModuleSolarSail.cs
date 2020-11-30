@@ -1,6 +1,6 @@
-using System.Linq;
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Propulsion

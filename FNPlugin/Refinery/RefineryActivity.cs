@@ -1,11 +1,9 @@
 ﻿using FNPlugin.Constants;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    internal enum RefineryType { Heating = 1, Cryogenics = 2, Electrolysis = 4, Synthesize = 8,  } 
+    internal enum RefineryType { Heating = 1, Cryogenics = 2, Electrolysis = 4, Synthesize = 8,  }
 
     public class RefineryActivity: PartModule
     {

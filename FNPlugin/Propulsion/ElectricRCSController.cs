@@ -1,9 +1,10 @@
-﻿using System;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
+using FNPlugin.Powermanagement;
+using FNPlugin.Resources;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using FNPlugin.Constants;
-using FNPlugin.Extensions;
-using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Propulsion

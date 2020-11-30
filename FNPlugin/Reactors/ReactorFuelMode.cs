@@ -9,7 +9,7 @@ namespace FNPlugin.Reactors
         public ReactorProduct fuelmode;
         public double mass;
     }
-     
+
     class FuelResourceMetaData
     {
         public FuelResourceMetaData(PartResourceDefinition resourceDefinition, double ratio)
@@ -77,7 +77,7 @@ namespace FNPlugin.Reactors
         public string ModeGUIName { get; private set; }
         public string TechRequirement { get; private set; }
         public bool Aneutronic { get; private set; }
-        public double GammaRayEnergy { get; private set; }        
+        public double GammaRayEnergy { get; private set; }
         public bool RequiresLab { get; private set; }
         public bool RequiresUpgrade { get; private set; }
         public float ChargedPowerRatio { get; private set; }
@@ -166,7 +166,7 @@ namespace FNPlugin.Reactors
 
             _mev_per_charged_product = node.HasValue("MeVPerChargedProduct") ? Double.Parse(node.GetValue("MeVPerChargedProduct")) : 0;
             _neutrons_ratio = node.HasValue("NeutronsRatio") ? Single.Parse(node.GetValue("NeutronsRatio")) : 1;
-            _tritium_breed_multiplier = node.HasValue("TritiumBreedMultiplier") ? Single.Parse(node.GetValue("TritiumBreedMultiplier")) : 1; 
+            _tritium_breed_multiplier = node.HasValue("TritiumBreedMultiplier") ? Single.Parse(node.GetValue("TritiumBreedMultiplier")) : 1;
             _fuel_efficency_multiplier = node.HasValue("FuelEfficiencyMultiplier") ? Double.Parse(node.GetValue("FuelEfficiencyMultiplier")) : 1;
 
             _requires_lab = node.HasValue("RequiresLab") ? Boolean.Parse(node.GetValue("RequiresLab")) : false;

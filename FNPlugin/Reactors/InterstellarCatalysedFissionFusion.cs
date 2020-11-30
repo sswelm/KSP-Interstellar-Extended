@@ -1,5 +1,4 @@
-﻿
-using FNPlugin.Redist;
+﻿using FNPlugin.Powermanagement;
 
 namespace FNPlugin.Reactors
 {

@@ -1,17 +1,17 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-
 using static System.String;
 
-namespace FNPlugin
+namespace FNPlugin.Propulsion
 {
     [KSPModule("#LOC_KSPIE_AlcubierreDrive_partModuleName")]
     class AlcubierreDrive : ResourceSuppliableModule

@@ -1,5 +1,5 @@
-﻿using System;
-using FNPlugin.Extensions;
+﻿using FNPlugin.Extensions;
+using System;
 using UnityEngine;
 
 namespace FNPlugin.Reactors

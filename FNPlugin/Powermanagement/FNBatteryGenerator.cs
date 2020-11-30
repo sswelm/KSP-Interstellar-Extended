@@ -1,8 +1,8 @@
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using System;
 using System.Collections.Generic;
-using FNPlugin.Resources;
 
 namespace FNPlugin.Powermanagement
 {

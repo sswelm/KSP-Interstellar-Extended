@@ -1,5 +1,5 @@
-﻿using System;
-using FNPlugin.Resources;
+﻿using FNPlugin.Resources;
+using System;
 
 namespace FNPlugin.Reactors
 {
@@ -42,13 +42,13 @@ namespace FNPlugin.Reactors
             IsEnabled = false;
         }
 
-        public override bool IsFuelNeutronRich { get { return CurrentFuelMode != null && !CurrentFuelMode.Aneutronic; } }
+        public override bool IsFuelNeutronRich => CurrentFuelMode != null && !CurrentFuelMode.Aneutronic;
 
-        public override double MaximumThermalPower { get { return base.MaximumThermalPower * ThermalRatioEfficiency; } }
+        public override double MaximumThermalPower => base.MaximumThermalPower * ThermalRatioEfficiency;
 
-        public override double MaximumChargedPower { get { return base.MaximumChargedPower * ThermalRatioEfficiency; } }
+        public override double MaximumChargedPower => base.MaximumChargedPower * ThermalRatioEfficiency;
 
-        public override double StableMaximumReactorPower { get { return IsEnabled ? NormalisedMaximumPower * ThermalRatioEfficiency : 0; } }
+        public override double StableMaximumReactorPower => IsEnabled ? NormalisedMaximumPower * ThermalRatioEfficiency : 0;
 
         private double ThermalRatioEfficiency
         {
@@ -60,13 +60,13 @@ namespace FNPlugin.Reactors
             }
         }
 
-        private double OptimalTemp { get { return base.CoreTemperature; } }
+        private double OptimalTemp => base.CoreTemperature;
 
-        private double ZeroPowerTemp { get { return base.CoreTemperature * 1.25f; } }
+        private double ZeroPowerTemp => base.CoreTemperature * 1.25f;
 
-        private double OptimalTempDifference { get { return ZeroPowerTemp - OptimalTemp; } }
+        private double OptimalTempDifference => ZeroPowerTemp - OptimalTemp;
 
-        public override bool IsNuclear { get { return true; } }
+        public override bool IsNuclear => true;
 
         public override double CoreTemperature
         {

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using TweakScale;
 using UnityEngine;

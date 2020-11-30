@@ -1,10 +1,10 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
-using FNPlugin.Resources;
+using FNPlugin.Powermanagement;
 using System;
 using System.Linq;
 
-namespace FNPlugin
+namespace FNPlugin.Resources
 {
     class AntimatterCollector : ResourceSuppliableModule
     {

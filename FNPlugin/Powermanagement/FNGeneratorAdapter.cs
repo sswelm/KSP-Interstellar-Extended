@@ -4,7 +4,7 @@ using FNPlugin.Resources;
 using System;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Powermanagement
 {
     [KSPModule("Generator Adapter")]
     class FNGeneratorAdapter : ResourceSuppliableModule

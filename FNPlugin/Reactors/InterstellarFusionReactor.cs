@@ -1,4 +1,4 @@
-﻿using FNPlugin.Redist;
+﻿using FNPlugin.Powermanagement;
 using KSP.Localization;
 using System;
 using System.Linq;

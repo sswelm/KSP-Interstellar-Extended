@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using FNPlugin.Powermanagement;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Powermanagement
 {
     public class ResourceOvermanager
     {

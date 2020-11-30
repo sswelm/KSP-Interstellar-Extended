@@ -1,12 +1,11 @@
 ﻿using FNPlugin.Powermanagement;
-using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Collectors
+namespace FNPlugin.Resources
 {
     class CrustalResourceAbundance
     {
@@ -66,7 +65,7 @@ namespace FNPlugin.Collectors
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 5, 150);
         private int _window_ID;
         private bool _render_window;
-        
+
 
         private ModuleScienceExperiment _moduleScienceExperiment;
 
@@ -318,7 +317,7 @@ namespace FNPlugin.Collectors
                 ToggleEmmitters(true);
                 UpdateLoopingAnimation();
 
-                //double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);                
+                //double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
                 MineResources(false, fixedDeltaTime);
                 // Save time data for offline mining
                 dLastActiveTime = Planetarium.GetUniversalTime();
@@ -408,7 +407,7 @@ namespace FNPlugin.Collectors
         private bool IsDrillExtended()
         {
             return isDeployed && !deployAnimation.IsPlaying(deployAnimationName);
-            //return deployAnimation.GetScalar == 1; 
+            //return deployAnimation.GetScalar == 1;
 
             //if (_moduleAnimationGroup != null)
             //    return _moduleAnimationGroup.isDeployed;
@@ -432,11 +431,11 @@ namespace FNPlugin.Collectors
 
             /* This little bit will fire a ray from the part, straight down, in the distance that the part should be able to reach.
              * It returns true if there is solid terrain in the reach AND the drill is extended. Otherwise false.
-             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact 
-             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing 
-             * this module in a difficult terrain, it just doesn't work properly. (I blame KSP planet meshes + Unity problems with accuracy further away from origin). 
+             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact
+             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing
+             * this module in a difficult terrain, it just doesn't work properly. (I blame KSP planet meshes + Unity problems with accuracy further away from origin).
             */
-            Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
+            Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask
 
             return hit;
         }
@@ -585,9 +584,9 @@ namespace FNPlugin.Collectors
 
             /* I decided to incorporate an altitude modifier (similarly to regolith collector before).
              * According to various source, crust thickness is higher in higher altitudes (duh).
-             * This is great from a gameplay perspective, because it creates an incentive for players to mine resources in more difficult circumstances 
+             * This is great from a gameplay perspective, because it creates an incentive for players to mine resources in more difficult circumstances
              * (i.e. landing on highlands instead of flats etc.) and breaks the flatter-is-better base building strategy at least a bit.
-             * This check will divide current altitude by 2500. At that arbitrarily-chosen altitude, we should be getting the basic concentration for the planet. 
+             * This check will divide current altitude by 2500. At that arbitrarily-chosen altitude, we should be getting the basic concentration for the planet.
              * Go to a higher terrain and you will find **more** resources. The + 500 shift is there so that even at altitude of 0 (i.e. Minmus flats etc.) there will
              * still be at least SOME resources to be mined, but not all that much.
              * This is pretty much the same as the regolith collector (which might get phased out eventually).
@@ -651,8 +650,8 @@ namespace FNPlugin.Collectors
             if (!offlineCollecting)
             {
                 double percentPower = HasEnoughPower(deltaTime);
-                
-                if(percentPower < minimumPowerNeeded)  
+
+                if(percentPower < minimumPowerNeeded)
                 {
                     if(powerCountdown > 0)
                     {

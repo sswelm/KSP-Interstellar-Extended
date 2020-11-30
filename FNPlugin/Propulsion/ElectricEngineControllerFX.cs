@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;

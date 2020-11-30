@@ -12,7 +12,7 @@ using System.Linq;
 using TweakScale;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Powermanagement
 {
     enum PowerStates { PowerOnline, PowerOffline };
 
