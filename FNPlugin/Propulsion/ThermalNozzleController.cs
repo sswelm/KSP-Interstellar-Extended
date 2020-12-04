@@ -1833,7 +1833,7 @@ namespace FNPlugin.Propulsion
         {
             var currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
             var spareResourceCapacity = getSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
-            return mhdPowerGenerationPercentage * 0.01 * Math.Min(maximumElectricPower, currentUnfilledResourceDemand + spareResourceCapacity);
+            return Math.Min(maximumElectricPower, (currentUnfilledResourceDemand + spareResourceCapacity) * mhdPowerGenerationPercentage * 0.01);
         }
 
         private void GenerateThrustFromReactorHeat()
