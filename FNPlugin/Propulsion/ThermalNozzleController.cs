@@ -54,7 +54,10 @@ namespace FNPlugin.Propulsion
         public float ispThrottle = 0;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_FuelFlowThrottle")
          , UI_FloatRange(stepIncrement = 10, maxValue = 1000, minValue = 100, affectSymCounterparts = UI_Scene.All)]//Fuel Flow Throttle
-        public float fuelflowThrottle = 100;
+        public float fuelFlowThrottle = 100;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "MHD Power %")
+         , UI_FloatRange(stepIncrement = 1f, maxValue = 200, minValue = 0, affectSymCounterparts = UI_Scene.All)]
+        public float mhdPowerGenerationPercentage = 100;
 
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_Radius", guiUnits = " m", guiFormat = "F2")]//Radius
         public double radius = 2.5;
@@ -67,191 +70,108 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ThermalNozzleController_FuelflowThrotlemodifier", guiFormat = "F5")]//Fuelflow Throtle modifier
         public double fuelflow_throtle_modifier = 1;
 
-        [KSPField]
-        protected double fuelflowThrottleMaxValue = 100;
-        [KSPField]
-        public double effectiveFuelflowThrottle;
-        [KSPField]
-        public double ispFlowMultiplier;
-        [KSPField]
-        public double exhaustModifier;
-        [KSPField]
-        public double maxEngineFuelFlow;
-        [KSPField]
-        public double fuelEffectRatio;
-        [KSPField]
-        public float powerEffectRatio;
-        [KSPField]
-        public float runningEffectRatio;
+        [KSPField] public double fuelflowThrottleMaxValue = 100;
+        [KSPField] public double effectiveFuelflowThrottle;
+        [KSPField] public double ispFlowMultiplier;
 
-        [KSPField]
-        public double startupHeatReductionRatio = 0;
-        [KSPField]
-        public double missingPrecoolerProportionExponent = 0.5;
+        [KSPField] public double requestedElectricPowerMegajoules;
+        [KSPField] public double requiredElectricalPowerFromMhd;
+        [KSPField] public double requiredMhdEnergyRatio;
+        [KSPField] public double maxMhdPowerFactor = 0.5;
+        [KSPField] public double mhdTrustIspModifier;
+        [KSPField] public double exhaustModifier;
+        [KSPField] public double maxEngineFuelFlow;
+        [KSPField] public double fuelEffectRatio;
+        [KSPField] public float powerEffectRatio;
+        [KSPField] public float runningEffectRatio;
+        [KSPField] public double startupHeatReductionRatio;
+        [KSPField] public double missingPrecoolerProportionExponent = 0.5;
+        [KSPField] public double minimumBaseIsp = 0;
+        [KSPField] public bool canUsePureChargedPower = false;
+        [KSPField] public float takeoffIntakeBonus = 0.002f;
+        [KSPField] public float jetengineAccelerationBaseSpeed = 0.2f;
+        [KSPField] public float jetengineDecelerationBaseSpeed = 0.4f;
+        [KSPField] public double engineAccelerationBaseSpeed = 2;
+        [KSPField] public double engineDecelerationBaseSpeed = 2;
+        [KSPField] public double wasteheatRatioDecelerationMult = 10;
+        [KSPField] public float finalEngineDecelerationSpeed;
+        [KSPField] public float finalEngineAccelerationSpeed;
+        [KSPField] public bool useEngineResponseTime;
+        [KSPField] public bool initialized;
+        [KSPField] public float wasteHeatMultiplier = 1;
+        [KSPField] public int jetPerformanceProfile = 0;
+        [KSPField] public bool isJet = false;
+        [KSPField] public float powerTrustMultiplier = 1;
+        [KSPField] public float powerTrustMultiplierJet = 1;
+        [KSPField] public double IspTempMultOffset = -1.371670613;
+        [KSPField] public float sootHeatDivider = 150;
+        [KSPField] public float sootThrustDivider = 150;
+        [KSPField] public double maxTemp = 2750;
+        [KSPField] public double heatConductivity = 0.12;
+        [KSPField] public double heatConvectiveConstant = 1;
+        [KSPField] public double emissiveConstant = 0.85;
+        [KSPField] public float thermalMassModifier = 1f;
 
-        [KSPField]
-        public double minimumBaseIsp = 0;
-        [KSPField]
-        public bool canUsePureChargedPower = false;
+        [KSPField] public float engineHeatProductionConst = 3000;
+        [KSPField] public double engineHeatProductionExponent = 0.8;
+        [KSPField] public double engineHeatFuelThreshold = 0.000001;
 
-        [KSPField]
-        public float takeoffIntakeBonus = 0.002f;
-        [KSPField]
-        public float jetengineAccelerationBaseSpeed = 0.2f;
-        [KSPField]
-        public float jetengineDecelerationBaseSpeed = 0.4f;
-        [KSPField]
-        public double engineAccelerationBaseSpeed = 2;
-        [KSPField]
-        public double engineDecelerationBaseSpeed = 2;
-        [KSPField]
-        public double wasteheatRatioDecelerationMult = 10;
-        [KSPField]
-        public float finalEngineDecelerationSpeed;
-        [KSPField]
-        public float finalEngineAccelerationSpeed;
-        [KSPField]
-        public bool useEngineResponseTime;
-        [KSPField]
-        public bool initialized;
-        [KSPField]
-        public float wasteHeatMultiplier = 1;
-        [KSPField]
-        public int jetPerformanceProfile = 0;
-        [KSPField]
-        public bool isJet = false;
-        [KSPField]
-        public float powerTrustMultiplier = 1;
-        [KSPField]
-        public float powerTrustMultiplierJet = 1;
-        [KSPField]
-        public double IspTempMultOffset = -1.371670613;
-        [KSPField]
-        public float sootHeatDivider = 150;
-        [KSPField]
-        public float sootThrustDivider = 150;
-        [KSPField]
-        public double maxTemp = 2750;
-        [KSPField]
-        public double heatConductivity = 0.12;
-        [KSPField]
-        public double heatConvectiveConstant = 1;
-        [KSPField]
-        public double emissiveConstant = 0.85;
-        [KSPField]
-        public float thermalMassModifier = 1f;
-        [KSPField]
-        public float engineHeatProductionConst = 3000;
-        [KSPField]
-        public double engineHeatProductionExponent = 0.8;
-        [KSPField]
-        public double engineHeatFuelThreshold = 0.000001;
-        [KSPField]
-        public double skinMaxTemp = 2750;
-        [KSPField]
-        public float maxThermalNozzleIsp = 0;
-        [KSPField]
-        public float maxJetModeBaseIsp = 0;
-        [KSPField]
-        public float maxLfoModeBaseIsp = 0;
-        [KSPField]
-        public float effectiveIsp;
-        [KSPField]
-        public double skinInternalConductionMult = 1;
-        [KSPField]
-        public double skinThermalMassModifier = 1;
-        [KSPField]
-        public double skinSkinConductionMult = 1;
-        [KSPField]
-        public string deployAnimationName = string.Empty;
-        [KSPField]
-        public string pulseAnimationName = string.Empty;
-        [KSPField]
-        public string emiAnimationName = string.Empty;
-        [KSPField]
-        public float pulseDuration = 0;
-        [KSPField]
-        public float recoveryAnimationDivider = 1;
-        [KSPField]
-        public double wasteheatEfficiencyLowTemperature = 0.99;
-        [KSPField]
-        public double wasteheatEfficiencyHighTemperature = 0.99;
-        [KSPField]
-        public float upgradeCost = 1;
-        [KSPField]
-        public string originalName = "";
-        [KSPField]
-        public string upgradedName = "";
-        [KSPField]
-        public string upgradeTechReq = "";
-        [KSPField]
-        public string EffectNameJet = string.Empty;
-        [KSPField]
-        public string EffectNameLFO = string.Empty;
-        [KSPField]
-        public string EffectNameNonLFO = string.Empty;
-        [KSPField]
-        public string EffectNameLithium = string.Empty;
-        [KSPField]
-        public string EffectNameSpool = string.Empty;
-        [KSPField]
-        public string runningEffectNameLFO = string.Empty;
-        [KSPField]
-        public string runningEffectNameNonLFO = string.Empty;
-        [KSPField]
-        public string powerEffectNameLFO = string.Empty;
-        [KSPField]
-        public string powerEffectNameNonLFO = string.Empty;
+        [KSPField] public double skinMaxTemp = 2750;
+        [KSPField] public float maxThermalNozzleIsp;
+        [KSPField] public float maxJetModeBaseIsp = 0;
+        [KSPField] public float maxLfoModeBaseIsp = 0;
+        [KSPField] public float effectiveIsp;
+        [KSPField] public double skinInternalConductionMult = 1;
+        [KSPField] public double skinThermalMassModifier = 1;
+        [KSPField] public double skinSkinConductionMult = 1;
+        [KSPField] public string deployAnimationName = string.Empty;
+        [KSPField] public string pulseAnimationName = string.Empty;
+        [KSPField] public string emiAnimationName = string.Empty;
+        [KSPField] public float pulseDuration = 0;
+        [KSPField] public float recoveryAnimationDivider = 1;
+        [KSPField] public double wasteheatEfficiencyLowTemperature = 0.99;
+        [KSPField] public double wasteheatEfficiencyHighTemperature = 0.99;
+        [KSPField] public float upgradeCost = 1;
 
-        [KSPField(isPersistant = true)]
-        public float windowPositionX = 1000;
-        [KSPField(isPersistant = true)]
-        public float windowPositionY = 200;
-        [KSPField]
-        public float windowWidth = 200;
+        [KSPField] public string originalName = "";
+        [KSPField] public string upgradedName = "";
 
-        [KSPField]
-        public double ispCoreTempMult = 0;
-        [KSPField]
-        public bool showPartTemperature = true;
-        [KSPField]
-        public double baseMaxIsp;
-        [KSPField]
-        public double wasteHeatBufferMassMult = 2.0e+5;
-        [KSPField]
-        public double wasteHeatBufferMult = 1;
-        [KSPField]
-        public bool allowUseOfChargedPower = true;
-        [KSPField]
-        public bool overrideAtmCurve = true;
-        [KSPField]
-        public bool overrideVelocityCurve = true;
-        [KSPField]
-        public bool overrideAtmosphereCurve = true;
-        [KSPField]
-        public bool overrideAccelerationSpeed = true;
-        [KSPField]
-        public bool overrideDecelerationSpeed = true;
-        [KSPField]
-        public bool usePropellantBaseIsp = false;
-        [KSPField]
-        public bool isPlasmaNozzle = false;
-        [KSPField]
-        public bool canUsePlasmaPower = false;
-        [KSPField]
-        public double requiredMegajouleRatio = 0;
-        [KSPField]
-        public double exitArea = 1;
-        [KSPField]
-        public double exitAreaScaleExponent = 2;
-        [KSPField]
-        public double plasmaAfterburnerRange = 2;
-        [KSPField]
-        public bool showThrustPercentage = true;
-        [KSPField]
-        public string throttleAnimName = "";
-        [KSPField]
-        public float throttleAnimExp = 1;
+        [KSPField] public string upgradeTechReq = "";
+        [KSPField] public string EffectNameJet = string.Empty;
+        [KSPField] public string EffectNameLFO = string.Empty;
+        [KSPField] public string EffectNameNonLFO = string.Empty;
+        [KSPField] public string EffectNameLithium = string.Empty;
+        [KSPField] public string EffectNameSpool = string.Empty;
+        [KSPField] public string runningEffectNameLFO = string.Empty;
+        [KSPField] public string runningEffectNameNonLFO = string.Empty;
+        [KSPField] public string powerEffectNameLFO = string.Empty;
+        [KSPField] public string powerEffectNameNonLFO = string.Empty;
+
+        [KSPField(isPersistant = true)] public float windowPositionX = 1000;
+        [KSPField(isPersistant = true)] public float windowPositionY = 200;
+        [KSPField] public float windowWidth = 200;
+
+        [KSPField] public double ispCoreTempMult = 0;
+        [KSPField] public bool showPartTemperature = true;
+        [KSPField] public double baseMaxIsp;
+        [KSPField] public double wasteHeatBufferMassMult = 2.0e+5;
+        [KSPField] public double wasteHeatBufferMult = 1;
+        [KSPField] public bool allowUseOfChargedPower = true;
+        [KSPField] public bool overrideAtmCurve = true;
+        [KSPField] public bool overrideVelocityCurve = true;
+        [KSPField] public bool overrideAtmosphereCurve = true;
+        [KSPField] public bool overrideAccelerationSpeed = true;
+        [KSPField] public bool overrideDecelerationSpeed = true;
+        [KSPField] public bool usePropellantBaseIsp = false;
+        [KSPField] public bool isPlasmaNozzle = false;
+        [KSPField] public bool canUsePlasmaPower = false;
+        [KSPField] public double requiredMegajouleRatio = 0;
+        [KSPField] public double exitArea = 1;
+        [KSPField] public double exitAreaScaleExponent = 2;
+        [KSPField] public double plasmaAfterburnerRange = 2;
+        [KSPField] public bool showThrustPercentage = true;
+        [KSPField] public string throttleAnimName = "";
+        [KSPField] public float throttleAnimExp = 1;
 
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_ExitArea", guiUnits = " m\xB2", guiFormat = "F3")]//Exit Area
         public double scaledExitArea = 1;
@@ -444,7 +364,7 @@ namespace FNPlugin.Propulsion
         [KSPField]
         public float requestedThrottle;
         [KSPField]
-        public double received_megajoules_ratio;
+        public double receivedMegajoulesRatio;
         [KSPField]
         public double pre_cooler_area;
         [KSPField]
@@ -535,30 +455,27 @@ namespace FNPlugin.Propulsion
         protected Guid id = Guid.NewGuid();
         protected ConfigNode[] fuelConfignodes;
 
-        protected List<Propellant> list_of_propellants = new List<Propellant>();
-        protected List<FNModulePreecooler> _vesselPrecoolers;
-        protected List<AtmosphericIntake> _vesselResourceIntakes;
-        protected List<IFNEngineNoozle> _vesselThermalNozzles;
+        private readonly List<Propellant> _listOfPropellants = new List<Propellant>();
+        private List<FNModulePreecooler> _vesselPreCoolers;
+        private List<AtmosphericIntake> _vesselResourceIntakes;
+        private List<IFNEngineNoozle> _vesselThermalNozzles;
+        private List<ThermalEngineFuel> _allThermalEngineFuels;
+        private List<ThermalEngineFuel> _compatibleThermalEngineFuels;
 
-        protected List<ThermalEngineFuel> _allThermalEngineFuels;
-        protected List<ThermalEngineFuel> _compatibleThermalEngineFuels;
-
-        protected Rect windowPosition;
+        private Rect _windowPosition;
 
         private IFNPowerSource _myAttachedReactor;
         public IFNPowerSource AttachedReactor
         {
-            get { return _myAttachedReactor; }
+            get => _myAttachedReactor;
             private set
             {
                 _myAttachedReactor = value;
-                if (_myAttachedReactor == null)
-                    return;
-                _myAttachedReactor.AttachThermalReciever(id, radius);
+                _myAttachedReactor?.AttachThermalReciever(id, radius);
             }
         }
 
-        public string UpgradeTechnology { get { return upgradeTechReq; } }
+        public string UpgradeTechnology => upgradeTechReq;
 
         private int switches = 0;
 
@@ -566,13 +483,13 @@ namespace FNPlugin.Propulsion
 
         public bool UsePlasmaPower => isPlasmaNozzle || canUsePlasmaPower && (AttachedReactor != null && AttachedReactor.PlasmaPropulsionEfficiency > 0);
 
-        public bool UseThermalPowerOnly => AttachedReactor != null && (!isPlasmaNozzle || AttachedReactor.ChargedParticlePropulsionEfficiency == 0 || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0 || list_of_propellants.Count > 1 );
+        public bool UseThermalPowerOnly => AttachedReactor != null && (!isPlasmaNozzle || AttachedReactor.ChargedParticlePropulsionEfficiency == 0 || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0 || _listOfPropellants.Count > 1 );
 
         public bool UseThermalAndChargdPower => !UseThermalPowerOnly && ispThrottle == 0;
 
         public bool UsePlasmaAfterBurner => AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && isPlasmaNozzle && ispThrottle != 0 && (ispThrottle != 1 || !canUsePureChargedPower);
 
-        public bool UseChargedPowerOnly => canUsePureChargedPower && ispThrottle == 100 && list_of_propellants.Count == 1;
+        public bool UseChargedPowerOnly => canUsePureChargedPower && ispThrottle == 100 && _listOfPropellants.Count == 1;
 
         public void NextPropellantInternal()
         {
@@ -658,33 +575,25 @@ namespace FNPlugin.Propulsion
             get
             {
                 if (myAttachedEngine != null && myAttachedEngine.isOperational && exhaustAllowed)
-                    return (float)(adjustedThrottle * received_megajoules_ratio * effectiveThrustFraction * fuelflow_throtle_modifier);
+                    return (float)(adjustedThrottle * receivedMegajoulesRatio * effectiveThrustFraction * fuelflow_throtle_modifier);
                 else
                     return 0;
             }
         }
 
-        public bool PropellantAbsorbsNeutrons { get { return _isNeutronAbsorber; } }
+        public bool PropellantAbsorbsNeutrons => _isNeutronAbsorber;
 
-        public bool RequiresPlasmaHeat { get { return UsePlasmaPower; } }
+        public bool RequiresPlasmaHeat => UsePlasmaPower;
 
-        public bool RequiresThermalHeat { get { return !UsePlasmaPower; } }
+        public bool RequiresThermalHeat => !UsePlasmaPower;
 
-        public bool RequiresChargedPower { get { return false; } }
+        public bool RequiresChargedPower => false;
 
         public void upgradePartModule()
         {
             isupgraded = true;
 
-            if (isJet)
-                fuelConfignodes = GetPropellantsHybrid();
-            else
-                fuelConfignodes = GetPropellants(isJet);
-        }
-
-        public ConfigNode[] getPropellants()
-        {
-            return fuelConfignodes;
+            fuelConfignodes = isJet ? GetPropellantsHybrid() : GetPropellants(isJet);
         }
 
         public void OnEditorAttach()
@@ -725,12 +634,17 @@ namespace FNPlugin.Propulsion
             AttachedReactor.DisconnectWithEngine(this);
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             Debug.Log("[KSPI]: ThermalNozzleController - start");
 
+            string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
+            this.resources_to_supply = resourcesToSupply;
+
+            base.OnStart(state);
+
             _windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
-            windowPosition = new Rect(windowPositionX, windowPositionY, windowWidth, 10);
+            _windowPosition = new Rect(windowPositionX, windowPositionY, windowWidth, 10);
 
             _flameoutText = Localizer.Format("#autoLOC_219016");
 
@@ -792,14 +706,13 @@ namespace FNPlugin.Propulsion
 
             maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
 
-            fuelflowThrottleField = Fields[nameof(fuelflowThrottle)];
-            if (fuelflowThrottleField != null)
-            {
-                fuelflowThrottleFloatRangeEditor = fuelflowThrottleField.uiControlEditor as UI_FloatRange;
-                fuelflowThrottleFloatRangeFlight = fuelflowThrottleField.uiControlFlight as UI_FloatRange;
-            }
-            else
-                Debug.LogError("[KSPI]: ThermalNozzleController - failed to find fuelflowThrottle field");
+            fuelflowThrottleField = Fields[nameof(fuelFlowThrottle)];
+            fuelflowThrottleFloatRangeEditor = fuelflowThrottleField.uiControlEditor as UI_FloatRange;
+            fuelflowThrottleFloatRangeFlight = fuelflowThrottleField.uiControlFlight as UI_FloatRange;
+
+            var mhdPowerGenerationPercentageField = Fields[nameof(mhdPowerGenerationPercentage)];
+            mhdPowerGenerationPercentageField.guiActive = requiredMegajouleRatio > 0;
+            mhdPowerGenerationPercentageField.guiActiveEditor = requiredMegajouleRatio > 0;
 
             var ispThrottleField = Fields[nameof(ispThrottle)];
             if (ispThrottleField != null)
@@ -834,7 +747,7 @@ namespace FNPlugin.Propulsion
             }
 
             if (requiredMegajouleRatio == 0)
-                received_megajoules_ratio = 1;
+                receivedMegajoulesRatio = 1;
 
             Fields[nameof(received_megajoules_percentage)].guiActive = requiredMegajouleRatio > 0;
 
@@ -847,7 +760,7 @@ namespace FNPlugin.Propulsion
             UpdateIspEngineParams();
 
             // research all available pre-coolers, intakes and nozzles on the vessel
-            _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
+            _vesselPreCoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
             _vesselResourceIntakes = vessel.FindPartModulesImplementing<AtmosphericIntake>();
             _vesselThermalNozzles = vessel.FindPartModulesImplementing<IFNEngineNoozle>();
 
@@ -957,11 +870,11 @@ namespace FNPlugin.Propulsion
             AttachedReactor = source.Source;
             AttachedReactor.ConnectWithEngine(this);
 
-            this.partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
+            partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
 
             if (AttachedReactor != null)
             {
-                this.showIspThrotle = this.isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
+                showIspThrotle = isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
 
                 var ispThrottleField = Fields[nameof(ispThrottle)];
                 if (ispThrottleField != null)
@@ -999,7 +912,7 @@ namespace FNPlugin.Propulsion
             }
 
             temperatureStr = part.temperature.ToString("F0") + "K / " + part.maxTemp.ToString("F0") + "K";
-            UpdateAtmosphericPresureTreshold();
+            UpdateAtmosphericPressureThreshold();
 
             sootAccumulationPercentageField.guiActive = sootAccumulationPercentage > 0;
 
@@ -1117,7 +1030,7 @@ namespace FNPlugin.Propulsion
             // quit if we do not have access to reactor
             if (AttachedReactor == null)
             {
-                Debug.LogWarning("[KSPI]: ThermalNozzleController - Skipped filtering on compatible fuelmodes, no reactor available");
+                Debug.LogWarning("[KSPI]: ThermalNozzleController - Skipped filtering on compatible fuel modes, no reactor available");
                 return;
             }
 
@@ -1184,22 +1097,22 @@ namespace FNPlugin.Propulsion
 
                 UpdatePropellantModeBehavior(chosenPropellant);
                 var propellantNodes = chosenPropellant.GetNodes("PROPELLANT");
-                list_of_propellants.Clear();
+                _listOfPropellants.Clear();
 
                 foreach (var propNode in propellantNodes)
                 {
                     var extendedPropellant = new ExtendedPropellant();
                     extendedPropellant.Load(propNode);
 
-                    if (list_of_propellants == null)
+                    if (_listOfPropellants == null)
                         Debug.LogWarning("[KSPI]: ThermalNozzleController - SetupPropellants list_of_propellants is null");
 
-                    list_of_propellants.Add(extendedPropellant);
+                    _listOfPropellants.Add(extendedPropellant);
                 }
 
                 string missingResources = string.Empty;
                 bool canLoadPropellant =
-                    !(list_of_propellants.Any(m => PartResourceLibrary.Instance.GetDefinition(m.name) == null)
+                    !(_listOfPropellants.Any(m => PartResourceLibrary.Instance.GetDefinition(m.name) == null)
                        || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                        || (_fuelRequiresUpgrade && !isupgraded)
                        || (_fuelMinimumCoreTemp > AttachedReactor.MaxCoreTemperature)
@@ -1212,7 +1125,7 @@ namespace FNPlugin.Propulsion
 
                 if (canLoadPropellant && HighLogic.LoadedSceneIsFlight)
                 {
-                    foreach (Propellant curEnginePropellant in list_of_propellants)
+                    foreach (Propellant curEnginePropellant in _listOfPropellants)
                     {
                         var extendedPropellant = curEnginePropellant as ExtendedPropellant;
 
@@ -1240,13 +1153,13 @@ namespace FNPlugin.Propulsion
                 // update the engine with the new propellants
                 if (canLoadPropellant)
                 {
-                    Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant chosenpropellant " + fuel_mode + " / " + fuelConfignodes.Count());
+                    Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant chosen propellant " + fuel_mode + " / " + fuelConfignodes.Count());
 
                     myAttachedEngine.Shutdown();
 
                     var newPropNode = new ConfigNode();
 
-                    foreach (var prop in list_of_propellants)
+                    foreach (var prop in _listOfPropellants)
                     {
                         ResourceFlowMode flowMode = prop.GetFlowMode();
                         Debug.Log("[KSPI]: ThermalNozzleController set propellant name: " + prop.name + " ratio: " + prop.ratio + " resourceFlowMode: " + flowMode);
@@ -1265,25 +1178,25 @@ namespace FNPlugin.Propulsion
                     // update timewarp propellant
                     if (timewarpEngine != null)
                     {
-                        if (list_of_propellants.Count > 0)
+                        if (_listOfPropellants.Count > 0)
                         {
-                            timewarpEngine.propellant1 = list_of_propellants[0].name;
-                            timewarpEngine.ratio1 = list_of_propellants[0].ratio;
+                            timewarpEngine.propellant1 = _listOfPropellants[0].name;
+                            timewarpEngine.ratio1 = _listOfPropellants[0].ratio;
                         }
-                        if (list_of_propellants.Count > 1)
+                        if (_listOfPropellants.Count > 1)
                         {
-                            timewarpEngine.propellant2 = list_of_propellants[1].name;
-                            timewarpEngine.ratio2 = list_of_propellants[1].ratio;
+                            timewarpEngine.propellant2 = _listOfPropellants[1].name;
+                            timewarpEngine.ratio2 = _listOfPropellants[1].ratio;
                         }
-                        if (list_of_propellants.Count > 2)
+                        if (_listOfPropellants.Count > 2)
                         {
-                            timewarpEngine.propellant3 = list_of_propellants[2].name;
-                            timewarpEngine.ratio3 = list_of_propellants[2].ratio;
+                            timewarpEngine.propellant3 = _listOfPropellants[2].name;
+                            timewarpEngine.ratio3 = _listOfPropellants[2].ratio;
                         }
-                        if (list_of_propellants.Count > 3)
+                        if (_listOfPropellants.Count > 3)
                         {
-                            timewarpEngine.propellant4 = list_of_propellants[3].name;
-                            timewarpEngine.ratio4 = list_of_propellants[3].ratio;
+                            timewarpEngine.propellant4 = _listOfPropellants[3].name;
+                            timewarpEngine.ratio4 = _listOfPropellants[3].ratio;
                         }
                     }
                 }
@@ -1313,7 +1226,7 @@ namespace FNPlugin.Propulsion
                 {
                     bool nextPropellant = false;
 
-                    Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant " + list_of_propellants[0].name);
+                    Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant " + _listOfPropellants[0].name);
 
                     // Still ignore propellants that don't exist or we cannot use due to the limitations of the engine
                     if (!canLoadPropellant && (switches <= fuelConfignodes.Length || fuel_mode != 0))
@@ -1408,7 +1321,7 @@ namespace FNPlugin.Propulsion
             }
         }
 
-        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1, double performance_bonus = 0)
+        public void UpdateIspEngineParams(double atmosphereIspEfficiency = 1, double performanceBonus = 0)
         {
             // recalculate ISP based on power and core temp available
             atmCurve = new FloatCurve();
@@ -1419,7 +1332,7 @@ namespace FNPlugin.Propulsion
 
             if (!_currentpropellant_is_jet)
             {
-                effectiveIsp = (float)(_maxISP * atmosphere_isp_efficiency);
+                effectiveIsp = (float)(_maxISP * atmosphereIspEfficiency);
 
                 atmosphereCurve.Add(0, effectiveIsp, 0, 0);
 
@@ -1501,19 +1414,19 @@ namespace FNPlugin.Propulsion
                 if (overrideAtmCurve && jetPerformanceProfile == 0)
                 {
                     atmCurve.Add(0, 0);
-                    atmCurve.Add(0.01f, (float)Math.Min(1, 0.20 + 0.20 * performance_bonus));
-                    atmCurve.Add(0.04f, (float)Math.Min(1, 0.50 + 0.15 * performance_bonus));
-                    atmCurve.Add(0.16f, (float)Math.Min(1, 0.75 + 0.10 * performance_bonus));
-                    atmCurve.Add(0.64f, (float)Math.Min(1, 0.90 + 0.05 * performance_bonus));
+                    atmCurve.Add(0.01f, (float)Math.Min(1, 0.20 + 0.20 * performanceBonus));
+                    atmCurve.Add(0.04f, (float)Math.Min(1, 0.50 + 0.15 * performanceBonus));
+                    atmCurve.Add(0.16f, (float)Math.Min(1, 0.75 + 0.10 * performanceBonus));
+                    atmCurve.Add(0.64f, (float)Math.Min(1, 0.90 + 0.05 * performanceBonus));
                     atmCurve.Add(1, 1);
                 }
                 else if (overrideAtmCurve)
                 {
                     atmCurve.Add(0, 0);
-                    atmCurve.Add(0.01f, (float)Math.Min(1, 0.10 + 0.10 * performance_bonus));
-                    atmCurve.Add(0.04f, (float)Math.Min(1, 0.25 + 0.10 * performance_bonus));
-                    atmCurve.Add(0.16f, (float)Math.Min(1, 0.50 + 0.10 * performance_bonus));
-                    atmCurve.Add(0.64f, (float)Math.Min(1, 0.80 + 0.10 * performance_bonus));
+                    atmCurve.Add(0.01f, (float)Math.Min(1, 0.10 + 0.10 * performanceBonus));
+                    atmCurve.Add(0.04f, (float)Math.Min(1, 0.25 + 0.10 * performanceBonus));
+                    atmCurve.Add(0.16f, (float)Math.Min(1, 0.50 + 0.10 * performanceBonus));
+                    atmCurve.Add(0.64f, (float)Math.Min(1, 0.80 + 0.10 * performanceBonus));
                     atmCurve.Add(1, 1);
                 }
                 else
@@ -1572,7 +1485,7 @@ namespace FNPlugin.Propulsion
 
             maxThrustOnEngine = (float)Math.Max(baseMaxThrust, minimumThrust);
             myAttachedEngine.maxThrust = maxThrustOnEngine;
-            UpdateAtmosphericPresureTreshold();
+            UpdateAtmosphericPressureThreshold();
 
             // update engine thrust/ISP for thermal nozzle
             if (!_currentpropellant_is_jet)
@@ -1671,9 +1584,9 @@ namespace FNPlugin.Propulsion
                 return;
             }
 
-            if (_myAttachedReactor.Part != this.part)
+            if (_myAttachedReactor.Part != part)
             {
-                resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
+                resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
                 resourceBuffers.UpdateBuffers();
             }
 
@@ -1718,7 +1631,7 @@ namespace FNPlugin.Propulsion
                 consumeFNResourcePerSecond(40 * wasteheatRatio * wasteheatRatio * airFlowForCooling, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
-            // flameout when reactor cannot produce power
+            // flame-out when reactor cannot produce power
             myAttachedEngine.flameoutBar = AttachedReactor.CanProducePower ? 0 : float.MaxValue;
 
             if (myAttachedEngine.getIgnitionState && myAttachedEngine.currentThrottle > 0)
@@ -1739,7 +1652,7 @@ namespace FNPlugin.Propulsion
 
                 max_fuel_flow_rate = (_maxISP <= 0.0) ? 0.0 : expectedMaxThrust / (_maxISP * GameConstants.STANDARD_GRAVITY);
 
-                UpdateAtmosphericPresureTreshold();
+                UpdateAtmosphericPressureThreshold();
 
                 var thrustAtmosphereRatio = expectedMaxThrust <= 0 ? 0 : Math.Max(0, expectedMaxThrust - pressureThreshold) / expectedMaxThrust;
 
@@ -1846,15 +1759,15 @@ namespace FNPlugin.Propulsion
                 jetSpoolRatio -= Math.Min(TimeWarp.fixedDeltaTime * 0.1f, jetSpoolRatio );
         }
 
-        private void UpdateAtmosphericPresureTreshold()
+        private void UpdateAtmosphericPressureThreshold()
         {
             if (!_currentpropellant_is_jet)
             {
-                var staticPresure = HighLogic.LoadedSceneIsFlight
+                var staticPressure = HighLogic.LoadedSceneIsFlight
                     ? FlightGlobals.getStaticPressure(vessel.transform.position)
                     : GameConstants.EarthAtmospherePressureAtSeaLevel;
 
-                pressureThreshold = scaledExitArea * staticPresure;
+                pressureThreshold = scaledExitArea * staticPressure;
             }
             else
                 pressureThreshold = 0;
@@ -1916,36 +1829,59 @@ namespace FNPlugin.Propulsion
             }
         }
 
+        private double CalculateElectricalPowerCurrentlyNeeded(double maximumElectricPower)
+        {
+            var currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
+            var spareResourceCapacity = getSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
+            return mhdPowerGenerationPercentage * 0.01 * Math.Min(maximumElectricPower, currentUnfilledResourceDemand + spareResourceCapacity);
+        }
+
         private void GenerateThrustFromReactorHeat()
         {
-            GetMaximumIspAndThrustMultiplier();
+            // shutdown engine when connected heat source cannot produce power
+            if (!AttachedReactor.CanProducePower)
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ThermalNozzleController_PostMsg5"), 0.02f, ScreenMessageStyle.UPPER_CENTER);//"no power produced by thermal source!"
 
             // consume power when plasma nozzle
             if (requiredMegajouleRatio > 0)
             {
-                var requestedMegajoules = (availableThermalPower + availableChargedPower) * requiredMegajouleRatio * AttachedReactor.MagneticNozzlePowerMult;
-                var receivedMegajoules = consumeFNResourcePerSecond(requestedMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
-                received_megajoules_ratio = requestedMegajoules > 0 ? receivedMegajoules / requestedMegajoules : 0;
+                var availablePower = availableThermalPower + availableChargedPower;
 
-                received_megajoules_percentage = received_megajoules_ratio * 100;
+                requestedElectricPowerMegajoules = availablePower * requiredMegajouleRatio * AttachedReactor.MagneticNozzlePowerMult;
+                var receivedMegajoules = consumeFNResourcePerSecond(requestedElectricPowerMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
+                requiredElectricalPowerFromMhd = CalculateElectricalPowerCurrentlyNeeded(availablePower * requiredMegajouleRatio * 2);
+                var electricalPowerCurrentlyNeedRatio = availablePower > 0 ? Math.Min(1, requiredElectricalPowerFromMhd / requestedElectricPowerMegajoules) : 0;
+                receivedMegajoulesRatio = Math.Min(1, Math.Max(electricalPowerCurrentlyNeedRatio,  requestedElectricPowerMegajoules > 0 ? receivedMegajoules / requestedElectricPowerMegajoules : 0));
+                received_megajoules_percentage = receivedMegajoulesRatio * 100;
             }
             else
-                received_megajoules_ratio = 1;
+            {
+                requestedElectricPowerMegajoules = 0;
+                receivedMegajoulesRatio = 1;
+            }
 
-            requested_thermal_power = received_megajoules_ratio * availableThermalPower;
+            requested_thermal_power = receivedMegajoulesRatio * availableThermalPower;
 
             reactor_power_received = consumeFNResourcePerSecond(requested_thermal_power, ResourceSettings.Config.ThermalPowerInMegawatt);
 
             if (currentMaxChargedPower > 0)
             {
-                requested_charge_particles = received_megajoules_ratio * availableChargedPower;
+                requested_charge_particles = receivedMegajoulesRatio * availableChargedPower;
                 reactor_power_received += consumeFNResourcePerSecond(requested_charge_particles, ResourceSettings.Config.ChargedParticleInMegawatt);
             }
 
-            // shutdown engine when connected heat source cannot produce power
-            if (!AttachedReactor.CanProducePower)
-                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ThermalNozzleController_PostMsg5"), 0.02f, ScreenMessageStyle.UPPER_CENTER);//"no power produced by thermal source!"
+            // convert part of the exhaust energy directly into electric power
+            if (requiredMegajouleRatio > 0 && requiredElectricalPowerFromMhd > 0 && reactor_power_received > 0)
+            {
+                supplyFNResourcePerSecond(requiredElectricalPowerFromMhd, ResourceSettings.Config.ElectricPowerInMegawatt);
+                requiredMhdEnergyRatio = requiredElectricalPowerFromMhd / reactor_power_received;
+            }
+            else
+                requiredMhdEnergyRatio = 0;
 
+            mhdTrustIspModifier = 1 - requiredMhdEnergyRatio;
+
+            GetMaximumIspAndThrustMultiplier();
             UpdateSootAccumulation();
 
             // consume wasteheat
@@ -1978,9 +1914,9 @@ namespace FNPlugin.Propulsion
 
                 var ispRatio = _currentpropellant_is_jet ? current_isp / _maxISP : 1;
 
-                powerHeatModifier = received_megajoules_ratio * GetPowerThrustModifier() * GetHeatThrustModifier();
+                powerHeatModifier = receivedMegajoulesRatio * GetPowerThrustModifier() * GetHeatThrustModifier();
 
-                engineMaxThrust = powerHeatModifier * reactor_power_received / _maxISP / GameConstants.STANDARD_GRAVITY;
+                engineMaxThrust = powerHeatModifier * mhdTrustIspModifier * reactor_power_received / _maxISP / GameConstants.STANDARD_GRAVITY;
 
                 thrustPerMegaJoule = powerHeatModifier * maximumPowerUsageForPropulsionRatio / _maxISP / GameConstants.STANDARD_GRAVITY * ispRatio;
 
@@ -2002,7 +1938,7 @@ namespace FNPlugin.Propulsion
 
             max_thrust_in_current_atmosphere = max_thrust_in_space;
 
-            UpdateAtmosphericPresureTreshold();
+            UpdateAtmosphericPressureThreshold();
 
             // update engine thrust/ISP for thermal nozzle
             if (!_currentpropellant_is_jet)
@@ -2022,9 +1958,7 @@ namespace FNPlugin.Propulsion
 
             if (!double.IsInfinity(max_thrust_in_current_atmosphere) && !double.IsNaN(max_thrust_in_current_atmosphere))
             {
-                var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / sootThrustDivider;
-
-                var sootModifier = _thrustPropellantMultiplier * sootMult;
+                var sootModifier = _thrustPropellantMultiplier * (CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / sootThrustDivider);
                 final_max_engine_thrust = max_thrust_in_current_atmosphere * sootModifier;
                 calculatedMaxThrust *= sootModifier;
             }
@@ -2115,9 +2049,9 @@ namespace FNPlugin.Propulsion
             }
 
             // give back propellant
-            if (UseChargedPowerOnly && list_of_propellants.Count == 1)
+            if (UseChargedPowerOnly && _listOfPropellants.Count == 1)
             {
-                var resource = PartResourceLibrary.Instance.GetDefinition(list_of_propellants.First().name);
+                var resource = PartResourceLibrary.Instance.GetDefinition(_listOfPropellants.First().name);
                 AttachedReactor.UseProductForPropulsion(1, currentMassFlow, resource);
             }
 
@@ -2172,7 +2106,7 @@ namespace FNPlugin.Propulsion
 
         private void CalculateMissingPreCoolerRatio()
         {
-            pre_cooler_area = _vesselPrecoolers.Where(prc => prc.functional).Sum(prc => prc.area);
+            pre_cooler_area = _vesselPreCoolers.Where(prc => prc.functional).Sum(prc => prc.area);
             intakes_open_area = _vesselResourceIntakes.Where(mre => mre.intakeOpen).Sum(mre => mre.area);
 
             missingPrecoolerRatio = _currentpropellant_is_jet && intakes_open_area > 0
@@ -2184,14 +2118,14 @@ namespace FNPlugin.Propulsion
                 missingPrecoolerRatio = 0;
         }
 
-        private bool IsInvalidNumber(double vaiable)
+        private bool IsInvalidNumber(double variable)
         {
-            return double.IsNaN(vaiable) || double.IsInfinity(vaiable);
+            return double.IsNaN(variable) || double.IsInfinity(variable);
         }
 
-        private bool IsPositiveValidNumber(double vaiable)
+        private bool IsPositiveValidNumber(double variable)
         {
-            return !double.IsNaN(vaiable) && !double.IsInfinity(vaiable) && vaiable > 0;
+            return !double.IsNaN(variable) && !double.IsInfinity(variable) && variable > 0;
         }
 
         private void UpdateSootAccumulation()
@@ -2280,7 +2214,7 @@ namespace FNPlugin.Propulsion
             if (UseThermalPowerOnly)
             {
                 _maxISP = isPlasmaNozzle
-                    ? baseMaxIsp + AttachedReactor.ChargedPowerRatio * baseMaxIsp
+                    ? (baseMaxIsp + AttachedReactor.ChargedPowerRatio * baseMaxIsp)
                     : baseMaxIsp;
             }
             else if (UseChargedPowerOnly)
@@ -2297,7 +2231,7 @@ namespace FNPlugin.Propulsion
                     _maxISP = _maxISP + Math.Pow(ispThrottle / 100d, 2) * plasmaAfterburnerRange * baseMaxIsp;
             }
 
-            effectiveFuelflowThrottle = Math.Min(fuelflowThrottleMaxValue, fuelflowThrottle);
+            effectiveFuelflowThrottle = Math.Min(fuelflowThrottleMaxValue, fuelFlowThrottle);
 
             fuelflowMultplier = Math.Min(Math.Max(100, fuelflowThrottleMaxValue * _ispPropellantMultiplier), effectiveFuelflowThrottle) / 100;
 
@@ -2305,7 +2239,7 @@ namespace FNPlugin.Propulsion
 
             ispFlowMultiplier = _ispPropellantMultiplier * fuelFlowDivider;
 
-            _maxISP *= ispFlowMultiplier;
+            _maxISP *= ispFlowMultiplier * mhdTrustIspModifier;
 
             exhaustModifier = Math.Pow(  Math.Min(1, (effectiveFuelflowThrottle / _ispPropellantMultiplier) / fuelflowThrottleMaxValue), 0.5);
         }
@@ -2321,9 +2255,9 @@ namespace FNPlugin.Propulsion
             foreach (var propellantNode in propNodes)
             {
                 var ispMultiplier = float.Parse(propellantNode.GetValue("ispMultiplier"));
-                var guiname = propellantNode.GetValue("guiName");
+                var guiName = propellantNode.GetValue("guiName");
                 returnStr.Append("<color=#ffdd00ff>");
-                returnStr.Append(guiname);
+                returnStr.Append(guiName);
                 returnStr.Append("</color>\n<size=10>ISP: ");
                 returnStr.Append((ispMultiplier * EffectiveCoreTempIspMult).ToString("0.000"));
                 returnStr.AppendLine(" x Sqrt(Core Temperature)</size>");
@@ -2362,10 +2296,7 @@ namespace FNPlugin.Propulsion
                     : 1.0 + PluginHelper.HighCoreTempThrustMult * Math.Max(Math.Log10(AttachedReactor.CoreTemperature / thrustCoreTempThreshold), 0);
         }
 
-        private float CurrentPowerThrustMultiplier
-        {
-            get { return _currentpropellant_is_jet ? powerTrustMultiplierJet : powerTrustMultiplier; }
-        }
+        private float CurrentPowerThrustMultiplier => _currentpropellant_is_jet ? powerTrustMultiplierJet : powerTrustMultiplier;
 
         private double GetPowerThrustModifier()
         {
@@ -2467,15 +2398,15 @@ namespace FNPlugin.Propulsion
         public void OnGUI()
         {
             if (vessel == FlightGlobals.ActiveVessel && render_window)
-                windowPosition = GUILayout.Window(_windowID, windowPosition, Window, part.partInfo.title);
+                _windowPosition = GUILayout.Window(_windowID, _windowPosition, Window, part.partInfo.title);
         }
 
         private void Window(int windowId)
         {
-            windowPositionX = windowPosition.x;
-            windowPositionY = windowPosition.y;
+            windowPositionX = _windowPosition.x;
+            windowPositionY = _windowPosition.y;
 
-            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
+            if (GUI.Button(new Rect(_windowPosition.width - 20, 2, 18, 18), "x"))
             {
                 render_window = false;
             }

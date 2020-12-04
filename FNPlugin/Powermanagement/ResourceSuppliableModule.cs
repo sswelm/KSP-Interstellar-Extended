@@ -717,13 +717,12 @@ namespace FNPlugin.Powermanagement
             {
                 ResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
-                if (manager == null)
-                {
-                    similarParts = null;
-                    manager = CreateResourceManagerForResource(resourcename);
+                if (manager != null) continue;
 
-                    Debug.Log("[KSPI]: ResourceSuppliableModule.OnStart created Resource Manager for Vessel " + vessel.GetName() + " for " + resourcename + " with manager Id " + manager.Id + " and overmanager id " + manager.OverManagerId);
-                }
+                similarParts = null;
+                manager = CreateResourceManagerForResource(resourcename);
+
+                Debug.Log("[KSPI]: ResourceSuppliableModule.OnStart created Resource Manager for Vessel " + vessel.GetName() + " for " + resourcename + " with manager Id " + manager.Id + " and overmanager id " + manager.OverManagerId);
             }
 
             var priorityManager = getSupplyPriorityManager(this.vessel);
@@ -767,7 +766,7 @@ namespace FNPlugin.Powermanagement
                     Debug.Log("[KSPI]: ResourceSuppliableModule.OnFixedUpdate created Resourcemanager for Vessel " + vessel.GetName() + " for " + resourcename + " with ResourceManagerId " + resource_manager.Id + " and OvermanagerId" + resource_manager.Id);
                 }
 
-                if (resource_manager != null)
+                if (resource_manager != null) // part.State == PartStates.ACTIVE
                 {
                     if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || resource_manager.Counter < updateCounter)
                         resource_manager.UpdatePartModule(this);
