@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Beamedpower;
 using FNPlugin.Constants;
+using FNPlugin.Powermanagement;
 using FNPlugin.Propulsion;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
@@ -7,7 +8,6 @@ using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FNPlugin.Powermanagement;
 using UnityEngine;
 
 namespace FNPlugin
@@ -37,7 +37,7 @@ namespace FNPlugin
             GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
             GameEvents.onVesselGoOffRails.Add(OnVesselGoOnRails);
 
-            Debug.Log("[KSPI]: GameEventSubscriber Initialised");
+            Debug.Log("[KSPI]: GameEventSubscriber Initialized");
         }
         void OnDestroy()
         {
@@ -50,27 +50,26 @@ namespace FNPlugin
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Remove(OnVesselSOIChanged);
 
-            var kerbalismversionstr = string.Format("{0}.{1}.{2}.{3}", Kerbalism.versionMajor, Kerbalism.versionMajorRevision, Kerbalism.versionMinor, Kerbalism.versionMinorRevision);
+            var kerbalismVersionStr =
+                $"{Kerbalism.versionMajor}.{Kerbalism.versionMajorRevision}.{Kerbalism.versionMinor}.{Kerbalism.versionMinorRevision}";
 
             if (Kerbalism.versionMajor > 0)
-                Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismversionstr);
+                Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismVersionStr);
 
             Debug.Log("[KSPI]: GameEventSubscriber Deinitialised");
         }
 
         void OnVesselGoOnRails(Vessel vessel)
         {
-            //Debug.Log("[KSPI]: GameEventSubscriber - detected OnVesselGoOnRails");
-
             foreach (var part in vessel.Parts)
             {
-                var autoStruthEvent = part.Events["ToggleAutoStrut"];
-                if (autoStruthEvent != null)
+                var autoStrutEvent = part.Events["ToggleAutoStrut"];
+                if (autoStrutEvent != null)
                 {
-                    autoStruthEvent.guiActive = true;
-                    autoStruthEvent.guiActiveUncommand = true;
-                    autoStruthEvent.guiActiveUnfocused = true;
-                    autoStruthEvent.requireFullControl = false;
+                    autoStrutEvent.guiActive = true;
+                    autoStrutEvent.guiActiveUncommand = true;
+                    autoStrutEvent.guiActiveUnfocused = true;
+                    autoStrutEvent.requireFullControl = false;
                 }
 
                 var rigidAttachmentEvent = part.Events["ToggleRigidAttachment"];
@@ -106,19 +105,18 @@ namespace FNPlugin
 
             var drive = part.FindModuleImplementing<AlcubierreDrive>();
 
+            if (drive == null) return;
+
+            if (drive.IsSlave)
+            {
+                Debug.Log("[KSPI]: GameEventSubscriber - destroyed part is a slave warpdrive");
+                drive = drive.vessel.FindPartModulesImplementing<AlcubierreDrive>().FirstOrDefault(m => !m.IsSlave);
+            }
+
             if (drive != null)
             {
-                if (drive.IsSlave)
-                {
-                    Debug.Log("[KSPI]: GameEventSubscriber - destroyed part is a slave warpdrive");
-                    drive = drive.vessel.FindPartModulesImplementing<AlcubierreDrive>().FirstOrDefault(m => !m.IsSlave);
-                }
-
-                if (drive != null)
-                {
-                    Debug.Log("[KSPI]: GameEventSubscriber - deactivate master warp drive");
-                    drive.DeactivateWarpDrive();
-                }
+                Debug.Log("[KSPI]: GameEventSubscriber - deactivate master warp drive");
+                drive.DeactivateWarpDrive();
             }
         }
 
@@ -144,24 +142,21 @@ namespace FNPlugin
 
         void OnVesselDestroy(Vessel vessel)
         {
-            // This log entry is spammy on large saves!
-            //Debug.Log("[KSPI]: GameEventSubscriber - detected OnVesselDestroy");
             ResourceOvermanager.ResetForVessel(vessel);
         }
 
         private static void ResetReceivers()
         {
-            foreach (var currentvessel in FlightGlobals.Vessels)
+            foreach (var currentVessel in FlightGlobals.Vessels)
             {
-                if (currentvessel.loaded)
-                {
-                    var receivers = currentvessel.FindPartModulesImplementing<BeamedPowerReceiver>();
+                if (!currentVessel.loaded) continue;
 
-                    foreach (var receiver in receivers)
-                    {
-                        Debug.Log("[KSPI]: OnDockingComplete - Restart receivers " + receiver.Part.name);
-                        receiver.Restart(50);
-                    }
+                var receivers = currentVessel.FindPartModulesImplementing<BeamedPowerReceiver>();
+
+                foreach (var receiver in receivers)
+                {
+                    Debug.Log("[KSPI]: OnDockingComplete - Restart receivers " + receiver.Part.name);
+                    receiver.Restart(50);
                 }
             }
         }
@@ -181,32 +176,31 @@ namespace FNPlugin
         {
             get
             {
-                if (rdTechByName == null)
+                if (rdTechByName != null) return rdTechByName;
+
+                rdTechByName = new Dictionary<string, RDTech>();
+
+                // catalog part upgrades
+                ConfigNode[] techTreeConfigs = GameDatabase.Instance.GetConfigNodes("TechTree");
+                Debug.Log("[KSPI]: PluginHelper found: " + techTreeConfigs.Count() + " TechTrees");
+
+                foreach (var techTreeConfig in techTreeConfigs)
                 {
-                    rdTechByName = new Dictionary<string, RDTech>();
+                    var techNodes = techTreeConfig.nodes;
 
-                    // catalog part upgrades
-                    ConfigNode[] techtree = GameDatabase.Instance.GetConfigNodes("TechTree");
-                    Debug.Log("[KSPI]: PluginHelper found: " + techtree.Count() + " TechTrees");
-
-                    foreach (var techtreeConfig in techtree)
+                    Debug.Log("[KSPI]: PluginHelper found: " + techNodes.Count + " Technodes");
+                    for (var j = 0; j < techNodes.Count; j++)
                     {
-                        var technodes = techtreeConfig.nodes;
+                        var techNode = techNodes[j];
 
-                        Debug.Log("[KSPI]: PluginHelper found: " + technodes.Count + " Technodes");
-                        for (var j = 0; j < technodes.Count; j++)
+                        var tech = new RDTech { techID = techNode.GetValue("id"), title = techNode.GetValue("title") };
+
+                        if (rdTechByName.ContainsKey(tech.techID))
+                            Debug.LogError("[KSPI]: Duplicate error: skipped technode id: " + tech.techID + " title: " + tech.title);
+                        else
                         {
-                            var technode = technodes[j];
-
-                            var tech = new RDTech {techID = technode.GetValue("id"), title = technode.GetValue("title")};
-
-                            if (rdTechByName.ContainsKey(tech.techID))
-                                Debug.LogError("[KSPI]: Duplicate error: skipped technode id: " + tech.techID + " title: " + tech.title);
-                            else
-                            {
-                                Debug.Log("[KSPI]: PluginHelper technode id: " + tech.techID + " title: " + tech.title);
-                                rdTechByName.Add(tech.techID, tech);
-                            }
+                            Debug.Log("[KSPI]: PluginHelper technode id: " + tech.techID + " title: " + tech.title);
+                            rdTechByName.Add(tech.techID, tech);
                         }
                     }
                 }
@@ -214,42 +208,41 @@ namespace FNPlugin
             }
         }
 
-        private static Dictionary<string, PartUpgradeHandler.Upgrade> partUpgradeByName;
+        private static Dictionary<string, PartUpgradeHandler.Upgrade> _partUpgradeByName;
 
         public static Dictionary<string, PartUpgradeHandler.Upgrade> PartUpgradeByName
         {
             get
             {
-                if (partUpgradeByName == null)
+                if (_partUpgradeByName != null) return _partUpgradeByName;
+
+                _partUpgradeByName = new Dictionary<string, PartUpgradeHandler.Upgrade>();
+
+                // catalog part upgrades
+                ConfigNode[] partUpgradeConfigs = GameDatabase.Instance.GetConfigNodes("PARTUPGRADE");
+                Debug.Log("[KSPI]: PluginHelper found: " + partUpgradeConfigs.Count() + " Part upgrades");
+
+                foreach (var partUpgradeConfig in partUpgradeConfigs)
                 {
-                    partUpgradeByName = new Dictionary<string, PartUpgradeHandler.Upgrade>();
-
-                    // catalog part upgrades
-                    ConfigNode[] partupgradeNodes = GameDatabase.Instance.GetConfigNodes("PARTUPGRADE");
-                    Debug.Log("[KSPI]: PluginHelper found: " + partupgradeNodes.Count() + " Part upgrades");
-
-                    for (int i = 0; i < partupgradeNodes.Length; i++)
+                    var partUpgrade = new PartUpgradeHandler.Upgrade
                     {
-                        var partUpgradeConfig = partupgradeNodes[i];
+                        name = partUpgradeConfig.GetValue("name"),
+                        techRequired = partUpgradeConfig.GetValue("techRequired"),
+                        manufacturer = partUpgradeConfig.GetValue("manufacturer")
+                    };
 
-                        var partUpgrade = new PartUpgradeHandler.Upgrade();
-                        partUpgrade.name = partUpgradeConfig.GetValue("name");
-                        partUpgrade.techRequired = partUpgradeConfig.GetValue("techRequired");
-                        partUpgrade.manufacturer = partUpgradeConfig.GetValue("manufacturer");
-
-                        if (partUpgradeByName.ContainsKey(partUpgrade.name))
-                        {
-                            //Debug.LogError("[KSPI]: Duplicate error: failed to add PARTUPGRADE" + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
-                        }
-                        else
-                        {
-                            //Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
-                            partUpgradeByName.Add(partUpgrade.name, partUpgrade);
-                        }
+                    if (_partUpgradeByName.ContainsKey(partUpgrade.name))
+                    {
+                        //Debug.LogError("[KSPI]: Duplicate error: failed to add PARTUPGRADE" + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                    }
+                    else
+                    {
+                        //Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                        _partUpgradeByName.Add(partUpgrade.name, partUpgrade);
                     }
                 }
 
-                return partUpgradeByName;
+                return _partUpgradeByName;
             }
         }
 
@@ -546,28 +539,18 @@ namespace FNPlugin
             if (ResearchAndDevelopment.Instance == null)
                 return HasTechFromSaveFile(id);
 
-            var techstate = ResearchAndDevelopment.Instance.GetTechState(id);
-            if (techstate != null)
-            {
-                var available = techstate.state == RDTech.State.Available;
-                //if (available)
-                //    Debug.Log("[KSPI]: found techid " + id + " available");
-                //else
-                //    Debug.Log("[KSPI]: found techid " + id + " unavailable");
-                return available;
-            }
+            var techState = ResearchAndDevelopment.Instance.GetTechState(id);
+            if (techState != null)
+                return techState.state == RDTech.State.Available;
             else
-            {
-                //Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
                 return false;
-            }
         }
 
-        private static HashSet<string> researchedTechs;
+        private static HashSet<string> _researchedTechs;
 
         public static void LoadSaveFile()
         {
-            researchedTechs = new HashSet<string>();
+            _researchedTechs = new HashSet<string>();
 
             string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
 
@@ -583,7 +566,7 @@ namespace FNPlugin
                     foreach (ConfigNode technode in techs)
                     {
                         var technodename = technode.GetValue("id");
-                        researchedTechs.Add(technodename);
+                        _researchedTechs.Add(technodename);
                     }
                 }
             }
@@ -591,10 +574,10 @@ namespace FNPlugin
 
         private static bool HasTechFromSaveFile(string techid)
         {
-            if (researchedTechs == null)
+            if (_researchedTechs == null)
                 LoadSaveFile();
 
-            bool found = researchedTechs.Contains(techid);
+            bool found = _researchedTechs.Contains(techid);
             if (found)
                 Debug.Log("[KSPI]: found techid " + techid + " in saved hash");
             else
@@ -605,7 +588,7 @@ namespace FNPlugin
 
         public static bool UpgradeAvailable(string id)
         {
-            if (String.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id))
                 return false;
 
             if (id == "true" || id == "always")
@@ -624,52 +607,9 @@ namespace FNPlugin
                 return true;
         }
 
-        public static float getKerbalRadiationDose(int kerbalidx)
-        {
-            try
-            {
-                string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
-                ConfigNode config = ConfigNode.Load(persistentfile);
-                ConfigNode gameconf = config.GetNode("GAME");
-                ConfigNode crew_roster = gameconf.GetNode("ROSTER");
-                ConfigNode[] crew = crew_roster.GetNodes("CREW");
-                ConfigNode sought_kerbal = crew[kerbalidx];
-                if (sought_kerbal.HasValue("totalDose"))
-                {
-                    float dose = float.Parse(sought_kerbal.GetValue("totalDose"));
-                    return dose;
-                }
-                return 0.0f;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError("[KSPI]: exception in getKerbalRadiationDose " + ex.Message);
-                return 0.0f;
-            }
-        }
-
         public static double GetBlackBodyDissipation(double effectiveSurfaceArea, double temperatureDelta)
         {
             return effectiveSurfaceArea * PhysicsGlobals.StefanBoltzmanConstant * temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
-        }
-
-        public static ConfigNode getKerbal(int kerbalidx)
-        {
-            try
-            {
-                string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
-                ConfigNode config = ConfigNode.Load(persistentfile);
-                ConfigNode gameconf = config.GetNode("GAME");
-                ConfigNode crew_roster = gameconf.GetNode("ROSTER");
-                ConfigNode[] crew = crew_roster.GetNodes("CREW");
-                ConfigNode sought_kerbal = crew[kerbalidx];
-                return sought_kerbal;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError("[KSPI]: exception in getKerbalRadiationDose " + ex.Message);
-                return null;
-            }
         }
 
         public static double GetTimeWarpModifer()
@@ -677,51 +617,19 @@ namespace FNPlugin
             return TimeWarp.fixedDeltaTime > 20 ? 1 + (TimeWarp.fixedDeltaTime - 20) : 1;
         }
 
-        public static void saveKerbalRadiationdose(int kerbalidx, float rad)
-        {
-            try
-            {
-                string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
-                ConfigNode config = ConfigNode.Load(persistentfile);
-                ConfigNode gameconf = config.GetNode("GAME");
-                ConfigNode crew_roster = gameconf.GetNode("ROSTER");
-                ConfigNode[] crew = crew_roster.GetNodes("CREW");
-                ConfigNode sought_kerbal = crew[kerbalidx];
-                if (sought_kerbal.HasValue("totalDose"))
-                {
-                    sought_kerbal.SetValue("totalDose", rad.ToString("E"));
-                }
-                else
-                {
-                    sought_kerbal.AddValue("totalDose", rad.ToString("E"));
-                }
-                config.Save(persistentfile);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError("[KSPI]: exception in getKerbalRadiationDose " + ex.Message);
-            }
-        }
-
-        public static ConfigNode getPluginSaveFile()
+        public static ConfigNode GetPluginSaveFile()
         {
             ConfigNode config = ConfigNode.Load(PluginSaveFilePath);
-            if (config == null)
-            {
-                config = new ConfigNode();
-                config.AddValue("writtenat", DateTime.Now.ToString());
-                config.Save(PluginSaveFilePath);
-            }
+            if (config != null) return config;
+            config = new ConfigNode();
+            config.AddValue("writtenat", DateTime.Now.ToString());
+            config.Save(PluginSaveFilePath);
             return config;
         }
 
         public static ConfigNode getPluginSettingsFile()
         {
-            ConfigNode config = ConfigNode.Load(PluginSettingsFilePath);
-            if (config == null)
-            {
-                config = new ConfigNode();
-            }
+            ConfigNode config = ConfigNode.Load(PluginSettingsFilePath) ?? new ConfigNode();
             return config;
         }
 
@@ -777,9 +685,7 @@ namespace FNPlugin
                 power *= 1e3;
             }
             else
-            {
                 return (power * 1e6).ToString("0") + " W";
-            }
             if (absPower > 100.0)
                 return power.ToString("0") + suffix;
             else if (absPower > 10.0)
@@ -788,44 +694,32 @@ namespace FNPlugin
                 return power.ToString("0.00") + suffix;
         }
 
-        public static string getFormatedMassString(double massInKg, string format)
-        {
-            if (massInKg < 0.000001)
-                return (massInKg * 1000000).ToString(format) + " mg";
-            else if (massInKg < 0.001)
-                return (massInKg * 1000).ToString(format) + " g";
-            else
-                return (massInKg).ToString(format) + " kg";
-        }
-
         public ApplicationLauncherButton InitializeApplicationButton()
         {
-            ApplicationLauncherButton appButton = null;
             VABThermalUI.render_window = false;
             using_toolbar = true;
 
             appIcon = GameDatabase.Instance.GetTexture("WarpPlugin/Category/WarpPlugin", false);
 
-            if (appIcon != null)
-            {
-                appButton = ApplicationLauncher.Instance.AddModApplication(
-                    OnAppLauncheActivate,
-                    OnAppLauncherDeactivate,
-                    null,
-                    null,
-                    null,
-                    null,
-                    ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
-                    appIcon);
+            if (appIcon == null) return null;
 
-                buttonAdded = true;
-            }
+            var appButton = ApplicationLauncher.Instance.AddModApplication(
+                OnAppLauncherActivate,
+                OnAppLauncherDeactivate,
+                null,
+                null,
+                null,
+                null,
+                ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
+                appIcon);
+
+            buttonAdded = true;
 
             return appButton;
         }
 
 
-        void OnAppLauncheActivate()
+        void OnAppLauncherActivate()
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
@@ -848,25 +742,19 @@ namespace FNPlugin
             VABThermalUI.render_window = false;
         }
 
-        static int ignoredGForces;
+        static int _ignoredGForces;
         public static void IgnoreGForces(Part part, int frames)
         {
-            ignoredGForces = frames;
+            _ignoredGForces = frames;
             part.vessel.IgnoreGForces(frames);
         }
 
-        public static bool GForcesIgnored
-        {
-            get
-            {
-                return ignoredGForces > 0;
-            }
-        }
+        public static bool GForcesIgnored => _ignoredGForces > 0;
 
         public static void UpdateIgnoredGForces()
         {
-            if (ignoredGForces > 0)
-                --ignoredGForces;
+            if (_ignoredGForces > 0)
+                --_ignoredGForces;
         }
 
         public void Update()
@@ -884,277 +772,262 @@ namespace FNPlugin
 
             this.enabled = true;
 
-            if (!resources_configured)
+            if (resources_configured) return;
+
+            // read WarpPluginSettings.cfg
+            var pluginSettings = GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
+
+            if (pluginSettings == null)
             {
-                // read WarpPluginSettings.cfg
-                ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
-                if (plugin_settings != null)
+                ShowInstallationErrorMessage();
+                return;
+            }
+
+            if (pluginSettings.HasValue("PartTechUpgrades"))
+            {
+                PartTechUpgrades = new Dictionary<string, string>();
+
+                string partTechStrings = pluginSettings.GetValue("PartTechUpgrades");
+                string[] splitValues = partTechStrings.Split(',').Select(sValue => sValue.Trim()).ToArray();
+
+                int totalValues = splitValues.Length / 2 * 2;
+                for (int i = 0; i < totalValues; i += 2)
+                    PartTechUpgrades.Add(splitValues[i], splitValues[i + 1]);
+
+                Debug.Log("[KSPI]: Part Tech Upgrades set to: " + partTechStrings);
+            }
+            if (pluginSettings.HasValue("OrsResourceMappings"))
+            {
+                OrsResourceMappings = new Dictionary<string, string>();
+
+                string orsResourceMappingStrings = pluginSettings.GetValue("OrsResourceMappings");
+                string[] splitValues = orsResourceMappingStrings.Split(',').Select(sValue => sValue.Trim()).ToArray();
+
+                int pairs = splitValues.Length / 2;
+                int totalValues = pairs * 2;
+                for (int i = 0; i < totalValues; i += 2)
+                    OrsResourceMappings.Add(splitValues[i], splitValues[i + 1]);
+            }
+
+            if (pluginSettings.HasValue("ThermalUiKey"))
+            {
+                var thermalUiKeyStr = pluginSettings.GetValue("ThermalUiKey");
+
+                if (int.TryParse(thermalUiKeyStr, out var thermalUiKeyInt))
                 {
-                    if (plugin_settings.HasValue("PartTechUpgrades"))
-                    {
-                        PartTechUpgrades = new Dictionary<string, string>();
-
-                        string rawstring = plugin_settings.GetValue("PartTechUpgrades");
-                        string[] splitValues = rawstring.Split(',').Select(sValue => sValue.Trim()).ToArray();
-
-                        int pairs = splitValues.Length / 2;
-                        int totalValues = splitValues.Length / 2 * 2;
-                        for (int i = 0; i < totalValues; i += 2)
-                            PartTechUpgrades.Add(splitValues[i], splitValues[i + 1]);
-
-                        Debug.Log("[KSPI]: Part Tech Upgrades set to: " + rawstring);
-                    }
-                    if (plugin_settings.HasValue("OrsResourceMappings"))
-                    {
-                        OrsResourceMappings = new Dictionary<string, string>();
-
-                        string rawstring = plugin_settings.GetValue("OrsResourceMappings");
-                        string[] splitValues = rawstring.Split(',').Select(sValue => sValue.Trim()).ToArray();
-
-                        int pairs = splitValues.Length / 2;
-                        int totalValues = pairs * 2;
-                        for (int i = 0; i < totalValues; i += 2)
-                            OrsResourceMappings.Add(splitValues[i], splitValues[i + 1]);
-                    }
-
-                    if (plugin_settings.HasValue("ThermalUiKey"))
-                    {
-                        var thermalUiKeyStr = plugin_settings.GetValue("ThermalUiKey");
-
-                        int thermalUiKeyInt;
-                        if (int.TryParse(thermalUiKeyStr, out thermalUiKeyInt))
-                        {
-                            _thermalUiKey = (KeyCode)thermalUiKeyInt;
-                            Debug.Log("[KSPI]: ThermalUiKey set to: " + ThermalUiKey.ToString());
-                        }
-                        else
-                        {
-                            try
-                            {
-                                _thermalUiKey = (KeyCode)Enum.Parse(typeof(KeyCode), thermalUiKeyStr, true);
-                                Debug.Log("[KSPI]: ThermalUiKey set to: " + ThermalUiKey.ToString());
-                            }
-                            catch
-                            {
-                                Debug.LogError("[KSPI]: failed to convert " + thermalUiKeyStr + " to a KeyCode for ThermalUiKey");
-                            }
-                        }
-                    }
-
-
-                    if (plugin_settings.HasValue("SecondsInDay"))
-                    {
-                        _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
-                        Debug.Log("[KSPI]: SecondsInDay set to: " + SecondsInDay.ToString());
-                    }
-
-                    if (plugin_settings.HasValue("MicrowaveApertureDiameterMult"))
-                    {
-                        _microwaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("MicrowaveApertureDiameterMult"));
-                        Debug.Log("[KSPI]: Microwave Aperture Diameter Multiplier set to: " + MicrowaveApertureDiameterMult.ToString());
-                    }
-                    if (plugin_settings.HasValue("SpotsizeMult"))
-                    {
-                        SpotsizeMult = double.Parse(plugin_settings.GetValue("SpotsizeMult"));
-                        Debug.Log("[KSPI]: Spotsize Multiplier set to: " + SpotsizeMult.ToString());
-                    }
-
-                    if (plugin_settings.HasValue("SpeedOfLightMult"))
-                    {
-                        _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));
-                        _speedOfLight = GameConstants.speedOfLight * _speedOfLightMult;
-
-                        Debug.Log("[KSPI]: Speed Of Light Multiplier set to: " + SpeedOfLightMult.ToString());
-                    }
-                    if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
-                    {
-                        _radiationMechanicsDisabled = bool.Parse(plugin_settings.GetValue("RadiationMechanicsDisabled"));
-                        Debug.Log("[KSPI]: Radiation Mechanics Disabled set to: " + RadiationMechanicsDisabled.ToString());
-                    }
-                    if (plugin_settings.HasValue("ThermalMechanicsDisabled"))
-                    {
-                        _isThermalDissipationDisabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
-                        Debug.Log("[KSPI]: ThermalMechanics set to : " + (!IsThermalDissipationDisabled).ToString());
-                    }
-                    if (plugin_settings.HasValue("SolarPanelClampedHeating"))
-                    {
-                        _isPanelHeatingClamped = bool.Parse(plugin_settings.GetValue("SolarPanelClampedHeating"));
-                        Debug.Log("[KSPI]: Solar panels clamped heating set to enabled: " + IsSolarPanelHeatingClamped.ToString());
-                    }
-                    if (plugin_settings.HasValue("RecieverTempTweak"))
-                    {
-                        _isRecieverTempTweaked = bool.Parse(plugin_settings.GetValue("RecieverTempTweak"));
-                        Debug.Log("[KSPI]: Microwave reciever CoreTemp tweak is set to enabled: " + IsRecieverCoreTempTweaked.ToString());
-                    }
-                    if (plugin_settings.HasValue("LimitedWarpTravel"))
-                    {
-                        _limitedWarpTravel = bool.Parse(plugin_settings.GetValue("LimitedWarpTravel"));
-                        Debug.Log("[KSPI]: Apply Limited Warp Travel: " + LimitedWarpTravel.ToString());
-                    }
-                    if (plugin_settings.HasValue("MatchDemandWithSupply"))
-                    {
-                        _matchDemandWithSupply = bool.Parse(plugin_settings.GetValue("MatchDemandWithSupply"));
-                        Debug.Log("[KSPI]: Match Demand With Supply: " + MatchDemandWithSupply.ToString());
-                    }
-                    if (plugin_settings.HasValue("MaxPowerDrawForExoticMatterMult"))
-                    {
-                        _maxPowerDrawForExoticMatterMult = double.Parse(plugin_settings.GetValue("MaxPowerDrawForExoticMatterMult"));
-                        Debug.Log("[KSPI]: Max Power Draw For Exotic Matter Multiplier set to: " + MaxPowerDrawForExoticMatterMult.ToString("0.000000"));
-                    }
-                    if (plugin_settings.HasValue("IspCoreTempMult"))
-                    {
-                        _ispCoreTempMult = double.Parse(plugin_settings.GetValue("IspCoreTempMult"));
-                        Debug.Log("[KSPI]: Isp core temperature multiplier set to: " + IspCoreTempMult.ToString("0.000000"));
-                    }
-                    if (plugin_settings.HasValue("ElectricEngineIspMult"))
-                    {
-                        _electricEngineIspMult = double.Parse(plugin_settings.GetValue("ElectricEngineIspMult"));
-                        Debug.Log("[KSPI]: Electric EngineIsp Multiplier set to: " + ElectricEngineIspMult.ToString("0.000000"));
-                    }
-
-
-
-                    if (plugin_settings.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))
-                    {
-                        _globalThermalNozzlePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalThermalNozzlePowerMaxTrustMult"));
-                        Debug.Log("[KSPI]: Maximum Global Thermal Power Maximum Thrust Multiplier set to: " + GlobalThermalNozzlePowerMaxThrustMult.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("GlobalMagneticNozzlePowerMaxTrustMult"))
-                    {
-                        _globalMagneticNozzlePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalMagneticNozzlePowerMaxTrustMult"));
-                        Debug.Log("[KSPI]: Maximum Global Magnetic Nozzle Power Maximum Thrust Multiplier set to: " + GlobalMagneticNozzlePowerMaxThrustMult.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("GlobalElectricEnginePowerMaxTrustMult"))
-                    {
-                        _globalElectricEnginePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
-                        Debug.Log("[KSPI]: Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
-                    }
-
-                    if (plugin_settings.HasValue("MaxThermalNozzleIsp"))
-                    {
-                        _maxThermalNozzleIsp = float.Parse(plugin_settings.GetValue("MaxThermalNozzleIsp"));
-                        Debug.Log("[KSPI] Maximum Thermal Nozzle Isp set to: " + MaxThermalNozzleIsp.ToString("0.0"));
-                    }
-
-                    if (plugin_settings.HasValue("EngineHeatProduction"))
-                    {
-                        _engineHeatProduction = double.Parse(plugin_settings.GetValue("EngineHeatProduction"));
-                        Debug.Log("[KSPI]: EngineHeatProduction set to: " + EngineHeatProduction.ToString("0.0"));
-                    }
-
-                    if (plugin_settings.HasValue("EngineHeatProduction"))
-                    {
-                        _airflowHeatMult = double.Parse(plugin_settings.GetValue("AirflowHeatMult"));
-                        Debug.Log("[KSPI]: AirflowHeatMultipler Isp set to: " + AirflowHeatMult.ToString("0.0"));
-                    }
-
-                    if (plugin_settings.HasValue("TrustCoreTempThreshold"))
-                    {
-                        _thrustCoreTempThreshold = double.Parse(plugin_settings.GetValue("TrustCoreTempThreshold"));
-                        Debug.Log("[KSPI]: Thrust core temperature threshold set to: " + ThrustCoreTempThreshold.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("LowCoreTempBaseTrust"))
-                    {
-                        _lowCoreTempBaseThrust = double.Parse(plugin_settings.GetValue("LowCoreTempBaseTrust"));
-                        Debug.Log("[KSPI]: Low core temperature base thrust modifier set to: " + LowCoreTempBaseThrust.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("HighCoreTempTrustMult"))
-                    {
-                        _highCoreTempThrustMult = double.Parse(plugin_settings.GetValue("HighCoreTempTrustMult"));
-                        Debug.Log("[KSPI]: High core temperature thrust divider set to: " + HighCoreTempThrustMult.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("BasePowerConsumption"))
-                    {
-                        _basePowerConsumption = double.Parse(plugin_settings.GetValue("BasePowerConsumption"));
-                        Debug.Log("[KSPI]: Base Power Consumption set to: " + BasePowerConsumption.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("PowerConsumptionMultiplier"))
-                    {
-                        _powerConsumptionMultiplier = double.Parse(plugin_settings.GetValue("PowerConsumptionMultiplier"));
-                        Debug.Log("[KSPI]: Base Power Consumption set to: " + PowerConsumptionMultiplier.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("IspElectroPropellantModifierBase"))
-                    {
-                        _ispElectroPropellantModifierBase = double.Parse(plugin_settings.GetValue("IspNtrPropellantModifierBase"));
-                        Debug.Log("[KSPI]: Isp Ntr Propellant Modifier Base set to: " + IspElectroPropellantModifierBase.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("ElectricEnginePowerPropellantIspMultLimiter"))
-                    {
-                        _electricEnginePowerPropellantIspMultLimiter = double.Parse(plugin_settings.GetValue("ElectricEnginePowerPropellantIspMultLimiter"));
-                        Debug.Log("[KSPI]: Electric Engine Power Propellant IspMultiplier Limiter set to: " + ElectricEnginePowerPropellantIspMultLimiter.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("ElectricEngineAtmosphericDensityTrustLimiter"))
-                    {
-                        _electricEngineAtmosphericDensityThrustLimiter = double.Parse(plugin_settings.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
-                        Debug.Log("[KSPI]: Electric Engine Power Propellant IspMultiplier Limiter set to: " + ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
-                    }
-
-                    if (plugin_settings.HasValue("MaxAtmosphericAltitudeMult"))
-                    {
-                        _maxAtmosphericAltitudeMult = double.Parse(plugin_settings.GetValue("MaxAtmosphericAltitudeMult"));
-                        Debug.Log("[KSPI]: Maximum Atmospheric Altitude Multiplier set to: " + MaxAtmosphericAltitudeMult.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("MinAtmosphericAirDensity"))
-                    {
-                        _minAtmosphericAirDensity = double.Parse(plugin_settings.GetValue("MinAtmosphericAirDensity"));
-                        Debug.Log("[KSPI]: Minimum Atmospheric Air Density set to: " + MinAtmosphericAirDensity.ToString("0.0"));
-                    }
-
-                    // Jet Upgrade techs
-                    if (plugin_settings.HasValue("JetUpgradeTech1"))
-                    {
-                        JetUpgradeTech1 = plugin_settings.GetValue("JetUpgradeTech1");
-                        Debug.Log("[KSPI]: JetUpgradeTech1 " + JetUpgradeTech1);
-                    }
-                    if (plugin_settings.HasValue("JetUpgradeTech2"))
-                    {
-                        JetUpgradeTech2 = plugin_settings.GetValue("JetUpgradeTech2");
-                        Debug.Log("[KSPI]: JetUpgradeTech2 " + JetUpgradeTech2);
-                    }
-                    if (plugin_settings.HasValue("JetUpgradeTech3"))
-                    {
-                        JetUpgradeTech3 = plugin_settings.GetValue("JetUpgradeTech3");
-                        Debug.Log("[KSPI]: JetUpgradeTech3 " + JetUpgradeTech3);
-                    }
-                    if (plugin_settings.HasValue("JetUpgradeTech4"))
-                    {
-                        JetUpgradeTech4 = plugin_settings.GetValue("JetUpgradeTech4");
-                        Debug.Log("[KSPI]: JetUpgradeTech4 " + JetUpgradeTech4);
-                    }
-                    if (plugin_settings.HasValue("JetUpgradeTech5"))
-                    {
-                        JetUpgradeTech5 = plugin_settings.GetValue("JetUpgradeTech5");
-                        Debug.Log("[KSPI]: JetUpgradeTech5 " + JetUpgradeTech5);
-                    }
-
-                    // Radiator
-                    if (plugin_settings.HasValue("RadiatorAreaMultiplier"))
-                    {
-                        RadiatorAreaMultiplier = double.Parse(plugin_settings.GetValue("RadiatorAreaMultiplier"));
-                        Debug.Log("[KSPI]: RadiatorAreaMultiplier " + RadiatorAreaMultiplier);
-                    }
-
-                    resources_configured = true;
+                    _thermalUiKey = (KeyCode)thermalUiKeyInt;
+                    Debug.Log("[KSPI]: ThermalUiKey set to: " + ThermalUiKey.ToString());
                 }
                 else
                 {
-                    showInstallationErrorMessage();
+                    try
+                    {
+                        _thermalUiKey = (KeyCode)Enum.Parse(typeof(KeyCode), thermalUiKeyStr, true);
+                        Debug.Log("[KSPI]: ThermalUiKey set to: " + ThermalUiKey.ToString());
+                    }
+                    catch
+                    {
+                        Debug.LogError("[KSPI]: failed to convert " + thermalUiKeyStr + " to a KeyCode for ThermalUiKey");
+                    }
                 }
-
             }
+
+            if (pluginSettings.HasValue("SecondsInDay"))
+            {
+                _secondsInDay = (int)Math.Round(double.Parse(pluginSettings.GetValue("SecondsInDay")));
+                Debug.Log("[KSPI]: SecondsInDay set to: " + SecondsInDay);
+            }
+            if (pluginSettings.HasValue("MicrowaveApertureDiameterMult"))
+            {
+                _microwaveApertureDiameterMult = double.Parse(pluginSettings.GetValue("MicrowaveApertureDiameterMult"));
+                Debug.Log("[KSPI]: Microwave Aperture Diameter Multiplier set to: " + MicrowaveApertureDiameterMult);
+            }
+            if (pluginSettings.HasValue("SpotsizeMult"))
+            {
+                SpotsizeMult = double.Parse(pluginSettings.GetValue("SpotsizeMult"));
+                Debug.Log("[KSPI]: Spotsize Multiplier set to: " + SpotsizeMult);
+            }
+            if (pluginSettings.HasValue("SpeedOfLightMult"))
+            {
+                _speedOfLightMult = double.Parse(pluginSettings.GetValue("SpeedOfLightMult"));
+                _speedOfLight = GameConstants.speedOfLight * _speedOfLightMult;
+
+                Debug.Log("[KSPI]: Speed Of Light Multiplier set to: " + SpeedOfLightMult);
+            }
+            if (pluginSettings.HasValue("RadiationMechanicsDisabled"))
+            {
+                _radiationMechanicsDisabled = bool.Parse(pluginSettings.GetValue("RadiationMechanicsDisabled"));
+                Debug.Log("[KSPI]: Radiation Mechanics Disabled set to: " + RadiationMechanicsDisabled.ToString());
+            }
+            if (pluginSettings.HasValue("ThermalMechanicsDisabled"))
+            {
+                _isThermalDissipationDisabled = bool.Parse(pluginSettings.GetValue("ThermalMechanicsDisabled"));
+                Debug.Log("[KSPI]: ThermalMechanics set to : " + (!IsThermalDissipationDisabled).ToString());
+            }
+            if (pluginSettings.HasValue("SolarPanelClampedHeating"))
+            {
+                _isPanelHeatingClamped = bool.Parse(pluginSettings.GetValue("SolarPanelClampedHeating"));
+                Debug.Log("[KSPI]: Solar panels clamped heating set to enabled: " + IsSolarPanelHeatingClamped.ToString());
+            }
+            if (pluginSettings.HasValue("RecieverTempTweak"))
+            {
+                _isRecieverTempTweaked = bool.Parse(pluginSettings.GetValue("RecieverTempTweak"));
+                Debug.Log("[KSPI]: Microwave reciever CoreTemp tweak is set to enabled: " + IsRecieverCoreTempTweaked.ToString());
+            }
+            if (pluginSettings.HasValue("LimitedWarpTravel"))
+            {
+                _limitedWarpTravel = bool.Parse(pluginSettings.GetValue("LimitedWarpTravel"));
+                Debug.Log("[KSPI]: Apply Limited Warp Travel: " + LimitedWarpTravel.ToString());
+            }
+            if (pluginSettings.HasValue("MatchDemandWithSupply"))
+            {
+                _matchDemandWithSupply = bool.Parse(pluginSettings.GetValue("MatchDemandWithSupply"));
+                Debug.Log("[KSPI]: Match Demand With Supply: " + MatchDemandWithSupply.ToString());
+            }
+            if (pluginSettings.HasValue("MaxPowerDrawForExoticMatterMult"))
+            {
+                _maxPowerDrawForExoticMatterMult = double.Parse(pluginSettings.GetValue("MaxPowerDrawForExoticMatterMult"));
+                Debug.Log("[KSPI]: Max Power Draw For Exotic Matter Multiplier set to: " + MaxPowerDrawForExoticMatterMult.ToString("0.000000"));
+            }
+            if (pluginSettings.HasValue("IspCoreTempMult"))
+            {
+                _ispCoreTempMult = double.Parse(pluginSettings.GetValue("IspCoreTempMult"));
+                Debug.Log("[KSPI]: Isp core temperature multiplier set to: " + IspCoreTempMult.ToString("0.000000"));
+            }
+            if (pluginSettings.HasValue("ElectricEngineIspMult"))
+            {
+                _electricEngineIspMult = double.Parse(pluginSettings.GetValue("ElectricEngineIspMult"));
+                Debug.Log("[KSPI]: Electric EngineIsp Multiplier set to: " + ElectricEngineIspMult.ToString("0.000000"));
+            }
+            if (pluginSettings.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))
+            {
+                _globalThermalNozzlePowerMaxThrustMult = double.Parse(pluginSettings.GetValue("GlobalThermalNozzlePowerMaxTrustMult"));
+                Debug.Log("[KSPI]: Maximum Global Thermal Power Maximum Thrust Multiplier set to: " + GlobalThermalNozzlePowerMaxThrustMult.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("GlobalMagneticNozzlePowerMaxTrustMult"))
+            {
+                _globalMagneticNozzlePowerMaxThrustMult = double.Parse(pluginSettings.GetValue("GlobalMagneticNozzlePowerMaxTrustMult"));
+                Debug.Log("[KSPI]: Maximum Global Magnetic Nozzle Power Maximum Thrust Multiplier set to: " + GlobalMagneticNozzlePowerMaxThrustMult.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("GlobalElectricEnginePowerMaxTrustMult"))
+            {
+                _globalElectricEnginePowerMaxThrustMult = double.Parse(pluginSettings.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
+                Debug.Log("[KSPI]: Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("MaxThermalNozzleIsp"))
+            {
+                _maxThermalNozzleIsp = float.Parse(pluginSettings.GetValue("MaxThermalNozzleIsp"));
+                Debug.Log("[KSPI] Maximum Thermal Nozzle Isp set to: " + MaxThermalNozzleIsp.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("EngineHeatProduction"))
+            {
+                _engineHeatProduction = double.Parse(pluginSettings.GetValue("EngineHeatProduction"));
+                Debug.Log("[KSPI]: EngineHeatProduction set to: " + EngineHeatProduction.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("EngineHeatProduction"))
+            {
+                _airflowHeatMult = double.Parse(pluginSettings.GetValue("AirflowHeatMult"));
+                Debug.Log("[KSPI]: AirflowHeatMultipler Isp set to: " + AirflowHeatMult.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("TrustCoreTempThreshold"))
+            {
+                _thrustCoreTempThreshold = double.Parse(pluginSettings.GetValue("TrustCoreTempThreshold"));
+                Debug.Log("[KSPI]: Thrust core temperature threshold set to: " + ThrustCoreTempThreshold.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("LowCoreTempBaseTrust"))
+            {
+                _lowCoreTempBaseThrust = double.Parse(pluginSettings.GetValue("LowCoreTempBaseTrust"));
+                Debug.Log("[KSPI]: Low core temperature base thrust modifier set to: " + LowCoreTempBaseThrust.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("HighCoreTempTrustMult"))
+            {
+                _highCoreTempThrustMult = double.Parse(pluginSettings.GetValue("HighCoreTempTrustMult"));
+                Debug.Log("[KSPI]: High core temperature thrust divider set to: " + HighCoreTempThrustMult.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("BasePowerConsumption"))
+            {
+                _basePowerConsumption = double.Parse(pluginSettings.GetValue("BasePowerConsumption"));
+                Debug.Log("[KSPI]: Base Power Consumption set to: " + BasePowerConsumption.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("PowerConsumptionMultiplier"))
+            {
+                _powerConsumptionMultiplier = double.Parse(pluginSettings.GetValue("PowerConsumptionMultiplier"));
+                Debug.Log("[KSPI]: Base Power Consumption set to: " + PowerConsumptionMultiplier.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("IspElectroPropellantModifierBase"))
+            {
+                _ispElectroPropellantModifierBase = double.Parse(pluginSettings.GetValue("IspNtrPropellantModifierBase"));
+                Debug.Log("[KSPI]: Isp Ntr Propellant Modifier Base set to: " + IspElectroPropellantModifierBase.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("ElectricEnginePowerPropellantIspMultLimiter"))
+            {
+                _electricEnginePowerPropellantIspMultLimiter = double.Parse(pluginSettings.GetValue("ElectricEnginePowerPropellantIspMultLimiter"));
+                Debug.Log("[KSPI]: Electric Engine Power Propellant IspMultiplier Limiter set to: " + ElectricEnginePowerPropellantIspMultLimiter.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("ElectricEngineAtmosphericDensityTrustLimiter"))
+            {
+                _electricEngineAtmosphericDensityThrustLimiter = double.Parse(pluginSettings.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
+                Debug.Log("[KSPI]: Electric Engine Power Propellant IspMultiplier Limiter set to: " + ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
+            }
+
+            if (pluginSettings.HasValue("MaxAtmosphericAltitudeMult"))
+            {
+                _maxAtmosphericAltitudeMult = double.Parse(pluginSettings.GetValue("MaxAtmosphericAltitudeMult"));
+                Debug.Log("[KSPI]: Maximum Atmospheric Altitude Multiplier set to: " + MaxAtmosphericAltitudeMult.ToString("0.0"));
+            }
+            if (pluginSettings.HasValue("MinAtmosphericAirDensity"))
+            {
+                _minAtmosphericAirDensity = double.Parse(pluginSettings.GetValue("MinAtmosphericAirDensity"));
+                Debug.Log("[KSPI]: Minimum Atmospheric Air Density set to: " + MinAtmosphericAirDensity.ToString("0.0"));
+            }
+
+            // Jet Upgrade techs
+            if (pluginSettings.HasValue("JetUpgradeTech1"))
+            {
+                JetUpgradeTech1 = pluginSettings.GetValue("JetUpgradeTech1");
+                Debug.Log("[KSPI]: JetUpgradeTech1 " + JetUpgradeTech1);
+            }
+            if (pluginSettings.HasValue("JetUpgradeTech2"))
+            {
+                JetUpgradeTech2 = pluginSettings.GetValue("JetUpgradeTech2");
+                Debug.Log("[KSPI]: JetUpgradeTech2 " + JetUpgradeTech2);
+            }
+            if (pluginSettings.HasValue("JetUpgradeTech3"))
+            {
+                JetUpgradeTech3 = pluginSettings.GetValue("JetUpgradeTech3");
+                Debug.Log("[KSPI]: JetUpgradeTech3 " + JetUpgradeTech3);
+            }
+            if (pluginSettings.HasValue("JetUpgradeTech4"))
+            {
+                JetUpgradeTech4 = pluginSettings.GetValue("JetUpgradeTech4");
+                Debug.Log("[KSPI]: JetUpgradeTech4 " + JetUpgradeTech4);
+            }
+            if (pluginSettings.HasValue("JetUpgradeTech5"))
+            {
+                JetUpgradeTech5 = pluginSettings.GetValue("JetUpgradeTech5");
+                Debug.Log("[KSPI]: JetUpgradeTech5 " + JetUpgradeTech5);
+            }
+
+            // Radiator
+            if (pluginSettings.HasValue("RadiatorAreaMultiplier"))
+            {
+                RadiatorAreaMultiplier = double.Parse(pluginSettings.GetValue("RadiatorAreaMultiplier"));
+                Debug.Log("[KSPI]: RadiatorAreaMultiplier " + RadiatorAreaMultiplier);
+            }
+
+            resources_configured = true;
         }
 
-        protected static bool warning_displayed = false;
+        private static bool _warningDisplayed;
 
-        public static void showInstallationErrorMessage()
+        public static void ShowInstallationErrorMessage()
         {
-            if (!warning_displayed)
-            {
-                var errorMessage =Localizer.Format("#LOC_KSPIE_PluginHelper_Installerror");// "KSP Interstellar is unable to detect files required for proper functioning.  Please make sure that this mod has been installed to [Base KSP directory]/GameData/WarpPlugin."
-                PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "KSPI Error", "KSP Interstellar Installation Error", errorMessage, "OK", false, HighLogic.UISkin);
+            if (_warningDisplayed) return;
 
-                warning_displayed = true;
-            }
+            var errorMessage =Localizer.Format("#LOC_KSPIE_PluginHelper_Installerror");// "KSP Interstellar is unable to detect files required for proper functioning.  Please make sure that this mod has been installed to [Base KSP directory]/GameData/WarpPlugin."
+            PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "KSPI Error", "KSP Interstellar Installation Error", errorMessage, "OK", false, HighLogic.UISkin);
+
+            _warningDisplayed = true;
         }
 
         public static AnimationState[] SetUpAnimation(string animationName, Part part)

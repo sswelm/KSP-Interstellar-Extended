@@ -102,7 +102,7 @@ namespace FNPlugin
             }
 
             ConfigNode science_node;
-            ConfigNode config = PluginHelper.getPluginSaveFile();
+            ConfigNode config = PluginHelper.GetPluginSaveFile();
             if (config.HasNode(vessel_seismic_node_string)) 
             {
                 science_node = config.GetNode(vessel_seismic_node_string);

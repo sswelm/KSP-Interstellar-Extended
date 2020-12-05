@@ -72,7 +72,7 @@ namespace FNPlugin
 
             // science_data = new ScienceData(0, 1, 0, subject.id, "data");
 
-            ConfigNode config = PluginHelper.getPluginSaveFile();
+            ConfigNode config = PluginHelper.GetPluginSaveFile();
             if (config.HasNode("SEISMIC_SCIENCE_" + vessel.mainBody.name.ToUpper()))
             {
                 ConfigNode planet_data = config.GetNode("SEISMIC_SCIENCE_" + vessel.mainBody.name.ToUpper());
@@ -123,7 +123,7 @@ namespace FNPlugin
         {
             if (science_vess_ref != null)
             {
-                ConfigNode config = PluginHelper.getPluginSaveFile();
+                ConfigNode config = PluginHelper.GetPluginSaveFile();
                 if (config.HasNode("SEISMIC_SCIENCE_" + vessel.mainBody.name.ToUpper()))
                 {
                     ConfigNode planet_data = config.GetNode("SEISMIC_SCIENCE_" + vessel.mainBody.name.ToUpper());
@@ -143,7 +143,7 @@ namespace FNPlugin
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
-                ConfigNode config = PluginHelper.getPluginSaveFile();
+                ConfigNode config = PluginHelper.GetPluginSaveFile();
                 string vesselID = vessel.id.ToString();
                 if (config.HasNode("VESSEL_SEISMIC_PROBE_" + vesselID))
                 {

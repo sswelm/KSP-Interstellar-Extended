@@ -167,7 +167,7 @@ namespace FNPlugin.Resources
             }
             else
             {
-                PluginHelper.showInstallationErrorMessage();
+                PluginHelper.ShowInstallationErrorMessage();
             }
         }
 

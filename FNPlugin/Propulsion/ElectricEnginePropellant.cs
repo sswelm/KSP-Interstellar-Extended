@@ -87,7 +87,7 @@ namespace FNPlugin.Propulsion
             List<ElectricEnginePropellant> propellant_list;
             if (propellantlist.Length == 0)
             {
-                PluginHelper.showInstallationErrorMessage();
+                PluginHelper.ShowInstallationErrorMessage();
                 propellant_list = new List<ElectricEnginePropellant>();
             }
             else
