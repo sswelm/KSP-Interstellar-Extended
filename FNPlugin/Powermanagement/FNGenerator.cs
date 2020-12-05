@@ -45,26 +45,20 @@ namespace FNPlugin.Powermanagement
         [KSPField(isPersistant = true)] public double storedMassMultiplier;
         [KSPField(isPersistant = true)] public double maximumElectricPower;
 
+        // Settings
+        [KSPField] public string animName = "";
+        [KSPField] public string upgradeTechReq = "";
+        [KSPField] public float upgradeCost = 1;
         [KSPField] public float powerCapacityMaxValue = 100;
         [KSPField] public float powerCapacityMinValue = 0.5f;
         [KSPField] public float powerCapacityStepIncrement = 0.5f;
-
-        // Settings
         [KSPField] public bool isHighPower = false;
         [KSPField] public bool isMHD = false;
         [KSPField] public bool isLimitedByMinThrotle = false;
         [KSPField] public double powerOutputMultiplier = 1;
         [KSPField] public double hotColdBathRatio;
         [KSPField] public bool calculatedMass = false;
-        [KSPField] public string upgradedName = "";
-        [KSPField] public string originalName = "";
-        [KSPField] public double directConversionEff = 0.6;
-        [KSPField] public double upgradedDirectConversionEff = 0.865;
         [KSPField] public double wasteHeatMultiplier = 1;
-        [KSPField] public string animName = "";
-        [KSPField] public string upgradeTechReq = "";
-        [KSPField] public float upgradeCost = 1;
-        [KSPField] public string altUpgradedName = "";
 
         [KSPField] public double efficiencyMk1;
         [KSPField] public double efficiencyMk2;
@@ -92,10 +86,6 @@ namespace FNPlugin.Powermanagement
         [KSPField] public bool controlWasteHeatBuffer = true;
         [KSPField] public double massModifier = 1;
         [KSPField] public double rawMaximumPower;
-
-        /// <summary>
-        /// MW Power to part mass divider, need to be lower for SETI/NFE mode
-        /// </summary>
         [KSPField] public double rawPowerToMassDivider = 1000;
         [KSPField] public double coreTemperateHotBathExponent = 0.7;
         [KSPField] public double capacityToMassExponent = 0.7;
@@ -520,7 +510,7 @@ namespace FNPlugin.Powermanagement
         private void InitializeEfficiency()
         {
             if (efficiencyMk1 == 0)
-                efficiencyMk2 = 10;
+                efficiencyMk1 = 0.1;
             if (efficiencyMk2 == 0)
                 efficiencyMk2 = efficiencyMk1;
             if (efficiencyMk3 == 0)
