@@ -262,7 +262,6 @@ namespace FNPlugin.Propulsion
         bool _isFullyStarted;
 
         double _maximumThrustInSpace;
-        double _effectiveSpeedOfLight;
         double _modifiedEngineBaseIsp;
         double _electricalShareF;
         double _electricalConsumptionF;
@@ -512,7 +511,6 @@ namespace FNPlugin.Propulsion
             _initializationCountdown = 10;
             _ispFloatCurve = new FloatCurve();
             _ispFloatCurve.Add(0, (float)baseISP);
-            _effectiveSpeedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
             _hasGearTechnology = string.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
             _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
             _hasRequiredUpgrade = this.HasTechsRequiredToUpgrade();
@@ -977,7 +975,7 @@ namespace FNPlugin.Propulsion
         {
             var worldSpaceVelocity = vessel.orbit.GetFrameVel().magnitude;
 
-            lightSpeedRatio = Math.Min(_effectiveSpeedOfLight == 0.0 ? 1.0 : worldSpaceVelocity / _effectiveSpeedOfLight, 0.9999999999);
+            lightSpeedRatio = Math.Min(worldSpaceVelocity / PluginSettings.Config.SpeedOfLight, 0.9999999999);
 
             timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
         }

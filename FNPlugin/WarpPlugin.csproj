@@ -87,6 +87,7 @@
     <Compile Include="Animate\FNLightSwitch.cs" />
     <Compile Include="Beamedpower\BeamedPowerTransmitterTag.cs" />
     <Compile Include="Beamedpower\InterstellarBeamedPowerHelper.cs" />
+    <Compile Include="PluginSettings.cs" />
     <Compile Include="Resources\RegolithCollector.cs" />
     <Compile Include="Resources\SolarWindCollector.cs" />
     <Compile Include="Resources\UniversalCrustExtractor.cs" />
@@ -204,7 +205,6 @@
     <Compile Include="Refinery\Activity\NuclearFuelReprocessor.cs" />
     <Compile Include="Reactors\InterstellarReactor.cs" />
     <Compile Include="Reactors\InterstellarTokomakFusionReator.cs" />
-    <Compile Include="Resources\ISRUScoop.cs" />
     <Compile Include="Beamedpower\BeamedPowerReceiver.cs" />
     <Compile Include="Beamedpower\MicrowavePowerTransmitter.cs" />
     <Compile Include="Science\ModableExperimentResultDialogPage.cs" />

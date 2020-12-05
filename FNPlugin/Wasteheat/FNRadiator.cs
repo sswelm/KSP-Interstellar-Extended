@@ -949,7 +949,7 @@ namespace FNPlugin.Wasteheat
                 return RadiatorProperties.RadiatorTemperatureMk1;
         }
 
-        public double EffectiveRadiatorArea
+        public double BaseRadiatorArea
         {
             get
             {
@@ -965,17 +965,17 @@ namespace FNPlugin.Wasteheat
                         radiatorArea = 1;
                 }
 
-                double effectiveRadiativeArea = PluginHelper.RadiatorAreaMultiplier * areaMultiplier * radiatorArea;
-
                 // Because I have absolutely no idea what I'm doing, I'm taking some short cuts and major simplifications.
                 // This is the radius of a circular radiator, (operating in a vacuum)
-                sphericalCowInAVaccum = (effectiveRadiativeArea / Mathf.PI).Sqrt();
+                sphericalCowInAVaccum = (radiatorArea / Mathf.PI).Sqrt();
 
                 return hasSurfaceAreaUpgradeTechReq
-                    ? effectiveRadiativeArea * surfaceAreaUpgradeMult
-                    : effectiveRadiativeArea;
+                    ? radiatorArea * surfaceAreaUpgradeMult
+                    : radiatorArea;
             }
         }
+
+        public double EffectiveRadiatorArea => BaseRadiatorArea * areaMultiplier * PluginHelper.RadiatorAreaMultiplier;
 
         private void DetermineGenerationType()
         {

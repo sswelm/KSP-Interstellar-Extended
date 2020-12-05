@@ -526,11 +526,11 @@ namespace FNPlugin.Propulsion
 
         public override void OnStart(StartState state)
         {
-            string[] resources_to_supply = { ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resources_to_supply = resources_to_supply;
+            string[] resourcesToSupply = { ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt };
+            this.resources_to_supply = resourcesToSupply;
             base.OnStart(state);
 
-            engineSpeedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
+            engineSpeedOfLight = PluginSettings.Config.SpeedOfLight;
 
             UpdateFuelFactors();
 

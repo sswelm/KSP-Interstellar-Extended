@@ -164,7 +164,7 @@ namespace FNPlugin.Beamedpower
         /// <param name="maxHops">Maximum number of relays which can be used for connection to transmitter</param>
         public static IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> GetConnectedTransmitters(IBeamedPowerReceiver receiver, int maxHops = 25)
         {
-            //these two dictionaries store transmitters and relays and best currently known route to them which is replaced if better one is found. 
+            //these two dictionaries store transmitters and relays and best currently known route to them which is replaced if better one is found.
 
             var transmitterRouteDictionary = new Dictionary<VesselMicrowavePersistence, MicrowaveRoute>(); // stores all transmitter we can have a connection with
             var relayRouteDictionary = new Dictionary<VesselRelayPersistence, MicrowaveRoute>();
@@ -228,7 +228,7 @@ namespace FNPlugin.Beamedpower
                 transmittersToCheck.Add(transmitter);
             }
 
-            //this algorithm processes relays in groups in which elements of the first group must be visible from receiver, 
+            //this algorithm processes relays in groups in which elements of the first group must be visible from receiver,
             //elements from the second group must be visible by at least one element from previous group and so on...
 
             var relaysToCheck = new List<VesselRelayPersistence>();//relays which we have to check - all active relays will be here

@@ -390,7 +390,7 @@ namespace FNPlugin.Propulsion
 
             var headingModifier = Math.Abs(Math.Min(0, cosineAngleToMainBody));
 
-            allowedWarpDistancePerFrame = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedWarpSpeed * headingModifier;
+            allowedWarpDistancePerFrame = PluginSettings.Config.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedWarpSpeed * headingModifier;
             safetyDistance = spaceSafetyDistance * 1000 * headingModifier;
 
             if (vessel.altitude < ((vessel.mainBody.atmosphere ? vessel.mainBody.atmosphereDepth : 20000) + allowedWarpDistancePerFrame + safetyDistance))
@@ -452,7 +452,7 @@ namespace FNPlugin.Propulsion
 
             active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
-            heading_act = active_part_heading * PluginHelper.SpeedOfLight * selectedWarpSpeed;
+            heading_act = active_part_heading * PluginSettings.Config.SpeedOfLight * selectedWarpSpeed;
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
             if (!vessel.packed)
@@ -1140,7 +1140,7 @@ namespace FNPlugin.Propulsion
 
             var cosineAngleModifier = selectedTargetVesselIsClosest ? 0.25 : (1 + 0.5 * cosineAngleToClosestBody);
 
-            maximumWarpForAltitude = 0.1 * cosineAngleModifier * distanceToClosestBody / PluginHelper.SpeedOfLight / TimeWarp.fixedDeltaTime;
+            maximumWarpForAltitude = 0.1 * cosineAngleModifier * distanceToClosestBody / PluginSettings.Config.SpeedOfLight / TimeWarp.fixedDeltaTime;
             maximumWarpWeighted = (gravityRatio * maximumWarpForGravityPull) + ((1 - gravityRatio) * maximumWarpForAltitude);
             maximumWarpSpeed = Math.Min(maximumWarpWeighted, maximumWarpForAltitude);
             maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpSpeed);
@@ -1554,7 +1554,7 @@ namespace FNPlugin.Propulsion
 
             var headingModifier = FlightGlobals.fetch.VesselTarget == null ? Math.Abs(Math.Min(0, cosineAngleToClosestBody)) : 1;
 
-            allowedWarpDistancePerFrame = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedLightSpeed * headingModifier;
+            allowedWarpDistancePerFrame = PluginSettings.Config.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedLightSpeed * headingModifier;
 
             safetyDistance = FlightGlobals.fetch.VesselTarget == null ? spaceSafetyDistance * 1000 : 0;
 
@@ -1653,7 +1653,7 @@ namespace FNPlugin.Propulsion
 
             var reverseHeading = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
 
-            heading_act = newPartHeading * PluginHelper.SpeedOfLight * existing_warp_speed;
+            heading_act = newPartHeading * PluginSettings.Config.SpeedOfLight * existing_warp_speed;
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
             active_part_heading = newPartHeading;

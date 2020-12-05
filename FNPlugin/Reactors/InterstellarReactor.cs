@@ -1133,25 +1133,6 @@ namespace FNPlugin.Reactors
             IsEnabled = !IsEnabled;
         }
 
-        private bool CanPartUpgradeAlternative()
-        {
-            if (PluginHelper.PartTechUpgrades == null)
-            {
-                Debug.Log("[KSPI]: PartTechUpgrades is not initialized");
-                return false;
-            }
-
-            if (!PluginHelper.PartTechUpgrades.TryGetValue(part.name, out var upgradeTechName))
-            {
-                Debug.Log("[KSPI]: PartTechUpgrade entry is not found for part '" + part.name + "'");
-                return false;
-            }
-
-            Debug.Log("[KSPI]: Found matching Interstellar upgradeTech for part '" + part.name + "' with techNode " + upgradeTechName);
-
-            return PluginHelper.UpgradeAvailable(upgradeTechName);
-        }
-
         public void DeterminePowerOutput()
         {
             massDifference = part.mass / partMass;
@@ -1281,7 +1262,7 @@ namespace FNPlugin.Reactors
                 {
                     Events[nameof(ActivateReactor)].guiActive = true;
                     Events[nameof(ActivateReactor)].active = true;
-                    last_active_time = Planetarium.GetUniversalTime() - 4d * PluginHelper.SecondsInDay;
+                    last_active_time = Planetarium.GetUniversalTime() - 4d * PluginSettings.Config.SecondsInDay;
                     IsEnabled = false;
                     startDisabled = false;
                     breedtritium = false;
@@ -1783,11 +1764,11 @@ namespace FNPlugin.Reactors
                 if (Planetarium.GetUniversalTime() != 0)
                     last_active_time = Planetarium.GetUniversalTime();
             }
-            else if (!IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * PluginHelper.SecondsInDay))
+            else if (!IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * PluginSettings.Config.SecondsInDay))
             {
                 reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
-                var powerFraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginHelper.SecondsInDay / 24.0 * 9.0);
+                var powerFraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginSettings.Config.SecondsInDay / 24.0 * 9.0);
                 var powerToSupply = Math.Max(MaximumPower * powerFraction, 0);
                 ongoing_thermal_power_generated = supplyManagedFNResourcePerSecondWithMinimumRatio(powerToSupply, 1, ResourceSettings.Config.ThermalPowerInMegawatt);
                 ongoing_total_power_generated = ongoing_thermal_power_generated;
@@ -2714,17 +2695,17 @@ namespace FNPlugin.Reactors
                     {
                         PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelNeutronBreedRate"), 100 * CurrentFuelMode.NeutronsRatio + "% ", boldStyle, textStyle);//"Fuel Neutron Breed Rate"
 
-                        var tritiumKgDay = _tritiumProducedPerSecond * _tritiumDensity * 1000 * PluginHelper.SecondsInDay;
+                        var tritiumKgDay = _tritiumProducedPerSecond * _tritiumDensity * 1000 * PluginSettings.Config.SecondsInDay;
                         PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), tritiumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Tritium Breed Rate"kg/day
 
-                        var heliumKgDay = _heliumProducedPerSecond * _helium4Density * 1000 * PluginHelper.SecondsInDay;
+                        var heliumKgDay = _heliumProducedPerSecond * _helium4Density * 1000 * PluginSettings.Config.SecondsInDay;
                         PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_HeliumBreedRate"), heliumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Helium Breed Rate"kg/day
 
                         part.GetConnectedResourceTotals(_lithium6Def.id, out var totalLithium6Amount, out var totalLithium6MaxAmount);
 
                         PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumReserves"), totalLithium6Amount.ToString("0.000") + " L / " + totalLithium6MaxAmount.ToString("0.000") + " L", boldStyle, textStyle);//"Lithium Reserves"
 
-                        var lithiumConsumptionDay = _lithiumConsumedPerSecond * PluginHelper.SecondsInDay;
+                        var lithiumConsumptionDay = _lithiumConsumedPerSecond * PluginSettings.Config.SecondsInDay;
                         PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_LithiumConsumption"), lithiumConsumptionDay.ToString("0.00000") + " "+Localizer.Format("#LOC_KSPIE_Reactor_lithiumConsumptionDay"), boldStyle, textStyle);//"Lithium Consumption"L/day
                         var lithiumLifetimeTotalDays = lithiumConsumptionDay > 0 ? totalLithium6Amount / lithiumConsumptionDay : 0;
 
@@ -2734,7 +2715,7 @@ namespace FNPlugin.Reactors
                         var lithiumLifetimeRemainingDays = Math.Floor(lithiumLifetimeYearsRemainderInDays);
                         var lithiumLifetimeRemainingDaysRemainer = lithiumLifetimeYearsRemainderInDays % 1;
 
-                        var lithiumLifetimeRemainingHours = lithiumLifetimeRemainingDaysRemainer * PluginHelper.SecondsInDay / GameConstants.SECONDS_IN_HOUR;
+                        var lithiumLifetimeRemainingHours = lithiumLifetimeRemainingDaysRemainer * PluginSettings.Config.SecondsInDay / GameConstants.SECONDS_IN_HOUR;
 
                         if (lithiumLifetimeYears < 1e9)
                         {

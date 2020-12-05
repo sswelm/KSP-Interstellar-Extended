@@ -706,11 +706,11 @@ namespace FNPlugin.Propulsion
                 fuelConfigNodes = GetPropellants(isJet);
             }
 
-            hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
-            hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
-            hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
-            hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
-            hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
+            hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech1);
+            hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech2);
+            hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech3);
+            hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech4);
+            hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech5);
 
             _jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
             _jetTechBonusCurveChange = _jetTechBonus / 9.92992f;

@@ -479,7 +479,7 @@ namespace FNPlugin
                         Fields["antimatterProductionEfficiency"].guiActive = true;
                         powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseAMFPowerConsumption).ToString("0.00") + "MW";
                         antimatterProductionEfficiency = (antimatterGenerator.Efficiency * 100).ToString("0.0000") + "%";
-                        double antimatter_rate_per_day = antimatter_rate_f * PluginHelper.SecondsInDay;
+                        double antimatter_rate_per_day = antimatter_rate_f * PluginSettings.Config.SecondsInDay;
 
                         if (antimatter_rate_per_day > 0.1)
                             antimatterRate = (antimatter_rate_per_day).ToString("0.0000") + " mg/day";
@@ -500,7 +500,7 @@ namespace FNPlugin
                 {
                     currentpowertmp = electrical_power_ratio * PluginHelper.BaseELCPowerConsumption * powerReqMult;
                     Fields["electrolysisRate"].guiActive = true;
-                    double electrolysisratetmp = -electrolysis_rate_f * PluginHelper.SecondsInDay;
+                    double electrolysisratetmp = -electrolysis_rate_f * PluginSettings.Config.SecondsInDay;
                     electrolysisRate = electrolysisratetmp.ToString("0.0") + "mT/day";
                     powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseELCPowerConsumption).ToString("0.00") + "MW";
                 }

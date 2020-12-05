@@ -51,17 +51,6 @@ namespace FNPlugin.Resources
         public double upperAtmoFraction;
 
         [KSPField]
-        public string JetUpgradeTech1;
-        [KSPField]
-        public string JetUpgradeTech2;
-        [KSPField]
-        public string JetUpgradeTech3;
-        [KSPField]
-        public string JetUpgradeTech4;
-        [KSPField]
-        public string JetUpgradeTech5;
-
-        [KSPField]
         public bool hasJetUpgradeTech1;
         [KSPField]
         public bool hasJetUpgradeTech2;
@@ -90,21 +79,15 @@ namespace FNPlugin.Resources
             get { return intakeOpen && (_moduleResourceIntake != null ? _moduleResourceIntake.intakeEnabled : true); }
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             Debug.Log("[KSPI]: AtmosphericIntake OnStart Reading PluginHelper Upgrades");
 
-            JetUpgradeTech1 = PluginHelper.JetUpgradeTech1;
-            JetUpgradeTech2 = PluginHelper.JetUpgradeTech2;
-            JetUpgradeTech3 = PluginHelper.JetUpgradeTech3;
-            JetUpgradeTech4 = PluginHelper.JetUpgradeTech4;
-            JetUpgradeTech5 = PluginHelper.JetUpgradeTech5;
-
-            hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
-            hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
-            hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
-            hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
-            hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
+            hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech1);
+            hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech2);
+            hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech3);
+            hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech4);
+            hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginSettings.Config.JetUpgradeTech5);
 
             var jetTech = Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
             jetTechBonus = 5 * (1 + (jetTech / 9.92992f));

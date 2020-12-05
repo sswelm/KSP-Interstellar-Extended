@@ -58,8 +58,6 @@ namespace FNPlugin.Powermanagement
         [KSPField] public bool calculatedMass = false;
         [KSPField] public string upgradedName = "";
         [KSPField] public string originalName = "";
-        [KSPField] public double pCarnotEff = 0.32;
-        [KSPField] public double upgradedpCarnotEff = 0.64;
         [KSPField] public double directConversionEff = 0.6;
         [KSPField] public double upgradedDirectConversionEff = 0.865;
         [KSPField] public double wasteHeatMultiplier = 1;
@@ -509,9 +507,10 @@ namespace FNPlugin.Powermanagement
                     maximumGeneratorPowerEC = outputModuleResource.rate;
                     maximumGeneratorPowerMJ = maximumGeneratorPowerEC / GameConstants.ecPerMJ;
 
-                    mockInputResource = new ModuleResource();
-                    mockInputResource.name = outputModuleResource.name;
-                    mockInputResource.id = outputModuleResource.name.GetHashCode();
+                    mockInputResource = new ModuleResource
+                    {
+                        name = outputModuleResource.name, id = outputModuleResource.name.GetHashCode()
+                    };
 
                     stockModuleGenerator.resHandler.inputResources.Add(mockInputResource);
                 }
@@ -520,16 +519,10 @@ namespace FNPlugin.Powermanagement
 
         private void InitializeEfficiency()
         {
-            if (chargedParticleMode && efficiencyMk1 == 0)
-                efficiencyMk1 = directConversionEff;
-            else if (!chargedParticleMode && efficiencyMk1 == 0)
-                efficiencyMk1 = pCarnotEff;
-
-            if (chargedParticleMode && efficiencyMk2 == 0)
-                efficiencyMk2 = upgradedDirectConversionEff;
-            else if (!chargedParticleMode && efficiencyMk2 == 0)
-                efficiencyMk2 = upgradedpCarnotEff;
-
+            if (efficiencyMk1 == 0)
+                efficiencyMk2 = 10;
+            if (efficiencyMk2 == 0)
+                efficiencyMk2 = efficiencyMk1;
             if (efficiencyMk3 == 0)
                 efficiencyMk3 = efficiencyMk2;
             if (efficiencyMk4 == 0)
@@ -545,7 +538,7 @@ namespace FNPlugin.Powermanagement
             if (efficiencyMk9 == 0)
                 efficiencyMk9 = efficiencyMk8;
 
-            if (String.IsNullOrEmpty(Mk2TechReq))
+            if (string.IsNullOrEmpty(Mk2TechReq))
                 Mk2TechReq = upgradeTechReq;
 
             int techLevel = 1;
@@ -587,7 +580,7 @@ namespace FNPlugin.Powermanagement
         }
 
         /// <summary>
-        /// Finds the nearest avialable thermalsource and update effective part mass
+        /// Finds the nearest available thermalsource and update effective part mass
         /// </summary>
         public void FindAndAttachToPowerSource()
         {
@@ -607,7 +600,7 @@ namespace FNPlugin.Powermanagement
             if (attachedPowerSource != null)
             {
                 ConnectToPowerSource();
-                Debug.Log("[KSPI]: Found power source localy");
+                Debug.Log("[KSPI]: Found power source locally");
                 return;
             }
 
@@ -749,7 +742,7 @@ namespace FNPlugin.Powermanagement
         public double CapacityRatio
         {
             get {
-                capacityRatio = (double)(decimal)powerCapacity / 100;
+                capacityRatio = powerCapacity / 100;
                 return capacityRatio;
             }
         }
@@ -845,7 +838,11 @@ namespace FNPlugin.Powermanagement
                             ? attachedPowerSource.PlasmaEnergyEfficiency
                             : attachedPowerSource.ThermalEnergyEfficiency;
 
-                stableMaximumReactorPower = isLimitedByMinThrotle ? attachedPowerSource.MinimumPower : attachedPowerSource.StableMaximumReactorPower;
+                stableMaximumReactorPower = isLimitedByMinThrotle
+                    ? attachedPowerSource.MinimumPower
+                    : HighLogic.LoadedSceneIsEditor
+                        ? attachedPowerSource.MaximumPower
+                        : attachedPowerSource.StableMaximumReactorPower;
 
                 return stableMaximumReactorPower * attachedPowerSource.PowerRatio * maxPowerUsageRatio * maxEfficiency * CapacityRatio;
             }
