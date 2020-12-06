@@ -187,7 +187,7 @@
     <Compile Include="Storage\FNModuleAnimater.cs" />
     <Compile Include="Storage\FNRadioActiveStorage.cs" />
     <Compile Include="Storage\KerbalismHabitatController.cs" />
-    <Compile Include="Toolbar\FlightUIStarter.cs" />
+    <Compile Include="Powermanagement\FlightUIStarter.cs" />
     <Compile Include="Science\FNImpactorModule.cs" />
     <Compile Include="Science\FNLCMassSpectrometer.cs" />
     <Compile Include="Science\FNMassSpectrometer.cs" />
@@ -217,7 +217,7 @@
     <Compile Include="Refinery\Activity\SabatierReactor.cs" />
     <Compile Include="Science\ScienceModule.cs" />
     <Compile Include="Refinery\Activity\UF4Ammonolysiser.cs" />
-    <Compile Include="Toolbar\VABThermalUI.cs" />
+    <Compile Include="Wasteheat\VABThermalUI.cs" />
     <Compile Include="Science\VanAllen.cs" />
     <Compile Include="Powermanagement\FNGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

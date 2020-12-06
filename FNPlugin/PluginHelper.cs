@@ -610,22 +610,22 @@ namespace FNPlugin
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
-                FlightUIStarter.hide_button = false;
-                FlightUIStarter.show_window = true;
+                FlightUIStarter.hideButton = false;
+                FlightUIStarter.showWindow = true;
                 VABThermalUI.renderWindow = false;
             }
             else
             {
-                FlightUIStarter.hide_button = false;
-                FlightUIStarter.show_window = false;
+                FlightUIStarter.hideButton = false;
+                FlightUIStarter.showWindow = false;
                 VABThermalUI.renderWindow = true;
             }
         }
 
         void OnAppLauncherDeactivate()
         {
-            FlightUIStarter.hide_button = true;
-            FlightUIStarter.show_window = false;
+            FlightUIStarter.hideButton = true;
+            FlightUIStarter.showWindow = false;
             VABThermalUI.renderWindow = false;
         }
 

@@ -323,7 +323,6 @@ namespace FNPlugin.Propulsion
         [KSPField] public double baseJetHeatproduction = 0;
         [KSPField] public double coreTemperature = 3000;
         [KSPField] public double minimumThrust = 0.000001;
-        [KSPField] public double powerHeatModifier;
         [KSPField] public double plasmaAfterburnerHeatModifier = 0.5;
         [KSPField] public double thermalHeatModifier = 5;
         [KSPField] public double currentThrottle;
@@ -512,6 +511,19 @@ namespace FNPlugin.Propulsion
                     return (float)(adjustedThrottle * receivedMegajoulesRatio * effectiveThrustFraction * fuelflow_throtle_modifier);
                 else
                     return 0;
+            }
+        }
+
+        public double ReactorWasteheatModifier
+        {
+            get
+            {
+                var baseWasteheatEfficiency = isPlasmaNozzle ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
+                var reactorWasteheatModifier = AttachedReactor == null ? 1 : isPlasmaNozzle ? AttachedReactor.PlasmaWasteheatProductionMult : AttachedReactor.EngineWasteheatProductionMult;
+                var wasteheatEfficiencyModifier = (1 - baseWasteheatEfficiency) * reactorWasteheatModifier;
+                if (_fuelCoolingFactor > 0)
+                    wasteheatEfficiencyModifier /= _fuelCoolingFactor;
+                return wasteheatEfficiencyModifier;
             }
         }
 
@@ -1261,8 +1273,9 @@ namespace FNPlugin.Propulsion
 
                 _atmosphereCurve.Add(0, effectiveIsp, 0, 0);
 
-                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
-                var wasteheatModifier = wasteheatRatioDecelerationMult > 0 ? Math.Max((1 - wasteheatRatio) * wasteheatRatioDecelerationMult, 1) : 1;
+                var wasteheatModifier = wasteheatRatioDecelerationMult > 0
+                    ? Math.Max((1 - getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt)) * wasteheatRatioDecelerationMult, 1)
+                    : 1;
 
                 if (AttachedReactor != null)
                 {
@@ -1804,21 +1817,8 @@ namespace FNPlugin.Propulsion
             // consume wasteheat
             if (!CheatOptions.IgnoreMaxTemperature)
             {
-                var sootModifier = CheatOptions.UnbreakableJoints
-                    ? 1
-                    : sootHeatDivider > 0
-                        ? 1 - (sootAccumulationPercentage / sootHeatDivider)
-                        : 1;
-
-                var baseWasteheatEfficiency = isPlasmaNozzle ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
-
-                var reactorWasteheatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaWasteheatProductionMult : AttachedReactor.EngineWasteheatProductionMult;
-
-                var wasteheatEfficiencyModifier = (1 - baseWasteheatEfficiency) * reactorWasteheatModifier;
-                if (_fuelCoolingFactor > 0)
-                    wasteheatEfficiencyModifier /= _fuelCoolingFactor;
-
-                consumeFNResourcePerSecond(sootModifier * (1 - wasteheatEfficiencyModifier) * reactor_power_received, ResourceSettings.Config.WasteHeatInMegawatt);
+                var sootModifier = CheatOptions.UnbreakableJoints || sootHeatDivider <= 0 ? 1 : 1 - sootAccumulationPercentage / sootHeatDivider;
+                consumeFNResourcePerSecond(sootModifier * (1 - ReactorWasteheatModifier) * reactor_power_received, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
             if (reactor_power_received > 0 && _maxISP > 0)
@@ -1831,7 +1831,7 @@ namespace FNPlugin.Propulsion
 
                 var ispRatio = _currentPropellantIsJet ? current_isp / _maxISP : 1;
 
-                powerHeatModifier = receivedMegajoulesRatio * GetPowerThrustModifier() * GetHeatThrustModifier();
+                var powerHeatModifier = receivedMegajoulesRatio * GetPowerThrustModifier() * GetHeatThrustModifier();
 
                 engineMaxThrust = powerHeatModifier * mhdTrustIspModifier * reactor_power_received / _maxISP / GameConstants.STANDARD_GRAVITY;
 
@@ -1875,7 +1875,7 @@ namespace FNPlugin.Propulsion
 
             if (!double.IsInfinity(max_thrust_in_current_atmosphere) && !double.IsNaN(max_thrust_in_current_atmosphere))
             {
-                var sootModifier = _thrustPropellantMultiplier * (CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / sootThrustDivider);
+                var sootModifier = _thrustPropellantMultiplier * (CheatOptions.UnbreakableJoints ? 1 : 1 - sootAccumulationPercentage / sootThrustDivider);
                 final_max_engine_thrust = max_thrust_in_current_atmosphere * sootModifier;
                 calculatedMaxThrust *= sootModifier;
             }
