@@ -11,6 +11,7 @@ namespace FNPlugin
 
         // doubles
         public  double SpotsizeMult { get; private set; } = 1.22;
+        public double ElectricEngineIspMult { get; private set; } = 1;
 
         // integers
         public int SpeedOfLight { get; private set; } = 299792458;
@@ -24,6 +25,8 @@ namespace FNPlugin
         public string JetUpgradeTech4 { get; private set; } = "";
         public string JetUpgradeTech5 { get; private set; } = "";
 
+        public double IspCoreTempMult { get; private set; } = GameConstants.IspCoreTemperatureMultiplier;
+
 
         public PluginSettings(ConfigNode pluginSettings)
         {
@@ -32,6 +35,7 @@ namespace FNPlugin
             UpdateIntWithConfigNode(pluginSettings, nameof(MicrowaveApertureDiameterMult), value => MicrowaveApertureDiameterMult = value);
 
             UpdateDoubleWithConfigNode(pluginSettings, nameof(SpotsizeMult), value => SpotsizeMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(IspCoreTempMult), value => IspCoreTempMult = value);
 
             UpdateStringWithConfigNode(pluginSettings, nameof(JetUpgradeTech1), value => JetUpgradeTech1 = value);
             UpdateStringWithConfigNode(pluginSettings, nameof(JetUpgradeTech2), value => JetUpgradeTech2 = value);

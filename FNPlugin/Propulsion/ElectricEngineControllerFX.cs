@@ -512,7 +512,7 @@ namespace FNPlugin.Propulsion
             _ispFloatCurve = new FloatCurve();
             _ispFloatCurve.Add(0, (float)baseISP);
             _hasGearTechnology = string.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
-            _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
+            _modifiedEngineBaseIsp = baseISP * PluginSettings.Config.ElectricEngineIspMult;
             _hasRequiredUpgrade = this.HasTechsRequiredToUpgrade();
 
             if (_hasRequiredUpgrade && (isupgraded || state == StartState.Editor))

@@ -260,9 +260,6 @@ namespace FNPlugin
         private static double _minAtmosphericAirDensity = 0;
         public static double MinAtmosphericAirDensity { get { return _minAtmosphericAirDensity; } }
 
-        private static double _ispCoreTempMult = GameConstants.IspCoreTemperatureMultiplier;
-        public static double IspCoreTempMult { get { return _ispCoreTempMult; } }
-
         private static double _lowCoreTempBaseThrust = 0;
         public static double LowCoreTempBaseThrust { get { return _lowCoreTempBaseThrust; } }
 
@@ -280,9 +277,6 @@ namespace FNPlugin
 
         private static double _globalElectricEnginePowerMaxThrustMult = 1;
         public static double GlobalElectricEnginePowerMaxThrustMult { get { return _globalElectricEnginePowerMaxThrustMult; } }
-
-        private static double _electricEngineIspMult = 1;
-        public static double ElectricEngineIspMult { get { return _electricEngineIspMult; } }
 
         private static double _electricEngineAtmosphericDensityThrustLimiter = 0;
         public static double ElectricEngineAtmosphericDensityThrustLimiter { get { return _electricEngineAtmosphericDensityThrustLimiter; } }
@@ -517,12 +511,6 @@ namespace FNPlugin
             return config;
         }
 
-        public static ConfigNode getPluginSettingsFile()
-        {
-            ConfigNode config = ConfigNode.Load(PluginSettingsFilePath) ?? new ConfigNode();
-            return config;
-        }
-
         public static double getMaxAtmosphericAltitude(CelestialBody body)
         {
             if (!body.atmosphere) return 0;
@@ -666,17 +654,6 @@ namespace FNPlugin
             {
                 ShowInstallationErrorMessage();
                 return;
-            }
-
-            if (pluginSettingConfigs.HasValue("IspCoreTempMult"))
-            {
-                _ispCoreTempMult = double.Parse(pluginSettingConfigs.GetValue("IspCoreTempMult"));
-                Debug.Log("[KSPI]: Isp core temperature multiplier set to: " + IspCoreTempMult.ToString("0.000000"));
-            }
-            if (pluginSettingConfigs.HasValue("ElectricEngineIspMult"))
-            {
-                _electricEngineIspMult = double.Parse(pluginSettingConfigs.GetValue("ElectricEngineIspMult"));
-                Debug.Log("[KSPI]: Electric EngineIsp Multiplier set to: " + ElectricEngineIspMult.ToString("0.000000"));
             }
             if (pluginSettingConfigs.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))
             {

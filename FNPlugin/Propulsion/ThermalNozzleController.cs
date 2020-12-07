@@ -393,7 +393,6 @@ namespace FNPlugin.Propulsion
         private readonly List<Propellant> _listOfPropellants = new List<Propellant>();
         private List<FNModulePreecooler> _vesselPreCoolers;
         private List<AtmosphericIntake> _vesselResourceIntakes;
-        private List<IFNEngineNoozle> _vesselThermalNozzles;
         private List<ThermalEngineFuel> _allThermalEngineFuels;
         private List<ThermalEngineFuel> _compatibleThermalEngineFuels;
 
@@ -412,7 +411,7 @@ namespace FNPlugin.Propulsion
 
         public string UpgradeTechnology => upgradeTechReq;
 
-        public double EffectiveCoreTempIspMult => (ispCoreTempMult == 0 ? PluginHelper.IspCoreTempMult : ispCoreTempMult) + IspTempMultOffset;
+        public double EffectiveCoreTempIspMult => (ispCoreTempMult == 0 ? PluginSettings.Config.IspCoreTempMult : ispCoreTempMult) + IspTempMultOffset;
 
         public bool UsePlasmaPower => isPlasmaNozzle || canUsePlasmaPower && (AttachedReactor != null && AttachedReactor.PlasmaPropulsionEfficiency > 0);
 
@@ -704,7 +703,6 @@ namespace FNPlugin.Propulsion
             // research all available pre-coolers, intakes and nozzles on the vessel
             _vesselPreCoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
             _vesselResourceIntakes = vessel.FindPartModulesImplementing<AtmosphericIntake>();
-            _vesselThermalNozzles = vessel.FindPartModulesImplementing<IFNEngineNoozle>();
 
             // if we can upgrade, let's do so
             if (isupgraded)
