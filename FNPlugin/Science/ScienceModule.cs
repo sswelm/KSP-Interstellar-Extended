@@ -436,11 +436,11 @@ namespace FNPlugin
                     Debug.LogError("[KSPI]: ScienceModule 4 " + e.Message);
                 }
 
-                double currentpowertmp = electrical_power_ratio * PluginHelper.BasePowerConsumption * powerReqMult;
+                double currentpowertmp = electrical_power_ratio * PluginSettings.Config.BasePowerConsumption * powerReqMult;
 
                 try
                 {
-                    powerStr = currentpowertmp.ToString("0.0000") + "MW / " + (powerReqMult * PluginHelper.BasePowerConsumption).ToString("0.0000") + "MW";
+                    powerStr = currentpowertmp.ToString("0.0000") + "MW / " + (powerReqMult * PluginSettings.Config.BasePowerConsumption).ToString("0.0000") + "MW";
                 }
                 catch (Exception e)
                 {
@@ -621,13 +621,13 @@ namespace FNPlugin
             */
             if (active_mode == 1) // Fuel Reprocessing
             {
-                var powerRequest = powerReqMult * PluginHelper.BasePowerConsumption * TimeWarp.fixedDeltaTime;
+                var powerRequest = powerReqMult * PluginSettings.Config.BasePowerConsumption * TimeWarp.fixedDeltaTime;
 
-                double electrical_power_provided = CheatOptions.InfiniteElectricity
+                double electricalPowerProvided = CheatOptions.InfiniteElectricity
                     ? powerRequest
                     : consumeFNResource(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt);
 
-                electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult;
+                electrical_power_ratio = electricalPowerProvided / TimeWarp.fixedDeltaTime / PluginSettings.Config.BasePowerConsumption / powerReqMult;
 
                 var productionModifier = global_rate_multipliers;
                 global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
@@ -642,12 +642,12 @@ namespace FNPlugin
             {
                 var powerRequestInMegajoules = powerReqMult * PluginHelper.BaseAMFPowerConsumption * TimeWarp.fixedDeltaTime;
 
-                var energy_provided_in_megajoules = CheatOptions.InfiniteElectricity
+                var energyProvidedInMegajoules = CheatOptions.InfiniteElectricity
                     ? powerRequestInMegajoules
                     : consumeFNResource(powerRequestInMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
 
-                electrical_power_ratio = powerRequestInMegajoules > 0 ? energy_provided_in_megajoules / powerRequestInMegajoules : 0;
-                antimatterGenerator.Produce(energy_provided_in_megajoules * global_rate_multipliers);
+                electrical_power_ratio = powerRequestInMegajoules > 0 ? energyProvidedInMegajoules / powerRequestInMegajoules : 0;
+                antimatterGenerator.Produce(energyProvidedInMegajoules * global_rate_multipliers);
                 antimatter_rate_f = antimatterGenerator.ProductionRate;
             }
             else if (active_mode == 3)
@@ -660,11 +660,11 @@ namespace FNPlugin
                 {
                     var powerRequest = powerReqMult * PluginHelper.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime;
 
-                    double electrical_power_provided = CheatOptions.InfiniteElectricity
+                    double electricalPowerProvided = CheatOptions.InfiniteElectricity
                         ? powerRequest
                         : consumeFNResource(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt);
 
-                    electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult;
+                    electrical_power_ratio = electricalPowerProvided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult;
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                     double deut_produced = global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f;
                     deut_rate_f = -part.RequestResource(ResourceSettings.Config.DeuteriumLqd, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;

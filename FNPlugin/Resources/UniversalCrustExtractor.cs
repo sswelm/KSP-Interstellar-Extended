@@ -475,7 +475,7 @@ namespace FNPlugin.Resources
             if (CheatOptions.InfiniteElectricity || mwRequirements == 0) // is the cheat option of infinite electricity ON? Then skip all these checks.
                 return 100;
 
-            double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements;
+            double dPowerRequirementsMW = PluginSettings.Config.PowerConsumptionMultiplier * mwRequirements;
             // Determine available power, using EC if below 5 MW required
             double dNormalisedRecievedPowerMW = consumeMegawatts(dPowerRequirementsMW,
                 true, false, dPowerRequirementsMW < 5.0);

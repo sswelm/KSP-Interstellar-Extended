@@ -257,84 +257,60 @@ namespace FNPlugin
         public static int HoursInDay => GameConstants.KEBRIN_HOURS_DAY;
         public static int SecondsInHour => GameConstants.SECONDS_IN_HOUR;
 
+
+
         private static double _minAtmosphericAirDensity = 0;
         public static double MinAtmosphericAirDensity { get { return _minAtmosphericAirDensity; } }
 
-        private static double _lowCoreTempBaseThrust = 0;
-        public static double LowCoreTempBaseThrust { get { return _lowCoreTempBaseThrust; } }
-
-        private static double _highCoreTempThrustMult = GameConstants.HighCoreTempThrustMultiplier;
-        public static double HighCoreTempThrustMult { get { return _highCoreTempThrustMult; } }
-
-        private static double _thrustCoreTempThreshold = 0;
-        public static double ThrustCoreTempThreshold { get { return _thrustCoreTempThreshold; } }
-
-        private static double _globalThermalNozzlePowerMaxThrustMult = 1;
-        public static double GlobalThermalNozzlePowerMaxThrustMult { get { return _globalThermalNozzlePowerMaxThrustMult; } }
-
-        private static double _globalMagneticNozzlePowerMaxThrustMult = 1;
-        public static double GlobalMagneticNozzlePowerMaxThrustMult { get { return _globalMagneticNozzlePowerMaxThrustMult; } }
-
-        private static double _globalElectricEnginePowerMaxThrustMult = 1;
-        public static double GlobalElectricEnginePowerMaxThrustMult { get { return _globalElectricEnginePowerMaxThrustMult; } }
 
         private static double _electricEngineAtmosphericDensityThrustLimiter = 0;
         public static double ElectricEngineAtmosphericDensityThrustLimiter { get { return _electricEngineAtmosphericDensityThrustLimiter; } }
 
         //------------------------------------------------------------------------------------------
 
-        private static double _basePowerConsumption = GameConstants.basePowerConsumption;
-        public static double BasePowerConsumption { get { return PowerConsumptionMultiplier * _basePowerConsumption; } }
-
         private static double _baseAMFPowerConsumption = GameConstants.baseAMFPowerConsumption;
-        public static double BaseAMFPowerConsumption { get { return PowerConsumptionMultiplier * _baseAMFPowerConsumption; } }
+        public static double BaseAMFPowerConsumption { get { return _baseAMFPowerConsumption; } }
 
         private static double _baseCentriPowerConsumption = GameConstants.baseCentriPowerConsumption;
-        public static double BaseCentriPowerConsumption { get { return PowerConsumptionMultiplier * _baseCentriPowerConsumption; } }
+        public static double BaseCentriPowerConsumption { get { return _baseCentriPowerConsumption; } }
 
         private static double _baseELCPowerConsumption = GameConstants.baseELCPowerConsumption;
-        public static double BaseELCPowerConsumption { get { return PowerConsumptionMultiplier * _baseELCPowerConsumption; } }
+        public static double BaseELCPowerConsumption { get { return _baseELCPowerConsumption; } }
 
         private static double _baseAnthraquiononePowerConsumption = GameConstants.baseAnthraquiononePowerConsumption;
-        public static double BaseAnthraquiononePowerConsumption { get { return PowerConsumptionMultiplier * _baseAnthraquiononePowerConsumption; } }
+        public static double BaseAnthraquiononePowerConsumption { get { return _baseAnthraquiononePowerConsumption; } }
 
         private static double _basePechineyUgineKuhlmannPowerConsumption = GameConstants.basePechineyUgineKuhlmannPowerConsumption;
-        public static double BasePechineyUgineKuhlmannPowerConsumption { get { return PowerConsumptionMultiplier * _basePechineyUgineKuhlmannPowerConsumption; } }
+        public static double BasePechineyUgineKuhlmannPowerConsumption { get { return _basePechineyUgineKuhlmannPowerConsumption; } }
 
         private static double _baseHaberProcessPowerConsumption = GameConstants.baseHaberProcessPowerConsumption;
-        public static double BaseHaberProcessPowerConsumption { get { return PowerConsumptionMultiplier * _baseHaberProcessPowerConsumption; } }
+        public static double BaseHaberProcessPowerConsumption { get { return _baseHaberProcessPowerConsumption; } }
 
         private static double _baseUraniumAmmonolysisPowerConsumption = GameConstants.baseUraniumAmmonolysisPowerConsumption;
-        public static double BaseUraniumAmmonolysisPowerConsumption { get { return PowerConsumptionMultiplier * _baseUraniumAmmonolysisPowerConsumption; } }
+        public static double BaseUraniumAmmonolysisPowerConsumption { get { return _baseUraniumAmmonolysisPowerConsumption; } }
 
         //------------------------------------------------------------------------------------------------
 
         private static double _anthraquinoneEnergyPerTon = GameConstants.anthraquinoneEnergyPerTon;
-        public static double AnthraquinoneEnergyPerTon { get { return PowerConsumptionMultiplier * _anthraquinoneEnergyPerTon; } }
+        public static double AnthraquinoneEnergyPerTon { get { return _anthraquinoneEnergyPerTon; } }
 
         private static double _haberProcessEnergyPerTon = GameConstants.haberProcessEnergyPerTon;
-        public static double HaberProcessEnergyPerTon { get { return PowerConsumptionMultiplier * _haberProcessEnergyPerTon; } }
+        public static double HaberProcessEnergyPerTon { get { return _haberProcessEnergyPerTon; } }
 
         private static double _electrolysisEnergyPerTon = GameConstants.waterElectrolysisEnergyPerTon;
-        public static double ElectrolysisEnergyPerTon { get { return PowerConsumptionMultiplier * _electrolysisEnergyPerTon; } }
+        public static double ElectrolysisEnergyPerTon { get { return _electrolysisEnergyPerTon; } }
 
         private static double _aluminiumElectrolysisEnergyPerTon = GameConstants.aluminiumElectrolysisEnergyPerTon;
-        public static double AluminiumElectrolysisEnergyPerTon { get { return PowerConsumptionMultiplier * _aluminiumElectrolysisEnergyPerTon; } }
+        public static double AluminiumElectrolysisEnergyPerTon { get { return _aluminiumElectrolysisEnergyPerTon; } }
 
         private static double _pechineyUgineKuhlmannEnergyPerTon = GameConstants.pechineyUgineKuhlmannEnergyPerTon;
-        public static double PechineyUgineKuhlmannEnergyPerTon { get { return PowerConsumptionMultiplier * _pechineyUgineKuhlmannEnergyPerTon; } }
+        public static double PechineyUgineKuhlmannEnergyPerTon { get { return _pechineyUgineKuhlmannEnergyPerTon; } }
 
-
-        private static double _powerConsumptionMultiplier = 1;
-        public static double PowerConsumptionMultiplier { get { return _powerConsumptionMultiplier; } }
 
         //----------------------------------------------------------------------------------------------
 
-        private static float _maxThermalNozzleIsp = GameConstants.MaxThermalNozzleIsp;
-        public static float MaxThermalNozzleIsp { get { return _maxThermalNozzleIsp; } }
 
-        private static double _airflowHeatMult = GameConstants.AirflowHeatMultiplier;
-        public static double AirflowHeatMult { get { return _airflowHeatMult; } }
+
 
 
         // RadiatorAreaMultiplier
@@ -655,56 +631,7 @@ namespace FNPlugin
                 ShowInstallationErrorMessage();
                 return;
             }
-            if (pluginSettingConfigs.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))
-            {
-                _globalThermalNozzlePowerMaxThrustMult = double.Parse(pluginSettingConfigs.GetValue("GlobalThermalNozzlePowerMaxTrustMult"));
-                Debug.Log("[KSPI]: Maximum Global Thermal Power Maximum Thrust Multiplier set to: " + GlobalThermalNozzlePowerMaxThrustMult.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("GlobalMagneticNozzlePowerMaxTrustMult"))
-            {
-                _globalMagneticNozzlePowerMaxThrustMult = double.Parse(pluginSettingConfigs.GetValue("GlobalMagneticNozzlePowerMaxTrustMult"));
-                Debug.Log("[KSPI]: Maximum Global Magnetic Nozzle Power Maximum Thrust Multiplier set to: " + GlobalMagneticNozzlePowerMaxThrustMult.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("GlobalElectricEnginePowerMaxTrustMult"))
-            {
-                _globalElectricEnginePowerMaxThrustMult = double.Parse(pluginSettingConfigs.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
-                Debug.Log("[KSPI]: Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("MaxThermalNozzleIsp"))
-            {
-                _maxThermalNozzleIsp = float.Parse(pluginSettingConfigs.GetValue("MaxThermalNozzleIsp"));
-                Debug.Log("[KSPI] Maximum Thermal Nozzle Isp set to: " + MaxThermalNozzleIsp.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("EngineHeatProduction"))
-            {
-                _airflowHeatMult = double.Parse(pluginSettingConfigs.GetValue("AirflowHeatMult"));
-                Debug.Log("[KSPI]: AirflowHeatMultipler Isp set to: " + AirflowHeatMult.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("TrustCoreTempThreshold"))
-            {
-                _thrustCoreTempThreshold = double.Parse(pluginSettingConfigs.GetValue("TrustCoreTempThreshold"));
-                Debug.Log("[KSPI]: Thrust core temperature threshold set to: " + ThrustCoreTempThreshold.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("LowCoreTempBaseTrust"))
-            {
-                _lowCoreTempBaseThrust = double.Parse(pluginSettingConfigs.GetValue("LowCoreTempBaseTrust"));
-                Debug.Log("[KSPI]: Low core temperature base thrust modifier set to: " + LowCoreTempBaseThrust.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("HighCoreTempTrustMult"))
-            {
-                _highCoreTempThrustMult = double.Parse(pluginSettingConfigs.GetValue("HighCoreTempTrustMult"));
-                Debug.Log("[KSPI]: High core temperature thrust divider set to: " + HighCoreTempThrustMult.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("BasePowerConsumption"))
-            {
-                _basePowerConsumption = double.Parse(pluginSettingConfigs.GetValue("BasePowerConsumption"));
-                Debug.Log("[KSPI]: Base Power Consumption set to: " + BasePowerConsumption.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("PowerConsumptionMultiplier"))
-            {
-                _powerConsumptionMultiplier = double.Parse(pluginSettingConfigs.GetValue("PowerConsumptionMultiplier"));
-                Debug.Log("[KSPI]: Base Power Consumption set to: " + PowerConsumptionMultiplier.ToString("0.0"));
-            }
+
             if (pluginSettingConfigs.HasValue("ElectricEngineAtmosphericDensityTrustLimiter"))
             {
                 _electricEngineAtmosphericDensityThrustLimiter = double.Parse(pluginSettingConfigs.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));

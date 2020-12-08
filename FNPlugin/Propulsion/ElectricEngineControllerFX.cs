@@ -1111,7 +1111,7 @@ namespace FNPlugin.Propulsion
 
         private double GetPowerThrustModifier()
         {
-            return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalElectricEnginePowerMaxThrustMult * this.powerThrustMultiplier;
+            return GameConstants.BaseThrustPowerMultiplier * PluginSettings.Config.GlobalElectricEnginePowerMaxThrustMult * powerThrustMultiplier;
         }
 
         private double GetAtmosphericDensityModifier()

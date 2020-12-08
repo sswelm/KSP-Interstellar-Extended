@@ -595,7 +595,7 @@ namespace FNPlugin.Propulsion
 
             // use default when not configured
             if (maxThermalNozzleIsp == 0)
-                maxThermalNozzleIsp = PluginHelper.MaxThermalNozzleIsp;
+                maxThermalNozzleIsp = (float)PluginSettings.Config.MaxThermalNozzleIsp;
             if (maxJetModeBaseIsp == 0)
                 maxJetModeBaseIsp = maxThermalNozzleIsp;
             if (maxLfoModeBaseIsp == 0)
@@ -1981,7 +1981,7 @@ namespace FNPlugin.Propulsion
 
                 spaceHeatProduction = heatProductionMultiplier * reactorHeatModifier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
                 engineHeatProduction = _currentPropellantIsJet
-                    ? jetHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult)
+                    ? jetHeatProduction * (1 + airflowHeatModifier * PluginSettings.Config.AirflowHeatMult)
                     : spaceHeatProduction;
 
                 myAttachedEngine.heatProduction = (float)(engineHeatProduction * Math.Max(0, startupHeatReductionRatio));
@@ -2198,21 +2198,21 @@ namespace FNPlugin.Propulsion
 
         private double GetHeatThrustModifier()
         {
-            var thrustCoreTempThreshold = PluginHelper.ThrustCoreTempThreshold;
-            var lowCoreTempBaseThrust = PluginHelper.LowCoreTempBaseThrust;
+            var thrustCoreTempThreshold = PluginSettings.Config.ThrustCoreTempThreshold;
+            var lowCoreTempBaseThrust = PluginSettings.Config.LowCoreTempBaseThrust;
 
             return thrustCoreTempThreshold <= 0
                 ? 1.0
                 : AttachedReactor.MaxCoreTemperature < thrustCoreTempThreshold
                     ? (AttachedReactor.CoreTemperature + lowCoreTempBaseThrust) / (thrustCoreTempThreshold + lowCoreTempBaseThrust)
-                    : 1.0 + PluginHelper.HighCoreTempThrustMult * Math.Max(Math.Log10(AttachedReactor.CoreTemperature / thrustCoreTempThreshold), 0);
+                    : 1.0 + PluginSettings.Config.HighCoreTempThrustMult * Math.Max(Math.Log10(AttachedReactor.CoreTemperature / thrustCoreTempThreshold), 0);
         }
 
         private float CurrentPowerThrustMultiplier => _currentPropellantIsJet ? powerTrustMultiplierJet : powerTrustMultiplier;
 
         private double GetPowerThrustModifier()
         {
-            return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxThrustMult * CurrentPowerThrustMultiplier;
+            return GameConstants.BaseThrustPowerMultiplier * PluginSettings.Config.GlobalThermalNozzlePowerMaxThrustMult * CurrentPowerThrustMultiplier;
         }
 
         private void UpdateRadiusModifier()

@@ -7,16 +7,29 @@ namespace FNPlugin
     public class PluginSettings
     {
         private static PluginSettings _config;
-        public static PluginSettings Config => _config ?? (_config = new PluginSettings(PluginHelper.PluginSettingsConfig));
 
-        // doubles
-        public  double SpotsizeMult { get; private set; } = 1.22;
-        public double ElectricEngineIspMult { get; private set; } = 1;
+        public static PluginSettings Config =>
+            _config ?? (_config = new PluginSettings(PluginHelper.PluginSettingsConfig));
 
         // integers
         public int SpeedOfLight { get; private set; } = 299792458;
         public int SecondsInDay { get; private set; } = GameConstants.KEBRIN_DAY_SECONDS;
         public int MicrowaveApertureDiameterMult { get; private set; } = 10;
+
+        // doubles
+        public double AirflowHeatMult { get; private set; } = GameConstants.AirflowHeatMultiplier;
+        public double BasePowerConsumption { get; private set; } = GameConstants.basePowerConsumption;
+        public double ElectricEngineIspMult { get; private set; } = 1;
+        public double GlobalMagneticNozzlePowerMaxThrustMult { get; private set; } = 1;
+        public double GlobalThermalNozzlePowerMaxThrustMult { get; private set; } = 1;
+        public double GlobalElectricEnginePowerMaxThrustMult { get; private set; } = 1;
+        public double HighCoreTempThrustMult { get; private set; } = GameConstants.HighCoreTempThrustMultiplier;
+        public double IspCoreTempMult { get; private set; } = GameConstants.IspCoreTemperatureMultiplier;
+        public double LowCoreTempBaseThrust { get; private set; } = 0;
+        public double PowerConsumptionMultiplier { get; private set; } = 1;
+        public double MaxThermalNozzleIsp { get; private set; } = GameConstants.MaxThermalNozzleIsp;
+        public double SpotsizeMult { get; private set; } = 1.22;
+        public double ThrustCoreTempThreshold { get; private set; } = 0;
 
         // Jet Upgrade Techs
         public string JetUpgradeTech1 { get; private set; } = "";
@@ -25,17 +38,27 @@ namespace FNPlugin
         public string JetUpgradeTech4 { get; private set; } = "";
         public string JetUpgradeTech5 { get; private set; } = "";
 
-        public double IspCoreTempMult { get; private set; } = GameConstants.IspCoreTemperatureMultiplier;
 
 
         public PluginSettings(ConfigNode pluginSettings)
         {
+            UpdateIntWithConfigNode(pluginSettings, nameof(MicrowaveApertureDiameterMult), value => MicrowaveApertureDiameterMult = value);
             UpdateIntWithConfigNode(pluginSettings, nameof(SpeedOfLight), value => SpeedOfLight = value);
             UpdateIntWithConfigNode(pluginSettings, nameof(SecondsInDay), value => SecondsInDay = value);
-            UpdateIntWithConfigNode(pluginSettings, nameof(MicrowaveApertureDiameterMult), value => MicrowaveApertureDiameterMult = value);
 
-            UpdateDoubleWithConfigNode(pluginSettings, nameof(SpotsizeMult), value => SpotsizeMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(AirflowHeatMult), value => AirflowHeatMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(BasePowerConsumption), value => BasePowerConsumption = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(ElectricEngineIspMult), value => ElectricEngineIspMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalMagneticNozzlePowerMaxThrustMult), value => GlobalMagneticNozzlePowerMaxThrustMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalThermalNozzlePowerMaxThrustMult), value => GlobalThermalNozzlePowerMaxThrustMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalElectricEnginePowerMaxThrustMult), value => GlobalThermalNozzlePowerMaxThrustMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(HighCoreTempThrustMult), value => HighCoreTempThrustMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(IspCoreTempMult), value => IspCoreTempMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(LowCoreTempBaseThrust), value => LowCoreTempBaseThrust = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(PowerConsumptionMultiplier), value => PowerConsumptionMultiplier = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(MaxThermalNozzleIsp), value => MaxThermalNozzleIsp = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(SpotsizeMult), value => SpotsizeMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(ThrustCoreTempThreshold), value => ThrustCoreTempThreshold = value);
 
             UpdateStringWithConfigNode(pluginSettings, nameof(JetUpgradeTech1), value => JetUpgradeTech1 = value);
             UpdateStringWithConfigNode(pluginSettings, nameof(JetUpgradeTech2), value => JetUpgradeTech2 = value);

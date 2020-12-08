@@ -13,7 +13,7 @@ namespace FNPlugin.Refinery.Activity
         public NuclearFuelReprocessor()
         {
             ActivityName = "Nuclear Fuel Reprocessing";
-            PowerRequirements = PluginHelper.BasePowerConsumption;
+            PowerRequirements = PluginSettings.Config.BasePowerConsumption;
             EnergyPerTon = 1 / GameConstants.baseReprocessingRate;
         }
 

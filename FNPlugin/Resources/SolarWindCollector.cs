@@ -677,8 +677,8 @@ namespace FNPlugin.Resources
             var magneticSuperconductorPowerReqCost = mwRequirements * superConductingRatio;
 
             var magneticPowerCost = (magneticPulsatingPowerCost + magneticSuperconductorPowerReqCost) * Math.Pow(powerPercentage * 0.01, 2);
-            var dPowerRequirementsMw = powerReqMult * PluginHelper.PowerConsumptionMultiplier * (magneticPowerCost + ionizationPowerCost); // change the mwRequirements number in part config to change the power consumption
-            var dWasteheatProductionMw = powerReqMult * PluginHelper.PowerConsumptionMultiplier * (magneticPulsatingPowerCost + magneticSuperconductorPowerReqCost * 0.05 + ionizationPowerCost * 0.3);
+            var dPowerRequirementsMw = powerReqMult * PluginSettings.Config.PowerConsumptionMultiplier * (magneticPowerCost + ionizationPowerCost); // change the mwRequirements number in part config to change the power consumption
+            var dWasteheatProductionMw = powerReqMult * PluginSettings.Config.PowerConsumptionMultiplier * (magneticPulsatingPowerCost + magneticSuperconductorPowerReqCost * 0.05 + ionizationPowerCost * 0.3);
 
             // checks for free space in solar wind 'tanks'
             _dSolarWindSpareCapacity = part.GetResourceSpareCapacity(_solarWindResourceDefinition.name);

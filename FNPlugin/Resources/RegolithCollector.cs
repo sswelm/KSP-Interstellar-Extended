@@ -328,7 +328,7 @@ namespace FNPlugin.Resources
             double dt = TimeWarp.fixedDeltaTime;
             dConcentrationRegolith = GetFinalConcentration();
 
-            double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
+            double dPowerRequirementsMW = PluginSettings.Config.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
 
             dRegolithSpareCapacity = part.GetConnectedResources(strRegolithResourceName).Sum(r => r.maxAmount - r.amount);
 
