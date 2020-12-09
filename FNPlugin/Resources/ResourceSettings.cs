@@ -35,7 +35,7 @@ namespace FNPlugin.Resources
         public string ChlorineGas { get; private set; } = "Chlorine";
         public string MethaneGas { get; private set; } = "Methane";
         public string MethaneLqd { get; private set; } = "LqdMethane";
-        public string NeonGas { get; private set; } = "LqdGas";
+        public string NeonGas { get; private set; } = "NeonGas";
         public string NeonLqd { get; private set; } = "LqdNeon";
         public string NitrogenGas { get; private set; } = "Nitrogen";
         public string NitrogenLqd { get; private set; } = "LqdNitrogen";
@@ -91,7 +91,10 @@ namespace FNPlugin.Resources
         public ResourceSettings(ConfigNode pluginSettings)
         {
             if (pluginSettings == null)
+            {
                 PluginHelper.ShowInstallationErrorMessage();
+                return;
+            }
 
             // chemical resources
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Actinides), value => Actinides = value);

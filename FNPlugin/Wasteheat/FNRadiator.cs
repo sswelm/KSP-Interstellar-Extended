@@ -975,7 +975,7 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        public double EffectiveRadiatorArea => BaseRadiatorArea * areaMultiplier * PluginHelper.RadiatorAreaMultiplier;
+        public double EffectiveRadiatorArea => BaseRadiatorArea * areaMultiplier * PluginSettings.Config.RadiatorAreaMultiplier;
 
         private void DetermineGenerationType()
         {

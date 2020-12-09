@@ -26,10 +26,13 @@ namespace FNPlugin
         public double HighCoreTempThrustMult { get; private set; } = GameConstants.HighCoreTempThrustMultiplier;
         public double IspCoreTempMult { get; private set; } = GameConstants.IspCoreTemperatureMultiplier;
         public double LowCoreTempBaseThrust { get; private set; } = 0;
+        public double MinAtmosphericAirDensity { get; private set; } = 0;
         public double PowerConsumptionMultiplier { get; private set; } = 1;
+        public double RadiatorAreaMultiplier { get; private set; } = 2;
         public double MaxThermalNozzleIsp { get; private set; } = GameConstants.MaxThermalNozzleIsp;
         public double SpotsizeMult { get; private set; } = 1.22;
         public double ThrustCoreTempThreshold { get; private set; } = 0;
+
 
         // Jet Upgrade Techs
         public string JetUpgradeTech1 { get; private set; } = "";
@@ -55,6 +58,7 @@ namespace FNPlugin
             UpdateDoubleWithConfigNode(pluginSettings, nameof(HighCoreTempThrustMult), value => HighCoreTempThrustMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(IspCoreTempMult), value => IspCoreTempMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(LowCoreTempBaseThrust), value => LowCoreTempBaseThrust = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(MinAtmosphericAirDensity), value => MinAtmosphericAirDensity = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(PowerConsumptionMultiplier), value => PowerConsumptionMultiplier = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(MaxThermalNozzleIsp), value => MaxThermalNozzleIsp = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(SpotsizeMult), value => SpotsizeMult = value);

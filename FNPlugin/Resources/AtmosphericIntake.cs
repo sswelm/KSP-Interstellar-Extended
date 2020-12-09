@@ -200,10 +200,10 @@ namespace FNPlugin.Resources
             airFlow = atmosphereDensityMultiplier * vessel.atmDensity * intakeExposure / _resourceAtmosphereDefinition.density;
             airThisUpdate = airFlow * TimeWarp.fixedDeltaTime;
 
-            if (part.vessel.atmDensity < PluginHelper.MinAtmosphericAirDensity && vessel.altitude < part.vessel.mainBody.scienceValues.spaceAltitudeThreshold) // only collect when it is possible and relevant
+            if (part.vessel.atmDensity < PluginSettings.Config.MinAtmosphericAirDensity && vessel.altitude < part.vessel.mainBody.scienceValues.spaceAltitudeThreshold) // only collect when it is possible and relevant
             {
                 upperAtmoFraction = Math.Max(0, (vessel.altitude / (part.vessel.mainBody.scienceValues.spaceAltitudeThreshold))); // calculate the fraction of the atmosphere
-                var spaceAirDensity = PluginHelper.MinAtmosphericAirDensity * (1 - upperAtmoFraction);             // calculate the space atmospheric density
+                var spaceAirDensity = PluginSettings.Config.MinAtmosphericAirDensity * (1 - upperAtmoFraction);             // calculate the space atmospheric density
                 airDensity = Math.Max(part.vessel.atmDensity, spaceAirDensity);                             // display amount of density
                 upperAtmoDensity = Math.Max(0, spaceAirDensity - part.vessel.atmDensity);                   // calculate effective addition upper atmosphere density
                 var space_airFlow = intakeAngle * upperAtmoDensity * intakeExposure / _resourceAtmosphereDefinition.density; // how much of that air is our intake catching

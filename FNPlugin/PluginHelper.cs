@@ -257,12 +257,6 @@ namespace FNPlugin
         public static int HoursInDay => GameConstants.KEBRIN_HOURS_DAY;
         public static int SecondsInHour => GameConstants.SECONDS_IN_HOUR;
 
-
-
-        private static double _minAtmosphericAirDensity = 0;
-        public static double MinAtmosphericAirDensity { get { return _minAtmosphericAirDensity; } }
-
-
         private static double _electricEngineAtmosphericDensityThrustLimiter = 0;
         public static double ElectricEngineAtmosphericDensityThrustLimiter { get { return _electricEngineAtmosphericDensityThrustLimiter; } }
 
@@ -308,15 +302,6 @@ namespace FNPlugin
 
 
         //----------------------------------------------------------------------------------------------
-
-
-
-
-
-        // RadiatorAreaMultiplier
-
-        private static double _radiatorAreaMultiplier = 2;
-        public static double RadiatorAreaMultiplier { get { return _radiatorAreaMultiplier; } private set { _radiatorAreaMultiplier = value; } }
 
 
         #endregion
@@ -636,18 +621,6 @@ namespace FNPlugin
             {
                 _electricEngineAtmosphericDensityThrustLimiter = double.Parse(pluginSettingConfigs.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
                 Debug.Log("[KSPI]: Electric Engine Power Propellant IspMultiplier Limiter set to: " + ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
-            }
-            if (pluginSettingConfigs.HasValue("MinAtmosphericAirDensity"))
-            {
-                _minAtmosphericAirDensity = double.Parse(pluginSettingConfigs.GetValue("MinAtmosphericAirDensity"));
-                Debug.Log("[KSPI]: Minimum Atmospheric Air Density set to: " + MinAtmosphericAirDensity.ToString("0.0"));
-            }
-
-            // Radiator
-            if (pluginSettingConfigs.HasValue("RadiatorAreaMultiplier"))
-            {
-                RadiatorAreaMultiplier = double.Parse(pluginSettingConfigs.GetValue("RadiatorAreaMultiplier"));
-                Debug.Log("[KSPI]: RadiatorAreaMultiplier " + RadiatorAreaMultiplier);
             }
 
             resourcesConfigured = true;

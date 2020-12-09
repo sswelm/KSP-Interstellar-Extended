@@ -54,13 +54,13 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_Radius", guiUnits = " m", guiFormat = "F2")]//Radius
         public double radius = 2.5;
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFuelFlow", guiFormat = "F5")]//Max Fuel Flow
-        protected double max_fuel_flow_rate;
+        protected double maxFuelFlowRate;
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFuelFlowonengine", guiFormat = "F5")]//Max FuelFlow on engine
         public float maxFuelFlowOnEngine;
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ThermalNozzleController_FuelFlowMultplier", guiFormat = "F5")]//Fuelflow Multplier on engine
         public double fuelflowMultplier;
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ThermalNozzleController_FuelflowThrotlemodifier", guiFormat = "F5")]//Fuelflow Throtle modifier
-        public double fuelflow_throtle_modifier = 1;
+        public double fuelFlowThrottleModifier = 1;
 
         [KSPField] public double fuelflowThrottleMaxValue = 100;
         [KSPField] public double effectiveFuelflowThrottle;
@@ -306,7 +306,7 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ModuleSabreHeating_MissingPrecoolerRatio")]
         public double missingPrecoolerRatio;
 
-        [KSPField] public bool showIspThrotle;
+        [KSPField] public bool showIspThrottle;
         [KSPField] public bool hasJetUpgradeTech1;
         [KSPField] public bool hasJetUpgradeTech2;
         [KSPField] public bool hasJetUpgradeTech3;
@@ -507,7 +507,7 @@ namespace FNPlugin.Propulsion
             get
             {
                 if (myAttachedEngine != null && myAttachedEngine.isOperational && exhaustAllowed)
-                    return (float)(adjustedThrottle * receivedMegajoulesRatio * effectiveThrustFraction * fuelflow_throtle_modifier);
+                    return (float)(adjustedThrottle * receivedMegajoulesRatio * effectiveThrustFraction * fuelFlowThrottleModifier);
                 else
                     return 0;
             }
@@ -659,8 +659,8 @@ namespace FNPlugin.Propulsion
             mhdPowerGenerationPercentageField.guiActiveEditor = requiredMegajouleRatio > 0;
 
             var ispThrottleField = Fields[nameof(ispThrottle)];
-            ispThrottleField.guiActiveEditor = showIspThrotle;
-            ispThrottleField.guiActive = showIspThrotle;
+            ispThrottleField.guiActiveEditor = showIspThrottle;
+            ispThrottleField.guiActive = showIspThrottle;
 
             if (state == StartState.Editor)
             {
@@ -812,13 +812,13 @@ namespace FNPlugin.Propulsion
 
             if (AttachedReactor != null)
             {
-                showIspThrotle = isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
+                showIspThrottle = isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
 
                 var ispThrottleField = Fields[nameof(ispThrottle)];
                 if (ispThrottleField != null)
                 {
-                    ispThrottleField.guiActiveEditor = showIspThrotle;
-                    ispThrottleField.guiActive = showIspThrotle;
+                    ispThrottleField.guiActiveEditor = showIspThrottle;
+                    ispThrottleField.guiActive = showIspThrottle;
                 }
             }
 
@@ -1386,7 +1386,7 @@ namespace FNPlugin.Propulsion
 
         public double GetNozzleFlowRate()
         {
-            return myAttachedEngine.isOperational ? max_fuel_flow_rate : 0;
+            return myAttachedEngine.isOperational ? maxFuelFlowRate : 0;
         }
 
         public void EstimateEditorPerformance()
@@ -1559,7 +1559,7 @@ namespace FNPlugin.Propulsion
             if (isOpenCycleCooler && isJet && part.atmDensity > 0)
             {
                 var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
-                airFlowForCooling = max_fuel_flow_rate * part.GetResourceRatio(ResourceSettings.Config.IntakeOxygenAir);
+                airFlowForCooling = maxFuelFlowRate * part.GetResourceRatio(ResourceSettings.Config.IntakeOxygenAir);
                 consumeFNResourcePerSecond(40 * wasteheatRatio * wasteheatRatio * airFlowForCooling, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
@@ -1580,7 +1580,7 @@ namespace FNPlugin.Propulsion
 
                 expectedMaxThrust *= _thrustPropellantMultiplier * (CheatOptions.UnbreakableJoints ? 1 : 1 - sootAccumulationPercentage / 200);
 
-                max_fuel_flow_rate = _maxISP <= 0.0 ? 0.0 : expectedMaxThrust / (_maxISP * GameConstants.STANDARD_GRAVITY);
+                maxFuelFlowRate = _maxISP <= 0.0 ? 0.0 : expectedMaxThrust / (_maxISP * GameConstants.STANDARD_GRAVITY);
 
                 UpdateAtmosphericPressureThreshold();
 
@@ -1632,19 +1632,19 @@ namespace FNPlugin.Propulsion
                         jetSpoolRatio = 0;
 
                     calculatedMaxThrust *= jetSpoolRatio;
-                    max_fuel_flow_rate *= jetSpoolRatio;
+                    maxFuelFlowRate *= jetSpoolRatio;
                 }
 
                 // prevent too low number of max thrust
                 if (calculatedMaxThrust <= minimumThrust)
                 {
                     calculatedMaxThrust = minimumThrust;
-                    max_fuel_flow_rate = 0;
+                    maxFuelFlowRate = 0;
                 }
 
                 // set engines maximum fuel flow
-                if (IsPositiveValidNumber(max_fuel_flow_rate) && IsPositiveValidNumber(AttachedReactor.FuelRato))
-                    maxFuelFlowOnEngine = (float)Math.Max(max_fuel_flow_rate * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
+                if (IsPositiveValidNumber(maxFuelFlowRate) && IsPositiveValidNumber(AttachedReactor.FuelRato))
+                    maxFuelFlowOnEngine = (float)Math.Max(maxFuelFlowRate * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
                 else
                     maxFuelFlowOnEngine = 1e-10f;
 
@@ -1889,9 +1889,9 @@ namespace FNPlugin.Propulsion
             var maxThrustForFuelFlow = final_max_engine_thrust > 0.0001 ? calculatedMaxThrust : final_max_engine_thrust;
 
             // calculate maximum fuel flow rate
-            max_fuel_flow_rate = maxThrustForFuelFlow / current_isp / GameConstants.STANDARD_GRAVITY;
+            maxFuelFlowRate = maxThrustForFuelFlow / current_isp / GameConstants.STANDARD_GRAVITY;
 
-            fuelflow_throtle_modifier = 1;
+            fuelFlowThrottleModifier = 1;
 
             if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
             {
@@ -1901,7 +1901,7 @@ namespace FNPlugin.Propulsion
                     vcurveAtCurrentVelocity = 0;
 
                 calculatedMaxThrust *= vcurveAtCurrentVelocity;
-                fuelflow_throtle_modifier *= vcurveAtCurrentVelocity;
+                fuelFlowThrottleModifier *= vcurveAtCurrentVelocity;
             }
             else
                 vcurveAtCurrentVelocity = 1;
@@ -1914,7 +1914,7 @@ namespace FNPlugin.Propulsion
                     atmosphereModifier = 0;
 
                 calculatedMaxThrust *= atmosphereModifier;
-                fuelflow_throtle_modifier *= atmosphereModifier;
+                fuelFlowThrottleModifier *= atmosphereModifier;
             }
             else
                 atmosphereModifier = 1;
@@ -1927,18 +1927,18 @@ namespace FNPlugin.Propulsion
                     jetSpoolRatio = 0;
 
                 calculatedMaxThrust *= jetSpoolRatio;
-                max_fuel_flow_rate *= jetSpoolRatio;
+                maxFuelFlowRate *= jetSpoolRatio;
             }
 
             if (calculatedMaxThrust <= minimumThrust || double.IsNaN(calculatedMaxThrust) || double.IsInfinity(calculatedMaxThrust))
             {
                 calculatedMaxThrust = minimumThrust;
-                max_fuel_flow_rate = 1e-10;
+                maxFuelFlowRate = 1e-10;
             }
 
             // set engines maximum fuel flow
-            if (IsPositiveValidNumber(max_fuel_flow_rate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRato))
-                maxFuelFlowOnEngine = (float)Math.Max(max_fuel_flow_rate * adjustedFuelFlowMult * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
+            if (IsPositiveValidNumber(maxFuelFlowRate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRato))
+                maxFuelFlowOnEngine = (float)Math.Max(maxFuelFlowRate * adjustedFuelFlowMult * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
             else
                 maxFuelFlowOnEngine = 1e-10f;
             myAttachedEngine.maxFuelFlow = maxFuelFlowOnEngine;
