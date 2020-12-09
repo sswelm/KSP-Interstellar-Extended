@@ -26,7 +26,7 @@ namespace FNPlugin.Powermanagement
             double vessel_mass = Vessel.totalMass;
             powerToExtract += 2.0 * PASSIVE_TEMP_P4 * GameConstants.stefan_const * vessel_mass * timeWarpDT;
 
-            if (Vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(Vessel.mainBody))
+            if (Vessel.altitude <= PluginHelper.GetMaxAtmosphericAltitude(Vessel.mainBody))
             {
                 // passive convection - a lot of this
                 double pressure = FlightGlobals.getStaticPressure(Vessel.transform.position) / GameConstants.EarthAtmospherePressureAtSeaLevel;

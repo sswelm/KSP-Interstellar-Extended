@@ -564,8 +564,8 @@ namespace FNPlugin
                 storedAmount = 0;
             }
 
-            capacityStr = PluginHelper.formatMassStr(antimatterResource.amount * antimatterDensity);
-            maxAmountStr = PluginHelper.formatMassStr(antimatterResource.maxAmount * antimatterDensity);
+            capacityStr = PluginHelper.FormatMassStr(antimatterResource.amount * antimatterDensity);
+            maxAmountStr = PluginHelper.FormatMassStr(antimatterResource.maxAmount * antimatterDensity);
 
             part.explosionPotential = (float)antimatterResource.amount * explosionPotentialMultiplier;
 

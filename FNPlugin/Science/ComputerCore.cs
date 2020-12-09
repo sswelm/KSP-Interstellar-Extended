@@ -179,7 +179,7 @@ namespace FNPlugin
                 var altitudeMultiplier = vessel.altitude / vessel.mainBody.Radius;
                 altitudeMultiplier = Math.Max(altitudeMultiplier, 1);
 
-                var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
+                var scienceMultiplier = PluginHelper.GetScienceMultiplier(vessel);
 
                 var scienceToIncrement = baseScienceRate * timeDifference / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * scienceMultiplier / (Math.Sqrt(altitudeMultiplier));
                 scienceToIncrement = (double.IsNaN(scienceToIncrement) || double.IsInfinity(scienceToIncrement)) ? 0 : scienceToIncrement;
@@ -209,7 +209,7 @@ namespace FNPlugin
             _scienceRateField.guiActive = isUpgradedOrNoActiveScience;
             _isPoweredField.guiActive = isUpgradedOrNoActiveScience;
 
-            var science =  _scienceRateF * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.getScienceMultiplier(vessel);
+            var science =  _scienceRateF * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.GetScienceMultiplier(vessel);
             scienceRate = science.ToString("0.000") + "/ Day";
 
             if (ResearchAndDevelopment.Instance != null)
@@ -248,7 +248,7 @@ namespace FNPlugin
 
                     var altitudeMultiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
-                    var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
+                    var scienceMultiplier = PluginHelper.GetScienceMultiplier(vessel);
 
                     _scienceRateF = baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * powerReturned / _effectivePowerRequirement / Math.Sqrt(altitudeMultiplier);
 
@@ -299,7 +299,7 @@ namespace FNPlugin
                 ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "", "");
                 if (subject == null)
                     return false;
-                subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+                subject.subjectValue = PluginHelper.GetScienceMultiplier(vessel);
                 subject.scienceCap = 167 * subject.subjectValue;
                 subject.dataScale = 1.25f;
 

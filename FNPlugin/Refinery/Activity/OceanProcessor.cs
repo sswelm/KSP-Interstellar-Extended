@@ -16,8 +16,8 @@ namespace FNPlugin.Refinery.Activity
         public OceanProcessor()
         {
             ActivityName = "Ocean Extraction";
-            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
-            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseELCPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.ElectrolysisEnergyPerTon;
         }
 
         public double fixedConsumptionRate;

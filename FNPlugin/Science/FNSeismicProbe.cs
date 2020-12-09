@@ -97,7 +97,7 @@ namespace FNPlugin
                             ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.SrfLanded, vessel.mainBody, vessel.mainBody.name + "'s surface.", vessel.mainBody.name + "'s surface.");
                             if (subject == null)
                                 return false;
-                            subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+                            subject.subjectValue = PluginHelper.GetScienceMultiplier(vessel);
                             subject.scienceCap = 10 * experiment.baseValue * subject.subjectValue;
 
                             float base_science = experiment.baseValue * distribution_factor;

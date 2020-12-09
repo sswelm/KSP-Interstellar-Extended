@@ -54,7 +54,7 @@ namespace FNPlugin
                 render_window = false;
 
             GUILayout.BeginVertical();
-            if (vessel.altitude < PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) 
+            if (vessel.altitude < PluginHelper.GetMaxAtmosphericAltitude(vessel.mainBody)) 
             {
                 if (analysis_count > analysis_length) 
                 {

@@ -13,8 +13,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "Haber Process";
             Formula = "H<size=7>2</size> + N<size=7>2</size> => NH<size=7>3</size> (Ammonia)";
-            PowerRequirements = PluginHelper.BaseHaberProcessPowerConsumption;
-            EnergyPerTon = PluginHelper.HaberProcessEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseHaberProcessPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.HaberProcessEnergyPerTon;
         }
 
         private double _hydrogenConsumptionRate;

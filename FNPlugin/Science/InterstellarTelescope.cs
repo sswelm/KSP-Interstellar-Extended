@@ -108,7 +108,7 @@ namespace FNPlugin
                 if (subject == null)
                     return false;
 
-                subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+                subject.subjectValue = PluginHelper.GetScienceMultiplier(vessel);
                 subject.scienceCap = 167 * subject.subjectValue;   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
                 subject.dataScale = 1.25f;
 
@@ -173,7 +173,7 @@ namespace FNPlugin
             Events[nameof(stopOberservations)].active = telescopeIsEnabled;
             Fields[nameof(sciencePerDay)].guiActive = telescopeIsEnabled;
             performPcnt = (perform_factor_d * 100).ToString("0.0") + "%";
-            sciencePerDay = (science_rate * 28800 * PluginHelper.getScienceMultiplier(vessel)).ToString("0.00") + " "+Localizer.Format("#LOC_KSPIE_Telescope_ScienceperDa");//Science/Day
+            sciencePerDay = (science_rate * 28800 * PluginHelper.GetScienceMultiplier(vessel)).ToString("0.00") + " "+Localizer.Format("#LOC_KSPIE_Telescope_ScienceperDa");//Science/Day
 
             List<ITelescopeController> telescope_controllers = vessel.FindPartModulesImplementing<ITelescopeController>();
 

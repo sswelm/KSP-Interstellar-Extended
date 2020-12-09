@@ -16,8 +16,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "Partial Oxidation of Methane";
             Formula = "CH<size=7>4</size> + O<size=7>2</size> => CO + H<size=7>2</size>";
-            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
-            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseELCPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.ElectrolysisEnergyPerTon;
         }
 
         private const double MonoxideMassByFraction = 1 - 18.01528 / (18.01528 + 28.010); // taken from reverse water gas shift

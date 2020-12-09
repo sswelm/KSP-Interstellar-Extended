@@ -87,6 +87,7 @@
     <Compile Include="Animate\FNLightSwitch.cs" />
     <Compile Include="Beamedpower\BeamedPowerTransmitterTag.cs" />
     <Compile Include="Beamedpower\InterstellarBeamedPowerHelper.cs" />
+    <Compile Include="GameEventSubscriber.cs" />
     <Compile Include="PluginSettings.cs" />
     <Compile Include="Resources\RegolithCollector.cs" />
     <Compile Include="Resources\SolarWindCollector.cs" />

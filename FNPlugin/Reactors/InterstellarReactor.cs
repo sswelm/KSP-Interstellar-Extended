@@ -2763,16 +2763,16 @@ namespace FNPlugin.Reactors
                         var availabilityInTon = availableResources.Sum(m => m.amount * m.effectiveDensity);
 
                         var variantText = availableResources.Count > 1 ? " (" + availableResources.Count + " variants)" : "";
-                        PrintToGuiLayout(fuel.FuelName + " "+ Localizer.Format("#LOC_KSPIE_Reactor_Reserves"), PluginHelper.formatMassStr(availabilityInTon) + variantText, boldStyle, textStyle);//Reserves
+                        PrintToGuiLayout(fuel.FuelName + " "+ Localizer.Format("#LOC_KSPIE_Reactor_Reserves"), PluginHelper.FormatMassStr(availabilityInTon) + variantText, boldStyle, textStyle);//Reserves
 
-                        var tonFuelUsePerHour = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginHelper.SecondsInHour;
+                        var tonFuelUsePerHour = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginSettings.Config.SecondsInHour;
                         var kgFuelUsePerHour = tonFuelUsePerHour * 1000;
-                        var kgFuelUsePerDay = kgFuelUsePerHour * PluginHelper.HoursInDay;
+                        var kgFuelUsePerDay = kgFuelUsePerHour * PluginSettings.Config.HoursInDay;
 
                         if (tonFuelUsePerHour > 120)
-                            PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Consumption") +" ", PluginHelper.formatMassStr(tonFuelUsePerHour / 60) + " / "+Localizer.Format("#LOC_KSPIE_Reactor_min"), boldStyle, textStyle);//Consumption-min
+                            PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Consumption") +" ", PluginHelper.FormatMassStr(tonFuelUsePerHour / 60) + " / "+Localizer.Format("#LOC_KSPIE_Reactor_min"), boldStyle, textStyle);//Consumption-min
                         else
-                            PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Consumption") +" ", PluginHelper.formatMassStr(tonFuelUsePerHour) + " / "+Localizer.Format("#LOC_KSPIE_Reactor_hour"), boldStyle, textStyle);//Consumption--hour
+                            PrintToGuiLayout(fuel.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Consumption") +" ", PluginHelper.FormatMassStr(tonFuelUsePerHour) + " / "+Localizer.Format("#LOC_KSPIE_Reactor_hour"), boldStyle, textStyle);//Consumption--hour
 
                         if (kgFuelUsePerDay > 0)
                         {
@@ -2792,7 +2792,7 @@ namespace FNPlugin.Reactors
                                 }
                                 else if (fuelLifetimeD < 1)
                                 {
-                                    var minutesD = fuelLifetimeD * PluginHelper.HoursInDay * 60;
+                                    var minutesD = fuelLifetimeD * PluginSettings.Config.HoursInDay * 60;
                                     var minutes = (int)Math.Floor(minutesD);
                                     var seconds = (int)Math.Ceiling((minutesD - minutes) * 60);
 
@@ -2824,13 +2824,13 @@ namespace FNPlugin.Reactors
 
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(product.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Storage"), boldStyle, GUILayout.Width(150));//Storage
-                            GUILayout.Label(PluginHelper.formatMassStr(availabilityInTon, "0.00000") + " / " + PluginHelper.formatMassStr(maxAvailabilityInTon, "0.00000"), textStyle, GUILayout.Width(150));
+                            GUILayout.Label(PluginHelper.FormatMassStr(availabilityInTon, "0.00000") + " / " + PluginHelper.FormatMassStr(maxAvailabilityInTon, "0.00000"), textStyle, GUILayout.Width(150));
                             GUILayout.EndHorizontal();
 
-                            var hourProductionInTon = ongoing_total_power_generated * product.TonsProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginHelper.SecondsInHour;
+                            var hourProductionInTon = ongoing_total_power_generated * product.TonsProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginSettings.Config.SecondsInHour;
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(product.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Production"), boldStyle, GUILayout.Width(150));//Production
-                            GUILayout.Label(PluginHelper.formatMassStr(hourProductionInTon) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_hour"), textStyle, GUILayout.Width(150));//hour
+                            GUILayout.Label(PluginHelper.FormatMassStr(hourProductionInTon) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_hour"), textStyle, GUILayout.Width(150));//hour
                             GUILayout.EndHorizontal();
                         }
                     }

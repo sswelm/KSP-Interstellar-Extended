@@ -14,8 +14,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "Anthraquinone Process";
             Formula = "H<size=7>2</size> + O<size=7>2</size> => H<size=7>2</size>O<size=7>2</size> (HTP)";
-            PowerRequirements = PluginHelper.BaseAnthraquiononePowerConsumption;
-            EnergyPerTon = PluginHelper.AnthraquinoneEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseAnthraquiononePowerConsumption;
+            EnergyPerTon = PluginSettings.Config.AnthraquinoneEnergyPerTon;
         }
 
         private const double HydrogenMassByFraction = (1.0079 * 2) / 34.01468;
@@ -74,7 +74,7 @@ namespace FNPlugin.Refinery.Activity
 
             // determine how much resource we have
             _current_power = _effectiveMaxPower * powerFraction;
-            _current_rate = CurrentPower / PluginHelper.AnthraquinoneEnergyPerTon;
+            _current_rate = CurrentPower / PluginSettings.Config.AnthraquinoneEnergyPerTon;
 
             var partsThatContainOxygen = _part.GetConnectedResources(_oxygenResourceName).ToList();
             var partsThatContainHydrogen = _part.GetConnectedResources(_hydrogenResourceName).ToList();

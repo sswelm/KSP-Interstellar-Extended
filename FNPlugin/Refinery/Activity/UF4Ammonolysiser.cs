@@ -12,7 +12,7 @@ namespace FNPlugin.Refinery.Activity
         public UF4Ammonolysiser()
         {
             ActivityName = "Uranium Tetrafluoride Ammonolysis";
-            PowerRequirements = PluginHelper.BaseUraniumAmmonolysisPowerConsumption;
+            PowerRequirements = PluginSettings.Config.BaseUraniumAmmonolysisPowerConsumption;
             EnergyPerTon = 1 / GameConstants.baseUraniumAmmonolysisRate;
         }
 

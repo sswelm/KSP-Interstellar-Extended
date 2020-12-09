@@ -13,8 +13,8 @@ namespace FNPlugin.Refinery.Activity
         public ReverseWaterGasShift()
         {
             ActivityName = "Reverse Water Gas Shift";
-            PowerRequirements = PluginHelper.BaseHaberProcessPowerConsumption * 5;
-            EnergyPerTon = PluginHelper.HaberProcessEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseHaberProcessPowerConsumption * 5;
+            EnergyPerTon = PluginSettings.Config.HaberProcessEnergyPerTon;
         }
 
         private const double WaterMassByFraction = 18.01528 / (18.01528 + 28.010);

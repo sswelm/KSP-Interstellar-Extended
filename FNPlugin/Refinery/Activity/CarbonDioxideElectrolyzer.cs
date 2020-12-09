@@ -14,8 +14,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "CarbonDioxide Electrolysis";
             Formula = "CO<size=7>2</size> => CO + O<size=7>2</size>";
-            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
-            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseELCPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.ElectrolysisEnergyPerTon;
         }
 
         private const double CarbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);

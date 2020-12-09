@@ -13,8 +13,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "Ammonia Electrolysis";
             Formula = "NH<size=7>3</size> => N<size=7>2</size> + H<size=7>2</size>";
-            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
-            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon / 14.45;
+            PowerRequirements = PluginSettings.Config.BaseELCPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.ElectrolysisEnergyPerTon / 14.45;
         }
 
         private double _currentMassRate;

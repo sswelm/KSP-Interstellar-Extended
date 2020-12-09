@@ -20,7 +20,7 @@ namespace FNPlugin.Extensions
 
         public static double GetBeltAntiparticles(this CelestialBody body, CelestialBody homeworld, double altitude, double lat)
         {
-            if (body.flightGlobalsIndex != 0 && altitude <= PluginHelper.getMaxAtmosphericAltitude(body))  
+            if (body.flightGlobalsIndex != 0 && altitude <= PluginHelper.GetMaxAtmosphericAltitude(body))  
                 return 0;
 
             BeltData beltdata;
@@ -95,7 +95,7 @@ namespace FNPlugin.Extensions
         {
             lat = lat / 180 * Math.PI;
             double atmosphere = FlightGlobals.getStaticPressure(altitude, body) / GameConstants.EarthAtmospherePressureAtSeaLevel;
-            double atmosphere_height = PluginHelper.getMaxAtmosphericAltitude(body);
+            double atmosphere_height = PluginHelper.GetMaxAtmosphericAltitude(body);
             double atmosphere_scaling = Math.Exp(-atmosphere);
 
             double relrp = body.Radius / homeworld.Radius;

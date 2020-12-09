@@ -14,8 +14,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "Peroxide Process";
             Formula = "H<size=7>2</size>O<size=7>2</size> + NH<size=7>3</size> => H<size=7>2</size>O + N<size=7>2</size>H<size=7>4</size> (Hydrazine)";
-            PowerRequirements = PluginHelper.BasePechineyUgineKuhlmannPowerConsumption;
-            EnergyPerTon = PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BasePechineyUgineKuhlmannPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.PechineyUgineKuhlmannEnergyPerTon;
         }
 
         private const double AmmoniaMassConsumptionRatio = (2 * 35.04) / (2 * 35.04 + 34.0147);

@@ -8,31 +8,45 @@ namespace FNPlugin
     {
         private static PluginSettings _config;
 
-        public static PluginSettings Config =>
-            _config ?? (_config = new PluginSettings(PluginHelper.PluginSettingsConfig));
+        public static PluginSettings Config => _config ?? (_config = new PluginSettings(PluginHelper.PluginSettingsConfig));
 
         // integers
+        public int HoursInDay { get; private set; } = GameConstants.KEBRIN_HOURS_DAY;
+        public int MicrowaveApertureDiameterMult { get; private set; } = 10;
         public int SpeedOfLight { get; private set; } = 299792458;
         public int SecondsInDay { get; private set; } = GameConstants.KEBRIN_DAY_SECONDS;
-        public int MicrowaveApertureDiameterMult { get; private set; } = 10;
+        public int SecondsInHour => GameConstants.SECONDS_IN_HOUR;
+
 
         // doubles
         public double AirflowHeatMult { get; private set; } = GameConstants.AirflowHeatMultiplier;
+        public double AnthraquinoneEnergyPerTon { get; private set; } = GameConstants.anthraquinoneEnergyPerTon;
+        public double AluminiumElectrolysisEnergyPerTon { get; private set; } = GameConstants.aluminiumElectrolysisEnergyPerTon;
+        public double BaseAnthraquiononePowerConsumption { get; private set; } = GameConstants.baseAnthraquiononePowerConsumption;
         public double BasePowerConsumption { get; private set; } = GameConstants.basePowerConsumption;
+        public double BaseAMFPowerConsumption { get; private set; } = GameConstants.baseAMFPowerConsumption;
+        public double BaseCentriPowerConsumption { get; private set; } = GameConstants.baseCentriPowerConsumption;
+        public double BaseELCPowerConsumption { get; private set; } = GameConstants.baseELCPowerConsumption;
+        public double BaseHaberProcessPowerConsumption { get; private set; } = GameConstants.baseHaberProcessPowerConsumption;
+        public double BasePechineyUgineKuhlmannPowerConsumption { get; private set; } = GameConstants.basePechineyUgineKuhlmannPowerConsumption;
+        public double BaseUraniumAmmonolysisPowerConsumption { get; private set; } = GameConstants.baseUraniumAmmonolysisPowerConsumption;
+        public double ElectrolysisEnergyPerTon { get; private set; } = GameConstants.waterElectrolysisEnergyPerTon;
         public double ElectricEngineIspMult { get; private set; } = 1;
+        public double ElectricEngineAtmosphericDensityThrustLimiter { get; private set; }
         public double GlobalMagneticNozzlePowerMaxThrustMult { get; private set; } = 1;
         public double GlobalThermalNozzlePowerMaxThrustMult { get; private set; } = 1;
         public double GlobalElectricEnginePowerMaxThrustMult { get; private set; } = 1;
+        public double HaberProcessEnergyPerTon { get; private set; } = GameConstants.haberProcessEnergyPerTon;
         public double HighCoreTempThrustMult { get; private set; } = GameConstants.HighCoreTempThrustMultiplier;
         public double IspCoreTempMult { get; private set; } = GameConstants.IspCoreTemperatureMultiplier;
-        public double LowCoreTempBaseThrust { get; private set; } = 0;
-        public double MinAtmosphericAirDensity { get; private set; } = 0;
+        public double LowCoreTempBaseThrust { get; private set; }
+        public double MinAtmosphericAirDensity { get; private set; }
+        public double PechineyUgineKuhlmannEnergyPerTon { get; private set; } = GameConstants.pechineyUgineKuhlmannEnergyPerTon;
         public double PowerConsumptionMultiplier { get; private set; } = 1;
         public double RadiatorAreaMultiplier { get; private set; } = 2;
         public double MaxThermalNozzleIsp { get; private set; } = GameConstants.MaxThermalNozzleIsp;
         public double SpotsizeMult { get; private set; } = 1.22;
-        public double ThrustCoreTempThreshold { get; private set; } = 0;
-
+        public double ThrustCoreTempThreshold { get; private set; }
 
         // Jet Upgrade Techs
         public string JetUpgradeTech1 { get; private set; } = "";
@@ -42,24 +56,38 @@ namespace FNPlugin
         public string JetUpgradeTech5 { get; private set; } = "";
 
 
-
         public PluginSettings(ConfigNode pluginSettings)
         {
+            UpdateIntWithConfigNode(pluginSettings, nameof(HoursInDay), value => HoursInDay = value);
             UpdateIntWithConfigNode(pluginSettings, nameof(MicrowaveApertureDiameterMult), value => MicrowaveApertureDiameterMult = value);
             UpdateIntWithConfigNode(pluginSettings, nameof(SpeedOfLight), value => SpeedOfLight = value);
             UpdateIntWithConfigNode(pluginSettings, nameof(SecondsInDay), value => SecondsInDay = value);
 
             UpdateDoubleWithConfigNode(pluginSettings, nameof(AirflowHeatMult), value => AirflowHeatMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(AnthraquinoneEnergyPerTon), value => AnthraquinoneEnergyPerTon = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(AluminiumElectrolysisEnergyPerTon), value => AluminiumElectrolysisEnergyPerTon = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(BaseAnthraquiononePowerConsumption), value => BaseAnthraquiononePowerConsumption = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(BasePowerConsumption), value => BasePowerConsumption = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(BaseAMFPowerConsumption), value => BaseAMFPowerConsumption = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(BaseCentriPowerConsumption), value => BaseCentriPowerConsumption = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(BaseELCPowerConsumption), value => BaseELCPowerConsumption = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(BaseHaberProcessPowerConsumption), value => BaseHaberProcessPowerConsumption = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(BasePechineyUgineKuhlmannPowerConsumption), value => BasePechineyUgineKuhlmannPowerConsumption = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(BaseUraniumAmmonolysisPowerConsumption), value => BaseUraniumAmmonolysisPowerConsumption = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(ElectrolysisEnergyPerTon), value => ElectrolysisEnergyPerTon = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(ElectricEngineIspMult), value => ElectricEngineIspMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(ElectricEngineAtmosphericDensityThrustLimiter), value => ElectricEngineAtmosphericDensityThrustLimiter = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalMagneticNozzlePowerMaxThrustMult), value => GlobalMagneticNozzlePowerMaxThrustMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalThermalNozzlePowerMaxThrustMult), value => GlobalThermalNozzlePowerMaxThrustMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalElectricEnginePowerMaxThrustMult), value => GlobalThermalNozzlePowerMaxThrustMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(HaberProcessEnergyPerTon), value => HaberProcessEnergyPerTon = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(HighCoreTempThrustMult), value => HighCoreTempThrustMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(IspCoreTempMult), value => IspCoreTempMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(LowCoreTempBaseThrust), value => LowCoreTempBaseThrust = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(MinAtmosphericAirDensity), value => MinAtmosphericAirDensity = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(PechineyUgineKuhlmannEnergyPerTon), value => PechineyUgineKuhlmannEnergyPerTon = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(PowerConsumptionMultiplier), value => PowerConsumptionMultiplier = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(RadiatorAreaMultiplier), value => RadiatorAreaMultiplier = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(MaxThermalNozzleIsp), value => MaxThermalNozzleIsp = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(SpotsizeMult), value => SpotsizeMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(ThrustCoreTempThreshold), value => ThrustCoreTempThreshold = value);

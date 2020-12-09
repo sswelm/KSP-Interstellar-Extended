@@ -13,8 +13,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "Aluminium Electrolysis";
             Formula = "Al<size=7>2</size>O<size=7>3</size> => O<size=7>2</size> + Al<size=7>2</size>";
-            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
-            EnergyPerTon = PluginHelper.AluminiumElectrolysisEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseELCPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.AluminiumElectrolysisEnergyPerTon;
         }
 
         private string _aluminaResourceName;

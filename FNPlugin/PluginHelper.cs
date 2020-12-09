@@ -1,161 +1,15 @@
-﻿using FNPlugin.Beamedpower;
-using FNPlugin.Constants;
-using FNPlugin.Powermanagement;
-using FNPlugin.Propulsion;
+﻿using FNPlugin.Powermanagement;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin
 {
-    [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class GameEventSubscriber : MonoBehaviour
-    {
-        void Start()
-        {
-            BeamedPowerSources.getVesselMicrowavePersistanceForProtoVesselCallback = BeamedPowerTransmitter.getVesselMicrowavePersistanceForProtoVessel;
-            BeamedPowerSources.getVesselRelayPersistanceForProtoVesselCallback = BeamedPowerTransmitter.getVesselRelayPersistanceForProtoVessel;
-            BeamedPowerSources.getVesselMicrowavePersistanceForVesselCallback = BeamedPowerTransmitter.getVesselMicrowavePersistanceForVessel;
-            BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = BeamedPowerTransmitter.getVesselRelayPersistenceForVessel;
-
-            GameEvents.onGameStateSaved.Add(OnGameStateSaved);
-            GameEvents.onDockingComplete.Add(OnDockingComplete);
-            GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
-            GameEvents.onVesselSOIChanged.Add(OnVesselSOIChanged);
-            GameEvents.onPartDestroyed.Add(OnPartDestroyed);
-            GameEvents.onVesselDestroy.Add(OnVesselDestroy);
-            GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
-            GameEvents.onVesselGoOffRails.Add(OnVesselGoOnRails);
-
-            Debug.Log("[KSPI]: GameEventSubscriber Initialized");
-        }
-        void OnDestroy()
-        {
-            GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
-            GameEvents.onVesselGoOffRails.Remove(OnVesselGoOnRails);
-            GameEvents.onVesselDestroy.Remove(OnVesselDestroy);
-            GameEvents.onPartDestroyed.Remove(OnPartDestroyed);
-            GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
-            GameEvents.onDockingComplete.Remove(OnDockingComplete);
-            GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
-            GameEvents.onVesselSOIChanged.Remove(OnVesselSOIChanged);
-
-            var kerbalismVersionStr =
-                $"{Kerbalism.versionMajor}.{Kerbalism.versionMajorRevision}.{Kerbalism.versionMinor}.{Kerbalism.versionMinorRevision}";
-
-            if (Kerbalism.versionMajor > 0)
-                Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismVersionStr);
-
-            Debug.Log("[KSPI]: GameEventSubscriber Deinitialised");
-        }
-
-        void OnVesselGoOnRails(Vessel vessel)
-        {
-            foreach (var part in vessel.Parts)
-            {
-                var autoStrutEvent = part.Events["ToggleAutoStrut"];
-                if (autoStrutEvent != null)
-                {
-                    autoStrutEvent.guiActive = true;
-                    autoStrutEvent.guiActiveUncommand = true;
-                    autoStrutEvent.guiActiveUnfocused = true;
-                    autoStrutEvent.requireFullControl = false;
-                }
-
-                var rigidAttachmentEvent = part.Events["ToggleRigidAttachment"];
-                if (rigidAttachmentEvent != null)
-                {
-                    rigidAttachmentEvent.guiActive = true;
-                    rigidAttachmentEvent.guiActiveUncommand = true;
-                    rigidAttachmentEvent.guiActiveUnfocused = true;
-                    rigidAttachmentEvent.requireFullControl = false;
-                }
-            }
-        }
-
-        void OnGameStateSaved(Game game)
-        {
-            Debug.Log("[KSPI]: GameEventSubscriber - detected OnGameStateSaved");
-            PluginHelper.LoadSaveFile();
-        }
-
-        void OnDockingComplete(GameEvents.FromToAction<Part, Part> fromToAction)
-        {
-            Debug.Log("[KSPI]: GameEventSubscriber - detected OnDockingComplete");
-
-            ResourceOvermanager.Reset();
-            SupplyPriorityManager.Reset();
-
-            ResetReceivers();
-        }
-
-        void OnPartDestroyed(Part part)
-        {
-            Debug.Log("[KSPI]: GameEventSubscriber - detected OnPartDestroyed");
-
-            var drive = part.FindModuleImplementing<AlcubierreDrive>();
-
-            if (drive == null) return;
-
-            if (drive.IsSlave)
-            {
-                Debug.Log("[KSPI]: GameEventSubscriber - destroyed part is a slave warpdrive");
-                drive = drive.vessel.FindPartModulesImplementing<AlcubierreDrive>().FirstOrDefault(m => !m.IsSlave);
-            }
-
-            if (drive != null)
-            {
-                Debug.Log("[KSPI]: GameEventSubscriber - deactivate master warp drive");
-                drive.DeactivateWarpDrive();
-            }
-        }
-
-        void OnVesselSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody> gameEvent)
-        {
-            Debug.Log("[KSPI]: GameEventSubscriber - detected OnVesselSOIChanged");
-            gameEvent.host.FindPartModulesImplementing<ElectricEngineControllerFX>().ForEach(e => e.VesselChangedSoi());
-            gameEvent.host.FindPartModulesImplementing<ModuleEnginesWarp>().ForEach(e => e.VesselChangedSOI());
-            gameEvent.host.FindPartModulesImplementing<DaedalusEngineController>().ForEach(e => e.VesselChangedSOI());
-            gameEvent.host.FindPartModulesImplementing<AlcubierreDrive>().ForEach(e => e.VesselChangedSOI());
-        }
-
-        void OnPartDeCoupleComplete (Part part)
-        {
-            Debug.Log("[KSPI]: GameEventSubscriber - detected OnPartDeCoupleComplete");
-
-            ResourceOvermanager.Reset();
-            SupplyPriorityManager.Reset();
-            FNRadiator.Reset();
-
-            ResetReceivers();
-        }
-
-        void OnVesselDestroy(Vessel vessel)
-        {
-            ResourceOvermanager.ResetForVessel(vessel);
-        }
-
-        private static void ResetReceivers()
-        {
-            foreach (var currentVessel in FlightGlobals.Vessels)
-            {
-                if (!currentVessel.loaded) continue;
-
-                var receivers = currentVessel.FindPartModulesImplementing<BeamedPowerReceiver>();
-
-                foreach (var receiver in receivers)
-                {
-                    Debug.Log("[KSPI]: OnDockingComplete - Restart receivers " + receiver.Part.name);
-                    receiver.Restart(50);
-                }
-            }
-        }
-    }
-
     [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class PluginHelper : MonoBehaviour
     {
@@ -240,9 +94,9 @@ namespace FNPlugin
             }
         }
 
-        static protected bool buttonAdded;
-        static protected Texture2D appIcon = null;
-        static protected ApplicationLauncherButton appLauncherButton = null;
+        private static bool _buttonAdded;
+        private static Texture2D _appIcon;
+        private static ApplicationLauncherButton _appLauncherButton;
 
         #region static Properties
 
@@ -252,61 +106,10 @@ namespace FNPlugin
 
         public static string PluginSaveFilePath => KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
 
-        public static string PluginSettingsFilePath => KSPUtil.ApplicationRootPath + "GameData/WarpPlugin/WarpPluginSettings.cfg";
-
-        public static int HoursInDay => GameConstants.KEBRIN_HOURS_DAY;
-        public static int SecondsInHour => GameConstants.SECONDS_IN_HOUR;
-
-        private static double _electricEngineAtmosphericDensityThrustLimiter = 0;
-        public static double ElectricEngineAtmosphericDensityThrustLimiter { get { return _electricEngineAtmosphericDensityThrustLimiter; } }
-
-        //------------------------------------------------------------------------------------------
-
-        private static double _baseAMFPowerConsumption = GameConstants.baseAMFPowerConsumption;
-        public static double BaseAMFPowerConsumption { get { return _baseAMFPowerConsumption; } }
-
-        private static double _baseCentriPowerConsumption = GameConstants.baseCentriPowerConsumption;
-        public static double BaseCentriPowerConsumption { get { return _baseCentriPowerConsumption; } }
-
-        private static double _baseELCPowerConsumption = GameConstants.baseELCPowerConsumption;
-        public static double BaseELCPowerConsumption { get { return _baseELCPowerConsumption; } }
-
-        private static double _baseAnthraquiononePowerConsumption = GameConstants.baseAnthraquiononePowerConsumption;
-        public static double BaseAnthraquiononePowerConsumption { get { return _baseAnthraquiononePowerConsumption; } }
-
-        private static double _basePechineyUgineKuhlmannPowerConsumption = GameConstants.basePechineyUgineKuhlmannPowerConsumption;
-        public static double BasePechineyUgineKuhlmannPowerConsumption { get { return _basePechineyUgineKuhlmannPowerConsumption; } }
-
-        private static double _baseHaberProcessPowerConsumption = GameConstants.baseHaberProcessPowerConsumption;
-        public static double BaseHaberProcessPowerConsumption { get { return _baseHaberProcessPowerConsumption; } }
-
-        private static double _baseUraniumAmmonolysisPowerConsumption = GameConstants.baseUraniumAmmonolysisPowerConsumption;
-        public static double BaseUraniumAmmonolysisPowerConsumption { get { return _baseUraniumAmmonolysisPowerConsumption; } }
-
-        //------------------------------------------------------------------------------------------------
-
-        private static double _anthraquinoneEnergyPerTon = GameConstants.anthraquinoneEnergyPerTon;
-        public static double AnthraquinoneEnergyPerTon { get { return _anthraquinoneEnergyPerTon; } }
-
-        private static double _haberProcessEnergyPerTon = GameConstants.haberProcessEnergyPerTon;
-        public static double HaberProcessEnergyPerTon { get { return _haberProcessEnergyPerTon; } }
-
-        private static double _electrolysisEnergyPerTon = GameConstants.waterElectrolysisEnergyPerTon;
-        public static double ElectrolysisEnergyPerTon { get { return _electrolysisEnergyPerTon; } }
-
-        private static double _aluminiumElectrolysisEnergyPerTon = GameConstants.aluminiumElectrolysisEnergyPerTon;
-        public static double AluminiumElectrolysisEnergyPerTon { get { return _aluminiumElectrolysisEnergyPerTon; } }
-
-        private static double _pechineyUgineKuhlmannEnergyPerTon = GameConstants.pechineyUgineKuhlmannEnergyPerTon;
-        public static double PechineyUgineKuhlmannEnergyPerTon { get { return _pechineyUgineKuhlmannEnergyPerTon; } }
-
-
-        //----------------------------------------------------------------------------------------------
-
 
         #endregion
 
-        public static string formatMassStr(double mass, string format = "0.000000")
+        public static string FormatMassStr(double mass, string format = "0.000000")
         {
             if (mass >= 1)
                 return FormatString(mass / 1e+0, format) + " t";
@@ -326,10 +129,7 @@ namespace FNPlugin
 
         private static string FormatString(double value,  string format)
         {
-            if (format == null)
-                return value.ToString();
-            else
-                return value.ToString(format);
+            return format == null ? value.ToString(CultureInfo.InvariantCulture) : value.ToString(format);
         }
 
         public static bool HasTechRequirementOrEmpty(string techName)
@@ -342,10 +142,10 @@ namespace FNPlugin
             return techName != string.Empty && UpgradeAvailable(techName);
         }
 
-        public static string DisplayTech(string techid)
+        public static string DisplayTech(string techId)
         {
-            return string.IsNullOrEmpty(techid) ? string.Empty : RUIutils.GetYesNoUIString(
-                UpgradeAvailable(techid)) + " " + Localizer.Format(GetTechTitleById(techid));
+            return string.IsNullOrEmpty(techId) ? string.Empty : RUIutils.GetYesNoUIString(
+                UpgradeAvailable(techId)) + " " + Localizer.Format(GetTechTitleById(techId));
         }
 
         public static string GetTechTitleById(string id)
@@ -397,9 +197,9 @@ namespace FNPlugin
         {
             _researchedTechs = new HashSet<string>();
 
-            string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
+            string persistentFile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
 
-            ConfigNode config = ConfigNode.Load(persistentfile);
+            ConfigNode config = ConfigNode.Load(persistentFile);
             ConfigNode gameconf = config.GetNode("GAME");
             ConfigNode[] scenarios = gameconf.GetNodes("SCENARIO");
 
@@ -467,18 +267,18 @@ namespace FNPlugin
             ConfigNode config = ConfigNode.Load(PluginSaveFilePath);
             if (config != null) return config;
             config = new ConfigNode();
-            config.AddValue("writtenat", DateTime.Now.ToString());
+            config.AddValue("writtenat", DateTime.Now.ToString(CultureInfo.InvariantCulture));
             config.Save(PluginSaveFilePath);
             return config;
         }
 
-        public static double getMaxAtmosphericAltitude(CelestialBody body)
+        public static double GetMaxAtmosphericAltitude(CelestialBody body)
         {
             if (!body.atmosphere) return 0;
             return body.atmosphereDepth;
         }
 
-        public static float getScienceMultiplier(Vessel vessel)
+        public static float GetScienceMultiplier(Vessel vessel)
         {
             var vesselInAtmosphere = vessel.altitude < vessel.mainBody.atmosphereDepth;
 
@@ -535,9 +335,9 @@ namespace FNPlugin
 
         public ApplicationLauncherButton InitializeApplicationButton()
         {
-            appIcon = GameDatabase.Instance.GetTexture("WarpPlugin/Category/WarpPlugin", false);
+            _appIcon = GameDatabase.Instance.GetTexture("WarpPlugin/Category/WarpPlugin", false);
 
-            if (appIcon == null) return null;
+            if (_appIcon == null) return null;
 
             var appButton = ApplicationLauncher.Instance.AddModApplication(
                 OnAppLauncherActivate,
@@ -547,9 +347,9 @@ namespace FNPlugin
                 null,
                 null,
                 ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
-                appIcon);
+                _appIcon);
 
-            buttonAdded = true;
+            _buttonAdded = true;
 
             return appButton;
         }
@@ -595,13 +395,13 @@ namespace FNPlugin
 
         public void Update()
         {
-            if (ApplicationLauncher.Ready && !buttonAdded)
+            if (ApplicationLauncher.Ready && !_buttonAdded)
             {
-                appLauncherButton = InitializeApplicationButton();
-                if (appLauncherButton != null)
-                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.FLIGHT;
+                _appLauncherButton = InitializeApplicationButton();
+                if (_appLauncherButton != null)
+                    _appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.FLIGHT;
 
-                buttonAdded = true;
+                _buttonAdded = true;
             }
 
             this.enabled = true;
@@ -615,12 +415,6 @@ namespace FNPlugin
             {
                 ShowInstallationErrorMessage();
                 return;
-            }
-
-            if (pluginSettingConfigs.HasValue("ElectricEngineAtmosphericDensityTrustLimiter"))
-            {
-                _electricEngineAtmosphericDensityThrustLimiter = double.Parse(pluginSettingConfigs.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
-                Debug.Log("[KSPI]: Electric Engine Power Propellant IspMultiplier Limiter set to: " + ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
             }
 
             resourcesConfigured = true;

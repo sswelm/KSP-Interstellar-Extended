@@ -14,8 +14,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "Sabatier Process";
             Formula = "CO<size=7>2</size> + H<size=7>2</size> => O<size=7>2</size> + CH<size=7>4</size> (Methane)";
-            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
-            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseELCPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.ElectrolysisEnergyPerTon;
         }
 
         private const double CarbonDioxideMassByFraction = 44.01 / (44.01 + (8 * 1.008));

@@ -15,8 +15,8 @@ namespace FNPlugin.Refinery.Activity
         public AtmosphereProcessor()
         {
             ActivityName = "Atmospheric Extraction";
-            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
-            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseELCPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.ElectrolysisEnergyPerTon;
         }
 
         // persistent

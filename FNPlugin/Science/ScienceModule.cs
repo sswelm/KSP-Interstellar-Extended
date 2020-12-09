@@ -345,9 +345,9 @@ namespace FNPlugin
 
             if (IsEnabled && last_active_time != 0)
             {
-                double global_rate_multipliers = 1;
+                double globalRateMultipliers = 1;
                 crew_capacity_ratio = ((float)(part.protoModuleCrew.Count)) / ((float)part.CrewCapacity);
-                global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
+                globalRateMultipliers = globalRateMultipliers * crew_capacity_ratio;
 
                 /*
                 if (active_mode == 0) // Science persistence
@@ -370,9 +370,9 @@ namespace FNPlugin
                 {
                     var deltaTime = Planetarium.GetUniversalTime() - last_active_time;
 
-                    var electrical_power_provided_in_Megajoules = electrical_power_ratio * global_rate_multipliers * powerReqMult * PluginHelper.BaseAMFPowerConsumption * deltaTime;
+                    var electricalPowerProvidedInMegajoules = electrical_power_ratio * globalRateMultipliers * powerReqMult * PluginSettings.Config.BaseAMFPowerConsumption * deltaTime;
 
-                    antimatterGenerator.Produce(electrical_power_provided_in_Megajoules);
+                    antimatterGenerator.Produce(electricalPowerProvidedInMegajoules);
                 }
             }
         }
@@ -383,7 +383,6 @@ namespace FNPlugin
 
             try
             {
-                //Events["BeginResearch"].active = isupgraded && !IsEnabled;
                 Events["ReprocessFuel"].active = !IsEnabled;
                 Events["ActivateFactory"].active = isupgraded && !IsEnabled;
                 Events["ActivateElectrolysis"].active = false;
@@ -398,7 +397,7 @@ namespace FNPlugin
 
             try
             {
-                // only show retrofit btoon if we can actualy upgrade
+                // only show retrofit if we can actualy upgrade
                 Events["RetrofitEngine"].active = ResearchAndDevelopment.Instance == null ? false : !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
             }
             catch (Exception e)
@@ -474,10 +473,10 @@ namespace FNPlugin
                 {
                     try
                     {
-                        currentpowertmp = electrical_power_ratio * PluginHelper.BaseAMFPowerConsumption * powerReqMult;
+                        currentpowertmp = electrical_power_ratio * PluginSettings.Config.BaseAMFPowerConsumption * powerReqMult;
                         Fields["antimatterRate"].guiActive = true;
                         Fields["antimatterProductionEfficiency"].guiActive = true;
-                        powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseAMFPowerConsumption).ToString("0.00") + "MW";
+                        powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginSettings.Config.BaseAMFPowerConsumption).ToString("0.00") + "MW";
                         antimatterProductionEfficiency = (antimatterGenerator.Efficiency * 100).ToString("0.0000") + "%";
                         double antimatter_rate_per_day = antimatter_rate_f * PluginSettings.Config.SecondsInDay;
 
@@ -498,17 +497,17 @@ namespace FNPlugin
                 }
                 else if (active_mode == 3) // Electrolysis
                 {
-                    currentpowertmp = electrical_power_ratio * PluginHelper.BaseELCPowerConsumption * powerReqMult;
+                    currentpowertmp = electrical_power_ratio * PluginSettings.Config.BaseELCPowerConsumption * powerReqMult;
                     Fields["electrolysisRate"].guiActive = true;
                     double electrolysisratetmp = -electrolysis_rate_f * PluginSettings.Config.SecondsInDay;
                     electrolysisRate = electrolysisratetmp.ToString("0.0") + "mT/day";
-                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseELCPowerConsumption).ToString("0.00") + "MW";
+                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginSettings.Config.BaseELCPowerConsumption).ToString("0.00") + "MW";
                 }
                 else if (active_mode == 4) // Centrifuge
                 {
-                    currentpowertmp = electrical_power_ratio * PluginHelper.BaseCentriPowerConsumption * powerReqMult;
+                    currentpowertmp = electrical_power_ratio * PluginSettings.Config.BaseCentriPowerConsumption * powerReqMult;
                     Fields["centrifugeRate"].guiActive = true;
-                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseCentriPowerConsumption).ToString("0.00") + "MW";
+                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginSettings.Config.BaseCentriPowerConsumption).ToString("0.00") + "MW";
                     double deut_per_hour = deut_rate_f * 3600;
                     centrifugeRate = Localizer.Format("#LOC_KSPIE_ScienceModule_Centrifuge", deut_per_hour.ToString("0.00"));// + " Kg Deuterium/Hour"
                 }
@@ -587,9 +586,9 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            double global_rate_multipliers = 1;
+            double globalRateMultipliers = 1;
             crew_capacity_ratio = ((float)part.protoModuleCrew.Count) / ((float)part.CrewCapacity);
-            global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
+            globalRateMultipliers = globalRateMultipliers * crew_capacity_ratio;
 
             if (!IsEnabled) return;
 
@@ -629,9 +628,9 @@ namespace FNPlugin
 
                 electrical_power_ratio = electricalPowerProvided / TimeWarp.fixedDeltaTime / PluginSettings.Config.BasePowerConsumption / powerReqMult;
 
-                var productionModifier = global_rate_multipliers;
-                global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
-                reprocessor.UpdateFrame(global_rate_multipliers, electrical_power_ratio, productionModifier, true, TimeWarp.fixedDeltaTime);
+                var productionModifier = globalRateMultipliers;
+                globalRateMultipliers = globalRateMultipliers * electrical_power_ratio;
+                reprocessor.UpdateFrame(globalRateMultipliers, electrical_power_ratio, productionModifier, true, TimeWarp.fixedDeltaTime);
 
                 if (reprocessor.getActinidesRemovedPerHour() > 0)
                     reprocessing_rate_f = reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour();
@@ -640,14 +639,14 @@ namespace FNPlugin
             }
             else if (active_mode == 2) //Antimatter
             {
-                var powerRequestInMegajoules = powerReqMult * PluginHelper.BaseAMFPowerConsumption * TimeWarp.fixedDeltaTime;
+                var powerRequestInMegajoules = powerReqMult * PluginSettings.Config.BaseAMFPowerConsumption * TimeWarp.fixedDeltaTime;
 
                 var energyProvidedInMegajoules = CheatOptions.InfiniteElectricity
                     ? powerRequestInMegajoules
                     : consumeFNResource(powerRequestInMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 electrical_power_ratio = powerRequestInMegajoules > 0 ? energyProvidedInMegajoules / powerRequestInMegajoules : 0;
-                antimatterGenerator.Produce(energyProvidedInMegajoules * global_rate_multipliers);
+                antimatterGenerator.Produce(energyProvidedInMegajoules * globalRateMultipliers);
                 antimatter_rate_f = antimatterGenerator.ProductionRate;
             }
             else if (active_mode == 3)
@@ -658,15 +657,15 @@ namespace FNPlugin
             {
                 if (vessel.Splashed)
                 {
-                    var powerRequest = powerReqMult * PluginHelper.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime;
+                    var powerRequest = powerReqMult * PluginSettings.Config.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime;
 
                     double electricalPowerProvided = CheatOptions.InfiniteElectricity
                         ? powerRequest
                         : consumeFNResource(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt);
 
-                    electrical_power_ratio = electricalPowerProvided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult;
-                    global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
-                    double deut_produced = global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f;
+                    electrical_power_ratio = electricalPowerProvided / TimeWarp.fixedDeltaTime / PluginSettings.Config.BaseCentriPowerConsumption / powerReqMult;
+                    globalRateMultipliers = globalRateMultipliers * electrical_power_ratio;
+                    double deut_produced = globalRateMultipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f;
                     deut_rate_f = -part.RequestResource(ResourceSettings.Config.DeuteriumLqd, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                 }
                 else

@@ -63,7 +63,7 @@ namespace FNPlugin.Resources
             celestrialBodyFieldStrengthMod = MagneticFieldDefinitionsHandler.GetMagneticFieldDefinitionForBody(vessel.mainBody).StrengthMult;
             flux = collectionMultiplier * vessel.mainBody.GetBeltAntiparticles(_homeworld, vessel.altitude, lat);
             ParticleFlux = flux.ToString("E");
-            collectionRate = _effectiveFlux * PluginHelper.SecondsInHour;
+            collectionRate = _effectiveFlux * PluginSettings.Config.SecondsInHour;
             canCollect = _moduleAnimateGeneric == null ? true :  _moduleAnimateGeneric.GetScalar == 1;
         }
 

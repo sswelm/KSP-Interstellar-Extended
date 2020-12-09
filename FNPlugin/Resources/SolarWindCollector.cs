@@ -277,7 +277,7 @@ namespace FNPlugin.Resources
             if (dLastPowerRatio < 0.01) return;
 
             // verify altitude is not too low
-            if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
+            if (vessel.altitude < (PluginHelper.GetMaxAtmosphericAltitude(vessel.mainBody)))
             {
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg1"), 10, ScreenMessageStyle.LOWER_CENTER);//"Solar Wind Collection Error, vessel in atmosphere"
                 return;
@@ -348,7 +348,7 @@ namespace FNPlugin.Resources
 
             fSolarWindConcentrationPerSquareMeter = (float)solarWindMolesPerSquareMeterPerSecond;
             fInterstellarIonsPerCubicMeter = (float)interstellarDustMolesPerCubicMeter;
-            magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
+            magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.GetMaxAtmosphericAltitude(vessel.mainBody));
             strMagnetoStrength = UpdateMagnetoStrengthInGui();
 
             Events[nameof(ActivateCollector)].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
@@ -425,7 +425,7 @@ namespace FNPlugin.Resources
             dLastActiveTime = Planetarium.GetUniversalTime();
 
             // store current strength of the magnetic field in case vessel is unloaded
-            dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
+            dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.GetMaxAtmosphericAltitude(vessel.mainBody));
         }
 
 
@@ -445,7 +445,7 @@ namespace FNPlugin.Resources
         // checks if the vessel is not in atmosphere and if it can therefore collect solar wind. Could incorporate other checks if needed.
         private bool IsCollectLegal()
         {
-            if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) / 2) // won't collect in atmosphere
+            if (vessel.altitude < (PluginHelper.GetMaxAtmosphericAltitude(vessel.mainBody)) / 2) // won't collect in atmosphere
             {
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg2"), 10, ScreenMessageStyle.LOWER_CENTER);//"Solar wind collection not possible in low atmosphere"
                 fSolarWindConcentrationPerSquareMeter = 0;
@@ -665,7 +665,7 @@ namespace FNPlugin.Resources
 
         private string UpdateMagnetoStrengthInGui()
         {
-            return (GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) * 100).ToString("F1");
+            return (GetMagnetosphereRatio(vessel.altitude, PluginHelper.GetMaxAtmosphericAltitude(vessel.mainBody)) * 100).ToString("F1");
         }
 
         // the main collecting function
@@ -720,7 +720,7 @@ namespace FNPlugin.Resources
                 PluginHelper.getFormattedPowerString(dPowerRequirementsMw);
 
             // get the shielding effect provided by the magnetosphere
-            magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
+            magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.GetMaxAtmosphericAltitude(vessel.mainBody));
 
             // if online collecting, get the old values instead (simplification for the time being)
             if (offlineCollecting)

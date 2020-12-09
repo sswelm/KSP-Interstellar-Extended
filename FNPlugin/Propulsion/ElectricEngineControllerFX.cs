@@ -1116,7 +1116,7 @@ namespace FNPlugin.Propulsion
 
         private double GetAtmosphericDensityModifier()
         {
-            return Math.Max(1.0 - (part.vessel.atmDensity * PluginHelper.ElectricEngineAtmosphericDensityThrustLimiter), 0.0);
+            return Math.Max(1.0 - (part.vessel.atmDensity * PluginSettings.Config.ElectricEngineAtmosphericDensityThrustLimiter), 0.0);
         }
 
         private static List<ElectricEnginePropellant> GetAllPropellants()

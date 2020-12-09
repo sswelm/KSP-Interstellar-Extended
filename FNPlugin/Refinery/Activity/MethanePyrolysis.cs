@@ -15,8 +15,8 @@ namespace FNPlugin.Refinery.Activity
         {
             ActivityName = "Methane Pyrolysis";
             Formula = "CH<size=7>4</size> => H<size=7>2</size> + C";
-            PowerRequirements = PluginHelper.BaseELCPowerConsumption;
-            EnergyPerTon = PluginHelper.ElectrolysisEnergyPerTon;
+            PowerRequirements = PluginSettings.Config.BaseELCPowerConsumption;
+            EnergyPerTon = PluginSettings.Config.ElectrolysisEnergyPerTon;
         }
 
         private double _monoxideDensity;
