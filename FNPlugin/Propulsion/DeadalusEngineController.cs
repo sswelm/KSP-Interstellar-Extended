@@ -86,8 +86,6 @@ namespace FNPlugin.Propulsion
         [KSPField]
         public string effectName = string.Empty;
 
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_temperatureStr")]
-        public string temperatureStr = "";
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiUnits = " m/s")]
         public double engineSpeedOfLight;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
@@ -671,9 +669,17 @@ namespace FNPlugin.Propulsion
 
         public void Update()
         {
+            var wasteheatPartResource = part.Resources[ResourceSettings.Config.WasteHeatInMegawatt];
+            if (wasteheatPartResource != null)
+            {
+                var localWasteheatRatio = wasteheatPartResource.amount / wasteheatPartResource.maxAmount;
+                wasteheatPartResource.maxAmount = 1000 * partMass * wasteHeatMultiplier;
+                wasteheatPartResource.amount = wasteheatPartResource.maxAmount * localWasteheatRatio;
+            }
+
             if (HighLogic.LoadedSceneIsEditor)
             {
-                // configure engine for Kerbal Engeneer support
+                // configure engine for Kerbal Engineering support
                 UpdateAtmosphericCurve(EngineIsp);
                 effectiveMaxThrustInKiloNewton = MaximumThrust;
                 calculatedFuelflow = effectiveMaxThrustInKiloNewton / EngineIsp / GameConstants.STANDARD_GRAVITY;
@@ -816,8 +822,6 @@ namespace FNPlugin.Propulsion
                     part.Effect(effectName, 0, -1);
                 UpdateTime();
             }
-
-            temperatureStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
         }
 
         private void UpdateTime()

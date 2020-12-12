@@ -63,6 +63,7 @@ namespace FNPlugin.Wasteheat
             var thermalEngines = new List<ThermalEngineController>();
             var beamedReceivers = new List<BeamedPowerReceiver>();
             var variableEngines = new List<FusionECU2>();
+            var fusionEngines = new List<DaedalusEngineController>();
 
             foreach (var part in EditorLogic.fetch.ship.parts)
             {
@@ -73,6 +74,7 @@ namespace FNPlugin.Wasteheat
                 thermalEngines.AddRange(part.FindModulesImplementing<ThermalEngineController>());
                 beamedReceivers.AddRange(part.FindModulesImplementing<BeamedPowerReceiver>());
                 variableEngines.AddRange(part.FindModulesImplementing<FusionECU2>());
+                fusionEngines.AddRange(part.FindModulesImplementing<DaedalusEngineController>());
             }
 
             total_source_power = 0;
@@ -142,18 +144,27 @@ namespace FNPlugin.Wasteheat
                 min_source_power += 0.3 * maxReceiverWasteheatProduction;
             }
 
+            var engineThrottleRatio = 0.01 * engine_throttle_percentage;
+
             foreach (ThermalEngineController thermalNozzle in thermalEngines)
             {
-                var nozzleWasteheatProduction = 0.01 * engine_throttle_percentage * thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
+                var nozzleWasteheatProduction = engineThrottleRatio * thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
                 total_source_power += nozzleWasteheatProduction;
                 min_source_power += nozzleWasteheatProduction * 0.3;
             }
 
             foreach (FusionECU2 variableEngine in variableEngines)
             {
-                var engineWasteheat = 0.01 * engine_throttle_percentage * variableEngine.fusionWasteHeatMax;
+                var engineWasteheat = engineThrottleRatio * variableEngine.fusionWasteHeatMax;
                 total_source_power += engineWasteheat;
-                min_source_power += total_source_power * 0.3;
+                min_source_power += engineWasteheat * 0.3;
+            }
+
+            foreach (DaedalusEngineController fusionEngine in fusionEngines)
+            {
+                var engineWasteheat = 0.01 * engine_throttle_percentage * fusionEngine.wasteHeat;
+                total_source_power += engineWasteheat;
+                min_source_power += engineWasteheat * 0.3;
             }
 
             foreach (ModuleDeployableSolarPanel solarPanel in solarPanels)
