@@ -1542,11 +1542,10 @@ namespace FNPlugin.Reactors
 
             Events[nameof(DeactivateReactor)].guiActive = HighLogic.LoadedSceneIsFlight && showShutDownInFlight && IsEnabled;
 
-            if (HighLogic.LoadedSceneIsEditor)
-            {
-                UpdateConnectedReceiversStr();
-                reactorSurface = radius * radius;
-            }
+            if (!HighLogic.LoadedSceneIsEditor) return;
+
+            UpdateConnectedReceiversStr();
+            reactorSurface = radius * radius;
         }
 
         protected void UpdateFuelMode()

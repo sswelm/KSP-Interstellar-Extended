@@ -17,13 +17,17 @@ namespace FNPlugin.Wasteheat
 
         private int numberOfRadiators;
         private int thermalWindowId = 825462;
+        private bool has_generators;
+
         private const int labelWidth = 300;
         private const int valueWidth = 80;
+
         private Rect windowPosition = new Rect(500, 500, labelWidth + valueWidth, 100);
         private GUIStyle bold_label;
         private GUIStyle green_label;
         private GUIStyle red_label;
         private GUIStyle orange_label;
+
         private double total_source_power;
         private double source_temp_at_100pc;
         private double source_temp_at_30pc;
@@ -33,9 +37,7 @@ namespace FNPlugin.Wasteheat
         private double resting_radiator_temp_at_100pcnt;
         private double resting_radiator_temp_at_30pcnt;
         private double average_rad_temp;
-
         private double au_scale = 1;
-        private bool has_generators;
         private double generator_efficiency_at_100pcnt;
         private double generator_efficiency_at_30pcnt;
 
@@ -57,14 +59,16 @@ namespace FNPlugin.Wasteheat
             List<FNGenerator> generators = new List<FNGenerator>();
             List<ModuleDeployableSolarPanel> solarPanels = new List<ModuleDeployableSolarPanel>();
             List<ThermalEngineController> thermalEngines = new List<ThermalEngineController>();
+            List<BeamedPowerReceiver> beamedReceivers = new List<BeamedPowerReceiver>();
 
-            foreach (Part part in EditorLogic.fetch.ship.parts)
+            foreach (var part in EditorLogic.fetch.ship.parts)
             {
                 thermalSources.AddRange(part.FindModulesImplementing<IPowerSource>());
                 radiators.AddRange(part.FindModulesImplementing<FNRadiator>());
                 solarPanels.AddRange(part.FindModulesImplementing<ModuleDeployableSolarPanel>());
                 generators.AddRange(part.FindModulesImplementing<FNGenerator>());
                 thermalEngines.AddRange(part.FindModulesImplementing<ThermalEngineController>());
+                beamedReceivers.AddRange(part.FindModulesImplementing<BeamedPowerReceiver>());
             }
 
             total_source_power = 0;
@@ -76,6 +80,7 @@ namespace FNPlugin.Wasteheat
             double totalTemperaturePowerAt100Percent = 0;
             double totalTemperaturePowerAt30Percent = 0;
 
+            // first calculate reactors
             foreach (var powerSource in thermalSources)
             {
                 double combinedMaxStableMegaWattPower = 0;
@@ -120,6 +125,18 @@ namespace FNPlugin.Wasteheat
                 source_temp_at_100pc = totalTemperaturePowerAt100Percent / total_source_power;
             if (min_source_power > 0)
                 source_temp_at_30pc = totalTemperaturePowerAt30Percent / min_source_power;
+
+            // calculate effect of on demand beamed power
+            foreach (var beamedReceiver in beamedReceivers)
+            {
+                // only count receiver that are activated
+                if (!beamedReceiver.receiverIsEnabled)
+                    continue;
+
+                var maxReceiverWasteheatProduction = beamedReceiver.MaximumRecievePower * (1 - beamedReceiver.activeBandwidthConfiguration.MaxEfficiencyPercentage * 0.01);
+                total_source_power += maxReceiverWasteheatProduction;
+                min_source_power += 0.3 * maxReceiverWasteheatProduction;
+            }
 
             foreach (var thermalNozzle in thermalEngines)
             {

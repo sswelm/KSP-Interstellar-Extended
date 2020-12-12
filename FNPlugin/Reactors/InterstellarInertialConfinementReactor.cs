@@ -73,8 +73,8 @@ namespace FNPlugin.Reactors
 
         public override void OnStart(PartModule.StartState state)
         {
-            isChargingField = Fields["isChargingForJumpstart"];
-            accumulatedChargeStrField = Fields["accumulatedChargeStr"];
+            isChargingField = Fields[nameof(isChargingForJumpstart)];
+            accumulatedChargeStrField = Fields[nameof(accumulatedChargeStr)];
 
             Fields[nameof(maxSecondaryPowerUsage)].guiActive = showSecondaryPowerUsage;
             Fields[nameof(maxSecondaryPowerUsage)].guiActiveEditor = showSecondaryPowerUsage;

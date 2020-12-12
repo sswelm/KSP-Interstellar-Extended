@@ -111,7 +111,7 @@ namespace FNPlugin
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_TargetWavelength", guiFormat = "F5")]//Target Wavelength
         public double targetWavelength = 0;
         [KSPField(isPersistant = true)]
-        public bool forceActivateAtStartup = false;
+        public bool forceActivateAtStartup;
 
         [KSPField(isPersistant = true)]
         protected double total_sat_efficiency_fraction = 0;
@@ -802,12 +802,12 @@ namespace FNPlugin
         private void ActivateRecieverState(bool forced = false)
         {
             receiverIsEnabled = true;
+            forceActivateAtStartup = true;
 
             // force activate to trigger any fairings and generators
             Debug.Log("[KSPI]: BeamedPowerReceiver was force activated on  " + part.name);
             this.part.force_activate();
 
-            forceActivateAtStartup = true;
             ShowDeployAnimation(forced);
         }
 
@@ -842,7 +842,7 @@ namespace FNPlugin
         private void DeactivateRecieverState(bool forced = false)
         {
             receiverIsEnabled = false;
-
+            forceActivateAtStartup = false;
             ShowUndeployAnimation(forced);
         }
 
@@ -888,13 +888,13 @@ namespace FNPlugin
             ShowUndeployAnimation(true);
         }
 
-        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ActivateReceiver", active = true)]//Activate Receiver
+        [KSPEvent(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ActivateReceiver", active = true)]//Activate Receiver
         public void ActivateReceiver()
         {
             ActivateRecieverState();
         }
 
-        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_DisableReceiver", active = true)]//Disable Receiver
+        [KSPEvent(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_DisableReceiver", active = true)]//Disable Receiver
         public void DisableReceiver()
         {
             DeactivateRecieverState();
@@ -950,7 +950,7 @@ namespace FNPlugin
             }
         }
 
-        private BandwidthConverter activeBandwidthConfiguration;
+        public BandwidthConverter activeBandwidthConfiguration;
 
         private List<BandwidthConverter> _bandwidthConverters;
         public  List<BandwidthConverter> BandwidthConverters
@@ -1082,10 +1082,7 @@ namespace FNPlugin
             }
 
             deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
-            if (deployableSolarPanel != null)
-            {
-                deployableSolarPanel.Events["Extend"].guiActive = false;
-            }
+            HideSlaveParmModules();
 
             var isInSolarModeField = Fields["solarPowerMode"];
             isInSolarModeField.guiActive = deployableSolarPanel != null || solarReceptionSurfaceArea > 0;
@@ -1200,6 +1197,20 @@ namespace FNPlugin
                 }
 
                 genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
+            }
+        }
+
+        private void HideSlaveParmModules()
+        {
+            if (deployableSolarPanel != null)
+            {
+                var extendEvent = deployableSolarPanel.Events[nameof(ModuleDeployableSolarPanel.Extend)];
+                extendEvent.guiActive = false;
+                extendEvent.guiActive = false;
+
+                var retractEvent = deployableSolarPanel.Events[nameof(ModuleDeployableSolarPanel.Retract)];
+                extendEvent.guiActive = false;
+                extendEvent.guiActive = false;
             }
         }
 
@@ -1483,7 +1494,7 @@ namespace FNPlugin
             return star;
         }
 
-        public override void OnUpdate()
+        public void Update()
         {
             var transmitterOn = has_transmitter && (part_transmitter.IsEnabled || part_transmitter.relay);
             var canBeActive = CanBeActiveInAtmosphere;
@@ -1507,6 +1518,11 @@ namespace FNPlugin
             _minimumWavelengthField.guiActive = receiverIsEnabled;
             _maximumWavelengthField.guiActive = receiverIsEnabled;
 
+            HideSlaveParmModules();
+        }
+
+        public override void OnUpdate()
+        {
             _connectedsatsField.guiActive = connectedsatsi > 0;
             _connectedrelaysField.guiActive = connectedrelaysi > 0;
             _networkDepthStringField.guiActive = networkDepth > 0;
@@ -1566,7 +1582,7 @@ namespace FNPlugin
 
         private void OnGUI()
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && showWindow)
+            if (this.vessel == FlightGlobals.ActiveVessel && showWindow && !HighLogic.LoadedSceneIsEditor)
                 windowPosition = GUILayout.Window(windowID, windowPosition, DrawGui, Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_InterfaceWindowTitle"));//"Power Receiver Interface"
         }
 

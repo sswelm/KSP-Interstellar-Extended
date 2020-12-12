@@ -891,8 +891,6 @@ namespace FNPlugin.Powermanagement
             if (HighLogic.LoadedSceneIsFlight) return;
 
             UpdateTargetMass();
-
-            Fields[nameof(targetMass)].guiActive = attachedPowerSource != null && attachedPowerSource.Part != this.part;
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
