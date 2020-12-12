@@ -28,6 +28,9 @@ namespace FNPlugin.Wasteheat
         private GUIStyle red_label;
         private GUIStyle orange_label;
 
+        private float au_scale = 1;
+        private float engine_throttle_percentage = 100;
+
         private double total_source_power;
         private double source_temp_at_100pc;
         private double source_temp_at_30pc;
@@ -37,7 +40,6 @@ namespace FNPlugin.Wasteheat
         private double resting_radiator_temp_at_100pcnt;
         private double resting_radiator_temp_at_30pcnt;
         private double average_rad_temp;
-        private double au_scale = 1;
         private double generator_efficiency_at_100pcnt;
         private double generator_efficiency_at_30pcnt;
 
@@ -54,12 +56,12 @@ namespace FNPlugin.Wasteheat
                 return;
 
             // thermal logic
-            List<IPowerSource> thermalSources = new List<IPowerSource>();
-            List<FNRadiator> radiators = new List<FNRadiator>();
-            List<FNGenerator> generators = new List<FNGenerator>();
-            List<ModuleDeployableSolarPanel> solarPanels = new List<ModuleDeployableSolarPanel>();
-            List<ThermalEngineController> thermalEngines = new List<ThermalEngineController>();
-            List<BeamedPowerReceiver> beamedReceivers = new List<BeamedPowerReceiver>();
+            var thermalSources = new List<IPowerSource>();
+            var radiators = new List<FNRadiator>();
+            var generators = new List<FNGenerator>();
+            var solarPanels = new List<ModuleDeployableSolarPanel>();
+            var thermalEngines = new List<ThermalEngineController>();
+            var beamedReceivers = new List<BeamedPowerReceiver>();
 
             foreach (var part in EditorLogic.fetch.ship.parts)
             {
@@ -81,7 +83,7 @@ namespace FNPlugin.Wasteheat
             double totalTemperaturePowerAt30Percent = 0;
 
             // first calculate reactors
-            foreach (var powerSource in thermalSources)
+            foreach (IPowerSource powerSource in thermalSources)
             {
                 double combinedMaxStableMegaWattPower = 0;
 
@@ -127,7 +129,7 @@ namespace FNPlugin.Wasteheat
                 source_temp_at_30pc = totalTemperaturePowerAt30Percent / min_source_power;
 
             // calculate effect of on demand beamed power
-            foreach (var beamedReceiver in beamedReceivers)
+            foreach (BeamedPowerReceiver beamedReceiver in beamedReceivers)
             {
                 // only count receiver that are activated
                 if (!beamedReceiver.receiverIsEnabled)
@@ -138,9 +140,9 @@ namespace FNPlugin.Wasteheat
                 min_source_power += 0.3 * maxReceiverWasteheatProduction;
             }
 
-            foreach (var thermalNozzle in thermalEngines)
+            foreach (ThermalEngineController thermalNozzle in thermalEngines)
             {
-                var nozzleWasteheatProduction = thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
+                var nozzleWasteheatProduction = 0.01 * engine_throttle_percentage * thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
                 total_source_power += nozzleWasteheatProduction;
                 min_source_power += nozzleWasteheatProduction * 0.3;
             }
@@ -158,18 +160,17 @@ namespace FNPlugin.Wasteheat
             foreach (FNRadiator radiator in radiators)
             {
                 total_area += radiator.BaseRadiatorArea;
-                double effectiveArea = radiator.EffectiveRadiatorArea;
-                double maxRadTemperature = radiator.MaxRadiatorTemperature;
+                var maxRadTemperature = radiator.MaxRadiatorTemperature;
                 maxRadTemperature = Math.Min(maxRadTemperature, source_temp_at_100pc);
                 numberOfRadiators++;
                 var tempToPowerFour = maxRadTemperature * maxRadTemperature * maxRadTemperature * maxRadTemperature;
-                rad_max_dissip += GameConstants.stefan_const * effectiveArea * tempToPowerFour / 1e6;
+                rad_max_dissip += GameConstants.stefan_const * radiator.EffectiveRadiatorArea * tempToPowerFour / 1e6;
                 average_rad_temp += maxRadTemperature;
             }
             average_rad_temp = numberOfRadiators != 0 ? average_rad_temp / numberOfRadiators : double.NaN;
 
-            double radRatio = total_source_power / rad_max_dissip;
-            double radRatio30Pc = min_source_power / rad_max_dissip;
+            var radRatio = total_source_power / rad_max_dissip;
+            var radRatio30Pc = min_source_power / rad_max_dissip;
 
             resting_radiator_temp_at_100pcnt = ((!double.IsInfinity(radRatio) && !double.IsNaN(radRatio)) ? Math.Pow(radRatio,0.25) : 0) * average_rad_temp;
             resting_radiator_temp_at_30pcnt = ((!double.IsInfinity(radRatio) && !double.IsNaN(radRatio)) ? Math.Pow(radRatio30Pc, 0.25) : 0) * average_rad_temp;
@@ -227,13 +228,21 @@ namespace FNPlugin.Wasteheat
             }
 
             GUILayout.BeginVertical();
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Distance from Kerbol: /AU (Kerbin = 1)", GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
             GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            au_scale = GUILayout.HorizontalSlider(au_scale, 0.001f, 8f, GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.Label(au_scale.ToString("0.000")+ " AU", GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            au_scale = GUILayout.HorizontalSlider((float)au_scale, 0.001f, 8f, GUILayout.ExpandWidth(true), guiLabelWidth);
-            GUILayout.Label(au_scale.ToString("0.000")+ " AU", GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label("Engine Throttle (Percentage)", GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            engine_throttle_percentage = GUILayout.HorizontalSlider(engine_throttle_percentage, 0, 100, GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.Label(engine_throttle_percentage.ToString("000") + " %", GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -291,7 +300,9 @@ namespace FNPlugin.Wasteheat
                 GUILayout.Label((generator_efficiency_at_30pcnt * 100).ToString("0.00") + "%", radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
                 GUILayout.EndHorizontal();
             }
+
             GUILayout.EndVertical();
+
             GUI.DragWindow();
         }
     }
