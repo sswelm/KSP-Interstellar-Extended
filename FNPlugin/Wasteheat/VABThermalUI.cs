@@ -62,6 +62,7 @@ namespace FNPlugin.Wasteheat
             var solarPanels = new List<ModuleDeployableSolarPanel>();
             var thermalEngines = new List<ThermalEngineController>();
             var beamedReceivers = new List<BeamedPowerReceiver>();
+            var variableEngines = new List<FusionECU2>();
 
             foreach (var part in EditorLogic.fetch.ship.parts)
             {
@@ -71,6 +72,7 @@ namespace FNPlugin.Wasteheat
                 generators.AddRange(part.FindModulesImplementing<FNGenerator>());
                 thermalEngines.AddRange(part.FindModulesImplementing<ThermalEngineController>());
                 beamedReceivers.AddRange(part.FindModulesImplementing<BeamedPowerReceiver>());
+                variableEngines.AddRange(part.FindModulesImplementing<FusionECU2>());
             }
 
             total_source_power = 0;
@@ -147,7 +149,14 @@ namespace FNPlugin.Wasteheat
                 min_source_power += nozzleWasteheatProduction * 0.3;
             }
 
-            foreach (var solarPanel in solarPanels)
+            foreach (FusionECU2 variableEngine in variableEngines)
+            {
+                var engineWasteheat = 0.01 * engine_throttle_percentage * variableEngine.fusionWasteHeatMax;
+                total_source_power += engineWasteheat;
+                min_source_power += total_source_power * 0.3;
+            }
+
+            foreach (ModuleDeployableSolarPanel solarPanel in solarPanels)
             {
                 total_source_power += solarPanel.chargeRate * 0.0005/au_scale/au_scale;
             }
@@ -230,7 +239,7 @@ namespace FNPlugin.Wasteheat
             GUILayout.BeginVertical();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Distance from Kerbol: /AU (Kerbin = 1)", GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_DistanceFromKerbol"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             au_scale = GUILayout.HorizontalSlider(au_scale, 0.001f, 8f, GUILayout.ExpandWidth(true), guiLabelWidth);
@@ -238,11 +247,11 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Engine Throttle (Percentage)", GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_EngineThrottlePercentage"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             engine_throttle_percentage = GUILayout.HorizontalSlider(engine_throttle_percentage, 0, 100, GUILayout.ExpandWidth(true), guiLabelWidth);
-            GUILayout.Label(engine_throttle_percentage.ToString("000") + " %", GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(engine_throttle_percentage.ToString("0.0") + " %", GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
