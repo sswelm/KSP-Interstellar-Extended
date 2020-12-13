@@ -4,6 +4,7 @@ using FNPlugin.Redist;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
+using FNPlugin.Beamedpower;
 using FNPlugin.Propulsion;
 using UniLinq;
 using UnityEngine;

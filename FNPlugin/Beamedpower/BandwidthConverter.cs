@@ -1,4 +1,5 @@
-﻿using KSP.Localization;
+﻿using FNPlugin.Beamedpower;
+using KSP.Localization;
 
 namespace FNPlugin.Microwave
 {

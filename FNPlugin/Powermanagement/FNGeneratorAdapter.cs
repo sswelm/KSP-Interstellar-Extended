@@ -2,6 +2,7 @@
 using FNPlugin.Power;
 using FNPlugin.Resources;
 using System;
+using FNPlugin.Beamedpower;
 using UnityEngine;
 
 namespace FNPlugin.Powermanagement
