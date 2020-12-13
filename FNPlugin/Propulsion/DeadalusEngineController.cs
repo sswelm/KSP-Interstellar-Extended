@@ -20,33 +20,23 @@ namespace FNPlugin.Propulsion
     [KSPModule("Confinement Fusion Engine")]
     class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule , IRescalable<DaedalusEngineController>
     {
-        public const string GROUP = "FusionEngine";
-        public const string GROUP_TITLE = "#LOC_KSPIE_FusionEngine_groupName";
+        const string LIGHTBLUE = "#7fdfffff";
+        const string GROUP = "FusionEngine";
+        const string GROUP_TITLE = "#LOC_KSPIE_FusionEngine_groupName";
 
         // Persistent
-        [KSPField(isPersistant = true)]
-        public double thrustMultiplier = 1;
-        [KSPField(isPersistant = true)]
-        public double ispMultiplier = 1;
-        [KSPField(isPersistant = true)]
-        public bool IsEnabled;
-        [KSPField(isPersistant = true)]
-        public bool rad_safety_features = true;
+        [KSPField(isPersistant = true)] public double thrustMultiplier = 1;
+        [KSPField(isPersistant = true)] public double ispMultiplier = 1;
+        [KSPField(isPersistant = true)] public bool IsEnabled;
+        [KSPField(isPersistant = true)] public bool rad_safety_features = true;
 
-        [KSPField]
-        public double massThrustExp = 0;
-        [KSPField]
-        public double massIspExp = 0;
-        [KSPField]
-        public double higherScaleThrustExponent = 3;
-        [KSPField]
-        public double lowerScaleThrustExponent = 4;
-        [KSPField]
-        public double higherScaleIspExponent = 0.25;
-        [KSPField]
-        public double lowerScaleIspExponent = 1;
-        [KSPField]
-        public double GThreshold = 9;
+        [KSPField] public double massThrustExp = 0;
+        [KSPField] public double massIspExp = 0;
+        [KSPField] public double higherScaleThrustExponent = 3;
+        [KSPField] public double lowerScaleThrustExponent = 4;
+        [KSPField] public double higherScaleIspExponent = 0.25;
+        [KSPField] public double lowerScaleIspExponent = 1;
+        [KSPField] public double GThreshold = 9;
 
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
         public float speedLimit = 1;
@@ -54,37 +44,25 @@ namespace FNPlugin.Propulsion
         public float fuelLimit = 100;
         [KSPField(groupName = GROUP, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_maximizeThrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool maximizeThrust = true;
-
         [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_powerUsage")]
         public string powerUsage;
         [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_wasteHeat", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
         public double wasteHeat;
 
-        [KSPField]
-        public double finalRequestedPower;
+        [KSPField] public double finalRequestedPower;
 
-        [KSPField(guiActive = false, guiActiveEditor = false)]
-        public string fusionFuel1 = string.Empty;
-        [KSPField(guiActive = false, guiActiveEditor = false)]
-        public string fusionFuel2 = string.Empty;
-        [KSPField(guiActive = false, guiActiveEditor = false)]
-        public string fusionFuel3 = string.Empty;
+        [KSPField] public string fusionFuel1 = string.Empty;
+        [KSPField] public string fusionFuel2 = string.Empty;
+        [KSPField] public string fusionFuel3 = string.Empty;
 
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_FusionEngine_fusionFuel")]
-        public string fuelName1 = "FusionPellets";
-        [KSPField(guiActive = false, guiActiveEditor = false)]
-        public string fuelName2 = string.Empty;
-        [KSPField(guiActive = false, guiActiveEditor = false)]
-        public string fuelName3 = string.Empty;
+        [KSPField] public string fuelName1 = "FusionPellets";
+        [KSPField] public string fuelName2 = string.Empty;
+        [KSPField] public string fuelName3 = string.Empty;
 
-        [KSPField(guiActive = false, guiActiveEditor = false)]
-        public double fuelRatio1 = 1;
-        [KSPField(guiActive = false, guiActiveEditor = false)]
-        public double fuelRatio2 = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false)]
-        public double fuelRatio3 = 0;
-        [KSPField]
-        public string effectName = string.Empty;
+        [KSPField] public double fuelRatio1 = 1;
+        [KSPField] public double fuelRatio2 = 0;
+        [KSPField] public double fuelRatio3 = 0;
+        [KSPField] public string effectName = string.Empty;
 
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiUnits = " m/s")]
         public double engineSpeedOfLight;
@@ -94,7 +72,6 @@ namespace FNPlugin.Propulsion
         public double relativity;
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
         public double timeDilation;
-
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_radhazardstr")]
         public string radhazardstr = "";
         [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_partMass", guiFormat = "F3", guiUnits = " t")]
@@ -124,191 +101,106 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_worldSpaceVelocity", guiFormat = "F2", guiUnits = " m/s")]
         public double worldSpaceVelocity;
 
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
-        public string translatedTechMk1;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
-        public string translatedTechMk2;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
-        public string translatedTechMk3;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
-        public string translatedTechMk4;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
-        public string translatedTechMk5;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
-        public string translatedTechMk6;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
-        public string translatedTechMk7;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
-        public string translatedTechMk8;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")] public string translatedTechMk1;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")] public string translatedTechMk2;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")] public string translatedTechMk3;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")] public string translatedTechMk4;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")] public string translatedTechMk5;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")] public string translatedTechMk6;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")] public string translatedTechMk7;
+        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")] public string translatedTechMk8;
 
-        [KSPField]
-        public float maxThrustMk1 = 300;
-        [KSPField]
-        public float maxThrustMk2 = 500;
-        [KSPField]
-        public float maxThrustMk3 = 800;
-        [KSPField]
-        public float maxThrustMk4 = 1200;
-        [KSPField]
-        public float maxThrustMk5 = 1500;
-        [KSPField]
-        public float maxThrustMk6 = 2000;
-        [KSPField]
-        public float maxThrustMk7 = 2500;
-        [KSPField]
-        public float maxThrustMk8 = 3000;
-        [KSPField]
-        public float maxThrustMk9 = 3500;
+        [KSPField] public float maxThrustMk1 = 300;
+        [KSPField] public float maxThrustMk2 = 500;
+        [KSPField] public float maxThrustMk3 = 800;
+        [KSPField] public float maxThrustMk4 = 1200;
+        [KSPField] public float maxThrustMk5 = 1500;
+        [KSPField] public float maxThrustMk6 = 2000;
+        [KSPField] public float maxThrustMk7 = 2500;
+        [KSPField] public float maxThrustMk8 = 3000;
+        [KSPField] public float maxThrustMk9 = 3500;
 
-        [KSPField]
-        public float wasteheatMk1 = 0;
-        [KSPField]
-        public float wasteheatMk2 = 0;
-        [KSPField]
-        public float wasteheatMk3 = 0;
-        [KSPField]
-        public float wasteheatMk4 = 0;
-        [KSPField]
-        public float wasteheatMk5 = 0;
-        [KSPField]
-        public float wasteheatMk6 = 0;
-        [KSPField]
-        public float wasteheatMk7 = 0;
-        [KSPField]
-        public float wasteheatMk8 = 0;
-        [KSPField]
-        public float wasteheatMk9 = 0;
+        [KSPField] public float wasteheatMk1 = 0;
+        [KSPField] public float wasteheatMk2 = 0;
+        [KSPField] public float wasteheatMk3 = 0;
+        [KSPField] public float wasteheatMk4 = 0;
+        [KSPField] public float wasteheatMk5 = 0;
+        [KSPField] public float wasteheatMk6 = 0;
+        [KSPField] public float wasteheatMk7 = 0;
+        [KSPField] public float wasteheatMk8 = 0;
+        [KSPField] public float wasteheatMk9 = 0;
 
-        [KSPField]
-        public double powerRequirementMk1 = 0;
-        [KSPField]
-        public double powerRequirementMk2 = 0;
-        [KSPField]
-        public double powerRequirementMk3 = 0;
-        [KSPField]
-        public double powerRequirementMk4 = 0;
-        [KSPField]
-        public double powerRequirementMk5 = 0;
-        [KSPField]
-        public double powerRequirementMk6 = 0;
-        [KSPField]
-        public double powerRequirementMk7 = 0;
-        [KSPField]
-        public double powerRequirementMk8 = 0;
-        [KSPField]
-        public double powerRequirementMk9 = 0;
+        [KSPField] public double powerRequirementMk1 = 0;
+        [KSPField] public double powerRequirementMk2 = 0;
+        [KSPField] public double powerRequirementMk3 = 0;
+        [KSPField] public double powerRequirementMk4 = 0;
+        [KSPField] public double powerRequirementMk5 = 0;
+        [KSPField] public double powerRequirementMk6 = 0;
+        [KSPField] public double powerRequirementMk7 = 0;
+        [KSPField] public double powerRequirementMk8 = 0;
+        [KSPField] public double powerRequirementMk9 = 0;
 
-        [KSPField]
-        public double powerProductionMk1 = 0;
-        [KSPField]
-        public double powerProductionMk2 = 0;
-        [KSPField]
-        public double powerProductionMk3 = 0;
-        [KSPField]
-        public double powerProductionMk4 = 0;
-        [KSPField]
-        public double powerProductionMk5 = 0;
-        [KSPField]
-        public double powerProductionMk6 = 0;
-        [KSPField]
-        public double powerProductionMk7 = 0;
-        [KSPField]
-        public double powerProductionMk8 = 0;
-        [KSPField]
-        public double powerProductionMk9 = 0;
+        [KSPField] public double powerProductionMk1 = 0;
+        [KSPField] public double powerProductionMk2 = 0;
+        [KSPField] public double powerProductionMk3 = 0;
+        [KSPField] public double powerProductionMk4 = 0;
+        [KSPField] public double powerProductionMk5 = 0;
+        [KSPField] public double powerProductionMk6 = 0;
+        [KSPField] public double powerProductionMk7 = 0;
+        [KSPField] public double powerProductionMk8 = 0;
+        [KSPField] public double powerProductionMk9 = 0;
 
-        [KSPField]
-        public double thrustIspMk1 = 83886;
-        [KSPField]
-        public double thrustIspMk2 = 104857;
-        [KSPField]
-        public double thrustIspMk3 = 131072;
-        [KSPField]
-        public double thrustIspMk4 = 163840;
-        [KSPField]
-        public double thrustIspMk5 = 204800;
-        [KSPField]
-        public double thrustIspMk6 = 256000;
-        [KSPField]
-        public double thrustIspMk7 = 320000;
-        [KSPField]
-        public double thrustIspMk8 = 400000;
-        [KSPField]
-        public double thrustIspMk9 = 500000;
+        [KSPField] public double thrustIspMk1 = 83886;
+        [KSPField] public double thrustIspMk2 = 104857;
+        [KSPField] public double thrustIspMk3 = 131072;
+        [KSPField] public double thrustIspMk4 = 163840;
+        [KSPField] public double thrustIspMk5 = 204800;
+        [KSPField] public double thrustIspMk6 = 256000;
+        [KSPField] public double thrustIspMk7 = 320000;
+        [KSPField] public double thrustIspMk8 = 400000;
+        [KSPField] public double thrustIspMk9 = 500000;
 
-        [KSPField]
-        public int numberOfAvailableUpgradeTechs;
-        [KSPField]
-        public float maxAtmosphereDensity = 0;
-        [KSPField]
-        public float leathalDistance = 2000;
-        [KSPField]
-        public float killDivider = 50;
-        [KSPField]
-        public float wasteHeatMultiplier = 1;
-        [KSPField]
-        public float powerRequirementMultiplier = 1;
-        [KSPField]
-        public float maxTemp = 3200;
-        [KSPField]
-        public double powerThrottleExponent = 0.5;
-        [KSPField]
-        public double ispThrottleExponent = 0.5;
-        [KSPField]
-        public double fuelNeutronsFraction = 0.005;
-        [KSPField]
-        public int powerPriority = 4;
-        [KSPField]
-        public float upgradeCost = 100;
-        [KSPField]
-        public string originalName = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_originalName");//"Prototype Deadalus IC Fusion Engine"
-        [KSPField]
-        public string upgradedName = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_upgradedName");//"Deadalus IC Fusion Engine"
+        [KSPField] public int powerPriority = 4;
+        [KSPField] public int numberOfAvailableUpgradeTechs;
 
-        [KSPField]
-        public string upgradeTechReq1 = null;
-        [KSPField]
-        public string upgradeTechReq2 = null;
-        [KSPField]
-        public string upgradeTechReq3 = null;
-        [KSPField]
-        public string upgradeTechReq4 = null;
-        [KSPField]
-        public string upgradeTechReq5 = null;
-        [KSPField]
-        public string upgradeTechReq6 = null;
-        [KSPField]
-        public string upgradeTechReq7 = null;
-        [KSPField]
-        public string upgradeTechReq8 = null;
+        [KSPField] public float throttle;
+        [KSPField] public float maxAtmosphereDensity = 0;
+        [KSPField] public float leathalDistance = 2000;
+        [KSPField] public float killDivider = 50;
+        [KSPField] public float wasteHeatMultiplier = 1;
+        [KSPField] public float powerRequirementMultiplier = 1;
+        [KSPField] public float maxTemp = 3200;
+        [KSPField] public float upgradeCost = 100;
 
-        [KSPField]
-        public double demandMass;
-        [KSPField]
-        public double fuelRatio;
-        [KSPField]
-        double averageDensity;
-        [KSPField]
-        float throttle;
-        [KSPField]
-        double ratioHeadingVersusRequest;
+        [KSPField] public double demandMass;
+        [KSPField] public double fuelRatio;
+        [KSPField] public double averageDensity;
+        [KSPField] public double ratioHeadingVersusRequest;
+        [KSPField] public double powerThrottleExponent = 0.5;
+        [KSPField] public double ispThrottleExponent = 0.5;
+        [KSPField] public double fuelNeutronsFraction = 0.005;
 
-        [KSPField]
-        public double fuelFactor1;
-        [KSPField]
-        public double fuelFactor2;
-        [KSPField]
-        public double fuelFactor3;
+        [KSPField] public string originalName = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_originalName");//"Prototype Deadalus IC Fusion Engine"
+        [KSPField] public string upgradedName = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_upgradedName");//"Deadalus IC Fusion Engine"
 
-        [KSPField]
-        public double fusionFuelRequestAmount1 = 0.0;
-        [KSPField]
-        public double fusionFuelRequestAmount2 = 0.0;
-        [KSPField]
-        public double fusionFuelRequestAmount3 = 0.0;
+        [KSPField] public string upgradeTechReq1 = null;
+        [KSPField] public string upgradeTechReq2 = null;
+        [KSPField] public string upgradeTechReq3 = null;
+        [KSPField] public string upgradeTechReq4 = null;
+        [KSPField] public string upgradeTechReq5 = null;
+        [KSPField] public string upgradeTechReq6 = null;
+        [KSPField] public string upgradeTechReq7 = null;
+        [KSPField] public string upgradeTechReq8 = null;
 
-        [KSPField]
-        public double timeDilationMaximumThrust;
+        [KSPField] public double fuelFactor1;
+        [KSPField] public double fuelFactor2;
+        [KSPField] public double fuelFactor3;
+
+        [KSPField] public double fusionFuelRequestAmount1;
+        [KSPField] public double fusionFuelRequestAmount2;
+        [KSPField] public double fusionFuelRequestAmount3;
+
+        [KSPField] public double timeDilationMaximumThrust;
 
         FNEmitterController emitterController;
         ModuleEngines curEngineT;
@@ -319,8 +211,6 @@ namespace FNPlugin.Propulsion
         PartResourceDefinition fuelResourceDefinition1;
         PartResourceDefinition fuelResourceDefinition2;
         PartResourceDefinition fuelResourceDefinition3;
-
-        const string LIGHTBLUE = "#7fdfffff";
 
         bool radhazard;
         bool warpToReal;
@@ -356,7 +246,7 @@ namespace FNPlugin.Propulsion
 
         #region IUpgradeableModule
 
-        public String UpgradeTechnology { get { return upgradeTechReq1; } }
+        public string UpgradeTechnology => upgradeTechReq1;
 
         private float RawMaximumThrust
         {
@@ -364,35 +254,21 @@ namespace FNPlugin.Propulsion
             {
                 switch (_engineGenerationType)
                 {
-                    case (int)GenerationType.Mk1:
-                        return maxThrustMk1;
-                    case (int)GenerationType.Mk2:
-                        return maxThrustMk2;
-                    case (int)GenerationType.Mk3:
-                        return maxThrustMk3;
-                    case (int)GenerationType.Mk4:
-                        return maxThrustMk4;
-                    case (int)GenerationType.Mk5:
-                        return maxThrustMk5;
-                    case (int)GenerationType.Mk6:
-                        return maxThrustMk6;
-                    case (int)GenerationType.Mk7:
-                        return maxThrustMk7;
-                    case (int)GenerationType.Mk8:
-                        return maxThrustMk8;
+                    case (int)GenerationType.Mk1: return maxThrustMk1;
+                    case (int)GenerationType.Mk2: return maxThrustMk2;
+                    case (int)GenerationType.Mk3: return maxThrustMk3;
+                    case (int)GenerationType.Mk4: return maxThrustMk4;
+                    case (int)GenerationType.Mk5: return maxThrustMk5;
+                    case (int)GenerationType.Mk6: return maxThrustMk6;
+                    case (int)GenerationType.Mk7: return maxThrustMk7;
+                    case (int)GenerationType.Mk8: return maxThrustMk8;
                     default:
                         return maxThrustMk9;
                 }
             }
         }
 
-        private double MaximumThrust
-        {
-            get
-            {
-                return RawMaximumThrust * thrustMultiplier * Math.Pow(part.mass / partMass, massThrustExp);
-            }
-        }
+        private double MaximumThrust => RawMaximumThrust * thrustMultiplier * Math.Pow(part.mass / partMass, massThrustExp);
 
         private float FusionWasteHeat
         {
@@ -400,22 +276,14 @@ namespace FNPlugin.Propulsion
             {
                 switch (_engineGenerationType)
                 {
-                    case (int)GenerationType.Mk1:
-                        return wasteheatMk1;
-                    case (int)GenerationType.Mk2:
-                        return wasteheatMk2;
-                    case (int)GenerationType.Mk3:
-                        return wasteheatMk3;
-                    case (int)GenerationType.Mk4:
-                        return wasteheatMk4;
-                    case (int)GenerationType.Mk5:
-                        return wasteheatMk5;
-                    case (int)GenerationType.Mk6:
-                        return wasteheatMk6;
-                    case (int)GenerationType.Mk7:
-                        return wasteheatMk7;
-                    case (int)GenerationType.Mk8:
-                        return wasteheatMk8;
+                    case (int)GenerationType.Mk1: return wasteheatMk1;
+                    case (int)GenerationType.Mk2: return wasteheatMk2;
+                    case (int)GenerationType.Mk3: return wasteheatMk3;
+                    case (int)GenerationType.Mk4: return wasteheatMk4;
+                    case (int)GenerationType.Mk5: return wasteheatMk5;
+                    case (int)GenerationType.Mk6: return wasteheatMk6;
+                    case (int)GenerationType.Mk7: return wasteheatMk7;
+                    case (int)GenerationType.Mk8: return wasteheatMk8;
                     default:
                         return maxThrustMk9;
                 }
@@ -428,22 +296,14 @@ namespace FNPlugin.Propulsion
             {
                 switch (_engineGenerationType)
                 {
-                    case (int)GenerationType.Mk1:
-                        return powerRequirementMk1;
-                    case (int)GenerationType.Mk2:
-                        return powerRequirementMk2;
-                    case (int)GenerationType.Mk3:
-                        return powerRequirementMk3;
-                    case (int)GenerationType.Mk4:
-                        return powerRequirementMk4;
-                    case (int)GenerationType.Mk5:
-                        return powerRequirementMk5;
-                    case (int)GenerationType.Mk6:
-                        return powerRequirementMk6;
-                    case (int)GenerationType.Mk7:
-                        return powerRequirementMk7;
-                    case (int)GenerationType.Mk8:
-                        return powerRequirementMk8;
+                    case (int)GenerationType.Mk1: return powerRequirementMk1;
+                    case (int)GenerationType.Mk2: return powerRequirementMk2;
+                    case (int)GenerationType.Mk3: return powerRequirementMk3;
+                    case (int)GenerationType.Mk4: return powerRequirementMk4;
+                    case (int)GenerationType.Mk5: return powerRequirementMk5;
+                    case (int)GenerationType.Mk6: return powerRequirementMk6;
+                    case (int)GenerationType.Mk7: return powerRequirementMk7;
+                    case (int)GenerationType.Mk8: return powerRequirementMk8;
                     default:
                         return powerRequirementMk9;
                 }
@@ -456,22 +316,14 @@ namespace FNPlugin.Propulsion
             {
                 switch (_engineGenerationType)
                 {
-                    case (int)GenerationType.Mk1:
-                        return powerProductionMk1;
-                    case (int)GenerationType.Mk2:
-                        return powerProductionMk2;
-                    case (int)GenerationType.Mk3:
-                        return powerProductionMk3;
-                    case (int)GenerationType.Mk4:
-                        return powerProductionMk4;
-                    case (int)GenerationType.Mk5:
-                        return powerProductionMk5;
-                    case (int)GenerationType.Mk6:
-                        return powerProductionMk6;
-                    case (int)GenerationType.Mk7:
-                        return powerProductionMk7;
-                    case (int)GenerationType.Mk8:
-                        return powerProductionMk8;
+                    case (int)GenerationType.Mk1: return powerProductionMk1;
+                    case (int)GenerationType.Mk2: return powerProductionMk2;
+                    case (int)GenerationType.Mk3: return powerProductionMk3;
+                    case (int)GenerationType.Mk4: return powerProductionMk4;
+                    case (int)GenerationType.Mk5: return powerProductionMk5;
+                    case (int)GenerationType.Mk6: return powerProductionMk6;
+                    case (int)GenerationType.Mk7: return powerProductionMk7;
+                    case (int)GenerationType.Mk8: return powerProductionMk8;
                     default:
                         return powerProductionMk9;
                 }
@@ -484,35 +336,27 @@ namespace FNPlugin.Propulsion
             {
                 switch (_engineGenerationType)
                 {
-                    case (int)GenerationType.Mk1:
-                        return thrustIspMk1;
-                    case (int)GenerationType.Mk2:
-                        return thrustIspMk2;
-                    case (int)GenerationType.Mk3:
-                        return thrustIspMk3;
-                    case (int)GenerationType.Mk4:
-                        return thrustIspMk4;
-                    case (int)GenerationType.Mk5:
-                        return thrustIspMk5;
-                    case (int)GenerationType.Mk6:
-                        return thrustIspMk6;
-                    case (int)GenerationType.Mk7:
-                        return thrustIspMk7;
-                    case (int)GenerationType.Mk8:
-                        return thrustIspMk8;
+                    case (int)GenerationType.Mk1: return thrustIspMk1;
+                    case (int)GenerationType.Mk2: return thrustIspMk2;
+                    case (int)GenerationType.Mk3: return thrustIspMk3;
+                    case (int)GenerationType.Mk4: return thrustIspMk4;
+                    case (int)GenerationType.Mk5: return thrustIspMk5;
+                    case (int)GenerationType.Mk6: return thrustIspMk6;
+                    case (int)GenerationType.Mk7: return thrustIspMk7;
+                    case (int)GenerationType.Mk8: return thrustIspMk8;
                     default:
                         return thrustIspMk9;
                 }
             }
         }
 
-        public double EngineIsp { get { return RawEngineIsp * ispMultiplier * Math.Pow(part.mass / partMass, massIspExp); } }
+        public double EngineIsp => RawEngineIsp * ispMultiplier * Math.Pow(part.mass / partMass, massIspExp);
 
-        private double EffectiveMaxPowerRequirement { get { return PowerRequirement * powerRequirementMultiplier; } }
+        private double EffectiveMaxPowerRequirement => PowerRequirement * powerRequirementMultiplier;
 
-        private double EffectiveMaxPowerProduction { get { return PowerProduction * powerRequirementMultiplier; } }
+        private double EffectiveMaxPowerProduction => PowerProduction * powerRequirementMultiplier;
 
-        private double EffectiveMaxFusionWasteHeat { get { return FusionWasteHeat * wasteHeatMultiplier; } }
+        private double EffectiveMaxFusionWasteHeat => FusionWasteHeat * wasteHeatMultiplier;
 
 
         public void upgradePartModule()
@@ -1007,16 +851,16 @@ namespace FNPlugin.Propulsion
             vessel.orbit.Perturb(deltaVv * fuelRatio, modifiedUniversalTime);
         }
 
-        private double CollectFuel(double demandMass)
+        private double CollectFuel(double mass)
         {
-            if (CheatOptions.InfinitePropellant || demandMass <= 0)
+            if (CheatOptions.InfinitePropellant || mass <= 0)
                 return 1;
 
             fusionFuelRequestAmount1 = 0.0;
             fusionFuelRequestAmount2 = 0.0;
             fusionFuelRequestAmount3 = 0.0;
 
-            var totalAmount = demandMass / averageDensity;
+            var totalAmount = mass / averageDensity;
 
             double availableRatio = 1;
             if (fuelFactor1 > 0)
