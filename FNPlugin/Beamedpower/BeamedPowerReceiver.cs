@@ -465,40 +465,23 @@ namespace FNPlugin.Beamedpower
         private void DetermineTechLevel()
         {
             hothBathtechLevel = 1;
-            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk2))
-                hothBathtechLevel++;
-            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk3))
-                hothBathtechLevel++;
-            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk4))
-                hothBathtechLevel++;
-            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk5))
-                hothBathtechLevel++;
-            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk6))
-                hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk2)) hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk3)) hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk4)) hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk5)) hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk6)) hothBathtechLevel++;
         }
 
         private void DetermineCoreTemperature()
         {
             switch (hothBathtechLevel)
             {
-                case 1:
-                    hothBathTemperature = hothBathTemperatureMk1;
-                    break;
-                case 2:
-                    hothBathTemperature = hothBathTemperatureMk2;
-                    break;
-                case 3:
-                    hothBathTemperature = hothBathTemperatureMk3;
-                    break;
-                case 4:
-                    hothBathTemperature = hothBathTemperatureMk4;
-                    break;
-                case 5:
-                    hothBathTemperature = hothBathTemperatureMk5;
-                    break;
-                case 6:
-                    hothBathTemperature = hothBathTemperatureMk6;
-                    break;
+                case 1: hothBathTemperature = hothBathTemperatureMk1; break;
+                case 2: hothBathTemperature = hothBathTemperatureMk2; break;
+                case 3: hothBathTemperature = hothBathTemperatureMk3; break;
+                case 4: hothBathTemperature = hothBathTemperatureMk4; break;
+                case 5: hothBathTemperature = hothBathTemperatureMk5; break;
+                case 6: hothBathTemperature = hothBathTemperatureMk6; break;
                 default:
                     break;
             }
@@ -732,24 +715,16 @@ namespace FNPlugin.Beamedpower
         private void ShowUndeployAnimation(bool forced)
         {
             if (deployableAntenna != null)
-            {
                 deployableAntenna.Retract();
-            }
 
             if (deployableSolarPanel != null)
-            {
                 deployableSolarPanel.Retract();
-            }
 
             if (deployableRadiator != null)
-            {
                 deployableRadiator.Retract();
-            }
 
             if (genericAnimation != null && genericAnimation.GetScalar > 0 )
-            {
                 genericAnimation.Toggle();
-            }
 
             if (fnRadiator != null && fnRadiator.ModuleActiveRadiator != null)
                 fnRadiator.ModuleActiveRadiator.Shutdown();
@@ -1074,16 +1049,15 @@ namespace FNPlugin.Beamedpower
 
         private void HideSlavePartModules()
         {
-            if (deployableSolarPanel != null)
-            {
-                var extendEvent = deployableSolarPanel.Events[nameof(ModuleDeployableSolarPanel.Extend)];
-                extendEvent.guiActive = false;
-                extendEvent.guiActive = false;
+            if (deployableSolarPanel == null) return;
 
-                var retractEvent = deployableSolarPanel.Events[nameof(ModuleDeployableSolarPanel.Retract)];
-                retractEvent.guiActive = false;
-                retractEvent.guiActive = false;
-            }
+            var extendEvent = deployableSolarPanel.Events[nameof(ModuleDeployableSolarPanel.Extend)];
+            extendEvent.guiActive = false;
+            extendEvent.guiActive = false;
+
+            var retractEvent = deployableSolarPanel.Events[nameof(ModuleDeployableSolarPanel.Retract)];
+            retractEvent.guiActive = false;
+            retractEvent.guiActive = false;
         }
 
         private void UpdateBuffers()
@@ -1821,7 +1795,7 @@ namespace FNPlugin.Beamedpower
                         : beamedPowerData.TransmitPower;
 
                     // calculate maximum power available from beamed power network
-                    beamedPowerData.PowerUsageOthers = getEnumeratedPowerFromSatelliteForAllLoadedVessels(beamedPowerData.Transmitter);
+                    beamedPowerData.PowerUsageOthers = GetEnumeratedPowerFromSatelliteForAllLoadedVessels(beamedPowerData.Transmitter);
 
                     // add to available network power
                     beamedPowerData.NetworkPower = beamedPowerData.NetworkCapacity;
@@ -2049,7 +2023,7 @@ namespace FNPlugin.Beamedpower
             return 0;
         }
 
-        public static double getEnumeratedPowerFromSatelliteForAllLoadedVessels(VesselMicrowavePersistence vmp)
+        public static double GetEnumeratedPowerFromSatelliteForAllLoadedVessels(VesselMicrowavePersistence vmp)
         {
             double enumerated_power = 0;
             foreach (Vessel vess in FlightGlobals.Vessels)
