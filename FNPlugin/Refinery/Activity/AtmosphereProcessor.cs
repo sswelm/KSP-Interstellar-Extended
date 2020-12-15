@@ -20,66 +20,42 @@ namespace FNPlugin.Refinery.Activity
         }
 
         // persistent
-        [KSPField(isPersistant = true)]
-        protected int lastBodyID = -1; // ID of the last body. Allows us to skip some expensive calls
+        [KSPField(isPersistant = true)] protected int lastBodyID = -1; // ID of the last body. Allows us to skip some expensive calls
 
-        [KSPField(isPersistant = true)]
-        public bool isDeployed;
-        [KSPField(guiActive = false)]
-        public float normalizedTime = -1;
+        [KSPField(isPersistant = true)] public bool isDeployed;
+        [KSPField(guiActive = false)] public float normalizedTime = -1;
 
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_SurfaceArea", guiFormat = "F3")]//Surface Area
         public double surfaceArea = 1;
-        [KSPField]
-        public double buildInAirIntake;
-        [KSPField]
-        public double atmosphereConsumptionRatio;
-        [KSPField]
-        public string animName = "";
+
+        [KSPField] public double buildInAirIntake;
+        [KSPField] public double atmosphereConsumptionRatio;
+        [KSPField] public string animName = "";
 
         /* Individual percentages of all consituents of the local atmosphere. These are bound to be found in different
          * concentrations in all atmospheres. These are persistent because getting them every update through
          * the functions (see way below) would be wasteful. I'm placing them up here to make them easier to spot.
          */
 
-        [KSPField(isPersistant = true)]
-        protected double _ammoniaPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _argonPercentage; // percentage of argon in the local atmosphere
-        [KSPField(isPersistant = true)]
-        protected double _chlorinePercentage;
-        [KSPField(isPersistant = true)]
-        protected double _dioxidePercentage; // percentage of carbon dioxide in the local atmosphere
-        [KSPField(isPersistant = true)]
-        protected double _helium3Percentage; // etc.
-        [KSPField(isPersistant = true)]
-        protected double _helium4Percentage;
-        [KSPField(isPersistant = true)]
-        protected double _hydrogenPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _methanePercentage;
-        [KSPField(isPersistant = true)]
-        protected double _monoxidePercentage;
-        [KSPField(isPersistant = true)]
-        protected double _neonPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _nitrogenPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _nitrogen15Percentage;
-        [KSPField(isPersistant = true)]
-        protected double _oxygenPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _waterPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _heavywaterPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _xenonPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _deuteriumPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _kryptonPercentage;
-        [KSPField(isPersistant = true)]
-        protected double _sodiumPercentage;
+        [KSPField(isPersistant = true)] protected double _ammoniaPercentage;
+        [KSPField(isPersistant = true)] protected double _argonPercentage; // percentage of argon in the local atmosphere
+        [KSPField(isPersistant = true)] protected double _chlorinePercentage;
+        [KSPField(isPersistant = true)] protected double _dioxidePercentage; // percentage of carbon dioxide in the local atmosphere
+        [KSPField(isPersistant = true)] protected double _helium3Percentage; // etc.
+        [KSPField(isPersistant = true)] protected double _helium4Percentage;
+        [KSPField(isPersistant = true)] protected double _hydrogenPercentage;
+        [KSPField(isPersistant = true)] protected double _methanePercentage;
+        [KSPField(isPersistant = true)] protected double _monoxidePercentage;
+        [KSPField(isPersistant = true)] protected double _neonPercentage;
+        [KSPField(isPersistant = true)] protected double _nitrogenPercentage;
+        [KSPField(isPersistant = true)] protected double _nitrogen15Percentage;
+        [KSPField(isPersistant = true)] protected double _oxygenPercentage;
+        [KSPField(isPersistant = true)] protected double _waterPercentage;
+        [KSPField(isPersistant = true)] protected double _heavywaterPercentage;
+        [KSPField(isPersistant = true)] protected double _xenonPercentage;
+        [KSPField(isPersistant = true)] protected double _deuteriumPercentage;
+        [KSPField(isPersistant = true)] protected double _kryptonPercentage;
+        [KSPField(isPersistant = true)] protected double _sodiumPercentage;
 
         private Animation _scoopAnimation;
         private double _fixedConsumptionRate;
@@ -203,7 +179,7 @@ namespace FNPlugin.Refinery.Activity
             _argonResourceName = ResourceSettings.Config.ArgonLqd;
             _chlorineResourceName = ResourceSettings.Config.ChlorineGas;
             _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
-            _monoxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
+            _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideLqd;
             _helium3ResourceName = ResourceSettings.Config.Helium3Lqd;
             _helium4ResourceName = ResourceSettings.Config.Helium4Lqd;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
