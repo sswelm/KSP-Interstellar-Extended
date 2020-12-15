@@ -23,7 +23,7 @@ namespace FNPlugin.Microwave
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_Wavelength")]//Wavelength
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedBeamConfiguration;
-        
+
         [KSPField(isPersistant = true)]
         public bool isInitialized = false;
         [KSPField(isPersistant = true)]
@@ -124,7 +124,7 @@ namespace FNPlugin.Microwave
                 return 2;
             else if (techid == techLevelMk1)
                 return 1;
-            else 
+            else
                 return 7;
         }
 
@@ -152,11 +152,11 @@ namespace FNPlugin.Microwave
 
         private IList<BeamConfiguration> _beamConfigurations;
 
-        public IList<BeamConfiguration> BeamConfigurations 
+        public IList<BeamConfiguration> BeamConfigurations
         {
             get
             {
-                if (_beamConfigurations != null) 
+                if (_beamConfigurations != null)
                     return _beamConfigurations;
 
                 // ToDo: remove once inline beam configuration is fully implemented
@@ -235,13 +235,16 @@ namespace FNPlugin.Microwave
             var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
             var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
 
+            if (chooseOptionEditor == null)
+                return;
+
+            if (chooseOptionFlight == null)
+                return;
+
             var names = BeamConfigurations.Select(m => m.beamWaveName).ToArray();
 
-            if (chooseOptionEditor != null)
-                chooseOptionEditor.options = names;
-
-            if (chooseOptionFlight != null)
-                chooseOptionFlight.options = names;
+            chooseOptionEditor.options = names;
+            chooseOptionFlight.options = names;
 
             if (!string.IsNullOrEmpty(beamWaveName))
             {
@@ -317,17 +320,17 @@ namespace FNPlugin.Microwave
 
             beamWaveName = activeConfiguration.beamWaveName;
             wavelength = activeConfiguration.wavelength;
-            wavelengthText = WavelenthToText(wavelength);
+            wavelengthText = WavelengthToText(wavelength);
             atmosphericAbsorptionPercentage = activeConfiguration.atmosphericAbsorptionPercentage;
             waterAbsorptionPercentage = activeConfiguration.waterAbsorptionPercentage;
 
             UpdateEfficiencyPercentage();
 
             // synchronize with reciever;
-            if (transmitter != null && transmitter.part_receiver != null)
+            if (transmitter != null && transmitter.partReceiver != null)
             {
                 Debug.Log("[KSPI]: Called SetActiveBandwidthConfigurationByWaveLength with wavelength " + wavelength);
-                transmitter.part_receiver.SetActiveBandwidthConfigurationByWaveLength(wavelength);
+                transmitter.partReceiver.SetActiveBandwidthConfigurationByWaveLength(wavelength);
             }
             //else
             //{
@@ -335,7 +338,7 @@ namespace FNPlugin.Microwave
             //}
         }
 
-        private static string WavelenthToText(double wavelength)
+        private static string WavelengthToText(double wavelength)
         {
             if (wavelength > 1.0e-3)
                 return (wavelength * 1.0e+3) + " mm";
@@ -349,6 +352,9 @@ namespace FNPlugin.Microwave
 
         private void UpdateEfficiencyPercentage()
         {
+            if (activeConfiguration == null)
+                return;
+
             techLevel = -1;
 
             if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement3))
@@ -499,11 +505,11 @@ namespace FNPlugin.Microwave
             }
             sb.AppendLine("</size>");
 
-            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies")).AppendLine(":</color><size=10>");            
+            sb.Append("<color=#7fdfffff>").Append(Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies")).AppendLine(":</color><size=10>");
             foreach (var beamConfiguration in _inlineConfigurations)
             {
                 sb.Append("<color=#00ff00ff>").Append(beamConfiguration.beamWaveName).Append("</color>");
-                sb.Append("<color=#00e600ff> (").Append(WavelenthToText(beamConfiguration.wavelength)).AppendLine(")</color>  ");
+                sb.Append("<color=#00e600ff> (").Append(WavelengthToText(beamConfiguration.wavelength)).AppendLine(")</color>  ");
                 if (beamConfiguration.efficiencyPercentage0 > 0)
                     sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement0)).Append("Mk").
                         Append(GetTechLevelFromTechId(beamConfiguration.techRequirement0)).Append(":</color> ").

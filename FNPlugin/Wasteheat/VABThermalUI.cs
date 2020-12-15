@@ -65,6 +65,7 @@ namespace FNPlugin.Wasteheat
             var beamedReceivers = new List<BeamedPowerReceiver>();
             var variableEngines = new List<FusionECU2>();
             var fusionEngines = new List<DaedalusEngineController>();
+            var beamedTransmitter = new List<BeamedPowerTransmitter>();
 
             foreach (var part in EditorLogic.fetch.ship.parts)
             {
@@ -76,6 +77,7 @@ namespace FNPlugin.Wasteheat
                 beamedReceivers.AddRange(part.FindModulesImplementing<BeamedPowerReceiver>());
                 variableEngines.AddRange(part.FindModulesImplementing<FusionECU2>());
                 fusionEngines.AddRange(part.FindModulesImplementing<DaedalusEngineController>());
+                beamedTransmitter.AddRange(part.FindModulesImplementing<BeamedPowerTransmitter>());
             }
 
             total_source_power = 0;
@@ -140,9 +142,19 @@ namespace FNPlugin.Wasteheat
                 if (!beamedReceiver.receiverIsEnabled)
                     continue;
 
-                var maxReceiverWasteheatProduction = beamedReceiver.MaximumRecievePower * (1 - beamedReceiver.activeBandwidthConfiguration.MaxEfficiencyPercentage * 0.01);
-                total_source_power += maxReceiverWasteheatProduction;
-                min_source_power += 0.3 * maxReceiverWasteheatProduction;
+                var maxWasteheatProduction = beamedReceiver.MaximumRecievePower * (1 - beamedReceiver.activeBandwidthConfiguration.MaxEfficiencyPercentage * 0.01);
+                total_source_power += maxWasteheatProduction;
+                min_source_power += 0.3 * maxWasteheatProduction;
+            }
+
+            foreach (var beamedPowerTransmitter in beamedTransmitter)
+            {
+                if (!beamedPowerTransmitter.IsEnabled)
+                    return;
+
+                var maxWasteheatProduction = beamedPowerTransmitter.PowerCapacity * beamedPowerTransmitter.activeBeamGenerator.efficiencyPercentage * 0.01;
+                total_source_power += maxWasteheatProduction;
+                min_source_power += 0.3 * maxWasteheatProduction;
             }
 
             var engineThrottleRatio = 0.01 * engine_throttle_percentage;
@@ -167,6 +179,8 @@ namespace FNPlugin.Wasteheat
                 total_source_power += engineWasteheat;
                 min_source_power += engineWasteheat * 0.3;
             }
+
+
 
             foreach (ModuleDeployableSolarPanel solarPanel in solarPanels)
             {
