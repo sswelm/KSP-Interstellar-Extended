@@ -12,10 +12,10 @@ namespace FNPlugin
     {
         void Start()
         {
-            BeamedPowerSources.getVesselMicrowavePersistanceForProtoVesselCallback = BeamedPowerTransmitter.getVesselMicrowavePersistanceForProtoVessel;
-            BeamedPowerSources.getVesselRelayPersistanceForProtoVesselCallback = BeamedPowerTransmitter.getVesselRelayPersistanceForProtoVessel;
-            BeamedPowerSources.getVesselMicrowavePersistanceForVesselCallback = BeamedPowerTransmitter.getVesselMicrowavePersistanceForVessel;
-            BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = BeamedPowerTransmitter.getVesselRelayPersistenceForVessel;
+            BeamedPowerSources.getVesselMicrowavePersistanceForProtoVesselCallback = BeamedPowerTransmitter.GetVesselMicrowavePersistenceForProtoVessel;
+            BeamedPowerSources.getVesselRelayPersistanceForProtoVesselCallback = BeamedPowerTransmitter.GetVesselRelayPersistenceForProtoVessel;
+            BeamedPowerSources.getVesselMicrowavePersistanceForVesselCallback = BeamedPowerTransmitter.GetVesselMicrowavePersistenceForVessel;
+            BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = BeamedPowerTransmitter.GetVesselRelayPersistenceForVessel;
 
             GameEvents.onGameStateSaved.Add(OnGameStateSaved);
             GameEvents.onDockingComplete.Add(OnDockingComplete);
