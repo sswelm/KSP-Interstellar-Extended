@@ -113,21 +113,23 @@ namespace FNPlugin.Beamedpower
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_MicrowavePowerTransmitter_RequestedPower", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", advancedTweakable = true)]//Requested Power
         public double requestedPower;
 
-        // Near Future Compatibility properties
+        // Near Future Compatibility config properties
         [KSPField] public double powerMult = 1;
         [KSPField] public double powerHeatMultiplier = 1;
 
-        protected string scalarModuleID = Guid.NewGuid().ToString();
-        protected EventData<float, float> onMoving;
-        protected EventData<float> onStop;
+        private readonly string scalarModuleId = Guid.NewGuid().ToString();
+
+        private EventData<float, float> onMoving;
+        private EventData<float> onStop;
+
+        public BeamedPowerReceiver partReceiver;
+        public BeamGenerator activeBeamGenerator;
 
         //Internal
-        public List<ISolarPower> solarCells;
-        public BeamedPowerReceiver partReceiver;
-        public List<BeamedPowerReceiver> vesselReceivers;
-        public BeamGenerator activeBeamGenerator;
-        public List<BeamGenerator> beamGenerators;
-        public ModuleAnimateGeneric genericAnimation;
+        private List<ISolarPower> solarCells;
+        private List<BeamedPowerReceiver> vesselReceivers;
+        private List<BeamGenerator> beamGenerators;
+        private ModuleAnimateGeneric genericAnimation;
 
         private BaseEvent activateTransmitterEvent;
         private BaseEvent deactivateTransmitterEvent;
@@ -146,7 +148,7 @@ namespace FNPlugin.Beamedpower
         public bool IsRelay => relay;
         public EventData<float, float> OnMoving => onMoving;
         public EventData<float> OnStop => onStop;
-        public string ScalarModuleID => scalarModuleID;
+        public string ScalarModuleID => scalarModuleId;
 
         public void SetUIRead(bool state) { }
         public void SetUIWrite(bool state) { }
@@ -157,7 +159,7 @@ namespace FNPlugin.Beamedpower
             if (relay) return;
 
             Debug.Log("[KSPI]: BeamedPowerTransmitter on " + part.name + " was Force Activated");
-            this.part.force_activate();
+            part.force_activate();
             forceActivateAtStartup = true;
 
             if (genericAnimation != null && genericAnimation.GetScalar < 1)
@@ -208,7 +210,7 @@ namespace FNPlugin.Beamedpower
             if (genericAnimation != null && genericAnimation.GetScalar < 1)
                 genericAnimation.Toggle();
 
-            vesselReceivers = this.vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
+            vesselReceivers = vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
 
             UpdateRelayWavelength();
 
@@ -396,6 +398,7 @@ namespace FNPlugin.Beamedpower
                 if (dynamicPressure <= 0) return true;
 
                 var pressureLoad = (dynamicPressure / 1.4854428818159e-3) * 100;
+
                 if (pressureLoad > 100 * atmosphereToleranceModifier)
                     return false;
                 else
