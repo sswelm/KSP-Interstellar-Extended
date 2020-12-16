@@ -31,7 +31,13 @@ namespace FNPlugin.Refinery.Activity
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() { return _part.GetConnectedResources(_aluminaResourceName).Any(rs => rs.amount > 0);  }
+        public bool HasActivityRequirements()
+        {
+            if (_aluminaResourceName == null || _aluminiumResourceName == null || _oxygenResourceName == null)
+                return false;
+
+            return _part.GetConnectedResources(_aluminaResourceName).Any(rs => rs.amount > 0);
+        }
 
         private double _effectivePowerRequirements;
 

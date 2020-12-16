@@ -56,6 +56,9 @@ namespace FNPlugin.Refinery.Activity
 
         public bool HasActivityRequirements()
         {
+            if (_hydrogenPeroxideName == null || _ammoniaResourceName == null)
+                return false;
+
             return _part.GetConnectedResources(_hydrogenPeroxideName).Any(rs => rs.amount > 0)
             & _part.GetConnectedResources(_ammoniaResourceName).Any(rs => rs.amount > 0);
         }
@@ -67,7 +70,7 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _ammoniaResourceName = ResourceSettings.Config.AmmoniaLqd;
+            _ammoniaResourceName = ResourceSettings.Config.AmmoniaGas;
             _hydrazineResourceName = ResourceSettings.Config.Hydrazine;
             _waterResourceName = ResourceSettings.Config.WaterPure;
             _hydrogenPeroxideName = ResourceSettings.Config.HydrogenPeroxide;

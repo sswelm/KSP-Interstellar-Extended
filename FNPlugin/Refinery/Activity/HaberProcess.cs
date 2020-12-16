@@ -42,6 +42,9 @@ namespace FNPlugin.Refinery.Activity
 
         private bool HasAccessToHydrogen()
         {
+            if (_definitionHydrogen == null || _definitionAmmonia == null || _definitionNitrogen == null)
+                return false;
+
             _availableHydrogen = _part.GetResourceAvailable(_definitionHydrogen, ResourceFlowMode.ALL_VESSEL);
 
             return _availableHydrogen > 0;
@@ -70,9 +73,9 @@ namespace FNPlugin.Refinery.Activity
             _part = localPart;
             _vessel = localPart.vessel;
 
-            _definitionAmmonia = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AmmoniaLqd);
-            _definitionHydrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd);
-            _definitionNitrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.NitrogenLqd);
+            _definitionAmmonia = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AmmoniaGas);
+            _definitionHydrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenGas);
+            _definitionNitrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.NitrogenGas);
 
             _ammoniaDensity = _definitionAmmonia.density;
             _hydrogenDensity = _definitionHydrogen.density;

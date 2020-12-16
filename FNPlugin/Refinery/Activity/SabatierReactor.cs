@@ -58,6 +58,9 @@ namespace FNPlugin.Refinery.Activity
 
         public bool HasActivityRequirements()
         {
+            if (_carbonDioxideResourceName == null || _hydrogenResourceName == null || _methaneResourceName == null || _oxygenResourceName == null)
+                return false;
+
             return _part.GetConnectedResources(_hydrogenResourceName).Any(rs => rs.amount > 0) &
                 _part.GetConnectedResources(_carbonDioxideResourceName).Any(rs => rs.amount > 0);
         }

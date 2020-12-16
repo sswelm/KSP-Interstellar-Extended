@@ -47,7 +47,10 @@ namespace FNPlugin.Refinery.Activity
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() {  return _part.GetConnectedResources(ResourceSettings.Config.WaterHeavy).Any(rs => rs.amount > 0);   }
+        public bool HasActivityRequirements()
+        {
+            return _part.GetConnectedResources(ResourceSettings.Config.WaterHeavy).Any(rs => rs.amount > 0);
+        }
 
         public string Status => string.Copy(_status);
 

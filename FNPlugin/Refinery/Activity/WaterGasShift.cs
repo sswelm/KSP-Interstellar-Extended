@@ -55,6 +55,9 @@ namespace FNPlugin.Refinery.Activity
 
         public bool HasActivityRequirements()
         {
+            if (_waterResourceName == null || _monoxideResourceName == null || _dioxideResourceName == null || _hydrogenResourceName == null)
+                return false;
+
             return _part.GetConnectedResources(_waterResourceName).Any(rs => rs.amount > 0) && _part.GetConnectedResources(_monoxideResourceName).Any(rs => rs.amount > 0);
         }
 
@@ -67,8 +70,8 @@ namespace FNPlugin.Refinery.Activity
 
             _waterResourceName = ResourceSettings.Config.WaterPure;
             _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
-            _dioxideResourceName = ResourceSettings.Config.CarbonDioxideLqd;
-            _hydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
+            _dioxideResourceName = ResourceSettings.Config.CarbonDioxideGas;
+            _hydrogenResourceName = ResourceSettings.Config.HydrogenGas;
 
             _waterDensity = PartResourceLibrary.Instance.GetDefinition(_waterResourceName).density;
             _dioxideDensity = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;

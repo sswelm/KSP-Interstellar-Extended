@@ -47,6 +47,9 @@ namespace FNPlugin.Refinery.Activity
 
         public bool HasActivityRequirements()
         {
+            if (_pureWater == null || _lqdWater == null || _oxygen == null || _hydrogen == null)
+                return false;
+
             return _part.GetConnectedResources(_pureWater.name).Any(rs => rs.amount > 0)
                    || _part.GetConnectedResources(_lqdWater.name).Any(rs => rs.amount > 0);
         }

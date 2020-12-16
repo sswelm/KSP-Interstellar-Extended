@@ -11,6 +11,7 @@ namespace FNPlugin.Resources
         public string Actinides { get; private set; } = "Actinides";
         public string Alumina { get; private set; } = "Alumina";
         public string Aluminium { get; private set; } = "Aluminium";
+        public string AmmoniaGas { get; private set; } = "Ammonia";
         public string AmmoniaLqd { get; private set; } = "LqdAmmonia";
         public string ArgonLqd { get; private set; } = "LqdArgon";
         public string CarbonDioxideGas { get; private set; } = "CarbonDioxide";
@@ -100,6 +101,7 @@ namespace FNPlugin.Resources
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Actinides), value => Actinides = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Aluminium), value => Aluminium = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Alumina), value => Alumina = value);
+            UpdatePropertyWithConfigNode(pluginSettings, nameof(AmmoniaGas), value => AmmoniaGas = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(AmmoniaLqd), value => AmmoniaLqd = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(ArgonLqd), value => ArgonLqd = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(CarbonDioxideGas), value => CarbonDioxideGas = value);

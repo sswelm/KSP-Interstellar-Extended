@@ -22,13 +22,23 @@ namespace FNPlugin.Refinery.Activity
         private double _nitrogenDensity;
         private double _hydrogenDensity;
 
+        private string _ammoniaResourceName;
+        private string _nitrogenResourceName;
+        private string _hydrogenResourceName;
+
         private double _ammoniaConsumptionMassRate;
         private double _hydrogenProductionMassRate;
         private double _nitrogenProductionMassRate;
 
         public RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements() { return _part.GetConnectedResources(ResourceSettings.Config.AmmoniaLqd).Any(rs => rs.amount > 0);  }
+        public bool HasActivityRequirements()
+        {
+            if (_ammoniaResourceName == null || _nitrogenResourceName == null || _hydrogenResourceName == null)
+                return false;
+
+            return _part.GetConnectedResources(_ammoniaResourceName).Any(rs => rs.amount > 0);
+        }
 
         public string Status => string.Copy(_status);
 
@@ -36,9 +46,14 @@ namespace FNPlugin.Refinery.Activity
         {
             _part = localPart;
             _vessel = localPart.vessel;
-            _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AmmoniaLqd).density;
-            _nitrogenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.NitrogenLqd).density;
-            _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd).density;
+
+            _ammoniaResourceName = ResourceSettings.Config.AmmoniaGas;
+            _nitrogenResourceName = ResourceSettings.Config.NitrogenGas;
+            _hydrogenResourceName = ResourceSettings.Config.HydrogenGas;
+
+            _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(_ammoniaResourceName).density;
+            _nitrogenDensity = PartResourceLibrary.Instance.GetDefinition(_nitrogenResourceName).density;
+            _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
@@ -46,8 +61,8 @@ namespace FNPlugin.Refinery.Activity
             _current_power = PowerRequirements * rateMultiplier;
             _currentMassRate = (CurrentPower / EnergyPerTon);
 
-            var spareCapacityNitrogen = _part.GetResourceSpareCapacity(ResourceSettings.Config.NitrogenLqd);
-            var spareCapacityHydrogen = _part.GetResourceSpareCapacity(ResourceSettings.Config.HydrogenLqd);
+            var spareCapacityNitrogen = _part.GetResourceSpareCapacity(_nitrogenResourceName);
+            var spareCapacityHydrogen = _part.GetResourceSpareCapacity(_hydrogenResourceName);
 
             var maxNitrogenMassRate = (_currentMassRate * (1 - GameConstants.ammoniaHydrogenFractionByMass)) * fixedDeltaTime / _nitrogenDensity;
             var maxHydrogenMassRate = (_currentMassRate * GameConstants.ammoniaHydrogenFractionByMass) * fixedDeltaTime / _hydrogenDensity;
@@ -61,12 +76,12 @@ namespace FNPlugin.Refinery.Activity
             }
             else
             {
-                _ammoniaConsumptionMassRate = _part.RequestResource(ResourceSettings.Config.AmmoniaLqd, _currentMassRate * fixedDeltaTime / _ammoniaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammoniaDensity;
+                _ammoniaConsumptionMassRate = _part.RequestResource(_ammoniaResourceName, _currentMassRate * fixedDeltaTime / _ammoniaDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammoniaDensity;
                 var hydrogenMassRate = _ammoniaConsumptionMassRate * GameConstants.ammoniaHydrogenFractionByMass;
                 var nitrogenMassRate = _ammoniaConsumptionMassRate * (1 - GameConstants.ammoniaHydrogenFractionByMass);
 
-                _hydrogenProductionMassRate = -_part.RequestResource(ResourceSettings.Config.HydrogenLqd, -hydrogenMassRate * fixedDeltaTime / _hydrogenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogenDensity;
-                _nitrogenProductionMassRate = -_part.RequestResource(ResourceSettings.Config.NitrogenLqd, -nitrogenMassRate * fixedDeltaTime / _nitrogenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogenDensity;
+                _hydrogenProductionMassRate = -_part.RequestResource(_hydrogenResourceName, -hydrogenMassRate * fixedDeltaTime / _hydrogenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogenDensity;
+                _nitrogenProductionMassRate = -_part.RequestResource(_nitrogenResourceName, -nitrogenMassRate * fixedDeltaTime / _nitrogenDensity, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogenDensity;
             }
 
             UpdateStatusMessage();
@@ -93,7 +108,7 @@ namespace FNPlugin.Refinery.Activity
             GUILayout.Label((_nitrogenProductionMassRate * GameConstants.SECONDS_IN_HOUR).ToString("0.000") + " mT/" + Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_perhour"), _value_label, GUILayout.Width(valueWidth));//hour
             GUILayout.EndHorizontal();
 
-            var spareCapacityNitrogen = _part.GetResourceSpareCapacity(ResourceSettings.Config.NitrogenLqd);
+            var spareCapacityNitrogen = _part.GetResourceSpareCapacity(_nitrogenResourceName);
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_SpareCapacityNitrogen"), _bold_label, GUILayout.Width(labelWidth));//"Spare Capacity Nitrogen"
@@ -104,11 +119,11 @@ namespace FNPlugin.Refinery.Activity
         private void UpdateStatusMessage()
         {
             if (_hydrogenProductionMassRate > 0 && _nitrogenProductionMassRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_statumsg1");//"Electrolysing"
+                _status = Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_statumsg1");//"Electrolyzing"
             else if (_hydrogenProductionMassRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_statumsg2");//"Electrolysing: Insufficient Nitrogen Storage"
+                _status = Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_statumsg2");//"Electrolyzing: Insufficient Nitrogen Storage"
             else if (_nitrogenProductionMassRate > 0)
-                _status = Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_statumsg3");//"Electrolysing: Insufficient Hydrogen Storage"
+                _status = Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_statumsg3");//"Electrolyzing: Insufficient Hydrogen Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_statumsg4");//"Insufficient Power"
             else
@@ -117,7 +132,7 @@ namespace FNPlugin.Refinery.Activity
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_Postmsg") +" " + ResourceSettings.Config.AmmoniaLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_Postmsg") +" " + _ammoniaResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
     }
 }
