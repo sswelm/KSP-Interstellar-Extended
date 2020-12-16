@@ -49,6 +49,9 @@ namespace FNPlugin.Refinery.Activity
 
         public bool HasActivityRequirements()
         {
+            if (_waterHeavyResourceName == null || _oxygenResourceName == null || _deuteriumResourceName == null)
+                return false;
+
             return _part.GetConnectedResources(ResourceSettings.Config.WaterHeavy).Any(rs => rs.amount > 0);
         }
 
