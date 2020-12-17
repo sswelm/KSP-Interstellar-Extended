@@ -329,12 +329,13 @@ namespace FNPlugin
             }
             else
                 return (power * 1e6).ToString("0") + " W";
+
             if (absPower > 100.0)
-                return power.ToString("0") + suffix;
-            else if (absPower > 10.0)
                 return power.ToString("0.0") + suffix;
-            else
+            else if (absPower > 10.0)
                 return power.ToString("0.00") + suffix;
+            else
+                return power.ToString("0.000") + suffix;
         }
 
         public ApplicationLauncherButton InitializeApplicationButton()
