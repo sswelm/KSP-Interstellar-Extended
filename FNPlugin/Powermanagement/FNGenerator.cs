@@ -625,13 +625,7 @@ namespace FNPlugin.Powermanagement
                 return;
 
             var maximumPower = isLimitedByMinThrotle ? attachedPowerSource.MinimumPower : attachedPowerSource.MaximumPower;
-            var baseMaximumGeneratorPowerMj = maximumPower * maxEfficiency * heatExchangerThrustDivisor;
-
-            if (chargedParticleMode)
-                maximumGeneratorPowerMJ = baseMaximumGeneratorPowerMj;
-            else
-                maximumGeneratorPowerMJ = baseMaximumGeneratorPowerMj * 0.6;
-
+            maximumGeneratorPowerMJ = maximumPower * maxEfficiency * heatExchangerThrustDivisor;
             outputModuleResource.rate = maximumGeneratorPowerMJ * GameConstants.ecPerMJ;
         }
 
@@ -892,6 +886,10 @@ namespace FNPlugin.Powermanagement
             if (HighLogic.LoadedSceneIsFlight) return;
 
             UpdateTargetMass();
+
+            UpdateHeatExchangedThrustDivisor();
+
+            UpdateModuleGeneratorOutput();
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
