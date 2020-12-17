@@ -354,10 +354,10 @@ namespace FNPlugin.Wasteheat
                 wasteheat_source_power_custom += maxWasteheatProduction * customScenarioFraction;
             }
 
-            foreach (ModuleDeployableSolarPanel solarPanel in solarPanels)
-            {
-                wasteheat_source_power_100pc += solarPanel.chargeRate * 0.0005/au_scale/au_scale;
-            }
+            //foreach (ModuleDeployableSolarPanel solarPanel in solarPanels)
+            //{
+            //    wasteheat_source_power_100pc += solarPanel.chargeRate * 0.0005/au_scale/au_scale;
+            //}
 
             CalculateGeneratedElectricPower(generators);
 
