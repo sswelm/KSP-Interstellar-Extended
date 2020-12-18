@@ -117,7 +117,7 @@ namespace FNPlugin.Wasteheat
             var thermalSources = new List<IPowerSource>();
             var radiators = new List<FNRadiator>();
             var generators = new List<FNGenerator>();
-            var solarPanels = new List<ModuleDeployableSolarPanel>();
+            //var solarPanels = new List<ModuleDeployableSolarPanel>();
             var thermalEngines = new List<ThermalEngineController>();
             var beamedReceivers = new List<BeamedPowerReceiver>();
             var variableEngines = new List<FusionECU2>();
@@ -136,7 +136,7 @@ namespace FNPlugin.Wasteheat
 
                 thermalSources.AddRange(part.FindModulesImplementing<IPowerSource>());
                 radiators.AddRange(part.FindModulesImplementing<FNRadiator>());
-                solarPanels.AddRange(part.FindModulesImplementing<ModuleDeployableSolarPanel>());
+                //solarPanels.AddRange(part.FindModulesImplementing<ModuleDeployableSolarPanel>());
                 generators.AddRange(part.FindModulesImplementing<FNGenerator>());
                 thermalEngines.AddRange(part.FindModulesImplementing<ThermalEngineController>());
                 beamedReceivers.AddRange(part.FindModulesImplementing<BeamedPowerReceiver>());
@@ -478,7 +478,7 @@ namespace FNPlugin.Wasteheat
 
                     electricPowerAt100 += generatorMaximumGeneratorPower * generator_efficiency_at_100pcnt;
 
-                    if (generator.isLimitedByMinThrotle)
+                    if (generator.isLimitedByMinThrottle)
                     {
                         electricPowerAt80 += electricPowerAt100;
                         electricPowerAt70 += electricPowerAt100;

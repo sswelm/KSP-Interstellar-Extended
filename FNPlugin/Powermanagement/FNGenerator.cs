@@ -57,7 +57,7 @@ namespace FNPlugin.Powermanagement
         [KSPField] public float powerCapacityStepIncrement = 0.5f;
         [KSPField] public bool isHighPower = false;
         [KSPField] public bool isMHD = false;
-        [KSPField] public bool isLimitedByMinThrotle = false;
+        [KSPField] public bool isLimitedByMinThrottle = false;       // old name isLimitedByMinThrotle
         [KSPField] public double powerOutputMultiplier = 1;
         [KSPField] public double hotColdBathRatio;
         [KSPField] public bool calculatedMass = false;
@@ -354,7 +354,7 @@ namespace FNPlugin.Powermanagement
             InitializeEfficiency();
 
             var powerCapacityField = Fields["powerCapacity"];
-            powerCapacityField.guiActiveEditor = !isLimitedByMinThrotle;
+            powerCapacityField.guiActiveEditor = !isLimitedByMinThrottle;
 
             var powerCapacityFloatRange = powerCapacityField.uiControlEditor as UI_FloatRange;
             powerCapacityFloatRange.maxValue = powerCapacityMaxValue;
@@ -394,7 +394,7 @@ namespace FNPlugin.Powermanagement
                 hasrequiredupgrade = true;
 
             // only force activate if no certain partmodules are not present and not limited by minimum throtle
-            if (!isLimitedByMinThrotle && part.FindModuleImplementing<BeamedPowerReceiver>() == null && part.FindModuleImplementing<InterstellarReactor>() == null)
+            if (!isLimitedByMinThrottle && part.FindModuleImplementing<BeamedPowerReceiver>() == null && part.FindModuleImplementing<InterstellarReactor>() == null)
             {
                 Debug.Log("[KSPI]: Generator on " + part.name + " was Force Activated");
                 part.force_activate();
@@ -624,7 +624,7 @@ namespace FNPlugin.Powermanagement
             if (attachedPowerSource == null || outputModuleResource == null)
                 return;
 
-            var maximumPower = isLimitedByMinThrotle ? attachedPowerSource.MinimumPower : attachedPowerSource.MaximumPower;
+            var maximumPower = isLimitedByMinThrottle ? attachedPowerSource.MinimumPower : attachedPowerSource.MaximumPower;
             maximumGeneratorPowerMJ = maximumPower * maxEfficiency * heatExchangerThrustDivisor;
             outputModuleResource.rate = maximumGeneratorPowerMJ * GameConstants.ecPerMJ;
         }
@@ -796,7 +796,7 @@ namespace FNPlugin.Powermanagement
                             ? attachedPowerSource.PlasmaEnergyEfficiency
                             : attachedPowerSource.ThermalEnergyEfficiency;
 
-                stableMaximumReactorPower = isLimitedByMinThrotle
+                stableMaximumReactorPower = isLimitedByMinThrottle
                     ? attachedPowerSource.MinimumPower
                     : HighLogic.LoadedSceneIsEditor
                         ? attachedPowerSource.MaximumPower
@@ -852,7 +852,7 @@ namespace FNPlugin.Powermanagement
             var attachedPowerSourceRatio = attachedPowerSource.PowerRatio;
             effectiveMaximumThermalPower = attachedPowerSource.MaximumThermalPower * PowerRatio * CapacityRatio;
 
-            var rawThermalPower = isLimitedByMinThrotle ? attachedPowerSource.MinimumPower : effectiveMaximumThermalPower;
+            var rawThermalPower = isLimitedByMinThrottle ? attachedPowerSource.MinimumPower : effectiveMaximumThermalPower;
             var rawChargedPower = attachedPowerSource.MaximumChargedPower * PowerRatio * CapacityRatio;
             var rawReactorPower = rawThermalPower + rawChargedPower;
 
@@ -960,7 +960,7 @@ namespace FNPlugin.Powermanagement
                             initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
 
                         var thermalPowerRequestRatio = Math.Min(1, effectiveMaximumThermalPower > 0 ? requestedThermalPower / attachedPowerSource.MaximumThermalPower : 0);
-                        attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD, isLimitedByMinThrotle ? part.mass * 0.05 : part.mass);
+                        attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD, isLimitedByMinThrottle ? part.mass * 0.05 : part.mass);
                     }
                     else
                         initialThermalPowerReceived = 0;
@@ -980,7 +980,7 @@ namespace FNPlugin.Powermanagement
                         var maximumChargedPower = attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
                         var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? thermalPowerRequested / maximumChargedPower : 0);
 
-                        attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, chargedPowerRequestRatio, isMHD, isLimitedByMinThrotle ? part.mass * 0.05 : part.mass);
+                        attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, chargedPowerRequestRatio, isMHD, isLimitedByMinThrottle ? part.mass * 0.05 : part.mass);
                     }
                     else if (shouldUseChargedPower && thermalPowerReceived < reactorPowerRequested)
                     {
@@ -1048,7 +1048,7 @@ namespace FNPlugin.Powermanagement
                     mockInputResource.rate = outputModuleResource.rate;
                 }
 
-                outputPower = isLimitedByMinThrotle
+                outputPower = isLimitedByMinThrottle
                     ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceSettings.Config.ElectricPowerInMegawatt)
                     : -supplyFNResourcePerSecondWithMaxAndEfficiency(electricdtps, maxElectricdtps, hotColdBathRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
             }
@@ -1156,7 +1156,7 @@ namespace FNPlugin.Powermanagement
 
         private double CalculateElectricalPowerCurrentlyNeeded()
         {
-            if (isLimitedByMinThrotle)
+            if (isLimitedByMinThrottle)
                 return attachedPowerSource.MinimumPower;
 
             var currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
@@ -1242,7 +1242,7 @@ namespace FNPlugin.Powermanagement
 
         public override string getResourceManagerDisplayName()
         {
-            if (isLimitedByMinThrotle)
+            if (isLimitedByMinThrottle)
                 return base.getResourceManagerDisplayName();
 
             var displayName = part.partInfo.title + " " + Localizer.Format("#LOC_KSPIE_Generator_partdisplay");//(generator)
@@ -1266,7 +1266,7 @@ namespace FNPlugin.Powermanagement
 
         public override int getSupplyPriority()
         {
-            if (isLimitedByMinThrotle)
+            if (isLimitedByMinThrottle)
                 return 1;
 
             if (attachedPowerSource == null)
