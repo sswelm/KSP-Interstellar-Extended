@@ -626,12 +626,12 @@ namespace FNPlugin.Wasteheat
             if (source_temp_at_2pc >= double.MaxValue) source_temp_at_2pc = -1;
         }
 
-        private double CalculateGeneratorAtPercentage(double sourceTemperature, double restingTemperature, double averageEfficiency)
+        private double CalculateGeneratorAtPercentage(double sourceTemperature, double restingTemperature, double efficiency)
         {
             if (sourceTemperature >= double.MaxValue || restingTemperature.IsInfinityOrNaN())
                 return 0;
 
-            return Math.Max(averageEfficiency * (1 - restingTemperature / source_temp_at_100pc), 0);
+            return Math.Max(efficiency * (1 - restingTemperature / source_temp_at_100pc), 0);
         }
 
         private void CalculateGeneratedElectricPower(List<FNGenerator> generators)
@@ -715,96 +715,32 @@ namespace FNPlugin.Wasteheat
             _bestScenarioPercentage = 0;
             _bestScenarioElectricPower = 0;
 
-            if (electricPowerAt100 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 100;
-                _bestScenarioElectricPower = electricPowerAt100;
-            }
-            if (electricPowerAt90 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 90;
-                _bestScenarioElectricPower = electricPowerAt90;
-            }
-            if (electricPowerAt80 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 80;
-                _bestScenarioElectricPower = electricPowerAt80;
-            }
-            if (electricPowerAt70 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 70;
-                _bestScenarioElectricPower = electricPowerAt70;
-            }
-            if (electricPowerAt60 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 60;
-                _bestScenarioElectricPower = electricPowerAt60;
-            }
-            if (electricPowerAt50 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 50;
-                _bestScenarioElectricPower = electricPowerAt50;
-            }
-            if (electricPowerAt45 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 45;
-                _bestScenarioElectricPower = electricPowerAt45;
-            }
-            if (electricPowerAt40 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 40;
-                _bestScenarioElectricPower = electricPowerAt40;
-            }
-            if (electricPowerAt35 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 35;
-                _bestScenarioElectricPower = electricPowerAt35;
-            }
-            if (electricPowerAt30 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 30;
-                _bestScenarioElectricPower = electricPowerAt30;
-            }
-            if (electricPowerAt25 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 25;
-                _bestScenarioElectricPower = electricPowerAt25;
-            }
-            if (electricPowerAt20 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 20;
-                _bestScenarioElectricPower = electricPowerAt20;
-            }
-            if (electricPowerAt15 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 15;
-                _bestScenarioElectricPower = electricPowerAt15;
-            }
-            if (electricPowerAt10 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 10;
-                _bestScenarioElectricPower = electricPowerAt10;
-            }
-            if (electricPowerAt8 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 8;
-                _bestScenarioElectricPower = electricPowerAt8;
-            }
-            if (electricPowerAt6 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 6;
-                _bestScenarioElectricPower = electricPowerAt6;
-            }
-            if (electricPowerAt4 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 4;
-                _bestScenarioElectricPower = electricPowerAt4;
-            }
-            if (electricPowerAt2 > _bestScenarioElectricPower)
-            {
-                _bestScenarioPercentage = 2;
-                _bestScenarioElectricPower = electricPowerAt2;
-            }
+            GetBestPowerAndPercentage(100, electricPowerAt100);
+            GetBestPowerAndPercentage(90, electricPowerAt90);
+            GetBestPowerAndPercentage(80, electricPowerAt80);
+            GetBestPowerAndPercentage(70, electricPowerAt70);
+            GetBestPowerAndPercentage(60, electricPowerAt60);
+            GetBestPowerAndPercentage(50, electricPowerAt50);
+            GetBestPowerAndPercentage(45, electricPowerAt45);
+            GetBestPowerAndPercentage(40, electricPowerAt40);
+            GetBestPowerAndPercentage(35, electricPowerAt35);
+            GetBestPowerAndPercentage(30, electricPowerAt30);
+            GetBestPowerAndPercentage(25, electricPowerAt25);
+            GetBestPowerAndPercentage(20, electricPowerAt20);
+            GetBestPowerAndPercentage(15, electricPowerAt15);
+            GetBestPowerAndPercentage(10, electricPowerAt10);
+            GetBestPowerAndPercentage(8, electricPowerAt8);
+            GetBestPowerAndPercentage(6, electricPowerAt6);
+            GetBestPowerAndPercentage(4, electricPowerAt4);
+            GetBestPowerAndPercentage(2, electricPowerAt2);
+        }
+
+        private void GetBestPowerAndPercentage (int percentage, double scenarioElectricPower)
+        {
+            if (scenarioElectricPower < _bestScenarioElectricPower) return;
+
+            _bestScenarioPercentage = percentage;
+            _bestScenarioElectricPower = scenarioElectricPower;
         }
 
         protected void OnGUI()
