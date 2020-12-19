@@ -270,15 +270,16 @@ namespace FNPlugin.Wasteheat
             // first calculate reactors
             foreach (IPowerSource powerSource in thermalSources)
             {
-                _totalSourcePower += powerSource.MaximumPower;
-
                 double combinedMaxStableMegaWattPower = 0;
 
                 var connectedThermalPowerGenerator = powerSource.ConnectedThermalElectricGenerator;
                 var connectedChargedPowerGenerator = powerSource.ConnectedChargedParticleElectricGenerator;
 
                 // when connected to a thermal source, assume most thermal energy thermal power can end up in the radiators
-                if (connectedThermalPowerGenerator != null) combinedMaxStableMegaWattPower += (1 - powerSource.ChargedPowerRatio) * connectedThermalPowerGenerator.MaxStableMegaWattPower;
+                if (connectedThermalPowerGenerator != null)
+                {
+                    combinedMaxStableMegaWattPower += (1 - powerSource.ChargedPowerRatio) * connectedThermalPowerGenerator.MaxStableMegaWattPower;
+                }
 
                 if (connectedChargedPowerGenerator != null)
                 {
@@ -291,6 +292,8 @@ namespace FNPlugin.Wasteheat
                     if (chargedPowerGenerator != null)
                         combinedMaxStableMegaWattPower += powerSource.ChargedPowerRatio * connectedChargedPowerGenerator.MaxStableMegaWattPower * (1 - chargedPowerGenerator.maxEfficiency);
                 }
+
+                _totalSourcePower += combinedMaxStableMegaWattPower;
 
                 // only take reactor power in account when its actually connected to a power generator
                 if (connectedThermalPowerGenerator == null && connectedChargedPowerGenerator == null) continue;
@@ -757,7 +760,7 @@ namespace FNPlugin.Wasteheat
 
         private void GetBestPowerAndPercentage (int percentage, double scenarioElectricPower)
         {
-            if (scenarioElectricPower < _bestScenarioElectricPower) return;
+            if (scenarioElectricPower <= _bestScenarioElectricPower) return;
 
             _bestScenarioPercentage = percentage;
             _bestScenarioElectricPower = scenarioElectricPower;
