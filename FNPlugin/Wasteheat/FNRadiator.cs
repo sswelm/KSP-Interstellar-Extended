@@ -209,7 +209,6 @@ namespace FNPlugin.Wasteheat
             hasStorageUpgradeMk2 = PluginHelper.UpgradeAvailable(storageTechUpgradeMk2);
             hasStorageUpgradeMk3 = PluginHelper.UpgradeAvailable(storageTechUpgradeMk3);
             hasStorageUpgradeMk4 = PluginHelper.UpgradeAvailable(storageTechUpgradeMk4);
-
         }
 
         private void processUpgrades()
@@ -710,7 +709,7 @@ namespace FNPlugin.Wasteheat
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_MaxCurrentTemp", guiFormat = "F0", guiUnits = "K")]//Max Current Temp
         public double maxCurrentRadiatorTemperature = maximumRadiatorTempAtOneAtmosphere;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_MaxRadiatorTemperature", guiFormat = "F0", guiUnits = "K")]//Max Radiator Temperature
-        public float maxRadiatorTemperature = _maximumRadiatorTempInSpace;
+        public double maxRadiatorTemperature = _maximumRadiatorTempInSpace;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_SpaceRadiatorBonus", guiFormat = "F0", guiUnits = "K")]//Space Radiator Bonus
         public double spaceRadiatorBonus;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_Mass", guiUnits = " t", guiFormat = "F3")]//Mass
@@ -781,7 +780,11 @@ namespace FNPlugin.Wasteheat
         public double partRotationDistance;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "Atmosphere Density", guiFormat = "F2", guiUnits = "")]
         public double atmDensity;
+        [KSPField(isPersistant = true)] public bool clarifyFunction;
+        private double sphericalCowInAVaccum;
 
+        // privates
+        private double maxRadiatorTemperatureForCurrentGeneration = _maximumRadiatorTempInSpace;
         private double instantaneous_rad_temp;
         private int nrAvailableUpgradeTechs;
         private bool hasSurfaceAreaUpgradeTechReq;
@@ -789,18 +792,16 @@ namespace FNPlugin.Wasteheat
         private float displayTemperature;
         private float colorRatio;
         private double deltaTemp;
-        private double verticalSpeed;
         private double spaceRadiatorModifier;
         private double oxidationModifier;
         private double temperatureDifference;
         private double submergedModifier;
-        [KSPField(isPersistant = true)] public bool clarifyFunction;
-        private double sphericalCowInAVaccum;
 
-        static float _maximumRadiatorTempInSpace = 4500;
-        static float maximumRadiatorTempAtOneAtmosphere = 1200;
-        static float _maxSpaceTempBonus;
-        static float _temperatureRange;
+        // statics
+        static double _maximumRadiatorTempInSpace = 4500;
+        static double maximumRadiatorTempAtOneAtmosphere = 1200;
+        static double _maxSpaceTempBonus;
+        static double _temperatureRange;
 
         // minimize garbage by recycling variables
         private double _stefanArea;
@@ -852,7 +853,7 @@ namespace FNPlugin.Wasteheat
 
         public ModuleActiveRadiator ModuleActiveRadiator => _moduleActiveRadiator;
 
-        public double MaxRadiatorTemperature => GetMaximumTemperatureForGen(CurrentGenerationType);
+        public double MaxRadiatorTemperatureForCurrentGeneration => maxRadiatorTemperatureForCurrentGeneration;
 
         public static void InitializeTemperatureColorChannels()
         {
@@ -862,8 +863,7 @@ namespace FNPlugin.Wasteheat
             redTempColorChannel = new AnimationCurve();
             greenTempColorChannel = new AnimationCurve();
             blueTempColorChannel = new AnimationCurve();
-            
-                        redTempColorChannel = new AnimationCurve();
+            redTempColorChannel = new AnimationCurve();
             greenTempColorChannel = new AnimationCurve();
             blueTempColorChannel = new AnimationCurve();
 
@@ -1244,16 +1244,16 @@ namespace FNPlugin.Wasteheat
             redTempColorChannel.AddKey(38100, 156 / 255f); greenTempColorChannel.AddKey(38100, 188 / 255f); blueTempColorChannel.AddKey(38100, 255 / 255f);
             redTempColorChannel.AddKey(38200, 156 / 255f); greenTempColorChannel.AddKey(38200, 188 / 255f); blueTempColorChannel.AddKey(38200, 255 / 255f);
             redTempColorChannel.AddKey(38300, 156 / 255f); greenTempColorChannel.AddKey(38300, 188 / 255f); blueTempColorChannel.AddKey(38300, 255 / 255f);
-            
-            for (int i = 0; i < redTempColorChannel.keys.Length; i++)
+
+            for (var i = 0; i < redTempColorChannel.keys.Length; i++)
             {
                 redTempColorChannel.SmoothTangents(i, 0);
             }
-            for (int i = 0; i < greenTempColorChannel.keys.Length; i++)
+            for (var i = 0; i < greenTempColorChannel.keys.Length; i++)
             {
                 greenTempColorChannel.SmoothTangents(i, 0);
             }
-            for (int i = 0; i < blueTempColorChannel.keys.Length; i++)
+            for (var i = 0; i < blueTempColorChannel.keys.Length; i++)
             {
                 blueTempColorChannel.SmoothTangents(i, 0);
             }
@@ -1347,6 +1347,8 @@ namespace FNPlugin.Wasteheat
                 CurrentGenerationType = GenerationType.Mk2;
             else
                 CurrentGenerationType = GenerationType.Mk1;
+
+            maxRadiatorTemperatureForCurrentGeneration = GetMaximumTemperatureForGen(CurrentGenerationType);
         }
 
         private string RadiatorType
@@ -1386,20 +1388,20 @@ namespace FNPlugin.Wasteheat
 
             if (radiatorVessel.Any())
             {
-                var maxRadiatorTemperature = radiatorVessel.Max(r => r.MaxRadiatorTemperature);
+                var maxRadiatorTemperature = radiatorVessel.Max(r => r.MaxRadiatorTemperatureForCurrentGeneration);
                 var totalRadiatorsMass = radiatorVessel.Sum(r => (double)(decimal)r.part.mass);
 
-                return radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperature) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
+                return radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperatureForCurrentGeneration) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
             }
             else
                 return _maximumRadiatorTempInSpace;
         }
 
-        public static float GetAverageMaximumRadiatorTemperatureForVessel(Vessel vess)
+        public static double GetAverageMaximumRadiatorTemperatureForVessel(Vessel vess)
         {
             var radiatorVessel = GetRadiatorsForVessel(vess);
 
-            float averageTemp = 0;
+            double averageTemp = 0;
             float nRadiators = 0;
 
             foreach (FNRadiator radiator in radiatorVessel)
@@ -1583,12 +1585,12 @@ namespace FNPlugin.Wasteheat
             DetermineGenerationType();
 
             _isGraphene = !string.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
-            _maximumRadiatorTempInSpace = (float)RadiatorProperties.RadiatorTemperatureMk6;
+            _maximumRadiatorTempInSpace = RadiatorProperties.RadiatorTemperatureMk6;
             _maxSpaceTempBonus = _maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
             _temperatureRange = _maximumRadiatorTempInSpace - drapperPoint;
 
             _kspShader = Shader.Find(kspShaderLocation);
-            maxRadiatorTemperature = (float)MaxRadiatorTemperature;
+            maxRadiatorTemperature = (float)MaxRadiatorTemperatureForCurrentGeneration;
 
             part.heatConvectiveConstant = convectiveBonus;
             if (hasSurfaceAreaUpgradeTechReq)
@@ -1667,7 +1669,7 @@ namespace FNPlugin.Wasteheat
 
             if (_moduleActiveRadiator != null)
             {
-                _maxEnergyTransfer = radiatorArea * PhysicsGlobals.StefanBoltzmanConstant * Math.Pow(MaxRadiatorTemperature, 4) * 0.001;
+                _maxEnergyTransfer = radiatorArea * PhysicsGlobals.StefanBoltzmanConstant * Math.Pow(MaxRadiatorTemperatureForCurrentGeneration, 4) * 0.001;
 
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
                 _moduleActiveRadiator.overcoolFactor = 0.20 + ((int)CurrentGenerationType * 0.025);
@@ -1875,7 +1877,6 @@ namespace FNPlugin.Wasteheat
                 spaceRadiatorBonus = _maxSpaceTempBonus;
                 maxCurrentRadiatorTemperature = maxVacuumTemperature;
             }
-            verticalSpeed = vessel.verticalSpeed;
         }
 
         public override void OnFixedUpdate()
@@ -2193,7 +2194,7 @@ namespace FNPlugin.Wasteheat
         {
             displayTemperature = (float)GetAverageRadiatorTemperature();
 
-            colorRatio = displayTemperature < drapperPoint ? 0 : Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / _temperatureRange) * 1.05f);
+            colorRatio = displayTemperature < drapperPoint ? 0 : (float)Math.Min(1, (Math.Max(0, displayTemperature - drapperPoint) / _temperatureRange) * 1.05f);
 
             if (_heatStates != null && _heatStates.Any())
             {

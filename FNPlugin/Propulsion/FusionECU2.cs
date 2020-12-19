@@ -106,7 +106,7 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_RadiatorTemp")]//Radiator Temp
         public double coldBathTemp;
         [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_MaxRadiatorTemp")]//Max Radiator Temp
-        public float maxTempatureRadiators;
+        public double maxTempatureRadiators;
         [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_PerformanceRadiators")]//Performance Radiators
         public double radiatorPerformance;
         [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_FusionECU2_Emisiveness")]//Emisiveness
