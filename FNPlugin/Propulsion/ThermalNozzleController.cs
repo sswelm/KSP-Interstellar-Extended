@@ -62,13 +62,13 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ThermalNozzleController_FuelflowThrotlemodifier", guiFormat = "F5")]//Fuelflow Throtle modifier
         public double fuelFlowThrottleModifier = 1;
 
+        [KSPField] public bool controlWasteHeatBuffer = true;
         [KSPField] public double fuelflowThrottleMaxValue = 100;
         [KSPField] public double effectiveFuelflowThrottle;
         [KSPField] public double ispFlowMultiplier;
         [KSPField] public double requestedElectricPowerMegajoules;
         [KSPField] public double requiredElectricalPowerFromMhd;
         [KSPField] public double requiredMhdEnergyRatio;
-        
         [KSPField] public double exhaustModifier;
         [KSPField] public double maxEngineFuelFlow;
         [KSPField] public double fuelEffectRatio;
@@ -624,8 +624,12 @@ namespace FNPlugin.Propulsion
                 emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, part);
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
-            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+            if (controlWasteHeatBuffer)
+            {
+                resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
+                resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+            }
+
             resourceBuffers.Init(part);
 
             myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();

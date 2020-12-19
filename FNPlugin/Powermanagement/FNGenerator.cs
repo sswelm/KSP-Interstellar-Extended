@@ -1029,17 +1029,14 @@ namespace FNPlugin.Powermanagement
                 if (!CheatOptions.IgnoreMaxTemperature)
                     consumeFNResourcePerSecond(effectiveInputPowerPerSecond, ResourceSettings.Config.WasteHeatInMegawatt);
 
+                electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
                 if (!chargedParticleMode)
                 {
-                    electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
                     var effectiveMaxThermalPowerRatio = applies_balance ? thermalPowerRatio : 1;
                     maxElectricdtps = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEff * CapacityRatio;
                 }
                 else
-                {
-                    electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
                     maxElectricdtps = overheatingModifier * maxChargedPowerForChargedGenerator * _totalEff;
-                }
 
                 if (outputModuleResource != null)
                 {

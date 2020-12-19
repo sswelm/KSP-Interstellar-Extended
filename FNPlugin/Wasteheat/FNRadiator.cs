@@ -684,7 +684,7 @@ namespace FNPlugin.Wasteheat
         public const string GROUP = "FNRadiator";
         public const string GROUP_TITLE = "#LOC_KSPIE_Radiator_groupName";
 
-        // persitent
+        // persistent
         [KSPField(isPersistant = true)] public bool radiatorInit;
         [KSPField(isPersistant = true)] public bool showRetractButton = false;
         [KSPField(isPersistant = true)] public bool showControls = true;
@@ -787,7 +787,6 @@ namespace FNPlugin.Wasteheat
         private double _instantaneousRadTemp;
         private int nrAvailableUpgradeTechs;
         private bool hasSurfaceAreaUpgradeTechReq;
-        private double atmosphericMultiplier;
         private float displayTemperature;
         private float colorRatio;
         private double deltaTemp;
@@ -1922,7 +1921,11 @@ namespace FNPlugin.Wasteheat
                 }
 
                 // get resource bar ratio at start of frame
-                var wasteheatManager = getManagerForVessel(ResourceSettings.Config.WasteHeatInMegawatt) as WasteHeatResourceManager;
+                if (!(getManagerForVessel(ResourceSettings.Config.WasteHeatInMegawatt) is WasteHeatResourceManager wasteheatManager))
+                {
+                    Debug.LogError("[KSPI]: FNRadiator: Failed to find WasteHeatResourceManager");
+                    return;
+                }
 
                 if (double.IsNaN(wasteheatManager.TemperatureRatio))
                 {
@@ -1930,12 +1933,10 @@ namespace FNPlugin.Wasteheat
                     return;
                 }
 
-                // ToDo replace wasteheatManager.SqrtResourceBarRatioBegin by ResourceBarRatioBegin after generators hotbath takes into account expected temperature
+                // ToDo replace wasteheatManager.SqrtResourceBarRatioBegin by ResourceBarRatioBegin after generators hot bath takes into account expected temperature
                 radiator_temperature_temp_val = Math.Min(maxRadiatorTemperature * wasteheatManager.TemperatureRatio, maxCurrentRadiatorTemperature);
 
-                atmosphericMultiplier = Math.Sqrt(vessel.atmDensity);
-
-                deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(ExternalTemp() * Math.Min(1, atmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
+                deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(ExternalTemp() * Math.Min(1, wasteheatManager.AtmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
@@ -1991,7 +1992,7 @@ namespace FNPlugin.Wasteheat
 
                     temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
 
-                    var heatTransferCoefficient = (part.submergedPortion > 0) ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
+                    var heatTransferCoefficient = part.submergedPortion > 0 ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
 
                     var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient;
 
@@ -2031,7 +2032,7 @@ namespace FNPlugin.Wasteheat
 
         protected virtual bool CanConvect()
         {
-            return (vessel.mainBody == null) ? false : vessel.mainBody.atmosphere && vessel.altitude < vessel.mainBody.atmosphereDepth;
+            return vessel.mainBody != null && vessel.mainBody.atmosphere && vessel.altitude < vessel.mainBody.atmosphereDepth;
         }
 
         protected virtual double AtmDensity()

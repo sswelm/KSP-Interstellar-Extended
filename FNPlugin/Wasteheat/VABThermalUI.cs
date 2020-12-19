@@ -99,25 +99,25 @@ namespace FNPlugin.Wasteheat
         private double _restingRadiatorTempAt4Percent;
         private double _restingRadiatorTempAt2Percent;
 
-        private double _generatorEfficiencyAtCustom;
-        private double _generatorEfficiencyAt100Percent;
-        private double _generatorEfficiencyAt90Percent;
-        private double _generatorEfficiencyAt80Percent;
-        private double _generatorEfficiencyAt70Percent;
-        private double _generatorEfficiencyAt60Percent;
-        private double _generatorEfficiencyAt50Percent;
-        private double _generatorEfficiencyAt45Percent;
-        private double _generatorEfficiencyAt40Percent;
-        private double _generatorEfficiencyAt35Percent;
-        private double _generatorEfficiencyAt30Percent;
-        private double _generatorEfficiencyAt25Percent;
-        private double _generatorEfficiencyAt20Percent;
-        private double _generatorEfficiencyAt15Percent;
-        private double _generatorEfficiencyAt10Percent;
-        private double _generatorEfficiencyAt8Percent;
-        private double _generatorEfficiencyAt6Percent;
-        private double _generatorEfficiencyAt4Percent;
-        private double _generatorEfficiencyAt2Percent;
+        private double _hotColdBathEfficiencyAtCustomPct;
+        private double _hotColdBathEfficiencyAt100Percent;
+        private double _hotColdBathEfficiencyAt90Percent;
+        private double _hotColdBathEfficiencyAt80Percent;
+        private double _hotColdBathEfficiencyAt70Percent;
+        private double _hotColdBathEfficiencyAt60Percent;
+        private double _hotColdBathEfficiencyAt50Percent;
+        private double _hotColdBathEfficiencyAt45Percent;
+        private double _hotColdBathEfficiencyAt40Percent;
+        private double _hotColdBathEfficiencyAt35Percent;
+        private double _hotColdBathEfficiencyAt30Percent;
+        private double _hotColdBathEfficiencyAt25Percent;
+        private double _hotColdBathEfficiencyAt20Percent;
+        private double _hotColdBathEfficiencyAt15Percent;
+        private double _hotColdBathEfficiencyAt10Percent;
+        private double _hotColdBathEfficiencyAt8Percent;
+        private double _hotColdBathEfficiencyAt6Percent;
+        private double _hotColdBathEfficiencyAt4Percent;
+        private double _hotColdBathEfficiencyAt2Percent;
 
         private double _electricPowerAtCustom;
         private double _electricPowerAt100;
@@ -139,6 +139,7 @@ namespace FNPlugin.Wasteheat
         private double _electricPowerAt4;
         private double _electricPowerAt2;
 
+        private double _averageMaxGeneratorEfficiency;
         private double _totalSourcePower;
         private double _radMaxDissipation;
         private double _totalArea;
@@ -318,25 +319,25 @@ namespace FNPlugin.Wasteheat
                 var coreTempAtRadiatorTempAt2Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt2Percent);
                 var coreTempAtRadiatorTempAtCustom = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAtCustom);
 
-                var effectivePowerAtCustom = (1 - _generatorEfficiencyAtCustom) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAtCustom) * customScenarioFraction);
-                var effectivePowerAt100Percent = (1 - _generatorEfficiencyAt100Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt100Percent));
-                var effectivePowerAt90Percent = (1 - _generatorEfficiencyAt90Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt90Percent) * 0.90);
-                var effectivePowerAt80Percent = (1 - _generatorEfficiencyAt80Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt80Percent) * 0.80);
-                var effectivePowerAt70Percent = (1 - _generatorEfficiencyAt70Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt70Percent) * 0.70);
-                var effectivePowerAt60Percent = (1 - _generatorEfficiencyAt60Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt60Percent) * 0.60);
-                var effectivePowerAt50Percent = (1 - _generatorEfficiencyAt50Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt50Percent) * 0.50);
-                var effectivePowerAt45Percent = (1 - _generatorEfficiencyAt45Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt45Percent) * 0.45);
-                var effectivePowerAt40Percent = (1 - _generatorEfficiencyAt40Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt40Percent) * 0.40);
-                var effectivePowerAt35Percent = (1 - _generatorEfficiencyAt35Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt35Percent) * 0.35);
-                var effectivePowerAt30Percent = (1 - _generatorEfficiencyAt30Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt30Percent) * 0.30);
-                var effectivePowerAt25Percent = (1 - _generatorEfficiencyAt25Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt25Percent) * 0.25);
-                var effectivePowerAt20Percent = (1 - _generatorEfficiencyAt20Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt20Percent) * 0.20);
-                var effectivePowerAt15Percent = (1 - _generatorEfficiencyAt15Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt15Percent) * 0.15);
-                var effectivePowerAt10Percent = (1 - _generatorEfficiencyAt10Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt10Percent) * 0.10);
-                var effectivePowerAt8Percent = (1 - _generatorEfficiencyAt8Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt8Percent) * 0.08);
-                var effectivePowerAt6Percent = (1 - _generatorEfficiencyAt6Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt6Percent) * 0.06);
-                var effectivePowerAt4Percent = (1 - _generatorEfficiencyAt4Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt4Percent) * 0.04);
-                var effectivePowerAt2Percent = (1 - _generatorEfficiencyAt2Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt2Percent) * 0.02);
+                var effectivePowerAtCustom = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAtCustomPct) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAtCustom) * customScenarioFraction);
+                var effectivePowerAt100Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt100Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt100Percent));
+                var effectivePowerAt90Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt90Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt90Percent) * 0.90);
+                var effectivePowerAt80Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt80Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt80Percent) * 0.80);
+                var effectivePowerAt70Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt70Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt70Percent) * 0.70);
+                var effectivePowerAt60Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt60Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt60Percent) * 0.60);
+                var effectivePowerAt50Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt50Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt50Percent) * 0.50);
+                var effectivePowerAt45Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt45Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt45Percent) * 0.45);
+                var effectivePowerAt40Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt40Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt40Percent) * 0.40);
+                var effectivePowerAt35Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt35Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt35Percent) * 0.35);
+                var effectivePowerAt30Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt30Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt30Percent) * 0.30);
+                var effectivePowerAt25Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt25Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt25Percent) * 0.25);
+                var effectivePowerAt20Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt20Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt20Percent) * 0.20);
+                var effectivePowerAt15Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt15Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt15Percent) * 0.15);
+                var effectivePowerAt10Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt10Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt10Percent) * 0.10);
+                var effectivePowerAt8Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt8Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt8Percent) * 0.08);
+                var effectivePowerAt6Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt6Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt6Percent) * 0.06);
+                var effectivePowerAt4Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt4Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt4Percent) * 0.04);
+                var effectivePowerAt2Percent = (1 - _averageMaxGeneratorEfficiency * _hotColdBathEfficiencyAt2Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt2Percent) * 0.02);
 
                 totalTemperaturePowerAt100Percent += coreTempAtRadiatorTempAt100Percent * effectivePowerAt100Percent;
                 totalTemperaturePowerAt90Percent += coreTempAtRadiatorTempAt90Percent * effectivePowerAt90Percent;
@@ -600,30 +601,29 @@ namespace FNPlugin.Wasteheat
             if (thermalGenerators.Count > 0)
             {
                 var maximumGeneratedPower = thermalGenerators.Sum(m => m.maximumGeneratorPowerMJ);
-                var averageMaxEfficiency = thermalGenerators.Sum(m => m.maxEfficiency * m.maximumGeneratorPowerMJ) /
-                                           maximumGeneratedPower;
+                _averageMaxGeneratorEfficiency = thermalGenerators.Sum(m => m.maxEfficiency * m.maximumGeneratorPowerMJ) / maximumGeneratedPower;
 
                 _hasThermalGenerators = true;
 
-                _generatorEfficiencyAtCustom = CalculateGeneratorAtPercentage(_sourceTempAtCustom, _restingRadiatorTempAtCustom, averageMaxEfficiency);
-                _generatorEfficiencyAt100Percent = CalculateGeneratorAtPercentage(_sourceTempAt100Pc, _restingRadiatorTempAt100Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt90Percent = CalculateGeneratorAtPercentage(_sourceTempAt90Pc, _restingRadiatorTempAt90Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt80Percent = CalculateGeneratorAtPercentage(_sourceTempAt80Pc, _restingRadiatorTempAt80Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt70Percent = CalculateGeneratorAtPercentage(_sourceTempAt70Pc, _restingRadiatorTempAt70Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt60Percent = CalculateGeneratorAtPercentage(_sourceTempAt60Pc, _restingRadiatorTempAt60Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt50Percent = CalculateGeneratorAtPercentage(_sourceTempAt50Pc, _restingRadiatorTempAt50Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt45Percent = CalculateGeneratorAtPercentage(_sourceTempAt45Pc, _restingRadiatorTempAt45Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt40Percent = CalculateGeneratorAtPercentage(_sourceTempAt40Pc, _restingRadiatorTempAt40Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt35Percent = CalculateGeneratorAtPercentage(_sourceTempAt35Pc, _restingRadiatorTempAt35Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt30Percent = CalculateGeneratorAtPercentage(_sourceTempAt30Pc, _restingRadiatorTempAt30Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt25Percent = CalculateGeneratorAtPercentage(_sourceTempAt25Pc, _restingRadiatorTempAt25Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt20Percent = CalculateGeneratorAtPercentage(_sourceTempAt20Pc, _restingRadiatorTempAt20Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt15Percent = CalculateGeneratorAtPercentage(_sourceTempAt15Pc, _restingRadiatorTempAt15Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt10Percent = CalculateGeneratorAtPercentage(_sourceTempAt10Pc, _restingRadiatorTempAt10Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt8Percent = CalculateGeneratorAtPercentage(_sourceTempAt8Pc, _restingRadiatorTempAt8Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt6Percent = CalculateGeneratorAtPercentage(_sourceTempAt6Pc, _restingRadiatorTempAt6Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt4Percent = CalculateGeneratorAtPercentage(_sourceTempAt4Pc, _restingRadiatorTempAt4Percent, averageMaxEfficiency);
-                _generatorEfficiencyAt2Percent = CalculateGeneratorAtPercentage(_sourceTempAt2Pc, _restingRadiatorTempAt2Percent, averageMaxEfficiency);
+                _hotColdBathEfficiencyAtCustomPct = CalculateHotColdBathEfficiency(_sourceTempAtCustom, _restingRadiatorTempAtCustom);
+                _hotColdBathEfficiencyAt100Percent = CalculateHotColdBathEfficiency(_sourceTempAt100Pc, _restingRadiatorTempAt100Percent);
+                _hotColdBathEfficiencyAt90Percent = CalculateHotColdBathEfficiency(_sourceTempAt90Pc, _restingRadiatorTempAt90Percent);
+                _hotColdBathEfficiencyAt80Percent = CalculateHotColdBathEfficiency(_sourceTempAt80Pc, _restingRadiatorTempAt80Percent);
+                _hotColdBathEfficiencyAt70Percent = CalculateHotColdBathEfficiency(_sourceTempAt70Pc, _restingRadiatorTempAt70Percent);
+                _hotColdBathEfficiencyAt60Percent = CalculateHotColdBathEfficiency(_sourceTempAt60Pc, _restingRadiatorTempAt60Percent);
+                _hotColdBathEfficiencyAt50Percent = CalculateHotColdBathEfficiency(_sourceTempAt50Pc, _restingRadiatorTempAt50Percent);
+                _hotColdBathEfficiencyAt45Percent = CalculateHotColdBathEfficiency(_sourceTempAt45Pc, _restingRadiatorTempAt45Percent);
+                _hotColdBathEfficiencyAt40Percent = CalculateHotColdBathEfficiency(_sourceTempAt40Pc, _restingRadiatorTempAt40Percent);
+                _hotColdBathEfficiencyAt35Percent = CalculateHotColdBathEfficiency(_sourceTempAt35Pc, _restingRadiatorTempAt35Percent);
+                _hotColdBathEfficiencyAt30Percent = CalculateHotColdBathEfficiency(_sourceTempAt30Pc, _restingRadiatorTempAt30Percent);
+                _hotColdBathEfficiencyAt25Percent = CalculateHotColdBathEfficiency(_sourceTempAt25Pc, _restingRadiatorTempAt25Percent);
+                _hotColdBathEfficiencyAt20Percent = CalculateHotColdBathEfficiency(_sourceTempAt20Pc, _restingRadiatorTempAt20Percent);
+                _hotColdBathEfficiencyAt15Percent = CalculateHotColdBathEfficiency(_sourceTempAt15Pc, _restingRadiatorTempAt15Percent);
+                _hotColdBathEfficiencyAt10Percent = CalculateHotColdBathEfficiency(_sourceTempAt10Pc, _restingRadiatorTempAt10Percent);
+                _hotColdBathEfficiencyAt8Percent = CalculateHotColdBathEfficiency(_sourceTempAt8Pc, _restingRadiatorTempAt8Percent);
+                _hotColdBathEfficiencyAt6Percent = CalculateHotColdBathEfficiency(_sourceTempAt6Pc, _restingRadiatorTempAt6Percent);
+                _hotColdBathEfficiencyAt4Percent = CalculateHotColdBathEfficiency(_sourceTempAt4Pc, _restingRadiatorTempAt4Percent);
+                _hotColdBathEfficiencyAt2Percent = CalculateHotColdBathEfficiency(_sourceTempAt2Pc, _restingRadiatorTempAt2Percent);
             }
             else
                 _hasThermalGenerators = false;
@@ -649,12 +649,12 @@ namespace FNPlugin.Wasteheat
             if (_sourceTempAt2Pc >= double.MaxValue) _sourceTempAt2Pc = -1;
         }
 
-        private double CalculateGeneratorAtPercentage(double sourceTemperature, double restingTemperature, double efficiency)
+        private double CalculateHotColdBathEfficiency(double sourceTemperature, double restingTemperature)
         {
             if (sourceTemperature >= double.MaxValue || restingTemperature.IsInfinityOrNaN())
                 return 0;
 
-            return Math.Max(efficiency * (1 - restingTemperature / _sourceTempAt100Pc), 0);
+            return Math.Max(1 - restingTemperature / _sourceTempAt100Pc, 0);
         }
 
         private void CalculateGeneratedElectricPower(List<FNGenerator> generators)
@@ -683,13 +683,13 @@ namespace FNPlugin.Wasteheat
             {
                 if (generator.chargedParticleMode)
                 {
-                    _electricPowerAt100 += generator.maximumGeneratorPowerMJ;
+                    _electricPowerAt100 += generator.maximumGeneratorPowerMJ * generator.powerOutputMultiplier;
                 }
                 else
                 {
-                    var generatorMaximumGeneratorPower = generator.maximumGeneratorPowerMJ;
+                    var generatorMaximumGeneratorPower = generator.maximumGeneratorPowerMJ * generator.powerOutputMultiplier;
 
-                    _electricPowerAt100 += generatorMaximumGeneratorPower * _generatorEfficiencyAt100Percent;
+                    _electricPowerAt100 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt100Percent;
 
                     if (generator.isLimitedByMinThrottle)
                     {
@@ -714,24 +714,24 @@ namespace FNPlugin.Wasteheat
                         continue;
                     }
 
-                    _electricPowerAt90 += generatorMaximumGeneratorPower * _generatorEfficiencyAt90Percent * 0.90;
-                    _electricPowerAt80 += generatorMaximumGeneratorPower * _generatorEfficiencyAt80Percent * 0.80;
-                    _electricPowerAt70 += generatorMaximumGeneratorPower * _generatorEfficiencyAt70Percent * 0.70;
-                    _electricPowerAt60 += generatorMaximumGeneratorPower * _generatorEfficiencyAt60Percent * 0.60;
-                    _electricPowerAt50 += generatorMaximumGeneratorPower * _generatorEfficiencyAt50Percent * 0.50;
-                    _electricPowerAt45 += generatorMaximumGeneratorPower * _generatorEfficiencyAt45Percent * 0.45;
-                    _electricPowerAt40 += generatorMaximumGeneratorPower * _generatorEfficiencyAt40Percent * 0.40;
-                    _electricPowerAt35 += generatorMaximumGeneratorPower * _generatorEfficiencyAt35Percent * 0.35;
-                    _electricPowerAt30 += generatorMaximumGeneratorPower * _generatorEfficiencyAt30Percent * 0.30;
-                    _electricPowerAt25 += generatorMaximumGeneratorPower * _generatorEfficiencyAt25Percent * 0.25;
-                    _electricPowerAt20 += generatorMaximumGeneratorPower * _generatorEfficiencyAt20Percent * 0.20;
-                    _electricPowerAt15 += generatorMaximumGeneratorPower * _generatorEfficiencyAt15Percent * 0.15;
-                    _electricPowerAt10 += generatorMaximumGeneratorPower * _generatorEfficiencyAt10Percent * 0.10;
-                    _electricPowerAt8 += generatorMaximumGeneratorPower * _generatorEfficiencyAt8Percent * 0.08;
-                    _electricPowerAt6 += generatorMaximumGeneratorPower * _generatorEfficiencyAt6Percent * 0.06;
-                    _electricPowerAt4 += generatorMaximumGeneratorPower * _generatorEfficiencyAt4Percent * 0.04;
-                    _electricPowerAt2 += generatorMaximumGeneratorPower * _generatorEfficiencyAt2Percent * 0.02;
-                    _electricPowerAtCustom += generatorMaximumGeneratorPower * _generatorEfficiencyAtCustom * customScenarioFraction;
+                    _electricPowerAt90 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt90Percent * 0.90;
+                    _electricPowerAt80 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt80Percent * 0.80;
+                    _electricPowerAt70 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt70Percent * 0.70;
+                    _electricPowerAt60 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt60Percent * 0.60;
+                    _electricPowerAt50 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt50Percent * 0.50;
+                    _electricPowerAt45 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt45Percent * 0.45;
+                    _electricPowerAt40 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt40Percent * 0.40;
+                    _electricPowerAt35 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt35Percent * 0.35;
+                    _electricPowerAt30 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt30Percent * 0.30;
+                    _electricPowerAt25 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt25Percent * 0.25;
+                    _electricPowerAt20 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt20Percent * 0.20;
+                    _electricPowerAt15 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt15Percent * 0.15;
+                    _electricPowerAt10 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt10Percent * 0.10;
+                    _electricPowerAt8 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt8Percent * 0.08;
+                    _electricPowerAt6 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt6Percent * 0.06;
+                    _electricPowerAt4 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt4Percent * 0.04;
+                    _electricPowerAt2 += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAt2Percent * 0.02;
+                    _electricPowerAtCustom += generatorMaximumGeneratorPower * _hotColdBathEfficiencyAtCustomPct * customScenarioFraction;
                 }
             }
 
@@ -845,7 +845,7 @@ namespace FNPlugin.Wasteheat
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RestingGeneratorEfficiencyAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth); //"Resting Generator Efficiency at"
-                GUILayout.Label((_generatorEfficiencyAtCustom * 100).ToString("0.00") + "%", _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
+                GUILayout.Label((_hotColdBathEfficiencyAtCustomPct * 100).ToString("0.00") + "%", _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
                 GUILayout.EndHorizontal();
             }
 
