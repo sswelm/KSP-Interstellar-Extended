@@ -689,6 +689,7 @@ namespace FNPlugin.Wasteheat
         [KSPField(isPersistant = true)] public bool showRetractButton = false;
         [KSPField(isPersistant = true)] public bool showControls = true;
         [KSPField(isPersistant = true)] public double currentRadTemp;
+        [KSPField(isPersistant = true)] public bool clarifyFunction;
 
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_Cooling"), UI_Toggle(disabledText = "#LOC_KSPIE_Radiator_Off", enabledText = "#LOC_KSPIE_Radiator_On", affectSymCounterparts = UI_Scene.All)]//Radiator Cooling--Off--On
         public bool radiatorIsEnabled;
@@ -780,12 +781,10 @@ namespace FNPlugin.Wasteheat
         public double partRotationDistance;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "Atmosphere Density", guiFormat = "F2", guiUnits = "")]
         public double atmDensity;
-        [KSPField(isPersistant = true)] public bool clarifyFunction;
-        private double sphericalCowInAVaccum;
 
         // privates
-        private double maxRadiatorTemperatureForCurrentGeneration = _maximumRadiatorTempInSpace;
-        private double instantaneous_rad_temp;
+        private double _sphericalCowInAVacuum;
+        private double _instantaneousRadTemp;
         private int nrAvailableUpgradeTechs;
         private bool hasSurfaceAreaUpgradeTechReq;
         private double atmosphericMultiplier;
@@ -853,7 +852,7 @@ namespace FNPlugin.Wasteheat
 
         public ModuleActiveRadiator ModuleActiveRadiator => _moduleActiveRadiator;
 
-        public double MaxRadiatorTemperatureForCurrentGeneration => maxRadiatorTemperatureForCurrentGeneration;
+        public double MaxRadiatorTemperature => maxRadiatorTemperature;
 
         public static void InitializeTemperatureColorChannels()
         {
@@ -1306,7 +1305,7 @@ namespace FNPlugin.Wasteheat
 
                 // Because I have absolutely no idea what I'm doing, I'm taking some short cuts and major simplifications.
                 // This is the radius of a circular radiator, (operating in a vacuum)
-                sphericalCowInAVaccum = (radiatorArea / Mathf.PI).Sqrt();
+                _sphericalCowInAVacuum = (radiatorArea / Mathf.PI).Sqrt();
 
                 return hasSurfaceAreaUpgradeTechReq
                     ? radiatorArea * surfaceAreaUpgradeMult
@@ -1348,7 +1347,7 @@ namespace FNPlugin.Wasteheat
             else
                 CurrentGenerationType = GenerationType.Mk1;
 
-            maxRadiatorTemperatureForCurrentGeneration = GetMaximumTemperatureForGen(CurrentGenerationType);
+            maxRadiatorTemperature = GetMaximumTemperatureForGen(CurrentGenerationType);
         }
 
         private string RadiatorType
@@ -1388,10 +1387,10 @@ namespace FNPlugin.Wasteheat
 
             if (radiatorVessel.Any())
             {
-                var maxRadiatorTemperature = radiatorVessel.Max(r => r.MaxRadiatorTemperatureForCurrentGeneration);
+                var maxRadiatorTemperature = radiatorVessel.Max(r => r.MaxRadiatorTemperature);
                 var totalRadiatorsMass = radiatorVessel.Sum(r => (double)(decimal)r.part.mass);
 
-                return radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperatureForCurrentGeneration) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
+                return radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperature) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
             }
             else
                 return _maximumRadiatorTempInSpace;
@@ -1590,7 +1589,6 @@ namespace FNPlugin.Wasteheat
             _temperatureRange = _maximumRadiatorTempInSpace - drapperPoint;
 
             _kspShader = Shader.Find(kspShaderLocation);
-            maxRadiatorTemperature = (float)MaxRadiatorTemperatureForCurrentGeneration;
 
             part.heatConvectiveConstant = convectiveBonus;
             if (hasSurfaceAreaUpgradeTechReq)
@@ -1669,7 +1667,7 @@ namespace FNPlugin.Wasteheat
 
             if (_moduleActiveRadiator != null)
             {
-                _maxEnergyTransfer = radiatorArea * PhysicsGlobals.StefanBoltzmanConstant * Math.Pow(MaxRadiatorTemperatureForCurrentGeneration, 4) * 0.001;
+                _maxEnergyTransfer = radiatorArea * PhysicsGlobals.StefanBoltzmanConstant * Math.Pow(MaxRadiatorTemperature, 4) * 0.001;
 
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
                 _moduleActiveRadiator.overcoolFactor = 0.20 + ((int)CurrentGenerationType * 0.025);
@@ -1898,7 +1896,7 @@ namespace FNPlugin.Wasteheat
             // rb.angularVelocity.magnitude in radians/second
             double tmp = 180 * Math.Abs(rb.angularVelocity.magnitude);
             // calculate the linear velocity
-            double tmpVelocity = tmp / (Mathf.PI * sphericalCowInAVaccum);
+            double tmpVelocity = tmp / (Mathf.PI * _sphericalCowInAVacuum);
             // and then distance traveled.
             double distanceTraveled = effectiveRadiatorArea * tmpVelocity;
 
@@ -1961,9 +1959,9 @@ namespace FNPlugin.Wasteheat
                     if (double.IsNaN(_radiatedThermalPower))
                         Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Double.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + _thermalPowerDissipationPerSecond + ")");
 
-                    instantaneous_rad_temp = CalculateInstantaneousRadTemp();
+                    _instantaneousRadTemp = CalculateInstantaneousRadTemp();
 
-                    CurrentRadiatorTemperature = instantaneous_rad_temp;
+                    CurrentRadiatorTemperature = _instantaneousRadTemp;
 
                     if (_moduleDeployableRadiator)
                         _moduleDeployableRadiator.hasPivot = pivotEnabled;
@@ -1974,9 +1972,9 @@ namespace FNPlugin.Wasteheat
 
                     _radiatedThermalPower = canRadiateHeat ? ConsumeWasteHeatPerSecond(_thermalPowerDissipationPerSecond, wasteheatManager) : 0;
 
-                    instantaneous_rad_temp = CalculateInstantaneousRadTemp();
+                    _instantaneousRadTemp = CalculateInstantaneousRadTemp();
 
-                    CurrentRadiatorTemperature = instantaneous_rad_temp;
+                    CurrentRadiatorTemperature = _instantaneousRadTemp;
                 }
 
                 if (CanConvect())

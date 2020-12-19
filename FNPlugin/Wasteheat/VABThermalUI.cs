@@ -28,115 +28,116 @@ namespace FNPlugin.Wasteheat
 
         private Rect windowPosition = new Rect(500, 500, LabelWidth + ValueWidth, 100);
 
-        private GUIStyle bold_label;
-        private GUIStyle blue_label;
-        private GUIStyle green_label;
-        private GUIStyle red_label;
-        private GUIStyle orange_label;
+        private GUIStyle _boldLabel;
+        private GUIStyle _blueLabel;
+        private GUIStyle _greenLabel;
+        private GUIStyle _redLabel;
+        private GUIStyle _orangeLabel;
+        private GUIStyle _radiatorLabel;
 
         private float engineThrottlePercentage = 100;
         private float customScenarioPercentage = 100;
         private float customScenarioFraction = 1;
 
-        private double wasteheat_source_power_custom;
-        private double wasteheat_source_power_100pc;
-        private double wasteheat_source_power_90pc;
-        private double wasteheat_source_power_80pc;
-        private double wasteheat_source_power_70pc;
-        private double wasteheat_source_power_60pc;
-        private double wasteheat_source_power_50pc;
-        private double wasteheat_source_power_45pc;
-        private double wasteheat_source_power_40pc;
-        private double wasteheat_source_power_35pc;
-        private double wasteheat_source_power_30pc;
-        private double wasteheat_source_power_25pc;
-        private double wasteheat_source_power_20pc;
-        private double wasteheat_source_power_15pc;
-        private double wasteheat_source_power_10pc;
-        private double wasteheat_source_power_8pc;
-        private double wasteheat_source_power_6pc;
-        private double wasteheat_source_power_4pc;
-        private double wasteheat_source_power_2pc;
+        private double _wasteheatSourcePowerCustom;
+        private double _wasteheatSourcePower100Pc;
+        private double _wasteheatSourcePower90Pc;
+        private double _wasteheatSourcePower80Pc;
+        private double _wasteheatSourcePower70Pc;
+        private double _wasteheatSourcePower60Pc;
+        private double _wasteheatSourcePower50Pc;
+        private double _wasteheatSourcePower45Pc;
+        private double _wasteheatSourcePower40Pc;
+        private double _wasteheatSourcePower35Pc;
+        private double _wasteheatSourcePower30Pc;
+        private double _wasteheatSourcePower25Pc;
+        private double _wasteheatSourcePower20Pc;
+        private double _wasteheatSourcePower15Pc;
+        private double _wasteheatSourcePower10Pc;
+        private double _wasteheatSourcePower8Pc;
+        private double _wasteheatSourcePower6Pc;
+        private double _wasteheatSourcePower4Pc;
+        private double _wasteheatSourcePower2Pc;
 
-        private double source_temp_at_custom;
-        private double source_temp_at_100pc;
-        private double source_temp_at_90pc;
-        private double source_temp_at_80pc;
-        private double source_temp_at_70pc;
-        private double source_temp_at_60pc;
-        private double source_temp_at_50pc;
-        private double source_temp_at_45pc;
-        private double source_temp_at_40pc;
-        private double source_temp_at_35pc;
-        private double source_temp_at_30pc;
-        private double source_temp_at_25pc;
-        private double source_temp_at_20pc;
-        private double source_temp_at_15pc;
-        private double source_temp_at_10pc;
-        private double source_temp_at_8pc;
-        private double source_temp_at_6pc;
-        private double source_temp_at_4pc;
-        private double source_temp_at_2pc;
+        private double _sourceTempAtCustom;
+        private double _sourceTempAt100Pc;
+        private double _sourceTempAt90Pc;
+        private double _sourceTempAt80Pc;
+        private double _sourceTempAt70Pc;
+        private double _sourceTempAt60Pc;
+        private double _sourceTempAt50Pc;
+        private double _sourceTempAt45Pc;
+        private double _sourceTempAt40Pc;
+        private double _sourceTempAt35Pc;
+        private double _sourceTempAt30Pc;
+        private double _sourceTempAt25Pc;
+        private double _sourceTempAt20Pc;
+        private double _sourceTempAt15Pc;
+        private double _sourceTempAt10Pc;
+        private double _sourceTempAt8Pc;
+        private double _sourceTempAt6Pc;
+        private double _sourceTempAt4Pc;
+        private double _sourceTempAt2Pc;
 
-        private double resting_radiator_temp_at_custom;
-        private double resting_radiator_temp_at_100pcnt;
-        private double resting_radiator_temp_at_90pcnt;
-        private double resting_radiator_temp_at_80pcnt;
-        private double resting_radiator_temp_at_70pcnt;
-        private double resting_radiator_temp_at_60pcnt;
-        private double resting_radiator_temp_at_50pcnt;
-        private double resting_radiator_temp_at_45pcnt;
-        private double resting_radiator_temp_at_40pcnt;
-        private double resting_radiator_temp_at_35pcnt;
-        private double resting_radiator_temp_at_30pcnt;
-        private double resting_radiator_temp_at_25pcnt;
-        private double resting_radiator_temp_at_20pcnt;
-        private double resting_radiator_temp_at_15pcnt;
-        private double resting_radiator_temp_at_10pcnt;
-        private double resting_radiator_temp_at_8pcnt;
-        private double resting_radiator_temp_at_6pcnt;
-        private double resting_radiator_temp_at_4pcnt;
-        private double resting_radiator_temp_at_2pcnt;
+        private double _restingRadiatorTempAtCustom;
+        private double _restingRadiatorTempAt100Percent;
+        private double _restingRadiatorTempAt90Percent;
+        private double _restingRadiatorTempAt80Percent;
+        private double _restingRadiatorTempAt70Percent;
+        private double _restingRadiatorTempAt60Percent;
+        private double _restingRadiatorTempAt50Percent;
+        private double _restingRadiatorTempAt45Percent;
+        private double _restingRadiatorTempAt40Percent;
+        private double _restingRadiatorTempAt35Percent;
+        private double _restingRadiatorTempAt30Percent;
+        private double _restingRadiatorTempAt25Percent;
+        private double _restingRadiatorTempAt20Percent;
+        private double _restingRadiatorTempAt15Percent;
+        private double _restingRadiatorTempAt10Percent;
+        private double _restingRadiatorTempAt8Percent;
+        private double _restingRadiatorTempAt6Percent;
+        private double _restingRadiatorTempAt4Percent;
+        private double _restingRadiatorTempAt2Percent;
 
-        private double generator_efficiency_at_custom;
-        private double generator_efficiency_at_100pcnt;
-        private double generator_efficiency_at_90pcnt;
-        private double generator_efficiency_at_80pcnt;
-        private double generator_efficiency_at_70pcnt;
-        private double generator_efficiency_at_60pcnt;
-        private double generator_efficiency_at_50pcnt;
-        private double generator_efficiency_at_45pcnt;
-        private double generator_efficiency_at_40pcnt;
-        private double generator_efficiency_at_35pcnt;
-        private double generator_efficiency_at_30pcnt;
-        private double generator_efficiency_at_25pcnt;
-        private double generator_efficiency_at_20pcnt;
-        private double generator_efficiency_at_15pcnt;
-        private double generator_efficiency_at_10pcnt;
-        private double generator_efficiency_at_8pcnt;
-        private double generator_efficiency_at_6pcnt;
-        private double generator_efficiency_at_4pcnt;
-        private double generator_efficiency_at_2pcnt;
+        private double _generatorEfficiencyAtCustom;
+        private double _generatorEfficiencyAt100Percent;
+        private double _generatorEfficiencyAt90Percent;
+        private double _generatorEfficiencyAt80Percent;
+        private double _generatorEfficiencyAt70Percent;
+        private double _generatorEfficiencyAt60Percent;
+        private double _generatorEfficiencyAt50Percent;
+        private double _generatorEfficiencyAt45Percent;
+        private double _generatorEfficiencyAt40Percent;
+        private double _generatorEfficiencyAt35Percent;
+        private double _generatorEfficiencyAt30Percent;
+        private double _generatorEfficiencyAt25Percent;
+        private double _generatorEfficiencyAt20Percent;
+        private double _generatorEfficiencyAt15Percent;
+        private double _generatorEfficiencyAt10Percent;
+        private double _generatorEfficiencyAt8Percent;
+        private double _generatorEfficiencyAt6Percent;
+        private double _generatorEfficiencyAt4Percent;
+        private double _generatorEfficiencyAt2Percent;
 
-        private double electricPowerAtCustom;
-        private double electricPowerAt100;
-        private double electricPowerAt90;
-        private double electricPowerAt80;
-        private double electricPowerAt70;
-        private double electricPowerAt60;
-        private double electricPowerAt50;
-        private double electricPowerAt45;
-        private double electricPowerAt40;
-        private double electricPowerAt35;
-        private double electricPowerAt30;
-        private double electricPowerAt25;
-        private double electricPowerAt20;
-        private double electricPowerAt15;
-        private double electricPowerAt10;
-        private double electricPowerAt8;
-        private double electricPowerAt6;
-        private double electricPowerAt4;
-        private double electricPowerAt2;
+        private double _electricPowerAtCustom;
+        private double _electricPowerAt100;
+        private double _electricPowerAt90;
+        private double _electricPowerAt80;
+        private double _electricPowerAt70;
+        private double _electricPowerAt60;
+        private double _electricPowerAt50;
+        private double _electricPowerAt45;
+        private double _electricPowerAt40;
+        private double _electricPowerAt35;
+        private double _electricPowerAt30;
+        private double _electricPowerAt25;
+        private double _electricPowerAt20;
+        private double _electricPowerAt15;
+        private double _electricPowerAt10;
+        private double _electricPowerAt8;
+        private double _electricPowerAt6;
+        private double _electricPowerAt4;
+        private double _electricPowerAt2;
 
         private double _totalSourcePower;
         private double _radMaxDissipation;
@@ -194,50 +195,57 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        private void CalculatePowerBalance(List<IPowerSource> thermalSources, List<BeamedPowerReceiver> beamedReceivers, List<BeamedPowerTransmitter> beamedTransmitter, List<ThermalEngineController> thermalEngines,
-            List<FusionECU2> variableEngines, List<DaedalusEngineController> fusionEngines, List<FNGenerator> generators, List<FNRadiator> radiators)
+        private void CalculatePowerBalance(
+            IEnumerable<IPowerSource> thermalSources,
+            IEnumerable<BeamedPowerReceiver> beamedReceivers,
+            IEnumerable<BeamedPowerTransmitter> beamedTransmitter,
+            IEnumerable<ThermalEngineController> thermalEngines,
+            IEnumerable<FusionECU2> variableEngines,
+            IEnumerable<DaedalusEngineController> fusionEngines,
+            List<FNGenerator> generators,
+            IEnumerable<FNRadiator> radiators)
         {
             _totalSourcePower = 0;
 
-            wasteheat_source_power_custom = 0;
-            wasteheat_source_power_100pc = 0;
-            wasteheat_source_power_90pc = 0;
-            wasteheat_source_power_80pc = 0;
-            wasteheat_source_power_70pc = 0;
-            wasteheat_source_power_60pc = 0;
-            wasteheat_source_power_50pc = 0;
-            wasteheat_source_power_45pc = 0;
-            wasteheat_source_power_40pc = 0;
-            wasteheat_source_power_35pc = 0;
-            wasteheat_source_power_30pc = 0;
-            wasteheat_source_power_25pc = 0;
-            wasteheat_source_power_20pc = 0;
-            wasteheat_source_power_15pc = 0;
-            wasteheat_source_power_10pc = 0;
-            wasteheat_source_power_8pc = 0;
-            wasteheat_source_power_6pc = 0;
-            wasteheat_source_power_4pc = 0;
-            wasteheat_source_power_2pc = 0;
+            _wasteheatSourcePowerCustom = 0;
+            _wasteheatSourcePower100Pc = 0;
+            _wasteheatSourcePower90Pc = 0;
+            _wasteheatSourcePower80Pc = 0;
+            _wasteheatSourcePower70Pc = 0;
+            _wasteheatSourcePower60Pc = 0;
+            _wasteheatSourcePower50Pc = 0;
+            _wasteheatSourcePower45Pc = 0;
+            _wasteheatSourcePower40Pc = 0;
+            _wasteheatSourcePower35Pc = 0;
+            _wasteheatSourcePower30Pc = 0;
+            _wasteheatSourcePower25Pc = 0;
+            _wasteheatSourcePower20Pc = 0;
+            _wasteheatSourcePower15Pc = 0;
+            _wasteheatSourcePower10Pc = 0;
+            _wasteheatSourcePower8Pc = 0;
+            _wasteheatSourcePower6Pc = 0;
+            _wasteheatSourcePower4Pc = 0;
+            _wasteheatSourcePower2Pc = 0;
 
-            source_temp_at_custom = double.MaxValue;
-            source_temp_at_100pc = double.MaxValue;
-            source_temp_at_90pc = double.MaxValue;
-            source_temp_at_80pc = double.MaxValue;
-            source_temp_at_70pc = double.MaxValue;
-            source_temp_at_60pc = double.MaxValue;
-            source_temp_at_50pc = double.MaxValue;
-            source_temp_at_45pc = double.MaxValue;
-            source_temp_at_40pc = double.MaxValue;
-            source_temp_at_35pc = double.MaxValue;
-            source_temp_at_30pc = double.MaxValue;
-            source_temp_at_25pc = double.MaxValue;
-            source_temp_at_20pc = double.MaxValue;
-            source_temp_at_15pc = double.MaxValue;
-            source_temp_at_10pc = double.MaxValue;
-            source_temp_at_8pc = double.MaxValue;
-            source_temp_at_6pc = double.MaxValue;
-            source_temp_at_4pc = double.MaxValue;
-            source_temp_at_2pc = double.MaxValue;
+            _sourceTempAtCustom = double.MaxValue;
+            _sourceTempAt100Pc = double.MaxValue;
+            _sourceTempAt90Pc = double.MaxValue;
+            _sourceTempAt80Pc = double.MaxValue;
+            _sourceTempAt70Pc = double.MaxValue;
+            _sourceTempAt60Pc = double.MaxValue;
+            _sourceTempAt50Pc = double.MaxValue;
+            _sourceTempAt45Pc = double.MaxValue;
+            _sourceTempAt40Pc = double.MaxValue;
+            _sourceTempAt35Pc = double.MaxValue;
+            _sourceTempAt30Pc = double.MaxValue;
+            _sourceTempAt25Pc = double.MaxValue;
+            _sourceTempAt20Pc = double.MaxValue;
+            _sourceTempAt15Pc = double.MaxValue;
+            _sourceTempAt10Pc = double.MaxValue;
+            _sourceTempAt8Pc = double.MaxValue;
+            _sourceTempAt6Pc = double.MaxValue;
+            _sourceTempAt4Pc = double.MaxValue;
+            _sourceTempAt2Pc = double.MaxValue;
 
             double totalTemperaturePowerAt100Percent = 0;
             double totalTemperaturePowerAt90Percent = 0;
@@ -280,51 +288,52 @@ namespace FNPlugin.Wasteheat
 
                     // only non directly converted power end up in the radiators
                     var chargedPowerGenerator = connectedChargedPowerGenerator as FNGenerator;
-                    if (chargedPowerGenerator != null) combinedMaxStableMegaWattPower += powerSource.ChargedPowerRatio * connectedChargedPowerGenerator.MaxStableMegaWattPower * (1 - chargedPowerGenerator.maxEfficiency);
+                    if (chargedPowerGenerator != null)
+                        combinedMaxStableMegaWattPower += powerSource.ChargedPowerRatio * connectedChargedPowerGenerator.MaxStableMegaWattPower * (1 - chargedPowerGenerator.maxEfficiency);
                 }
 
                 // only take reactor power in account when its actually connected to a power generator
                 if (connectedThermalPowerGenerator == null && connectedChargedPowerGenerator == null) continue;
 
-                var coreTempAtRadiatorTempAt100Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_100pcnt);
-                var coreTempAtRadiatorTempAt90Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_90pcnt);
-                var coreTempAtRadiatorTempAt80Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_80pcnt);
-                var coreTempAtRadiatorTempAt70Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_70pcnt);
-                var coreTempAtRadiatorTempAt60Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_60pcnt);
-                var coreTempAtRadiatorTempAt50Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_50pcnt);
-                var coreTempAtRadiatorTempAt45Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_45pcnt);
-                var coreTempAtRadiatorTempAt40Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_40pcnt);
-                var coreTempAtRadiatorTempAt35Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_35pcnt);
-                var coreTempAtRadiatorTempAt30Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_30pcnt);
-                var coreTempAtRadiatorTempAt25Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_25pcnt);
-                var coreTempAtRadiatorTempAt20Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_20pcnt);
-                var coreTempAtRadiatorTempAt15Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_15pcnt);
-                var coreTempAtRadiatorTempAt10Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_10pcnt);
-                var coreTempAtRadiatorTempAt8Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_8pcnt);
-                var coreTempAtRadiatorTempAt6Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_6pcnt);
-                var coreTempAtRadiatorTempAt4Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_4pcnt);
-                var coreTempAtRadiatorTempAt2Percent = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_2pcnt);
-                var coreTempAtRadiatorTempAtCustom = powerSource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_custom);
+                var coreTempAtRadiatorTempAt100Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt100Percent);
+                var coreTempAtRadiatorTempAt90Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt90Percent);
+                var coreTempAtRadiatorTempAt80Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt80Percent);
+                var coreTempAtRadiatorTempAt70Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt70Percent);
+                var coreTempAtRadiatorTempAt60Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt60Percent);
+                var coreTempAtRadiatorTempAt50Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt50Percent);
+                var coreTempAtRadiatorTempAt45Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt45Percent);
+                var coreTempAtRadiatorTempAt40Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt40Percent);
+                var coreTempAtRadiatorTempAt35Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt35Percent);
+                var coreTempAtRadiatorTempAt30Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt30Percent);
+                var coreTempAtRadiatorTempAt25Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt25Percent);
+                var coreTempAtRadiatorTempAt20Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt20Percent);
+                var coreTempAtRadiatorTempAt15Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt15Percent);
+                var coreTempAtRadiatorTempAt10Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt10Percent);
+                var coreTempAtRadiatorTempAt8Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt8Percent);
+                var coreTempAtRadiatorTempAt6Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt6Percent);
+                var coreTempAtRadiatorTempAt4Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt4Percent);
+                var coreTempAtRadiatorTempAt2Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt2Percent);
+                var coreTempAtRadiatorTempAtCustom = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAtCustom);
 
-                var effectivePowerAtCustom = (1 - generator_efficiency_at_custom) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAtCustom) * customScenarioFraction);
-                var effectivePowerAt100Percent = (1 - generator_efficiency_at_100pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt100Percent));
-                var effectivePowerAt90Percent = (1 - generator_efficiency_at_90pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt90Percent) * 0.90);
-                var effectivePowerAt80Percent = (1 - generator_efficiency_at_80pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt80Percent) * 0.80);
-                var effectivePowerAt70Percent = (1 - generator_efficiency_at_70pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt70Percent) * 0.70);
-                var effectivePowerAt60Percent = (1 - generator_efficiency_at_60pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt60Percent) * 0.60);
-                var effectivePowerAt50Percent = (1 - generator_efficiency_at_50pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt50Percent) * 0.50);
-                var effectivePowerAt45Percent = (1 - generator_efficiency_at_45pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt45Percent) * 0.45);
-                var effectivePowerAt40Percent = (1 - generator_efficiency_at_40pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt40Percent) * 0.40);
-                var effectivePowerAt35Percent = (1 - generator_efficiency_at_35pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt35Percent) * 0.35);
-                var effectivePowerAt30Percent = (1 - generator_efficiency_at_30pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt30Percent) * 0.30);
-                var effectivePowerAt25Percent = (1 - generator_efficiency_at_25pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt25Percent) * 0.25);
-                var effectivePowerAt20Percent = (1 - generator_efficiency_at_20pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt20Percent) * 0.20);
-                var effectivePowerAt15Percent = (1 - generator_efficiency_at_15pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt15Percent) * 0.15);
-                var effectivePowerAt10Percent = (1 - generator_efficiency_at_10pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt10Percent) * 0.10);
-                var effectivePowerAt8Percent = (1 - generator_efficiency_at_8pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt8Percent) * 0.08);
-                var effectivePowerAt6Percent = (1 - generator_efficiency_at_6pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt6Percent) * 0.06);
-                var effectivePowerAt4Percent = (1 - generator_efficiency_at_4pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt4Percent) * 0.04);
-                var effectivePowerAt2Percent = (1 - generator_efficiency_at_2pcnt) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt2Percent) * 0.02);
+                var effectivePowerAtCustom = (1 - _generatorEfficiencyAtCustom) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAtCustom) * customScenarioFraction);
+                var effectivePowerAt100Percent = (1 - _generatorEfficiencyAt100Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt100Percent));
+                var effectivePowerAt90Percent = (1 - _generatorEfficiencyAt90Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt90Percent) * 0.90);
+                var effectivePowerAt80Percent = (1 - _generatorEfficiencyAt80Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt80Percent) * 0.80);
+                var effectivePowerAt70Percent = (1 - _generatorEfficiencyAt70Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt70Percent) * 0.70);
+                var effectivePowerAt60Percent = (1 - _generatorEfficiencyAt60Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt60Percent) * 0.60);
+                var effectivePowerAt50Percent = (1 - _generatorEfficiencyAt50Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt50Percent) * 0.50);
+                var effectivePowerAt45Percent = (1 - _generatorEfficiencyAt45Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt45Percent) * 0.45);
+                var effectivePowerAt40Percent = (1 - _generatorEfficiencyAt40Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt40Percent) * 0.40);
+                var effectivePowerAt35Percent = (1 - _generatorEfficiencyAt35Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt35Percent) * 0.35);
+                var effectivePowerAt30Percent = (1 - _generatorEfficiencyAt30Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt30Percent) * 0.30);
+                var effectivePowerAt25Percent = (1 - _generatorEfficiencyAt25Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt25Percent) * 0.25);
+                var effectivePowerAt20Percent = (1 - _generatorEfficiencyAt20Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt20Percent) * 0.20);
+                var effectivePowerAt15Percent = (1 - _generatorEfficiencyAt15Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt15Percent) * 0.15);
+                var effectivePowerAt10Percent = (1 - _generatorEfficiencyAt10Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt10Percent) * 0.10);
+                var effectivePowerAt8Percent = (1 - _generatorEfficiencyAt8Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt8Percent) * 0.08);
+                var effectivePowerAt6Percent = (1 - _generatorEfficiencyAt6Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt6Percent) * 0.06);
+                var effectivePowerAt4Percent = (1 - _generatorEfficiencyAt4Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt4Percent) * 0.04);
+                var effectivePowerAt2Percent = (1 - _generatorEfficiencyAt2Percent) * Math.Min(combinedMaxStableMegaWattPower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt2Percent) * 0.02);
 
                 totalTemperaturePowerAt100Percent += coreTempAtRadiatorTempAt100Percent * effectivePowerAt100Percent;
                 totalTemperaturePowerAt90Percent += coreTempAtRadiatorTempAt90Percent * effectivePowerAt90Percent;
@@ -346,47 +355,47 @@ namespace FNPlugin.Wasteheat
                 totalTemperaturePowerAt2Percent += coreTempAtRadiatorTempAt2Percent * effectivePowerAt2Percent;
                 totalTemperaturePowerAtCustom += coreTempAtRadiatorTempAtCustom * effectivePowerAtCustom;
 
-                wasteheat_source_power_100pc += effectivePowerAt100Percent;
-                wasteheat_source_power_90pc += effectivePowerAt90Percent;
-                wasteheat_source_power_80pc += effectivePowerAt80Percent;
-                wasteheat_source_power_70pc += effectivePowerAt70Percent;
-                wasteheat_source_power_60pc += effectivePowerAt60Percent;
-                wasteheat_source_power_50pc += effectivePowerAt50Percent;
-                wasteheat_source_power_45pc += effectivePowerAt45Percent;
-                wasteheat_source_power_40pc += effectivePowerAt40Percent;
-                wasteheat_source_power_35pc += effectivePowerAt35Percent;
-                wasteheat_source_power_30pc += effectivePowerAt30Percent;
-                wasteheat_source_power_25pc += effectivePowerAt25Percent;
-                wasteheat_source_power_20pc += effectivePowerAt20Percent;
-                wasteheat_source_power_15pc += effectivePowerAt15Percent;
-                wasteheat_source_power_10pc += effectivePowerAt10Percent;
-                wasteheat_source_power_8pc += effectivePowerAt8Percent;
-                wasteheat_source_power_6pc += effectivePowerAt6Percent;
-                wasteheat_source_power_4pc += effectivePowerAt4Percent;
-                wasteheat_source_power_2pc += effectivePowerAt2Percent;
-                wasteheat_source_power_custom += effectivePowerAtCustom;
+                _wasteheatSourcePower100Pc += effectivePowerAt100Percent;
+                _wasteheatSourcePower90Pc += effectivePowerAt90Percent;
+                _wasteheatSourcePower80Pc += effectivePowerAt80Percent;
+                _wasteheatSourcePower70Pc += effectivePowerAt70Percent;
+                _wasteheatSourcePower60Pc += effectivePowerAt60Percent;
+                _wasteheatSourcePower50Pc += effectivePowerAt50Percent;
+                _wasteheatSourcePower45Pc += effectivePowerAt45Percent;
+                _wasteheatSourcePower40Pc += effectivePowerAt40Percent;
+                _wasteheatSourcePower35Pc += effectivePowerAt35Percent;
+                _wasteheatSourcePower30Pc += effectivePowerAt30Percent;
+                _wasteheatSourcePower25Pc += effectivePowerAt25Percent;
+                _wasteheatSourcePower20Pc += effectivePowerAt20Percent;
+                _wasteheatSourcePower15Pc += effectivePowerAt15Percent;
+                _wasteheatSourcePower10Pc += effectivePowerAt10Percent;
+                _wasteheatSourcePower8Pc += effectivePowerAt8Percent;
+                _wasteheatSourcePower6Pc += effectivePowerAt6Percent;
+                _wasteheatSourcePower4Pc += effectivePowerAt4Percent;
+                _wasteheatSourcePower2Pc += effectivePowerAt2Percent;
+                _wasteheatSourcePowerCustom += effectivePowerAtCustom;
             }
 
             // calculated weighted core temperatures
-            if (wasteheat_source_power_custom > 0) source_temp_at_custom = totalTemperaturePowerAtCustom / wasteheat_source_power_custom;
-            if (wasteheat_source_power_100pc > 0) source_temp_at_100pc = totalTemperaturePowerAt100Percent / wasteheat_source_power_100pc;
-            if (wasteheat_source_power_90pc > 0) source_temp_at_90pc = totalTemperaturePowerAt90Percent / wasteheat_source_power_90pc;
-            if (wasteheat_source_power_80pc > 0) source_temp_at_80pc = totalTemperaturePowerAt80Percent / wasteheat_source_power_80pc;
-            if (wasteheat_source_power_70pc > 0) source_temp_at_70pc = totalTemperaturePowerAt70Percent / wasteheat_source_power_70pc;
-            if (wasteheat_source_power_60pc > 0) source_temp_at_60pc = totalTemperaturePowerAt60Percent / wasteheat_source_power_60pc;
-            if (wasteheat_source_power_50pc > 0) source_temp_at_50pc = totalTemperaturePowerAt50Percent / wasteheat_source_power_50pc;
-            if (wasteheat_source_power_45pc > 0) source_temp_at_45pc = totalTemperaturePowerAt45Percent / wasteheat_source_power_45pc;
-            if (wasteheat_source_power_40pc > 0) source_temp_at_40pc = totalTemperaturePowerAt40Percent / wasteheat_source_power_40pc;
-            if (wasteheat_source_power_35pc > 0) source_temp_at_35pc = totalTemperaturePowerAt35Percent / wasteheat_source_power_35pc;
-            if (wasteheat_source_power_30pc > 0) source_temp_at_30pc = totalTemperaturePowerAt30Percent / wasteheat_source_power_30pc;
-            if (wasteheat_source_power_25pc > 0) source_temp_at_25pc = totalTemperaturePowerAt25Percent / wasteheat_source_power_25pc;
-            if (wasteheat_source_power_20pc > 0) source_temp_at_20pc = totalTemperaturePowerAt20Percent / wasteheat_source_power_20pc;
-            if (wasteheat_source_power_15pc > 0) source_temp_at_15pc = totalTemperaturePowerAt15Percent / wasteheat_source_power_15pc;
-            if (wasteheat_source_power_10pc > 0) source_temp_at_10pc = totalTemperaturePowerAt10Percent / wasteheat_source_power_10pc;
-            if (wasteheat_source_power_8pc > 0) source_temp_at_8pc = totalTemperaturePowerAt8Percent / wasteheat_source_power_8pc;
-            if (wasteheat_source_power_6pc > 0) source_temp_at_6pc = totalTemperaturePowerAt6Percent / wasteheat_source_power_6pc;
-            if (wasteheat_source_power_4pc > 0) source_temp_at_4pc = totalTemperaturePowerAt4Percent / wasteheat_source_power_4pc;
-            if (wasteheat_source_power_2pc > 0) source_temp_at_2pc = totalTemperaturePowerAt2Percent / wasteheat_source_power_2pc;
+            if (_wasteheatSourcePowerCustom > 0) _sourceTempAtCustom = totalTemperaturePowerAtCustom / _wasteheatSourcePowerCustom;
+            if (_wasteheatSourcePower100Pc > 0) _sourceTempAt100Pc = totalTemperaturePowerAt100Percent / _wasteheatSourcePower100Pc;
+            if (_wasteheatSourcePower90Pc > 0) _sourceTempAt90Pc = totalTemperaturePowerAt90Percent / _wasteheatSourcePower90Pc;
+            if (_wasteheatSourcePower80Pc > 0) _sourceTempAt80Pc = totalTemperaturePowerAt80Percent / _wasteheatSourcePower80Pc;
+            if (_wasteheatSourcePower70Pc > 0) _sourceTempAt70Pc = totalTemperaturePowerAt70Percent / _wasteheatSourcePower70Pc;
+            if (_wasteheatSourcePower60Pc > 0) _sourceTempAt60Pc = totalTemperaturePowerAt60Percent / _wasteheatSourcePower60Pc;
+            if (_wasteheatSourcePower50Pc > 0) _sourceTempAt50Pc = totalTemperaturePowerAt50Percent / _wasteheatSourcePower50Pc;
+            if (_wasteheatSourcePower45Pc > 0) _sourceTempAt45Pc = totalTemperaturePowerAt45Percent / _wasteheatSourcePower45Pc;
+            if (_wasteheatSourcePower40Pc > 0) _sourceTempAt40Pc = totalTemperaturePowerAt40Percent / _wasteheatSourcePower40Pc;
+            if (_wasteheatSourcePower35Pc > 0) _sourceTempAt35Pc = totalTemperaturePowerAt35Percent / _wasteheatSourcePower35Pc;
+            if (_wasteheatSourcePower30Pc > 0) _sourceTempAt30Pc = totalTemperaturePowerAt30Percent / _wasteheatSourcePower30Pc;
+            if (_wasteheatSourcePower25Pc > 0) _sourceTempAt25Pc = totalTemperaturePowerAt25Percent / _wasteheatSourcePower25Pc;
+            if (_wasteheatSourcePower20Pc > 0) _sourceTempAt20Pc = totalTemperaturePowerAt20Percent / _wasteheatSourcePower20Pc;
+            if (_wasteheatSourcePower15Pc > 0) _sourceTempAt15Pc = totalTemperaturePowerAt15Percent / _wasteheatSourcePower15Pc;
+            if (_wasteheatSourcePower10Pc > 0) _sourceTempAt10Pc = totalTemperaturePowerAt10Percent / _wasteheatSourcePower10Pc;
+            if (_wasteheatSourcePower8Pc > 0) _sourceTempAt8Pc = totalTemperaturePowerAt8Percent / _wasteheatSourcePower8Pc;
+            if (_wasteheatSourcePower6Pc > 0) _sourceTempAt6Pc = totalTemperaturePowerAt6Percent / _wasteheatSourcePower6Pc;
+            if (_wasteheatSourcePower4Pc > 0) _sourceTempAt4Pc = totalTemperaturePowerAt4Percent / _wasteheatSourcePower4Pc;
+            if (_wasteheatSourcePower2Pc > 0) _sourceTempAt2Pc = totalTemperaturePowerAt2Percent / _wasteheatSourcePower2Pc;
 
             // calculate effect of on demand beamed power
             foreach (BeamedPowerReceiver beamedReceiver in beamedReceivers)
@@ -397,25 +406,25 @@ namespace FNPlugin.Wasteheat
 
                 var maxWasteheatProduction = beamedReceiver.MaximumRecievePower * (1 - beamedReceiver.activeBandwidthConfiguration.MaxEfficiencyPercentage * 0.01);
 
-                wasteheat_source_power_100pc += maxWasteheatProduction;
-                wasteheat_source_power_90pc += maxWasteheatProduction * 0.90;
-                wasteheat_source_power_80pc += maxWasteheatProduction * 0.80;
-                wasteheat_source_power_70pc += maxWasteheatProduction * 0.70;
-                wasteheat_source_power_60pc += maxWasteheatProduction * 0.60;
-                wasteheat_source_power_50pc += maxWasteheatProduction * 0.50;
-                wasteheat_source_power_45pc += maxWasteheatProduction * 0.45;
-                wasteheat_source_power_40pc += maxWasteheatProduction * 0.40;
-                wasteheat_source_power_35pc += maxWasteheatProduction * 0.35;
-                wasteheat_source_power_30pc += maxWasteheatProduction * 0.30;
-                wasteheat_source_power_25pc += maxWasteheatProduction * 0.25;
-                wasteheat_source_power_20pc += maxWasteheatProduction * 0.20;
-                wasteheat_source_power_15pc += maxWasteheatProduction * 0.15;
-                wasteheat_source_power_10pc += maxWasteheatProduction * 0.10;
-                wasteheat_source_power_8pc += maxWasteheatProduction * 0.08;
-                wasteheat_source_power_6pc += maxWasteheatProduction * 0.06;
-                wasteheat_source_power_4pc += maxWasteheatProduction * 0.04;
-                wasteheat_source_power_2pc += maxWasteheatProduction * 0.02;
-                wasteheat_source_power_custom += maxWasteheatProduction * customScenarioFraction;
+                _wasteheatSourcePower100Pc += maxWasteheatProduction;
+                _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;
+                _wasteheatSourcePower80Pc += maxWasteheatProduction * 0.80;
+                _wasteheatSourcePower70Pc += maxWasteheatProduction * 0.70;
+                _wasteheatSourcePower60Pc += maxWasteheatProduction * 0.60;
+                _wasteheatSourcePower50Pc += maxWasteheatProduction * 0.50;
+                _wasteheatSourcePower45Pc += maxWasteheatProduction * 0.45;
+                _wasteheatSourcePower40Pc += maxWasteheatProduction * 0.40;
+                _wasteheatSourcePower35Pc += maxWasteheatProduction * 0.35;
+                _wasteheatSourcePower30Pc += maxWasteheatProduction * 0.30;
+                _wasteheatSourcePower25Pc += maxWasteheatProduction * 0.25;
+                _wasteheatSourcePower20Pc += maxWasteheatProduction * 0.20;
+                _wasteheatSourcePower15Pc += maxWasteheatProduction * 0.15;
+                _wasteheatSourcePower10Pc += maxWasteheatProduction * 0.10;
+                _wasteheatSourcePower8Pc += maxWasteheatProduction * 0.08;
+                _wasteheatSourcePower6Pc += maxWasteheatProduction * 0.06;
+                _wasteheatSourcePower4Pc += maxWasteheatProduction * 0.04;
+                _wasteheatSourcePower2Pc += maxWasteheatProduction * 0.02;
+                _wasteheatSourcePowerCustom += maxWasteheatProduction * customScenarioFraction;
             }
 
             foreach (BeamedPowerTransmitter beamedPowerTransmitter in beamedTransmitter)
@@ -426,103 +435,102 @@ namespace FNPlugin.Wasteheat
                 var wasteheatFraction = 1 - beamedPowerTransmitter.activeBeamGenerator.efficiencyPercentage * 0.01;
                 var powerCapacity = beamedPowerTransmitter.PowerCapacity;
 
-                wasteheat_source_power_custom += Math.Min(electricPowerAtCustom, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_100pc += Math.Min(electricPowerAt100, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_90pc += Math.Min(electricPowerAt90, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_80pc += Math.Min(electricPowerAt80, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_70pc += Math.Min(electricPowerAt70, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_60pc += Math.Min(electricPowerAt60, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_50pc += Math.Min(electricPowerAt50, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_45pc += Math.Min(electricPowerAt45, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_40pc += Math.Min(electricPowerAt40, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_35pc += Math.Min(electricPowerAt35, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_30pc += Math.Min(electricPowerAt30, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_25pc += Math.Min(electricPowerAt25, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_20pc += Math.Min(electricPowerAt20, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_15pc += Math.Min(electricPowerAt15, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_10pc += Math.Min(electricPowerAt10, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_8pc += Math.Min(electricPowerAt8, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_6pc += Math.Min(electricPowerAt6, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_4pc += Math.Min(electricPowerAt4, powerCapacity) * wasteheatFraction;
-                wasteheat_source_power_2pc += Math.Min(electricPowerAt2, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePowerCustom += Math.Min(_electricPowerAtCustom, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower100Pc += Math.Min(_electricPowerAt100, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower90Pc += Math.Min(_electricPowerAt90, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower80Pc += Math.Min(_electricPowerAt80, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower70Pc += Math.Min(_electricPowerAt70, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower60Pc += Math.Min(_electricPowerAt60, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower50Pc += Math.Min(_electricPowerAt50, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower45Pc += Math.Min(_electricPowerAt45, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower40Pc += Math.Min(_electricPowerAt40, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower35Pc += Math.Min(_electricPowerAt35, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower30Pc += Math.Min(_electricPowerAt30, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower25Pc += Math.Min(_electricPowerAt25, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower20Pc += Math.Min(_electricPowerAt20, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower15Pc += Math.Min(_electricPowerAt15, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower10Pc += Math.Min(_electricPowerAt10, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower8Pc += Math.Min(_electricPowerAt8, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower6Pc += Math.Min(_electricPowerAt6, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower4Pc += Math.Min(_electricPowerAt4, powerCapacity) * wasteheatFraction;
+                _wasteheatSourcePower2Pc += Math.Min(_electricPowerAt2, powerCapacity) * wasteheatFraction;
             }
 
             var engineThrottleRatio = 0.01 * engineThrottlePercentage;
 
             foreach (ThermalEngineController thermalNozzle in thermalEngines)
             {
-                var maxWasteheatProduction = engineThrottleRatio * thermalNozzle.ReactorWasteheatModifier *
-                                             thermalNozzle.AttachedReactor.NormalisedMaximumPower;
+                var maxWasteheatProduction = engineThrottleRatio * thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
 
-                wasteheat_source_power_100pc += maxWasteheatProduction;
-                wasteheat_source_power_90pc += maxWasteheatProduction * 0.90;
-                wasteheat_source_power_80pc += maxWasteheatProduction * 0.80;
-                wasteheat_source_power_70pc += maxWasteheatProduction * 0.70;
-                wasteheat_source_power_60pc += maxWasteheatProduction * 0.60;
-                wasteheat_source_power_50pc += maxWasteheatProduction * 0.50;
-                wasteheat_source_power_45pc += maxWasteheatProduction * 0.45;
-                wasteheat_source_power_40pc += maxWasteheatProduction * 0.40;
-                wasteheat_source_power_35pc += maxWasteheatProduction * 0.35;
-                wasteheat_source_power_30pc += maxWasteheatProduction * 0.30;
-                wasteheat_source_power_25pc += maxWasteheatProduction * 0.25;
-                wasteheat_source_power_20pc += maxWasteheatProduction * 0.20;
-                wasteheat_source_power_15pc += maxWasteheatProduction * 0.15;
-                wasteheat_source_power_10pc += maxWasteheatProduction * 0.10;
-                wasteheat_source_power_8pc += maxWasteheatProduction * 0.08;
-                wasteheat_source_power_6pc += maxWasteheatProduction * 0.06;
-                wasteheat_source_power_4pc += maxWasteheatProduction * 0.04;
-                wasteheat_source_power_2pc += maxWasteheatProduction * 0.02;
-                wasteheat_source_power_custom += maxWasteheatProduction * customScenarioFraction;
+                _wasteheatSourcePower100Pc += maxWasteheatProduction;
+                _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;
+                _wasteheatSourcePower80Pc += maxWasteheatProduction * 0.80;
+                _wasteheatSourcePower70Pc += maxWasteheatProduction * 0.70;
+                _wasteheatSourcePower60Pc += maxWasteheatProduction * 0.60;
+                _wasteheatSourcePower50Pc += maxWasteheatProduction * 0.50;
+                _wasteheatSourcePower45Pc += maxWasteheatProduction * 0.45;
+                _wasteheatSourcePower40Pc += maxWasteheatProduction * 0.40;
+                _wasteheatSourcePower35Pc += maxWasteheatProduction * 0.35;
+                _wasteheatSourcePower30Pc += maxWasteheatProduction * 0.30;
+                _wasteheatSourcePower25Pc += maxWasteheatProduction * 0.25;
+                _wasteheatSourcePower20Pc += maxWasteheatProduction * 0.20;
+                _wasteheatSourcePower15Pc += maxWasteheatProduction * 0.15;
+                _wasteheatSourcePower10Pc += maxWasteheatProduction * 0.10;
+                _wasteheatSourcePower8Pc += maxWasteheatProduction * 0.08;
+                _wasteheatSourcePower6Pc += maxWasteheatProduction * 0.06;
+                _wasteheatSourcePower4Pc += maxWasteheatProduction * 0.04;
+                _wasteheatSourcePower2Pc += maxWasteheatProduction * 0.02;
+                _wasteheatSourcePowerCustom += maxWasteheatProduction * customScenarioFraction;
             }
 
             foreach (FusionECU2 variableEngine in variableEngines)
             {
                 var maxWasteheatProduction = engineThrottleRatio * variableEngine.fusionWasteHeatMax;
 
-                wasteheat_source_power_100pc += maxWasteheatProduction;
-                wasteheat_source_power_90pc += maxWasteheatProduction * 0.90;
-                wasteheat_source_power_80pc += maxWasteheatProduction * 0.80;
-                wasteheat_source_power_70pc += maxWasteheatProduction * 0.70;
-                wasteheat_source_power_60pc += maxWasteheatProduction * 0.60;
-                wasteheat_source_power_50pc += maxWasteheatProduction * 0.50;
-                wasteheat_source_power_45pc += maxWasteheatProduction * 0.45;
-                wasteheat_source_power_40pc += maxWasteheatProduction * 0.40;
-                wasteheat_source_power_35pc += maxWasteheatProduction * 0.35;
-                wasteheat_source_power_30pc += maxWasteheatProduction * 0.30;
-                wasteheat_source_power_25pc += maxWasteheatProduction * 0.25;
-                wasteheat_source_power_20pc += maxWasteheatProduction * 0.20;
-                wasteheat_source_power_15pc += maxWasteheatProduction * 0.15;
-                wasteheat_source_power_10pc += maxWasteheatProduction * 0.10;
-                wasteheat_source_power_8pc += maxWasteheatProduction * 0.08;
-                wasteheat_source_power_6pc += maxWasteheatProduction * 0.06;
-                wasteheat_source_power_4pc += maxWasteheatProduction * 0.04;
-                wasteheat_source_power_2pc += maxWasteheatProduction * 0.02;
-                wasteheat_source_power_custom += maxWasteheatProduction * customScenarioFraction;
+                _wasteheatSourcePower100Pc += maxWasteheatProduction;
+                _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;
+                _wasteheatSourcePower80Pc += maxWasteheatProduction * 0.80;
+                _wasteheatSourcePower70Pc += maxWasteheatProduction * 0.70;
+                _wasteheatSourcePower60Pc += maxWasteheatProduction * 0.60;
+                _wasteheatSourcePower50Pc += maxWasteheatProduction * 0.50;
+                _wasteheatSourcePower45Pc += maxWasteheatProduction * 0.45;
+                _wasteheatSourcePower40Pc += maxWasteheatProduction * 0.40;
+                _wasteheatSourcePower35Pc += maxWasteheatProduction * 0.35;
+                _wasteheatSourcePower30Pc += maxWasteheatProduction * 0.30;
+                _wasteheatSourcePower25Pc += maxWasteheatProduction * 0.25;
+                _wasteheatSourcePower20Pc += maxWasteheatProduction * 0.20;
+                _wasteheatSourcePower15Pc += maxWasteheatProduction * 0.15;
+                _wasteheatSourcePower10Pc += maxWasteheatProduction * 0.10;
+                _wasteheatSourcePower8Pc += maxWasteheatProduction * 0.08;
+                _wasteheatSourcePower6Pc += maxWasteheatProduction * 0.06;
+                _wasteheatSourcePower4Pc += maxWasteheatProduction * 0.04;
+                _wasteheatSourcePower2Pc += maxWasteheatProduction * 0.02;
+                _wasteheatSourcePowerCustom += maxWasteheatProduction * customScenarioFraction;
             }
 
             foreach (DaedalusEngineController fusionEngine in fusionEngines)
             {
                 var maxWasteheatProduction = 0.01 * engineThrottlePercentage * fusionEngine.wasteHeat;
 
-                wasteheat_source_power_100pc += maxWasteheatProduction;
-                wasteheat_source_power_90pc += maxWasteheatProduction * 0.90;
-                wasteheat_source_power_80pc += maxWasteheatProduction * 0.80;
-                wasteheat_source_power_70pc += maxWasteheatProduction * 0.70;
-                wasteheat_source_power_60pc += maxWasteheatProduction * 0.60;
-                wasteheat_source_power_50pc += maxWasteheatProduction * 0.50;
-                wasteheat_source_power_45pc += maxWasteheatProduction * 0.45;
-                wasteheat_source_power_40pc += maxWasteheatProduction * 0.40;
-                wasteheat_source_power_35pc += maxWasteheatProduction * 0.35;
-                wasteheat_source_power_30pc += maxWasteheatProduction * 0.30;
-                wasteheat_source_power_25pc += maxWasteheatProduction * 0.25;
-                wasteheat_source_power_20pc += maxWasteheatProduction * 0.20;
-                wasteheat_source_power_15pc += maxWasteheatProduction * 0.15;
-                wasteheat_source_power_10pc += maxWasteheatProduction * 0.10;
-                wasteheat_source_power_8pc += maxWasteheatProduction * 0.08;
-                wasteheat_source_power_6pc += maxWasteheatProduction * 0.06;
-                wasteheat_source_power_4pc += maxWasteheatProduction * 0.04;
-                wasteheat_source_power_2pc += maxWasteheatProduction * 0.02;
-                wasteheat_source_power_custom += maxWasteheatProduction * customScenarioFraction;
+                _wasteheatSourcePower100Pc += maxWasteheatProduction;
+                _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;
+                _wasteheatSourcePower80Pc += maxWasteheatProduction * 0.80;
+                _wasteheatSourcePower70Pc += maxWasteheatProduction * 0.70;
+                _wasteheatSourcePower60Pc += maxWasteheatProduction * 0.60;
+                _wasteheatSourcePower50Pc += maxWasteheatProduction * 0.50;
+                _wasteheatSourcePower45Pc += maxWasteheatProduction * 0.45;
+                _wasteheatSourcePower40Pc += maxWasteheatProduction * 0.40;
+                _wasteheatSourcePower35Pc += maxWasteheatProduction * 0.35;
+                _wasteheatSourcePower30Pc += maxWasteheatProduction * 0.30;
+                _wasteheatSourcePower25Pc += maxWasteheatProduction * 0.25;
+                _wasteheatSourcePower20Pc += maxWasteheatProduction * 0.20;
+                _wasteheatSourcePower15Pc += maxWasteheatProduction * 0.15;
+                _wasteheatSourcePower10Pc += maxWasteheatProduction * 0.10;
+                _wasteheatSourcePower8Pc += maxWasteheatProduction * 0.08;
+                _wasteheatSourcePower6Pc += maxWasteheatProduction * 0.06;
+                _wasteheatSourcePower4Pc += maxWasteheatProduction * 0.04;
+                _wasteheatSourcePower2Pc += maxWasteheatProduction * 0.02;
+                _wasteheatSourcePowerCustom += maxWasteheatProduction * customScenarioFraction;
             }
 
             CalculateGeneratedElectricPower(generators);
@@ -536,7 +544,7 @@ namespace FNPlugin.Wasteheat
             {
                 _numberOfRadiators++;
                 _totalArea += radiator.BaseRadiatorArea;
-                var maxRadTemperature = Math.Min(radiator.MaxRadiatorTemperatureForCurrentGeneration, source_temp_at_100pc);
+                var maxRadTemperature = Math.Min(radiator.MaxRadiatorTemperature, _sourceTempAt100Pc);
                 var tempToPowerFour = maxRadTemperature * maxRadTemperature * maxRadTemperature * maxRadTemperature;
                 _radMaxDissipation += GameConstants.stefan_const * radiator.EffectiveRadiatorArea * tempToPowerFour / 1e6;
                 _averageRadTemp += maxRadTemperature;
@@ -544,45 +552,45 @@ namespace FNPlugin.Wasteheat
 
             _averageRadTemp = _numberOfRadiators != 0 ? _averageRadTemp / _numberOfRadiators : double.NaN;
 
-            var radRatioCustom = wasteheat_source_power_custom / _radMaxDissipation;
-            var radRatio100Pc = wasteheat_source_power_100pc / _radMaxDissipation;
-            var radRatio90Pc = wasteheat_source_power_90pc / _radMaxDissipation;
-            var radRatio80Pc = wasteheat_source_power_80pc / _radMaxDissipation;
-            var radRatio70Pc = wasteheat_source_power_70pc / _radMaxDissipation;
-            var radRatio60Pc = wasteheat_source_power_60pc / _radMaxDissipation;
-            var radRatio50Pc = wasteheat_source_power_50pc / _radMaxDissipation;
-            var radRatio45Pc = wasteheat_source_power_45pc / _radMaxDissipation;
-            var radRatio40Pc = wasteheat_source_power_40pc / _radMaxDissipation;
-            var radRatio35Pc = wasteheat_source_power_35pc / _radMaxDissipation;
-            var radRatio30Pc = wasteheat_source_power_30pc / _radMaxDissipation;
-            var radRatio25Pc = wasteheat_source_power_25pc / _radMaxDissipation;
-            var radRatio20Pc = wasteheat_source_power_20pc / _radMaxDissipation;
-            var radRatio15Pc = wasteheat_source_power_15pc / _radMaxDissipation;
-            var radRatio10Pc = wasteheat_source_power_10pc / _radMaxDissipation;
-            var radRatio8Pc = wasteheat_source_power_8pc / _radMaxDissipation;
-            var radRatio6Pc = wasteheat_source_power_6pc / _radMaxDissipation;
-            var radRatio4Pc = wasteheat_source_power_4pc / _radMaxDissipation;
-            var radRatio2Pc = wasteheat_source_power_2pc / _radMaxDissipation;
+            var radRatioCustom = _wasteheatSourcePowerCustom / _radMaxDissipation;
+            var radRatio100Pc = _wasteheatSourcePower100Pc / _radMaxDissipation;
+            var radRatio90Pc = _wasteheatSourcePower90Pc / _radMaxDissipation;
+            var radRatio80Pc = _wasteheatSourcePower80Pc / _radMaxDissipation;
+            var radRatio70Pc = _wasteheatSourcePower70Pc / _radMaxDissipation;
+            var radRatio60Pc = _wasteheatSourcePower60Pc / _radMaxDissipation;
+            var radRatio50Pc = _wasteheatSourcePower50Pc / _radMaxDissipation;
+            var radRatio45Pc = _wasteheatSourcePower45Pc / _radMaxDissipation;
+            var radRatio40Pc = _wasteheatSourcePower40Pc / _radMaxDissipation;
+            var radRatio35Pc = _wasteheatSourcePower35Pc / _radMaxDissipation;
+            var radRatio30Pc = _wasteheatSourcePower30Pc / _radMaxDissipation;
+            var radRatio25Pc = _wasteheatSourcePower25Pc / _radMaxDissipation;
+            var radRatio20Pc = _wasteheatSourcePower20Pc / _radMaxDissipation;
+            var radRatio15Pc = _wasteheatSourcePower15Pc / _radMaxDissipation;
+            var radRatio10Pc = _wasteheatSourcePower10Pc / _radMaxDissipation;
+            var radRatio8Pc = _wasteheatSourcePower8Pc / _radMaxDissipation;
+            var radRatio6Pc = _wasteheatSourcePower6Pc / _radMaxDissipation;
+            var radRatio4Pc = _wasteheatSourcePower4Pc / _radMaxDissipation;
+            var radRatio2Pc = _wasteheatSourcePower2Pc / _radMaxDissipation;
 
-            resting_radiator_temp_at_custom = (!radRatioCustom.IsInfinityOrNaN() ? Math.Pow(radRatioCustom, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_100pcnt = (!radRatio100Pc.IsInfinityOrNaN() ? Math.Pow(radRatio100Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_90pcnt = (!radRatio90Pc.IsInfinityOrNaN() ? Math.Pow(radRatio90Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_80pcnt = (!radRatio80Pc.IsInfinityOrNaN() ? Math.Pow(radRatio80Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_70pcnt = (!radRatio70Pc.IsInfinityOrNaN() ? Math.Pow(radRatio70Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_60pcnt = (!radRatio60Pc.IsInfinityOrNaN() ? Math.Pow(radRatio60Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_50pcnt = (!radRatio50Pc.IsInfinityOrNaN() ? Math.Pow(radRatio50Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_45pcnt = (!radRatio45Pc.IsInfinityOrNaN() ? Math.Pow(radRatio45Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_40pcnt = (!radRatio40Pc.IsInfinityOrNaN() ? Math.Pow(radRatio40Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_35pcnt = (!radRatio30Pc.IsInfinityOrNaN() ? Math.Pow(radRatio35Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_30pcnt = (!radRatio30Pc.IsInfinityOrNaN() ? Math.Pow(radRatio30Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_25pcnt = (!radRatio25Pc.IsInfinityOrNaN() ? Math.Pow(radRatio25Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_20pcnt = (!radRatio20Pc.IsInfinityOrNaN() ? Math.Pow(radRatio20Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_15pcnt = (!radRatio15Pc.IsInfinityOrNaN() ? Math.Pow(radRatio15Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_10pcnt = (!radRatio10Pc.IsInfinityOrNaN() ? Math.Pow(radRatio10Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_8pcnt = (!radRatio8Pc.IsInfinityOrNaN() ? Math.Pow(radRatio8Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_6pcnt = (!radRatio6Pc.IsInfinityOrNaN() ? Math.Pow(radRatio6Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_4pcnt = (!radRatio4Pc.IsInfinityOrNaN() ? Math.Pow(radRatio4Pc, 0.25) : 0) * _averageRadTemp;
-            resting_radiator_temp_at_2pcnt = (!radRatio2Pc.IsInfinityOrNaN() ? Math.Pow(radRatio2Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAtCustom = (!radRatioCustom.IsInfinityOrNaN() ? Math.Pow(radRatioCustom, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt100Percent = (!radRatio100Pc.IsInfinityOrNaN() ? Math.Pow(radRatio100Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt90Percent = (!radRatio90Pc.IsInfinityOrNaN() ? Math.Pow(radRatio90Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt80Percent = (!radRatio80Pc.IsInfinityOrNaN() ? Math.Pow(radRatio80Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt70Percent = (!radRatio70Pc.IsInfinityOrNaN() ? Math.Pow(radRatio70Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt60Percent = (!radRatio60Pc.IsInfinityOrNaN() ? Math.Pow(radRatio60Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt50Percent = (!radRatio50Pc.IsInfinityOrNaN() ? Math.Pow(radRatio50Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt45Percent = (!radRatio45Pc.IsInfinityOrNaN() ? Math.Pow(radRatio45Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt40Percent = (!radRatio40Pc.IsInfinityOrNaN() ? Math.Pow(radRatio40Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt35Percent = (!radRatio30Pc.IsInfinityOrNaN() ? Math.Pow(radRatio35Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt30Percent = (!radRatio30Pc.IsInfinityOrNaN() ? Math.Pow(radRatio30Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt25Percent = (!radRatio25Pc.IsInfinityOrNaN() ? Math.Pow(radRatio25Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt20Percent = (!radRatio20Pc.IsInfinityOrNaN() ? Math.Pow(radRatio20Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt15Percent = (!radRatio15Pc.IsInfinityOrNaN() ? Math.Pow(radRatio15Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt10Percent = (!radRatio10Pc.IsInfinityOrNaN() ? Math.Pow(radRatio10Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt8Percent = (!radRatio8Pc.IsInfinityOrNaN() ? Math.Pow(radRatio8Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt6Percent = (!radRatio6Pc.IsInfinityOrNaN() ? Math.Pow(radRatio6Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt4Percent = (!radRatio4Pc.IsInfinityOrNaN() ? Math.Pow(radRatio4Pc, 0.25) : 0) * _averageRadTemp;
+            _restingRadiatorTempAt2Percent = (!radRatio2Pc.IsInfinityOrNaN() ? Math.Pow(radRatio2Pc, 0.25) : 0) * _averageRadTemp;
 
             var thermalGenerators = generators.Where(m => !m.chargedParticleMode).ToList();
 
@@ -594,48 +602,48 @@ namespace FNPlugin.Wasteheat
 
                 _hasThermalGenerators = true;
 
-                generator_efficiency_at_custom = CalculateGeneratorAtPercentage(source_temp_at_custom, resting_radiator_temp_at_custom, averageMaxEfficiency);
-                generator_efficiency_at_100pcnt = CalculateGeneratorAtPercentage(source_temp_at_100pc, resting_radiator_temp_at_100pcnt, averageMaxEfficiency);
-                generator_efficiency_at_90pcnt = CalculateGeneratorAtPercentage(source_temp_at_90pc, resting_radiator_temp_at_90pcnt, averageMaxEfficiency);
-                generator_efficiency_at_80pcnt = CalculateGeneratorAtPercentage(source_temp_at_80pc, resting_radiator_temp_at_80pcnt, averageMaxEfficiency);
-                generator_efficiency_at_70pcnt = CalculateGeneratorAtPercentage(source_temp_at_70pc, resting_radiator_temp_at_70pcnt, averageMaxEfficiency);
-                generator_efficiency_at_60pcnt = CalculateGeneratorAtPercentage(source_temp_at_60pc, resting_radiator_temp_at_60pcnt, averageMaxEfficiency);
-                generator_efficiency_at_50pcnt = CalculateGeneratorAtPercentage(source_temp_at_50pc, resting_radiator_temp_at_50pcnt, averageMaxEfficiency);
-                generator_efficiency_at_45pcnt = CalculateGeneratorAtPercentage(source_temp_at_45pc, resting_radiator_temp_at_45pcnt, averageMaxEfficiency);
-                generator_efficiency_at_40pcnt = CalculateGeneratorAtPercentage(source_temp_at_40pc, resting_radiator_temp_at_40pcnt, averageMaxEfficiency);
-                generator_efficiency_at_35pcnt = CalculateGeneratorAtPercentage(source_temp_at_35pc, resting_radiator_temp_at_35pcnt, averageMaxEfficiency);
-                generator_efficiency_at_30pcnt = CalculateGeneratorAtPercentage(source_temp_at_30pc, resting_radiator_temp_at_30pcnt, averageMaxEfficiency);
-                generator_efficiency_at_25pcnt = CalculateGeneratorAtPercentage(source_temp_at_25pc, resting_radiator_temp_at_25pcnt, averageMaxEfficiency);
-                generator_efficiency_at_20pcnt = CalculateGeneratorAtPercentage(source_temp_at_20pc, resting_radiator_temp_at_20pcnt, averageMaxEfficiency);
-                generator_efficiency_at_15pcnt = CalculateGeneratorAtPercentage(source_temp_at_15pc, resting_radiator_temp_at_15pcnt, averageMaxEfficiency);
-                generator_efficiency_at_10pcnt = CalculateGeneratorAtPercentage(source_temp_at_10pc, resting_radiator_temp_at_10pcnt, averageMaxEfficiency);
-                generator_efficiency_at_8pcnt = CalculateGeneratorAtPercentage(source_temp_at_8pc, resting_radiator_temp_at_8pcnt, averageMaxEfficiency);
-                generator_efficiency_at_6pcnt = CalculateGeneratorAtPercentage(source_temp_at_6pc, resting_radiator_temp_at_6pcnt, averageMaxEfficiency);
-                generator_efficiency_at_4pcnt = CalculateGeneratorAtPercentage(source_temp_at_4pc, resting_radiator_temp_at_4pcnt, averageMaxEfficiency);
-                generator_efficiency_at_2pcnt = CalculateGeneratorAtPercentage(source_temp_at_2pc, resting_radiator_temp_at_2pcnt, averageMaxEfficiency);
+                _generatorEfficiencyAtCustom = CalculateGeneratorAtPercentage(_sourceTempAtCustom, _restingRadiatorTempAtCustom, averageMaxEfficiency);
+                _generatorEfficiencyAt100Percent = CalculateGeneratorAtPercentage(_sourceTempAt100Pc, _restingRadiatorTempAt100Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt90Percent = CalculateGeneratorAtPercentage(_sourceTempAt90Pc, _restingRadiatorTempAt90Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt80Percent = CalculateGeneratorAtPercentage(_sourceTempAt80Pc, _restingRadiatorTempAt80Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt70Percent = CalculateGeneratorAtPercentage(_sourceTempAt70Pc, _restingRadiatorTempAt70Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt60Percent = CalculateGeneratorAtPercentage(_sourceTempAt60Pc, _restingRadiatorTempAt60Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt50Percent = CalculateGeneratorAtPercentage(_sourceTempAt50Pc, _restingRadiatorTempAt50Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt45Percent = CalculateGeneratorAtPercentage(_sourceTempAt45Pc, _restingRadiatorTempAt45Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt40Percent = CalculateGeneratorAtPercentage(_sourceTempAt40Pc, _restingRadiatorTempAt40Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt35Percent = CalculateGeneratorAtPercentage(_sourceTempAt35Pc, _restingRadiatorTempAt35Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt30Percent = CalculateGeneratorAtPercentage(_sourceTempAt30Pc, _restingRadiatorTempAt30Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt25Percent = CalculateGeneratorAtPercentage(_sourceTempAt25Pc, _restingRadiatorTempAt25Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt20Percent = CalculateGeneratorAtPercentage(_sourceTempAt20Pc, _restingRadiatorTempAt20Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt15Percent = CalculateGeneratorAtPercentage(_sourceTempAt15Pc, _restingRadiatorTempAt15Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt10Percent = CalculateGeneratorAtPercentage(_sourceTempAt10Pc, _restingRadiatorTempAt10Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt8Percent = CalculateGeneratorAtPercentage(_sourceTempAt8Pc, _restingRadiatorTempAt8Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt6Percent = CalculateGeneratorAtPercentage(_sourceTempAt6Pc, _restingRadiatorTempAt6Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt4Percent = CalculateGeneratorAtPercentage(_sourceTempAt4Pc, _restingRadiatorTempAt4Percent, averageMaxEfficiency);
+                _generatorEfficiencyAt2Percent = CalculateGeneratorAtPercentage(_sourceTempAt2Pc, _restingRadiatorTempAt2Percent, averageMaxEfficiency);
             }
             else
                 _hasThermalGenerators = false;
 
-            if (source_temp_at_custom >= double.MaxValue) source_temp_at_custom = -1;
-            if (source_temp_at_100pc >= double.MaxValue) source_temp_at_100pc = -1;
-            if (source_temp_at_90pc >= double.MaxValue) source_temp_at_90pc = -1;
-            if (source_temp_at_80pc >= double.MaxValue) source_temp_at_80pc = -1;
-            if (source_temp_at_70pc >= double.MaxValue) source_temp_at_70pc = -1;
-            if (source_temp_at_60pc >= double.MaxValue) source_temp_at_60pc = -1;
-            if (source_temp_at_50pc >= double.MaxValue) source_temp_at_50pc = -1;
-            if (source_temp_at_45pc >= double.MaxValue) source_temp_at_45pc = -1;
-            if (source_temp_at_40pc >= double.MaxValue) source_temp_at_40pc = -1;
-            if (source_temp_at_35pc >= double.MaxValue) source_temp_at_35pc = -1;
-            if (source_temp_at_30pc >= double.MaxValue) source_temp_at_30pc = -1;
-            if (source_temp_at_25pc >= double.MaxValue) source_temp_at_25pc = -1;
-            if (source_temp_at_20pc >= double.MaxValue) source_temp_at_20pc = -1;
-            if (source_temp_at_15pc >= double.MaxValue) source_temp_at_15pc = -1;
-            if (source_temp_at_10pc >= double.MaxValue) source_temp_at_10pc = -1;
-            if (source_temp_at_8pc >= double.MaxValue) source_temp_at_8pc = -1;
-            if (source_temp_at_6pc >= double.MaxValue) source_temp_at_6pc = -1;
-            if (source_temp_at_4pc >= double.MaxValue) source_temp_at_4pc = -1;
-            if (source_temp_at_2pc >= double.MaxValue) source_temp_at_2pc = -1;
+            if (_sourceTempAtCustom >= double.MaxValue) _sourceTempAtCustom = -1;
+            if (_sourceTempAt100Pc >= double.MaxValue) _sourceTempAt100Pc = -1;
+            if (_sourceTempAt90Pc >= double.MaxValue) _sourceTempAt90Pc = -1;
+            if (_sourceTempAt80Pc >= double.MaxValue) _sourceTempAt80Pc = -1;
+            if (_sourceTempAt70Pc >= double.MaxValue) _sourceTempAt70Pc = -1;
+            if (_sourceTempAt60Pc >= double.MaxValue) _sourceTempAt60Pc = -1;
+            if (_sourceTempAt50Pc >= double.MaxValue) _sourceTempAt50Pc = -1;
+            if (_sourceTempAt45Pc >= double.MaxValue) _sourceTempAt45Pc = -1;
+            if (_sourceTempAt40Pc >= double.MaxValue) _sourceTempAt40Pc = -1;
+            if (_sourceTempAt35Pc >= double.MaxValue) _sourceTempAt35Pc = -1;
+            if (_sourceTempAt30Pc >= double.MaxValue) _sourceTempAt30Pc = -1;
+            if (_sourceTempAt25Pc >= double.MaxValue) _sourceTempAt25Pc = -1;
+            if (_sourceTempAt20Pc >= double.MaxValue) _sourceTempAt20Pc = -1;
+            if (_sourceTempAt15Pc >= double.MaxValue) _sourceTempAt15Pc = -1;
+            if (_sourceTempAt10Pc >= double.MaxValue) _sourceTempAt10Pc = -1;
+            if (_sourceTempAt8Pc >= double.MaxValue) _sourceTempAt8Pc = -1;
+            if (_sourceTempAt6Pc >= double.MaxValue) _sourceTempAt6Pc = -1;
+            if (_sourceTempAt4Pc >= double.MaxValue) _sourceTempAt4Pc = -1;
+            if (_sourceTempAt2Pc >= double.MaxValue) _sourceTempAt2Pc = -1;
         }
 
         private double CalculateGeneratorAtPercentage(double sourceTemperature, double restingTemperature, double efficiency)
@@ -643,108 +651,108 @@ namespace FNPlugin.Wasteheat
             if (sourceTemperature >= double.MaxValue || restingTemperature.IsInfinityOrNaN())
                 return 0;
 
-            return Math.Max(efficiency * (1 - restingTemperature / source_temp_at_100pc), 0);
+            return Math.Max(efficiency * (1 - restingTemperature / _sourceTempAt100Pc), 0);
         }
 
         private void CalculateGeneratedElectricPower(List<FNGenerator> generators)
         {
-            electricPowerAtCustom = 0;
-            electricPowerAt100 = 0;
-            electricPowerAt90 = 0;
-            electricPowerAt80 = 0;
-            electricPowerAt70 = 0;
-            electricPowerAt60 = 0;
-            electricPowerAt50 = 0;
-            electricPowerAt45 = 0;
-            electricPowerAt40 = 0;
-            electricPowerAt35 = 0;
-            electricPowerAt30 = 0;
-            electricPowerAt25 = 0;
-            electricPowerAt20 = 0;
-            electricPowerAt15 = 0;
-            electricPowerAt10 = 0;
-            electricPowerAt8 = 0;
-            electricPowerAt6 = 0;
-            electricPowerAt4 = 0;
-            electricPowerAt2 = 0;
+            _electricPowerAtCustom = 0;
+            _electricPowerAt100 = 0;
+            _electricPowerAt90 = 0;
+            _electricPowerAt80 = 0;
+            _electricPowerAt70 = 0;
+            _electricPowerAt60 = 0;
+            _electricPowerAt50 = 0;
+            _electricPowerAt45 = 0;
+            _electricPowerAt40 = 0;
+            _electricPowerAt35 = 0;
+            _electricPowerAt30 = 0;
+            _electricPowerAt25 = 0;
+            _electricPowerAt20 = 0;
+            _electricPowerAt15 = 0;
+            _electricPowerAt10 = 0;
+            _electricPowerAt8 = 0;
+            _electricPowerAt6 = 0;
+            _electricPowerAt4 = 0;
+            _electricPowerAt2 = 0;
 
             foreach (FNGenerator generator in generators)
             {
                 if (generator.chargedParticleMode)
                 {
-                    electricPowerAt100 += generator.maximumGeneratorPowerMJ;
+                    _electricPowerAt100 += generator.maximumGeneratorPowerMJ;
                 }
                 else
                 {
                     var generatorMaximumGeneratorPower = generator.maximumGeneratorPowerMJ;
 
-                    electricPowerAt100 += generatorMaximumGeneratorPower * generator_efficiency_at_100pcnt;
+                    _electricPowerAt100 += generatorMaximumGeneratorPower * _generatorEfficiencyAt100Percent;
 
                     if (generator.isLimitedByMinThrottle)
                     {
-                        electricPowerAt90 += electricPowerAt100;
-                        electricPowerAt80 += electricPowerAt100;
-                        electricPowerAt70 += electricPowerAt100;
-                        electricPowerAt60 += electricPowerAt100;
-                        electricPowerAt50 += electricPowerAt100;
-                        electricPowerAt45 += electricPowerAt100;
-                        electricPowerAt40 += electricPowerAt100;
-                        electricPowerAt35 += electricPowerAt100;
-                        electricPowerAt30 += electricPowerAt100;
-                        electricPowerAt25 += electricPowerAt100;
-                        electricPowerAt20 += electricPowerAt100;
-                        electricPowerAt15 += electricPowerAt100;
-                        electricPowerAt10 += electricPowerAt100;
-                        electricPowerAt8 += electricPowerAt100;
-                        electricPowerAt6 += electricPowerAt100;
-                        electricPowerAt4 += electricPowerAt100;
-                        electricPowerAt2 += electricPowerAt100;
-                        electricPowerAtCustom += electricPowerAt100;
+                        _electricPowerAt90 += _electricPowerAt100;
+                        _electricPowerAt80 += _electricPowerAt100;
+                        _electricPowerAt70 += _electricPowerAt100;
+                        _electricPowerAt60 += _electricPowerAt100;
+                        _electricPowerAt50 += _electricPowerAt100;
+                        _electricPowerAt45 += _electricPowerAt100;
+                        _electricPowerAt40 += _electricPowerAt100;
+                        _electricPowerAt35 += _electricPowerAt100;
+                        _electricPowerAt30 += _electricPowerAt100;
+                        _electricPowerAt25 += _electricPowerAt100;
+                        _electricPowerAt20 += _electricPowerAt100;
+                        _electricPowerAt15 += _electricPowerAt100;
+                        _electricPowerAt10 += _electricPowerAt100;
+                        _electricPowerAt8 += _electricPowerAt100;
+                        _electricPowerAt6 += _electricPowerAt100;
+                        _electricPowerAt4 += _electricPowerAt100;
+                        _electricPowerAt2 += _electricPowerAt100;
+                        _electricPowerAtCustom += _electricPowerAt100;
                         continue;
                     }
 
-                    electricPowerAt90 += generatorMaximumGeneratorPower * generator_efficiency_at_90pcnt * 0.90;
-                    electricPowerAt80 += generatorMaximumGeneratorPower * generator_efficiency_at_80pcnt * 0.80;
-                    electricPowerAt70 += generatorMaximumGeneratorPower * generator_efficiency_at_70pcnt * 0.70;
-                    electricPowerAt60 += generatorMaximumGeneratorPower * generator_efficiency_at_60pcnt * 0.60;
-                    electricPowerAt50 += generatorMaximumGeneratorPower * generator_efficiency_at_50pcnt * 0.50;
-                    electricPowerAt45 += generatorMaximumGeneratorPower * generator_efficiency_at_45pcnt * 0.45;
-                    electricPowerAt40 += generatorMaximumGeneratorPower * generator_efficiency_at_40pcnt * 0.40;
-                    electricPowerAt35 += generatorMaximumGeneratorPower * generator_efficiency_at_35pcnt * 0.35;
-                    electricPowerAt30 += generatorMaximumGeneratorPower * generator_efficiency_at_30pcnt * 0.30;
-                    electricPowerAt25 += generatorMaximumGeneratorPower * generator_efficiency_at_25pcnt * 0.25;
-                    electricPowerAt20 += generatorMaximumGeneratorPower * generator_efficiency_at_20pcnt * 0.20;
-                    electricPowerAt15 += generatorMaximumGeneratorPower * generator_efficiency_at_15pcnt * 0.15;
-                    electricPowerAt10 += generatorMaximumGeneratorPower * generator_efficiency_at_10pcnt * 0.10;
-                    electricPowerAt8 += generatorMaximumGeneratorPower * generator_efficiency_at_8pcnt * 0.08;
-                    electricPowerAt6 += generatorMaximumGeneratorPower * generator_efficiency_at_6pcnt * 0.06;
-                    electricPowerAt4 += generatorMaximumGeneratorPower * generator_efficiency_at_4pcnt * 0.04;
-                    electricPowerAt2 += generatorMaximumGeneratorPower * generator_efficiency_at_2pcnt * 0.02;
-                    electricPowerAtCustom += generatorMaximumGeneratorPower * generator_efficiency_at_custom * customScenarioFraction;
+                    _electricPowerAt90 += generatorMaximumGeneratorPower * _generatorEfficiencyAt90Percent * 0.90;
+                    _electricPowerAt80 += generatorMaximumGeneratorPower * _generatorEfficiencyAt80Percent * 0.80;
+                    _electricPowerAt70 += generatorMaximumGeneratorPower * _generatorEfficiencyAt70Percent * 0.70;
+                    _electricPowerAt60 += generatorMaximumGeneratorPower * _generatorEfficiencyAt60Percent * 0.60;
+                    _electricPowerAt50 += generatorMaximumGeneratorPower * _generatorEfficiencyAt50Percent * 0.50;
+                    _electricPowerAt45 += generatorMaximumGeneratorPower * _generatorEfficiencyAt45Percent * 0.45;
+                    _electricPowerAt40 += generatorMaximumGeneratorPower * _generatorEfficiencyAt40Percent * 0.40;
+                    _electricPowerAt35 += generatorMaximumGeneratorPower * _generatorEfficiencyAt35Percent * 0.35;
+                    _electricPowerAt30 += generatorMaximumGeneratorPower * _generatorEfficiencyAt30Percent * 0.30;
+                    _electricPowerAt25 += generatorMaximumGeneratorPower * _generatorEfficiencyAt25Percent * 0.25;
+                    _electricPowerAt20 += generatorMaximumGeneratorPower * _generatorEfficiencyAt20Percent * 0.20;
+                    _electricPowerAt15 += generatorMaximumGeneratorPower * _generatorEfficiencyAt15Percent * 0.15;
+                    _electricPowerAt10 += generatorMaximumGeneratorPower * _generatorEfficiencyAt10Percent * 0.10;
+                    _electricPowerAt8 += generatorMaximumGeneratorPower * _generatorEfficiencyAt8Percent * 0.08;
+                    _electricPowerAt6 += generatorMaximumGeneratorPower * _generatorEfficiencyAt6Percent * 0.06;
+                    _electricPowerAt4 += generatorMaximumGeneratorPower * _generatorEfficiencyAt4Percent * 0.04;
+                    _electricPowerAt2 += generatorMaximumGeneratorPower * _generatorEfficiencyAt2Percent * 0.02;
+                    _electricPowerAtCustom += generatorMaximumGeneratorPower * _generatorEfficiencyAtCustom * customScenarioFraction;
                 }
             }
 
             _bestScenarioPercentage = 0;
             _bestScenarioElectricPower = 0;
 
-            GetBestPowerAndPercentage(100, electricPowerAt100);
-            GetBestPowerAndPercentage(90, electricPowerAt90);
-            GetBestPowerAndPercentage(80, electricPowerAt80);
-            GetBestPowerAndPercentage(70, electricPowerAt70);
-            GetBestPowerAndPercentage(60, electricPowerAt60);
-            GetBestPowerAndPercentage(50, electricPowerAt50);
-            GetBestPowerAndPercentage(45, electricPowerAt45);
-            GetBestPowerAndPercentage(40, electricPowerAt40);
-            GetBestPowerAndPercentage(35, electricPowerAt35);
-            GetBestPowerAndPercentage(30, electricPowerAt30);
-            GetBestPowerAndPercentage(25, electricPowerAt25);
-            GetBestPowerAndPercentage(20, electricPowerAt20);
-            GetBestPowerAndPercentage(15, electricPowerAt15);
-            GetBestPowerAndPercentage(10, electricPowerAt10);
-            GetBestPowerAndPercentage(8, electricPowerAt8);
-            GetBestPowerAndPercentage(6, electricPowerAt6);
-            GetBestPowerAndPercentage(4, electricPowerAt4);
-            GetBestPowerAndPercentage(2, electricPowerAt2);
+            GetBestPowerAndPercentage(100, _electricPowerAt100);
+            GetBestPowerAndPercentage(90, _electricPowerAt90);
+            GetBestPowerAndPercentage(80, _electricPowerAt80);
+            GetBestPowerAndPercentage(70, _electricPowerAt70);
+            GetBestPowerAndPercentage(60, _electricPowerAt60);
+            GetBestPowerAndPercentage(50, _electricPowerAt50);
+            GetBestPowerAndPercentage(45, _electricPowerAt45);
+            GetBestPowerAndPercentage(40, _electricPowerAt40);
+            GetBestPowerAndPercentage(35, _electricPowerAt35);
+            GetBestPowerAndPercentage(30, _electricPowerAt30);
+            GetBestPowerAndPercentage(25, _electricPowerAt25);
+            GetBestPowerAndPercentage(20, _electricPowerAt20);
+            GetBestPowerAndPercentage(15, _electricPowerAt15);
+            GetBestPowerAndPercentage(10, _electricPowerAt10);
+            GetBestPowerAndPercentage(8, _electricPowerAt8);
+            GetBestPowerAndPercentage(6, _electricPowerAt6);
+            GetBestPowerAndPercentage(4, _electricPowerAt4);
+            GetBestPowerAndPercentage(2, _electricPowerAt2);
         }
 
         private void GetBestPowerAndPercentage (int percentage, double scenarioElectricPower)
@@ -755,6 +763,7 @@ namespace FNPlugin.Wasteheat
             _bestScenarioElectricPower = scenarioElectricPower;
         }
 
+        // ReSharper disable once UnusedMember.Global
         protected void OnGUI()
         {
             if (renderWindow)
@@ -763,34 +772,10 @@ namespace FNPlugin.Wasteheat
 
         private void Window(int windowId)
         {
-            if (blue_label == null)
-                blue_label = new GUIStyle(GUI.skin.label) {normal = {textColor = new Color(0, 191/255f, 255/255f, 1f) } };
-            if (green_label == null)
-                green_label = new GUIStyle(GUI.skin.label) {normal = {textColor = Color.green}};
-            if (red_label == null)
-                red_label = new GUIStyle(GUI.skin.label) {normal = {textColor = Color.red}};
-            if (orange_label == null)
-                orange_label = new GUIStyle(GUI.skin.label) {normal = {textColor = Color.yellow}};
-            if (bold_label == null)
-                bold_label = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold};
+            SetLabelColor();
 
             var guiLabelWidth = GUILayout.MinWidth(LabelWidth);
             var guiValueWidth = GUILayout.MinWidth(ValueWidth);
-
-            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
-                renderWindow = false;
-
-            GUIStyle radiatorLabel = blue_label;
-            if (_bestScenarioPercentage < 100)
-            {
-                radiatorLabel = green_label;
-                if (_radMaxDissipation < _totalSourcePower)
-                {
-                    radiatorLabel = orange_label;
-                    if (_radMaxDissipation < _totalSourcePower * 0.3)
-                        radiatorLabel = red_label;
-                }
-            }
 
             GUILayout.BeginVertical();
 
@@ -803,72 +788,97 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalHeatProduction"), bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Heat Production:"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalHeatProduction"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Heat Production:"
             GUILayout.Label(PluginHelper.getFormattedPowerString(_totalSourcePower), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("Vessel Mass:"), bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Number of Radiators:"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_VesselMass"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Vessel Mass:"
             GUILayout.Label((_dryMass + _wetMass).ToString("0.000") + " t", GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalAreaRadiators") + " (" + _numberOfRadiators + ")", bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Area Radiators:"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalAreaRadiators") + " (" + _numberOfRadiators + ")", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Area Radiators:"
             GUILayout.Label(_totalArea.ToString("0.0") + " m\xB2", GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumDissipation"), bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_radMaxDissipation), radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumDissipation"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
+            GUILayout.Label(PluginHelper.getFormattedPowerString(_radMaxDissipation), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Resting Electric Power at " + _bestScenarioPercentage + "% Power", bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RestingElectricPowerAt") + " " + _bestScenarioPercentage + "% Power", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Resting Electric Power at"
             GUILayout.Label(PluginHelper.getFormattedPowerString(_bestScenarioElectricPower), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Custom Reactor Power (Percentage)", GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_CustomReactorPowerPercentage"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth); // "Custom Reactor Power (Percentage)"
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             customScenarioPercentage = GUILayout.HorizontalSlider(customScenarioPercentage, 0, 100, GUILayout.ExpandWidth(true), guiLabelWidth);
-            string customPercentageText = customScenarioPercentage.ToString("0.0") + "%";
+            string customPercentageText = " " + customScenarioPercentage.ToString("0.0") + "%";
             GUILayout.Label(customPercentageText, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Wasteheat Production at " + customPercentageText, bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Heat Production:"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(wasteheat_source_power_custom), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_WasteheatProductionAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Wasteheat Production at "
+            GUILayout.Label(PluginHelper.getFormattedPowerString(_wasteheatSourcePowerCustom), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Thermal Source Temperature at " + customPercentageText, bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);
-            string sourceTempString100 = source_temp_at_custom < 0 ? "N/A" : source_temp_at_custom.ToString("0.0") + " K";
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_ThermalSourceTemperatureAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth); // "Thermal Source Temperature at"
+            string sourceTempString100 = _sourceTempAtCustom < 0 ? "N/A" : _sourceTempAtCustom.ToString("0.0") + " K";
             GUILayout.Label(sourceTempString100, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            string restingRadiatorTempAtCustomPercentageStr = !resting_radiator_temp_at_custom.IsInfinityOrNaN() ? resting_radiator_temp_at_custom.ToString("0.0") + " K" : "N/A";
-            GUILayout.Label("Radiator Resting Temperature at " + customPercentageText, bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Resting Temperature at 30% Power:"
-            GUILayout.Label(restingRadiatorTempAtCustomPercentageStr, radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
+            string restingRadiatorTempAtCustomPercentageStr = !_restingRadiatorTempAtCustom.IsInfinityOrNaN() ? _restingRadiatorTempAtCustom.ToString("0.0") + " K" : "N/A";
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorRestingTemperatureAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Resting Temperature at"
+            GUILayout.Label(restingRadiatorTempAtCustomPercentageStr, _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             if (_hasThermalGenerators)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Resting Generator Efficiency at " + customPercentageText, bold_label, GUILayout.ExpandWidth(true), guiLabelWidth); //"Resting Generator Efficiency at 30% Power:"
-                GUILayout.Label((generator_efficiency_at_custom * 100).ToString("0.00") + "%", radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RestingGeneratorEfficiencyAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth); //"Resting Generator Efficiency at"
+                GUILayout.Label((_generatorEfficiencyAtCustom * 100).ToString("0.00") + "%", _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
                 GUILayout.EndHorizontal();
             }
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Electric Power Output at " + customPercentageText, bold_label, GUILayout.ExpandWidth(true), guiLabelWidth);
-            GUILayout.Label(PluginHelper.getFormattedPowerString(electricPowerAtCustom), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_ElectricPowerOutputAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Electric Power Output at"
+            GUILayout.Label(PluginHelper.getFormattedPowerString(_electricPowerAtCustom), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.EndVertical();
 
             GUI.DragWindow();
+        }
+
+        private void SetLabelColor()
+        {
+            if (_blueLabel == null)
+                _blueLabel = new GUIStyle(GUI.skin.label) {normal = {textColor = new Color(0, 191 / 255f, 255 / 255f, 1f)}};
+            if (_greenLabel == null)
+                _greenLabel = new GUIStyle(GUI.skin.label) {normal = {textColor = Color.green}};
+            if (_redLabel == null)
+                _redLabel = new GUIStyle(GUI.skin.label) {normal = {textColor = Color.red}};
+            if (_orangeLabel == null)
+                _orangeLabel = new GUIStyle(GUI.skin.label) {normal = {textColor = Color.yellow}};
+            if (_boldLabel == null)
+                _boldLabel = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold};
+
+            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
+                renderWindow = false;
+
+            _radiatorLabel = _blueLabel;
+            if (_bestScenarioPercentage >= 100) return;
+            _radiatorLabel = _greenLabel;
+            if (!(_radMaxDissipation < _totalSourcePower)) return;
+            _radiatorLabel = _orangeLabel;
+            if (_radMaxDissipation < _totalSourcePower * 0.3)
+                _radiatorLabel = _redLabel;
         }
     }
 }
