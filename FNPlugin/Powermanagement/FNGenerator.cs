@@ -33,7 +33,7 @@ namespace FNPlugin.Powermanagement
     class ChargedParticlesPowerGenerator : FNGenerator {}
 
     [KSPModule(" Generator")]
-    class FNGenerator : ResourceSuppliableModule, IUpgradeableModule, IElectricPowerGeneratorSource, IPartMassModifier, IRescalable<FNGenerator>
+    class FNGenerator : ResourceSuppliableModule, IUpgradeableModule, IFNElectricPowerGeneratorSource, IPartMassModifier, IRescalable<FNGenerator>
     {
         public const string GROUP = "FNGenerator";
         public const string GROUP_TITLE = "#LOC_KSPIE_Generator_groupName";
@@ -782,7 +782,7 @@ namespace FNPlugin.Powermanagement
             }
         }
 
-        public double MaxStableMegaWattPower
+        public double RawGeneratorSourcePower
         {
             get
             {
@@ -796,15 +796,19 @@ namespace FNPlugin.Powermanagement
                             ? attachedPowerSource.PlasmaEnergyEfficiency
                             : attachedPowerSource.ThermalEnergyEfficiency;
 
-                stableMaximumReactorPower = isLimitedByMinThrottle
+                var rawMaxPower = isLimitedByMinThrottle
                     ? attachedPowerSource.MinimumPower
                     : HighLogic.LoadedSceneIsEditor
                         ? attachedPowerSource.MaximumPower
                         : attachedPowerSource.StableMaximumReactorPower;
 
-                return stableMaximumReactorPower * attachedPowerSource.PowerRatio * maxPowerUsageRatio * maxEfficiency * CapacityRatio;
+                return rawMaxPower * attachedPowerSource.PowerRatio * maxPowerUsageRatio * CapacityRatio;
             }
         }
+
+        public double MaxEfficiency => maxEfficiency;
+
+        public double MaxStableMegaWattPower => RawGeneratorSourcePower * maxEfficiency ;
 
         private void UpdateHeatExchangedThrustDivisor()
         {

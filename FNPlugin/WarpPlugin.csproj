@@ -89,6 +89,7 @@
     <Compile Include="Beamedpower\InterstellarBeamedPowerHelper.cs" />
     <Compile Include="GameEventSubscriber.cs" />
     <Compile Include="PluginSettings.cs" />
+    <Compile Include="Powermanagement\IFNElectricPowerGeneratorSource.cs" />
     <Compile Include="Resources\RegolithCollector.cs" />
     <Compile Include="Resources\SolarWindCollector.cs" />
     <Compile Include="Resources\UniversalCrustExtractor.cs" />
