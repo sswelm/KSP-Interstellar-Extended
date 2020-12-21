@@ -59,7 +59,7 @@ namespace FNPlugin.Propulsion
         [KSPField]
         public double maxAtmosphereDensity = -1;
         [KSPField]
-        public double leathalDistance = 2000;
+        public double lethalDistance = 2000;
         [KSPField]
         public double killDivider = 0;
         [KSPField]
@@ -459,7 +459,7 @@ namespace FNPlugin.Propulsion
             foreach (var currentVessel in FlightGlobals.Vessels)
             {
                 var distance = (float)Vector3d.Distance(vessel.transform.position, currentVessel.transform.position);
-                if (distance < leathalDistance && currentVessel != vessel)
+                if (distance < lethalDistance && currentVessel != vessel)
                     kerbalHazardCount += currentVessel.GetCrewCount();
             }
 
@@ -746,7 +746,7 @@ namespace FNPlugin.Propulsion
             {
                 var distance = Vector3d.Distance(vessel.transform.position, currentVessel.transform.position);
 
-                if (distance >= leathalDistance || currentVessel == this.vessel || currentVessel.GetCrewCount() <= 0) continue;
+                if (distance >= lethalDistance || currentVessel == this.vessel || currentVessel.GetCrewCount() <= 0) continue;
 
                 var invSqDistance = distance / killDivider;
                 var invSqMultiplier = 1.0 / invSqDistance / invSqDistance;
