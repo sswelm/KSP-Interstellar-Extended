@@ -366,13 +366,13 @@ namespace FNPlugin
             {
                 FlightUIStarter.hideButton = false;
                 FlightUIStarter.showWindow = true;
-                VABThermalUI.renderWindow = false;
+                VABThermalUI.RenderWindow = false;
             }
             else
             {
                 FlightUIStarter.hideButton = false;
                 FlightUIStarter.showWindow = false;
-                VABThermalUI.renderWindow = true;
+                VABThermalUI.RenderWindow = true;
             }
         }
 
@@ -380,7 +380,7 @@ namespace FNPlugin
         {
             FlightUIStarter.hideButton = true;
             FlightUIStarter.showWindow = false;
-            VABThermalUI.renderWindow = false;
+            VABThermalUI.RenderWindow = false;
         }
 
         static int _ignoredGForces;

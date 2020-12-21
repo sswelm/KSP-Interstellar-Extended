@@ -3,7 +3,6 @@ using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Powermanagement;
 using FNPlugin.Propulsion;
-using FNPlugin.Redist;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -15,7 +14,7 @@ namespace FNPlugin.Wasteheat
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class VABThermalUI : MonoBehaviour
     {
-        public static bool renderWindow;
+        public static bool RenderWindow { get; set; }
 
         private int _maxIterations = 10;
         private int _bestScenarioPercentage;
@@ -150,12 +149,12 @@ namespace FNPlugin.Wasteheat
         public void Start()
         {
             if (PluginHelper.usingToolbar)
-                renderWindow = false;
+                RenderWindow = false;
         }
 
         public void Update()
         {
-            if (!renderWindow)
+            if (!RenderWindow)
                 return;
 
             // thermal logic
@@ -843,7 +842,7 @@ namespace FNPlugin.Wasteheat
         // ReSharper disable once UnusedMember.Global
         protected void OnGUI()
         {
-            if (renderWindow)
+            if (RenderWindow)
                 windowPosition = GUILayout.Window(_thermalWindowId, windowPosition, Window, Localizer.Format("#LOC_KSPIE_VABThermalUI_title"));//"Interstellar Thermal Mechanics Helper"
         }
 
@@ -947,7 +946,7 @@ namespace FNPlugin.Wasteheat
                 _boldLabel = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold};
 
             if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
-                renderWindow = false;
+                RenderWindow = false;
 
             _radiatorLabel = _blueLabel;
             if (_bestScenarioPercentage >= 100) return;
