@@ -15,6 +15,9 @@ namespace FNPlugin.Wasteheat
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class VABThermalUI : MonoBehaviour
     {
+        private const int LabelWidth = 300;
+        private const int ValueWidth = 85;
+
         public static bool RenderWindow { get; set; }
 
         private int _maxIterations = 10;
@@ -22,9 +25,6 @@ namespace FNPlugin.Wasteheat
         private int _numberOfRadiators;
         private int _thermalWindowId = 825462;
         private bool _hasThermalGenerators;
-
-        private const int LabelWidth = 300;
-        private const int ValueWidth = 85;
 
         private Rect windowPosition = new Rect(500, 500, LabelWidth + ValueWidth, 100);
 
@@ -160,14 +160,14 @@ namespace FNPlugin.Wasteheat
         }
 
         private void CalculatePowerBalance(
-            IEnumerable<IFNPowerSource> thermalSources,
-            IEnumerable<BeamedPowerReceiver> beamedReceivers,
-            IEnumerable<BeamedPowerTransmitter> beamedTransmitter,
-            IEnumerable<ThermalEngineController> thermalEngines,
-            IEnumerable<FusionECU2> variableEngines,
-            IEnumerable<DaedalusEngineController> fusionEngines,
-            List<FNGenerator> generators,
-            IEnumerable<FNRadiator> radiators)
+            IReadOnlyCollection<IFNPowerSource> thermalSources,
+            IReadOnlyCollection<BeamedPowerReceiver> beamedReceivers,
+            IReadOnlyCollection<BeamedPowerTransmitter> beamedTransmitter,
+            IReadOnlyCollection<ThermalEngineController> thermalEngines,
+            IReadOnlyCollection<FusionECU2> variableEngines,
+            IReadOnlyCollection<DaedalusEngineController> fusionEngines,
+            IReadOnlyCollection<FNGenerator> generators,
+            IReadOnlyCollection<FNRadiator> radiators)
         {
             _totalSourcePower = 0;
 

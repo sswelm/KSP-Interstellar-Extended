@@ -1740,17 +1740,10 @@ namespace FNPlugin.Wasteheat
 
             clarifyFunction = true;
 
-            radiatorArea =
-                2 * part.surfaceAreas.x * part.surfaceAreas.y +
-                2 * part.surfaceAreas.x * part.surfaceAreas.z +
-                2 * part.surfaceAreas.y * part.surfaceAreas.z;
+            radiatorArea = Math.PI * part.partInfo.partSize;
 
             if (MeshRadiatorSize(out var size))
                 convectiveBonus = Math.Max(1, size / radiatorArea);
-
-            // The Liquid Metal Cooled Reactor shows a tiny surface space, so this should not be an else statement
-            if (radiatorArea == 0)
-                radiatorArea = 1;
         }
 
         void radiatorIsEnabled_OnValueModified(object arg1)

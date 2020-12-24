@@ -22,15 +22,6 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = false)]
         public double minimumChargdIspMult = 11.4;
 
-        //[KSPField(groupName = GROUP, isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_WasteheatRatio")]//Wasteheat Ratio
-        //public double resourceBarRatio;
-        //[KSPField(isPersistant = false)]
-        //public double coreTemperatureWasteheatPower = 0.3;
-        //[KSPField(isPersistant = false)]
-        //public double coreTemperatureWasteheatModifier = -0.2;
-        //[KSPField(isPersistant = false)]
-        //public double coreTemperatureWasteheatMultiplier = 1.25;
-
         [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_FissionPB_ManualRestart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]//Manual Restart
         public void ManualRestart()
         {
@@ -71,11 +62,6 @@ namespace FNPlugin.Reactors
                  var radiatorTemperature = HighLogic.LoadedSceneIsEditor || CheatOptions.IgnoreMaxTemperature ? 0 : FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel);
 
                  return GetCoreTempAtRadiatorTemp(radiatorTemperature);
-
-                //if (!HighLogic.LoadedSceneIsFlight || !heatThrottling) return base.CoreTemperature;
-                //resourceBarRatio = CheatOptions.IgnoreMaxTemperature ? 0 : getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
-                //var temperatureIncrease = Math.Max(Math.Pow(resourceBarRatio, coreTemperatureWasteheatPower) + coreTemperatureWasteheatModifier, 0) * coreTemperatureWasteheatMultiplier * OptimalTempDifference;
-                //return Math.Min(Math.Max(OptimalTemp + temperatureIncrease, OptimalTemp), ZeroPowerTemp);
             }
         }
 
@@ -111,7 +97,6 @@ namespace FNPlugin.Reactors
                 pfrTemp = OptimalTemp;
 
             return pfrTemp;
-            //return base.GetCoreTempAtRadiatorTemp(radTemp);
         }
 
         public override double GetThermalPowerAtTemp(double temp)
