@@ -394,7 +394,7 @@ namespace FNPlugin.Powermanagement
             if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
 
-            // only force activate if no certain partmodules are not present and not limited by minimum throtle
+            // only force activate if no certain part modules are not present and not limited by minimum throttle
             if (!isLimitedByMinThrottle && part.FindModuleImplementing<BeamedPowerReceiver>() == null && part.FindModuleImplementing<InterstellarReactor>() == null)
             {
                 Debug.Log("[KSPI]: Generator on " + part.name + " was Force Activated");
@@ -718,6 +718,9 @@ namespace FNPlugin.Powermanagement
 
         public double GetHotBathTemperature(double coldBathTemperature)
         {
+            if (attachedPowerSource == null)
+                return -1;
+
             var coreTemperature = attachedPowerSource.GetCoreTempAtRadiatorTemp(coldBathTemperature);
 
             var plasmaTemperature = coreTemperature <= attachedPowerSource.HotBathTemperature

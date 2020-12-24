@@ -715,7 +715,7 @@ namespace FNPlugin.Wasteheat
         public double spaceRadiatorBonus;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_Mass", guiUnits = " t", guiFormat = "F3")]//Mass
         public float partMass;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_ConverctionBonus", guiUnits = "x")]//Converction Bonus
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_ConverctionBonus", guiUnits = "x", guiFormat = "F3")]//Converction Bonus
         public double convectiveBonus = 1;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_EffectiveArea", guiFormat = "F2", guiUnits = " m\xB2")]//Effective Area
         public double effectiveRadiatorArea;
@@ -783,7 +783,6 @@ namespace FNPlugin.Wasteheat
         public double atmDensity;
 
         // privates
-        private double _sphericalCowInAVacuum;
         private double _instantaneousRadTemp;
         private int nrAvailableUpgradeTechs;
         private bool hasSurfaceAreaUpgradeTechReq;
@@ -793,7 +792,8 @@ namespace FNPlugin.Wasteheat
         private double spaceRadiatorModifier;
         private double oxidationModifier;
         private double temperatureDifference;
-        private double submergedModifier;
+        private double _attachedPartsModifier;
+        private double _upgradeModifier;
 
         // statics
         static double _maximumRadiatorTempInSpace = 4500;
@@ -840,6 +840,7 @@ namespace FNPlugin.Wasteheat
         private static AnimationCurve redTempColorChannel;
         private static AnimationCurve greenTempColorChannel;
         private static AnimationCurve blueTempColorChannel;
+
 
         private double intakeLqdDensity;
         private double intakeAtmDensity;
@@ -1286,31 +1287,7 @@ namespace FNPlugin.Wasteheat
                 return RadiatorProperties.RadiatorTemperatureMk1;
         }
 
-        public double BaseRadiatorArea
-        {
-            get
-            {
-                if (radiatorArea == 0)
-                {
-                    clarifyFunction = true;
-
-                    if (MeshRadiatorSize(out var size) == true)
-                        radiatorArea = Math.Round(size);
-
-                    // The Liquid Metal Cooled Reactor shows a tiny surface space, so this should not be an else statement
-                    if (radiatorArea == 0)
-                        radiatorArea = 1;
-                }
-
-                // Because I have absolutely no idea what I'm doing, I'm taking some short cuts and major simplifications.
-                // This is the radius of a circular radiator, (operating in a vacuum)
-                _sphericalCowInAVacuum = (radiatorArea / Mathf.PI).Sqrt();
-
-                return hasSurfaceAreaUpgradeTechReq
-                    ? radiatorArea * surfaceAreaUpgradeMult
-                    : radiatorArea;
-            }
-        }
+        public double BaseRadiatorArea => radiatorArea * _upgradeModifier * _attachedPartsModifier;
 
         public double EffectiveRadiatorArea => BaseRadiatorArea * areaMultiplier * PluginSettings.Config.RadiatorAreaMultiplier;
 
@@ -1318,6 +1295,8 @@ namespace FNPlugin.Wasteheat
         {
             // check if we have SurfaceAreaUpgradeTechReq
             hasSurfaceAreaUpgradeTechReq = PluginHelper.UpgradeAvailable(surfaceAreaUpgradeTechReq);
+
+            _upgradeModifier = hasSurfaceAreaUpgradeTechReq ? surfaceAreaUpgradeMult : 1;
 
             // determine number of upgrade techs
             nrAvailableUpgradeTechs = 1;
@@ -1581,6 +1560,7 @@ namespace FNPlugin.Wasteheat
             _radiatorDeployDelay = 0;
 
             DetermineGenerationType();
+            InitializeRadiatorAreaWhenMissing();
 
             _isGraphene = !string.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
             _maximumRadiatorTempInSpace = RadiatorProperties.RadiatorTemperatureMk6;
@@ -1754,6 +1734,25 @@ namespace FNPlugin.Wasteheat
             Fields[nameof(dynamicPressureStress)].guiActive = isDeployable;
         }
 
+        private void InitializeRadiatorAreaWhenMissing()
+        {
+            if (radiatorArea != 0) return;
+
+            clarifyFunction = true;
+
+            radiatorArea =
+                2 * part.surfaceAreas.x * part.surfaceAreas.y +
+                2 * part.surfaceAreas.x * part.surfaceAreas.z +
+                2 * part.surfaceAreas.y * part.surfaceAreas.z;
+
+            if (MeshRadiatorSize(out var size))
+                convectiveBonus = Math.Max(1, size / radiatorArea);
+
+            // The Liquid Metal Cooled Reactor shows a tiny surface space, so this should not be an else statement
+            if (radiatorArea == 0)
+                radiatorArea = 1;
+        }
+
         void radiatorIsEnabled_OnValueModified(object arg1)
         {
             isAutomated = false;
@@ -1767,6 +1766,10 @@ namespace FNPlugin.Wasteheat
         public void Update()
         {
             partMass = part.mass;
+
+            var stackAttachedNodesCount = part.attachNodes.Count(m => m.attachedPart != null && m.nodeType == AttachNode.NodeType.Stack);
+            var surfaceAttachedNodesCount = part.attachNodes.Count(m => m.attachedPart != null && m.nodeType == AttachNode.NodeType.Surface);
+            _attachedPartsModifier = Math.Max(0, 1 - (0.2 * stackAttachedNodesCount + 0.1 * surfaceAttachedNodesCount));
 
             var isDeployStateUndefined = _moduleDeployableRadiator == null
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING
@@ -1895,7 +1898,7 @@ namespace FNPlugin.Wasteheat
             // rb.angularVelocity.magnitude in radians/second
             double tmp = 180 * Math.Abs(rb.angularVelocity.magnitude);
             // calculate the linear velocity
-            double tmpVelocity = tmp / (Mathf.PI * _sphericalCowInAVacuum);
+            double tmpVelocity = tmp / (Mathf.PI * (radiatorArea / Mathf.PI).Sqrt());
             // and then distance traveled.
             double distanceTraveled = effectiveRadiatorArea * tmpVelocity;
 
@@ -2013,7 +2016,6 @@ namespace FNPlugin.Wasteheat
                 }
                 else
                 {
-                    submergedModifier = 0;
                     temperatureDifference = 0;
                     _convectedThermalPower = 0;
 
