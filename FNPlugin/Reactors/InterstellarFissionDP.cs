@@ -1,4 +1,5 @@
 ﻿using FNPlugin.Powermanagement;
+using FNPlugin.Powermanagement.Interfaces;
 
 namespace FNPlugin.Reactors
 {

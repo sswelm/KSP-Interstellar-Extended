@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FNPlugin.Beamedpower;
+using FNPlugin.Powermanagement.Interfaces;
 using TweakScale;
 using UnityEngine;
 
@@ -187,7 +188,7 @@ namespace FNPlugin.Powermanagement
         private ModuleResource outputModuleResource;
         private BaseEvent moduleGeneratorShutdownBaseEvent;
         private BaseEvent moduleGeneratorActivateBaseEvent;
-        private BaseField moduleGeneratorEfficienctBaseField;
+        private BaseField moduleGeneratorEfficientBaseField;
 
         public string UpgradeTechnology => upgradeTechReq;
 
@@ -457,11 +458,11 @@ namespace FNPlugin.Powermanagement
                 moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
             }
 
-            moduleGeneratorEfficienctBaseField = stockModuleGenerator.Fields[nameof(ModuleGenerator.efficiency)];
-            if (moduleGeneratorEfficienctBaseField != null)
+            moduleGeneratorEfficientBaseField = stockModuleGenerator.Fields[nameof(ModuleGenerator.efficiency)];
+            if (moduleGeneratorEfficientBaseField != null)
             {
-                moduleGeneratorEfficienctBaseField.guiActive = false;
-                moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
+                moduleGeneratorEfficientBaseField.guiActive = false;
+                moduleGeneratorEfficientBaseField.guiActiveEditor = false;
             }
 
             initialGeneratorPowerEC = outputModuleResource.rate;
@@ -699,7 +700,8 @@ namespace FNPlugin.Powermanagement
 
         public double CapacityRatio
         {
-            get {
+            get
+            {
                 capacityRatio = powerCapacity / 100;
                 return capacityRatio;
             }
@@ -707,10 +709,36 @@ namespace FNPlugin.Powermanagement
 
         public double PowerRatio
         {
-            get {
+            get
+            {
                 powerRatio = (double)(decimal)powerPercentage / 100;
                 return powerRatio;
             }
+        }
+
+        public double GetHotBathTemperature(double coldBathTemperature)
+        {
+            var coreTemperature = attachedPowerSource.GetCoreTempAtRadiatorTemp(coldBathTemperature);
+
+            var plasmaTemperature = coreTemperature <= attachedPowerSource.HotBathTemperature
+                ? coreTemperature
+                : attachedPowerSource.HotBathTemperature + Math.Pow(coreTemperature - attachedPowerSource.HotBathTemperature, coreTemperateHotBathExponent);
+
+            double temperature;
+            if (applies_balance || !isMHD)
+                temperature = attachedPowerSource.HotBathTemperature;
+            else
+            {
+                if (attachedPowerSource.SupportMHD)
+                    temperature = plasmaTemperature;
+                else
+                {
+                    var chargedPowerModifier = attachedPowerSource.ChargedPowerRatio * attachedPowerSource.ChargedPowerRatio;
+                    temperature = plasmaTemperature * chargedPowerModifier + (1 - chargedPowerModifier) * attachedPowerSource.HotBathTemperature; // for fusion reactors connected to MHD
+                }
+            }
+
+            return temperature;
         }
 
         /// <summary>
@@ -775,10 +803,10 @@ namespace FNPlugin.Powermanagement
             else
                 OutputPower = Localizer.Format("#LOC_KSPIE_Generator_Offline");//"Generator Offline"
 
-            if (moduleGeneratorEfficienctBaseField != null)
+            if (moduleGeneratorEfficientBaseField != null)
             {
-                moduleGeneratorEfficienctBaseField.guiActive = false;
-                moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
+                moduleGeneratorEfficientBaseField.guiActive = false;
+                moduleGeneratorEfficientBaseField.guiActiveEditor = false;
             }
         }
 
@@ -829,24 +857,15 @@ namespace FNPlugin.Powermanagement
 
             if (!chargedParticleMode) // thermal or plasma mode
             {
-                var chargedPowerModifier = attachedPowerSource.ChargedPowerRatio * attachedPowerSource.ChargedPowerRatio;
-
-                var plasmaTemperature = attachedPowerSource.CoreTemperature <= attachedPowerSource.HotBathTemperature
-                    ? attachedPowerSource.CoreTemperature
-                    : attachedPowerSource.HotBathTemperature + Math.Pow(attachedPowerSource.CoreTemperature - attachedPowerSource.HotBathTemperature, coreTemperateHotBathExponent);
-
-                hotBathTemp = applies_balance || !isMHD
-                    ? attachedPowerSource.HotBathTemperature
-                    : attachedPowerSource.SupportMHD
-                        ? plasmaTemperature
-                        : plasmaTemperature * chargedPowerModifier + (1 - chargedPowerModifier) * attachedPowerSource.HotBathTemperature;	// for fusion reactors connected to MHD
-
                 averageRadiatorTemperatureQueue.Enqueue(FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel));
 
                 while (averageRadiatorTemperatureQueue.Count > 10)
                     averageRadiatorTemperatureQueue.Dequeue();
 
                 coldBathTempDisplay = averageRadiatorTemperatureQueue.Average();
+
+                hotBathTemp = GetHotBathTemperature(coldBathTempDisplay);
+
                 coldBathTemp = coldBathTempDisplay * 0.75;
             }
 

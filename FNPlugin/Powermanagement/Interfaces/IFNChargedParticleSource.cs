@@ -1,6 +1,6 @@
 ﻿using FNPlugin.Redist;
 
-namespace FNPlugin.Powermanagement
+namespace FNPlugin.Powermanagement.Interfaces
 {
     public interface IFNChargedParticleSource : IChargedParticleSource
     {

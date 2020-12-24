@@ -7,6 +7,7 @@ using KSP.Localization;
 using System;
 using System.Linq;
 using FNPlugin.Powermanagement;
+using FNPlugin.Powermanagement.Interfaces;
 using UnityEngine;
 
 namespace FNPlugin.Propulsion
