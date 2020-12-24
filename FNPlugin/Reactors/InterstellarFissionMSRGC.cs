@@ -42,6 +42,8 @@ namespace FNPlugin.Reactors
         PartResourceDefinition enrichedUraniumDefinition;
         PartResourceDefinition oxygenGasDefinition;
 
+        private BaseEvent _manualRestartEvent;
+
         double fluorineDepletedFuelVolumeMultiplier;
         double enrichedUraniumVolumeMultiplier;
         double depletedToEnrichVolumeMultplier;
@@ -263,6 +265,8 @@ namespace FNPlugin.Reactors
 
             fuelModeStr = CurrentFuelMode.ModeGUIName;
 
+            _manualRestartEvent = Events[nameof(ManualRestart)];
+
             oxygenGasDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenGas);
             fluorineGasDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.FluorineGas);
             depletedFuelDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.DepletedFuel);
@@ -455,6 +459,12 @@ namespace FNPlugin.Reactors
                 }
             }
             return modesAvailable;
+        }
+
+        public override void Update()
+        {
+            if (_manualRestartEvent != null)
+                _manualRestartEvent.externalToEVAOnly = !CheatOptions.NonStrictAttachmentOrientation;
         }
     }
 }
