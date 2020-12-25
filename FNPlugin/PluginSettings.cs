@@ -48,7 +48,7 @@ namespace FNPlugin
         public double SpotsizeMult { get; private set; } = 1.22;
         public double ThrustCoreTempThreshold { get; private set; }
         public double MaxResourceProcessingTimewarp { get; private set; } = 200;
-        public double ConvectionMultiplier { get; private set; } = 0.001;
+        public double ConvectionMultiplier { get; private set; } = 0.01;
 
         // Jet Upgrade Techs
         public string JetUpgradeTech1 { get; private set; } = "";

@@ -35,6 +35,9 @@ namespace FNPlugin.Wasteheat
         private GUIStyle _orangeLabel;
         private GUIStyle _radiatorLabel;
 
+        private float atmosphereDensity;
+        private float submergedPercentage;
+        private float externalTemperatureInKelvin = 290;
         private float engineThrottlePercentage = 100;
         private float customScenarioPercentage = 100;
         private float customScenarioFraction = 1;
@@ -62,7 +65,7 @@ namespace FNPlugin.Wasteheat
         private double _averageSourceCoreTempAtCustom;
         private double _averageSourceCoreTempAt100Pc;
 
-        private double _restingRadiatorTempAtCustom;
+        private double _restingRadiatorTempAtCustomPct;
         private double _restingRadiatorTempAt100Percent;
         private double _restingRadiatorTempAt90Percent;
         private double _restingRadiatorTempAt80Percent;
@@ -105,9 +108,12 @@ namespace FNPlugin.Wasteheat
         private double _electricPowerAt2;
 
         private double _totalSourcePower;
-        private double _radMaxDissipation;
-        private double _totalArea;
-        private double _averageRadTemp;
+        private double _vesselMaxRadConvection;
+        private double _vesselMaxRadDissipation;
+        private double _vesselMaxRadConvectionAndDissipation;
+        private double _vesselBaseRadiatorArea;
+        private double _averageMaxRadTemp;
+        private double _averageConvectiveBonus;
         private double _bestScenarioElectricPower;
         private double _dryMass;
         private double _wetMass;
@@ -241,7 +247,7 @@ namespace FNPlugin.Wasteheat
                 var coreTempAtRadiatorTempAt6Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt6Percent);
                 var coreTempAtRadiatorTempAt4Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt4Percent);
                 var coreTempAtRadiatorTempAt2Percent = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAt2Percent);
-                var coreTempAtRadiatorTempAtCustomPct = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAtCustom);
+                var coreTempAtRadiatorTempAtCustomPct = powerSource.GetCoreTempAtRadiatorTemp(_restingRadiatorTempAtCustomPct);
 
                 var combinedRawSourcePowerAtCustomPct = Math.Min(combinedRawSourcePower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAtCustomPct) * customScenarioFraction);
                 var combinedRawSourcePowerAt100Percent = Math.Min(combinedRawSourcePower, powerSource.GetThermalPowerAtTemp(coreTempAtRadiatorTempAt100Percent));
@@ -305,7 +311,7 @@ namespace FNPlugin.Wasteheat
                 var hotColdBathEfficiencyAt6Percent = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAt6Percent / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAt6Percent), 0);
                 var hotColdBathEfficiencyAt4Percent = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAt4Percent / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAt4Percent), 0);
                 var hotColdBathEfficiencyAt2Percent = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAt2Percent / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAt2Percent), 0);
-                var hotColdBathEfficiencyAtCustomPct = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAtCustom / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAtCustom), 0);
+                var hotColdBathEfficiencyAtCustomPct = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAtCustomPct / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAtCustomPct), 0);
 
                 var effectiveThermalPowerAtCustomPct = combinedRawSourcePowerAtCustomPct * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAtCustomPct);
                 var effectiveThermalPowerAt100Percent = combinedRawSourcePowerAt100Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt100Percent);
@@ -534,61 +540,227 @@ namespace FNPlugin.Wasteheat
             CalculateGeneratedElectricPower(generators);
 
             _numberOfRadiators = 0;
-            _radMaxDissipation = 0;
-            _averageRadTemp = 0;
-            _totalArea = 0;
+            _vesselMaxRadDissipation = 0;
+            _vesselMaxRadConvection = 0;
+            _vesselBaseRadiatorArea = 0;
+
+            double totalMaxRadTempArea = 0;
+            double totalConvectiveBonusArea = 0;
+            double vesselConvectiveRadiatorArea = 0;
+            double submergedRatio = (double)(decimal)submergedPercentage * 0.01;
 
             foreach (FNRadiator radiator in radiators)
             {
                 _numberOfRadiators++;
-                _totalArea += radiator.BaseRadiatorArea;
+                var baseRadiatorArea = radiator.BaseRadiatorArea;
+                _vesselBaseRadiatorArea += baseRadiatorArea;
+                vesselConvectiveRadiatorArea += radiator.radiatorArea;
+
                 var maxRadTemperature = Math.Min(radiator.MaxRadiatorTemperature, _averageSourceCoreTempAt100Pc);
+
+                var maxRadiatorConvection = FNRadiator.CalculateConvPowerDissipation(
+                    radiatorSurfaceArea: radiator.radiatorArea,
+                    radiatorConvectiveBonus: radiator.convectiveBonus,
+                    radiatorTemperature: maxRadTemperature,
+                    externalTemperature: externalTemperatureInKelvin,
+                    atmosphericDensity: atmosphereDensity,
+                    grapheneRadiatorRatio: radiator.IsGraphene ? 1 : 0,
+                    submergedPortion: submergedRatio);
+
+                _vesselMaxRadConvection += maxRadiatorConvection;
+
                 var tempToPowerFour = maxRadTemperature * maxRadTemperature * maxRadTemperature * maxRadTemperature;
-                _radMaxDissipation += GameConstants.stefan_const * radiator.EffectiveRadiatorArea * tempToPowerFour / 1e6;
-                _averageRadTemp += maxRadTemperature;
+                _vesselMaxRadDissipation += GameConstants.stefan_const * radiator.EffectiveRadiatorArea * tempToPowerFour / 1e6;
+                totalMaxRadTempArea += maxRadTemperature * baseRadiatorArea;
+                totalConvectiveBonusArea += radiator.radiatorArea * radiator.convectiveBonus;
             }
 
-            _averageRadTemp = _numberOfRadiators != 0 ? _averageRadTemp / _numberOfRadiators : double.NaN;
+            _vesselMaxRadConvectionAndDissipation = _vesselMaxRadConvection + _vesselMaxRadDissipation;
 
-            var radRatioCustom = _wasteheatSourcePowerCustom / _radMaxDissipation;
-            var radRatio100Pc = _wasteheatSourcePower100Pc / _radMaxDissipation;
-            var radRatio90Pc = _wasteheatSourcePower90Pc / _radMaxDissipation;
-            var radRatio80Pc = _wasteheatSourcePower80Pc / _radMaxDissipation;
-            var radRatio70Pc = _wasteheatSourcePower70Pc / _radMaxDissipation;
-            var radRatio60Pc = _wasteheatSourcePower60Pc / _radMaxDissipation;
-            var radRatio50Pc = _wasteheatSourcePower50Pc / _radMaxDissipation;
-            var radRatio45Pc = _wasteheatSourcePower45Pc / _radMaxDissipation;
-            var radRatio40Pc = _wasteheatSourcePower40Pc / _radMaxDissipation;
-            var radRatio35Pc = _wasteheatSourcePower35Pc / _radMaxDissipation;
-            var radRatio30Pc = _wasteheatSourcePower30Pc / _radMaxDissipation;
-            var radRatio25Pc = _wasteheatSourcePower25Pc / _radMaxDissipation;
-            var radRatio20Pc = _wasteheatSourcePower20Pc / _radMaxDissipation;
-            var radRatio15Pc = _wasteheatSourcePower15Pc / _radMaxDissipation;
-            var radRatio10Pc = _wasteheatSourcePower10Pc / _radMaxDissipation;
-            var radRatio8Pc = _wasteheatSourcePower8Pc / _radMaxDissipation;
-            var radRatio6Pc = _wasteheatSourcePower6Pc / _radMaxDissipation;
-            var radRatio4Pc = _wasteheatSourcePower4Pc / _radMaxDissipation;
-            var radRatio2Pc = _wasteheatSourcePower2Pc / _radMaxDissipation;
+            _averageConvectiveBonus = totalConvectiveBonusArea != 0 ? totalConvectiveBonusArea / vesselConvectiveRadiatorArea : 1;
+            _averageMaxRadTemp = totalMaxRadTempArea != 0 ? totalMaxRadTempArea / _vesselBaseRadiatorArea : double.NaN;
 
-            _restingRadiatorTempAtCustom = (!radRatioCustom.IsInfinityOrNaN() ? Math.Pow(radRatioCustom, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt100Percent = (!radRatio100Pc.IsInfinityOrNaN() ? Math.Pow(radRatio100Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt90Percent = (!radRatio90Pc.IsInfinityOrNaN() ? Math.Pow(radRatio90Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt80Percent = (!radRatio80Pc.IsInfinityOrNaN() ? Math.Pow(radRatio80Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt70Percent = (!radRatio70Pc.IsInfinityOrNaN() ? Math.Pow(radRatio70Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt60Percent = (!radRatio60Pc.IsInfinityOrNaN() ? Math.Pow(radRatio60Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt50Percent = (!radRatio50Pc.IsInfinityOrNaN() ? Math.Pow(radRatio50Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt45Percent = (!radRatio45Pc.IsInfinityOrNaN() ? Math.Pow(radRatio45Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt40Percent = (!radRatio40Pc.IsInfinityOrNaN() ? Math.Pow(radRatio40Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt35Percent = (!radRatio30Pc.IsInfinityOrNaN() ? Math.Pow(radRatio35Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt30Percent = (!radRatio30Pc.IsInfinityOrNaN() ? Math.Pow(radRatio30Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt25Percent = (!radRatio25Pc.IsInfinityOrNaN() ? Math.Pow(radRatio25Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt20Percent = (!radRatio20Pc.IsInfinityOrNaN() ? Math.Pow(radRatio20Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt15Percent = (!radRatio15Pc.IsInfinityOrNaN() ? Math.Pow(radRatio15Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt10Percent = (!radRatio10Pc.IsInfinityOrNaN() ? Math.Pow(radRatio10Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt8Percent = (!radRatio8Pc.IsInfinityOrNaN() ? Math.Pow(radRatio8Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt6Percent = (!radRatio6Pc.IsInfinityOrNaN() ? Math.Pow(radRatio6Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt4Percent = (!radRatio4Pc.IsInfinityOrNaN() ? Math.Pow(radRatio4Pc, 0.25) : 0) * _averageRadTemp;
-            _restingRadiatorTempAt2Percent = (!radRatio2Pc.IsInfinityOrNaN() ? Math.Pow(radRatio2Pc, 0.25) : 0) * _averageRadTemp;
+            var radRatioConvectionCustom = _vesselMaxRadConvection > 0 && _wasteheatSourcePowerCustom < _vesselMaxRadConvection ?  _wasteheatSourcePowerCustom / _vesselMaxRadConvection: double.NaN;
+            var radRatioConvection100Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower100Pc < _vesselMaxRadConvection ? _wasteheatSourcePower100Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection90Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower90Pc < _vesselMaxRadConvection ?  _wasteheatSourcePower90Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection80Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower80Pc < _vesselMaxRadConvection ? _wasteheatSourcePower80Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection70Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower70Pc < _vesselMaxRadConvection ? _wasteheatSourcePower70Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection60Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower60Pc < _vesselMaxRadConvection ? _wasteheatSourcePower60Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection50Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower50Pc < _vesselMaxRadConvection ? _wasteheatSourcePower50Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection45Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower45Pc < _vesselMaxRadConvection ? _wasteheatSourcePower45Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection40Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower40Pc < _vesselMaxRadConvection ? _wasteheatSourcePower40Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection35Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower35Pc < _vesselMaxRadConvection ? _wasteheatSourcePower35Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection30Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower30Pc < _vesselMaxRadConvection ? _wasteheatSourcePower30Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection25Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower25Pc < _vesselMaxRadConvection ? _wasteheatSourcePower25Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection20Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower20Pc < _vesselMaxRadConvection ? _wasteheatSourcePower20Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection15Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower15Pc < _vesselMaxRadConvection ? _wasteheatSourcePower15Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection10Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower10Pc < _vesselMaxRadConvection ? _wasteheatSourcePower10Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection8Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower8Pc < _vesselMaxRadConvection ? _wasteheatSourcePower8Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection6Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower6Pc < _vesselMaxRadConvection ? _wasteheatSourcePower6Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection4Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower4Pc < _vesselMaxRadConvection ? _wasteheatSourcePower4Pc / _vesselMaxRadConvection : double.NaN;
+            var radRatioConvection2Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower2Pc < _vesselMaxRadConvection ? _wasteheatSourcePower2Pc / _vesselMaxRadConvection : double.NaN;
+
+            var maxRadTempAboveExternalTemp = _averageMaxRadTemp - externalTemperatureInKelvin;
+
+            var restingConvectionTempAtCustomPct = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvectionCustom;
+            var restingConvectionTempAt100Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection100Pc;
+            var restingConvectionTempAt90Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection90Pc;
+            var restingConvectionTempAt80Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection80Pc;
+            var restingConvectionTempAt70Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection70Pc;
+            var restingConvectionTempAt60Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection60Pc;
+            var restingConvectionTempAt50Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection50Pc;
+            var restingConvectionTempAt45Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection45Pc;
+            var restingConvectionTempAt40Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection40Pc;
+            var restingConvectionTempAt35Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection35Pc;
+            var restingConvectionTempAt30Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection30Pc;
+            var restingConvectionTempAt25Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection25Pc;
+            var restingConvectionTempAt20Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection20Pc;
+            var restingConvectionTempAt15Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection15Pc;
+            var restingConvectionTempAt10Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection10Pc;
+            var restingConvectionTempAt8Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection8Pc;
+            var restingConvectionTempAt6Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection6Pc;
+            var restingConvectionTempAt4Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection4Pc;
+            var restingConvectionTempAt2Percent = externalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection2Pc;
+
+            var convectedPowerAtCustomPct = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAtCustomPct, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt100Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt100Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt90Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt90Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt80Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt80Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt70Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt70Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt60Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt60Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt50Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt50Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt45Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt45Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt40Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt40Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt35Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt35Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt30Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt30Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt25Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt25Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt20Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt20Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt15Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt15Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt10Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt10Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt8Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt8Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt6Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt6Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt4Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt4Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+            var convectedPowerAt2Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt2Percent, externalTemperatureInKelvin, atmosphereDensity, submergedRatio);
+
+            var convectionRestingTempAboveExternalAtCustomPct = Math.Max(0, restingConvectionTempAtCustomPct - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt100Percent = Math.Max(0, restingConvectionTempAt100Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt90Percent = Math.Max(0, restingConvectionTempAt90Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt80Percent = Math.Max(0, restingConvectionTempAt80Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt70Percent = Math.Max(0, restingConvectionTempAt70Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt60Percent = Math.Max(0, restingConvectionTempAt60Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt50Percent = Math.Max(0, restingConvectionTempAt50Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt45Percent = Math.Max(0, restingConvectionTempAt45Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt40Percent = Math.Max(0, restingConvectionTempAt40Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt35Percent = Math.Max(0, restingConvectionTempAt35Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt30Percent = Math.Max(0, restingConvectionTempAt30Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt25Percent = Math.Max(0, restingConvectionTempAt25Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt20Percent = Math.Max(0, restingConvectionTempAt20Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt15Percent = Math.Max(0, restingConvectionTempAt15Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt10Percent = Math.Max(0, restingConvectionTempAt10Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt8Percent = Math.Max(0, restingConvectionTempAt8Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt6Percent = Math.Max(0, restingConvectionTempAt6Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt4Percent = Math.Max(0, restingConvectionTempAt4Percent - externalTemperatureInKelvin);
+            var convectionRestingTempAboveExternalAt2Percent = Math.Max(0, restingConvectionTempAt2Percent - externalTemperatureInKelvin);
+
+            var dissipationEnergyAtCustomPct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAtCustomPct, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt100Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt100Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt90Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt90Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt80Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt80Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt70Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt70Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt60Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt60Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt50Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt50Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt45Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt45Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt40Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt40Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt35Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt35Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt30Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt30Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt25Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt25Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt20Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt20Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt15Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt15Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt10Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt10Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt8Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt8Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt6Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt6Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt4Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt4Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+            var dissipationEnergyAt2Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt2Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
+
+            var dissipationTempModifierAtCustomPct = convectedPowerAtCustomPct > dissipationEnergyAtCustomPct ?  1 - dissipationEnergyAtCustomPct / convectedPowerAtCustomPct : 1;
+            var dissipationTempModifierAt100Percent = convectedPowerAt100Percent > dissipationEnergyAt100Pct ? 1 - dissipationEnergyAt100Pct / convectedPowerAt100Percent : 1;
+            var dissipationTempModifierAt90Percent = convectedPowerAt90Percent > dissipationEnergyAt90Pct ? 1 - dissipationEnergyAt90Pct / convectedPowerAt90Percent : 1;
+            var dissipationTempModifierAt80Percent = convectedPowerAt80Percent > dissipationEnergyAt80Pct ? 1 - dissipationEnergyAt80Pct / convectedPowerAt80Percent : 1;
+            var dissipationTempModifierAt70Percent = convectedPowerAt70Percent > dissipationEnergyAt70Pct ? 1 - dissipationEnergyAt70Pct / convectedPowerAt70Percent : 1;
+            var dissipationTempModifierAt60Percent = convectedPowerAt60Percent > dissipationEnergyAt60Pct ? 1 - dissipationEnergyAt60Pct / convectedPowerAt60Percent : 1;
+            var dissipationTempModifierAt50Percent = convectedPowerAt50Percent > dissipationEnergyAt50Pct ? 1 - dissipationEnergyAt50Pct / convectedPowerAt50Percent : 1;
+            var dissipationTempModifierAt45Percent = convectedPowerAt45Percent > dissipationEnergyAt70Pct ? 1 - dissipationEnergyAt45Pct / convectedPowerAt45Percent : 1;
+            var dissipationTempModifierAt40Percent = convectedPowerAt40Percent > dissipationEnergyAt40Pct ? 1 - dissipationEnergyAt40Pct / convectedPowerAt40Percent : 1;
+            var dissipationTempModifierAt35Percent = convectedPowerAt35Percent > dissipationEnergyAt35Pct ? 1 - dissipationEnergyAt35Pct / convectedPowerAt35Percent : 1;
+            var dissipationTempModifierAt30Percent = convectedPowerAt30Percent > dissipationEnergyAt30Pct ? 1 - dissipationEnergyAt30Pct / convectedPowerAt30Percent : 1;
+            var dissipationTempModifierAt25Percent = convectedPowerAt25Percent > dissipationEnergyAt25Pct ? 1 - dissipationEnergyAt25Pct / convectedPowerAt20Percent : 1;
+            var dissipationTempModifierAt20Percent = convectedPowerAt20Percent > dissipationEnergyAt20Pct ? 1 - dissipationEnergyAt20Pct / convectedPowerAt20Percent : 1;
+            var dissipationTempModifierAt15Percent = convectedPowerAt15Percent > dissipationEnergyAt15Pct ? 1 - dissipationEnergyAt15Pct / convectedPowerAt15Percent : 1;
+            var dissipationTempModifierAt10Percent = convectedPowerAt10Percent > dissipationEnergyAt10Pct ? 1 - dissipationEnergyAt10Pct / convectedPowerAt10Percent : 1;
+            var dissipationTempModifierAt8Percent = convectedPowerAt8Percent > dissipationEnergyAt8Pct ? 1 - dissipationEnergyAt8Pct / convectedPowerAt8Percent : 1;
+            var dissipationTempModifierAt6Percent = convectedPowerAt6Percent > dissipationEnergyAt6Pct ? 1 - dissipationEnergyAt6Pct / convectedPowerAt6Percent : 1;
+            var dissipationTempModifierAt4Percent = convectedPowerAt4Percent > dissipationEnergyAt4Pct ? 1 - dissipationEnergyAt4Pct / convectedPowerAt4Percent : 1;
+            var dissipationTempModifierAt2Percent = convectedPowerAt2Percent > dissipationEnergyAt2Pct ? 1 - dissipationEnergyAt2Pct / convectedPowerAt2Percent : 1;
+
+            var radRatioDissipationCustom = _wasteheatSourcePowerCustom / _vesselMaxRadDissipation;
+            var radRatioDissipation100Pc = _wasteheatSourcePower100Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation90Pc = _wasteheatSourcePower90Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation80Pc = _wasteheatSourcePower80Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation70Pc = _wasteheatSourcePower70Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation60Pc = _wasteheatSourcePower60Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation50Pc = _wasteheatSourcePower50Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation45Pc = _wasteheatSourcePower45Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation40Pc = _wasteheatSourcePower40Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation35Pc = _wasteheatSourcePower35Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation30Pc = _wasteheatSourcePower30Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation25Pc = _wasteheatSourcePower25Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation20Pc = _wasteheatSourcePower20Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation15Pc = _wasteheatSourcePower15Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation10Pc = _wasteheatSourcePower10Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation8Pc = _wasteheatSourcePower8Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation6Pc = _wasteheatSourcePower6Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation4Pc = _wasteheatSourcePower4Pc / _vesselMaxRadDissipation;
+            var radRatioDissipation2Pc = _wasteheatSourcePower2Pc / _vesselMaxRadDissipation;
+
+            var restingDissipationRadiatorTempAtCustomPct = !radRatioDissipationCustom.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipationCustom, 0.25) : 0;
+            var restingDissipationRadiatorTempAt100Percent = !radRatioDissipation100Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation100Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt90Percent = !radRatioDissipation90Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation90Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt80Percent = !radRatioDissipation80Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation80Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt70Percent = !radRatioDissipation70Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation70Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt60Percent = !radRatioDissipation60Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation60Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt50Percent = !radRatioDissipation50Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation50Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt45Percent = !radRatioDissipation45Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation45Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt40Percent = !radRatioDissipation40Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation40Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt35Percent = !radRatioDissipation30Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation35Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt30Percent = !radRatioDissipation30Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation30Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt25Percent = !radRatioDissipation25Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation25Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt20Percent = !radRatioDissipation20Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation20Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt15Percent = !radRatioDissipation15Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation15Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt10Percent = !radRatioDissipation10Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation10Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt8Percent = !radRatioDissipation8Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation8Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt6Percent = !radRatioDissipation6Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation6Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt4Percent = !radRatioDissipation4Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation4Pc, 0.25) : 0;
+            var restingDissipationRadiatorTempAt2Percent = !radRatioDissipation2Pc.IsInfinityOrNaN() ? _averageMaxRadTemp * Math.Pow(radRatioDissipation2Pc, 0.25) : 0;
+
+            _restingRadiatorTempAtCustomPct = restingConvectionTempAtCustomPct.IsInfinityOrNaN() ? restingDissipationRadiatorTempAtCustomPct : Math.Min(restingDissipationRadiatorTempAtCustomPct, restingConvectionTempAtCustomPct * dissipationTempModifierAtCustomPct);
+            _restingRadiatorTempAt100Percent = restingConvectionTempAt100Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt100Percent : Math.Min(restingDissipationRadiatorTempAt100Percent, restingConvectionTempAt100Percent * dissipationTempModifierAt100Percent);
+            _restingRadiatorTempAt90Percent = restingConvectionTempAt90Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt90Percent: Math.Min(restingDissipationRadiatorTempAt90Percent, restingConvectionTempAt90Percent * dissipationTempModifierAt90Percent);
+            _restingRadiatorTempAt80Percent = restingConvectionTempAt80Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt80Percent: Math.Min(restingDissipationRadiatorTempAt80Percent, restingConvectionTempAt80Percent * dissipationTempModifierAt80Percent);
+            _restingRadiatorTempAt70Percent = restingConvectionTempAt70Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt70Percent: Math.Min(restingDissipationRadiatorTempAt70Percent, restingConvectionTempAt70Percent * dissipationTempModifierAt70Percent);
+            _restingRadiatorTempAt60Percent = restingConvectionTempAt60Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt60Percent: Math.Min(restingDissipationRadiatorTempAt60Percent, restingConvectionTempAt60Percent * dissipationTempModifierAt60Percent);
+            _restingRadiatorTempAt50Percent = restingConvectionTempAt50Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt50Percent: Math.Min(restingDissipationRadiatorTempAt50Percent, restingConvectionTempAt50Percent * dissipationTempModifierAt50Percent);
+            _restingRadiatorTempAt45Percent = restingConvectionTempAt45Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt45Percent: Math.Min(restingDissipationRadiatorTempAt45Percent, restingConvectionTempAt45Percent * dissipationTempModifierAt45Percent);
+            _restingRadiatorTempAt40Percent = restingConvectionTempAt40Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt40Percent: Math.Min(restingDissipationRadiatorTempAt40Percent, restingConvectionTempAt40Percent * dissipationTempModifierAt40Percent);
+            _restingRadiatorTempAt35Percent = restingConvectionTempAt35Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt35Percent: Math.Min(restingDissipationRadiatorTempAt35Percent, restingConvectionTempAt35Percent * dissipationTempModifierAt35Percent);
+            _restingRadiatorTempAt30Percent = restingConvectionTempAt30Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt30Percent: Math.Min(restingDissipationRadiatorTempAt30Percent, restingConvectionTempAt30Percent * dissipationTempModifierAt30Percent);
+            _restingRadiatorTempAt25Percent = restingConvectionTempAt25Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt25Percent: Math.Min(restingDissipationRadiatorTempAt25Percent, restingConvectionTempAt25Percent * dissipationTempModifierAt25Percent);
+            _restingRadiatorTempAt20Percent = restingConvectionTempAt20Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt20Percent: Math.Min(restingDissipationRadiatorTempAt20Percent, restingConvectionTempAt20Percent * dissipationTempModifierAt20Percent);
+            _restingRadiatorTempAt15Percent = restingConvectionTempAt15Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt15Percent: Math.Min(restingDissipationRadiatorTempAt15Percent, restingConvectionTempAt15Percent * dissipationTempModifierAt15Percent);
+            _restingRadiatorTempAt10Percent = restingConvectionTempAt10Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt10Percent: Math.Min(restingDissipationRadiatorTempAt10Percent, restingConvectionTempAt10Percent * dissipationTempModifierAt10Percent);
+            _restingRadiatorTempAt8Percent = restingConvectionTempAt8Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt8Percent: Math.Min(restingDissipationRadiatorTempAt8Percent, restingConvectionTempAt8Percent * dissipationTempModifierAt8Percent);
+            _restingRadiatorTempAt6Percent = restingConvectionTempAt6Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt6Percent: Math.Min(restingDissipationRadiatorTempAt6Percent, restingConvectionTempAt6Percent * dissipationTempModifierAt6Percent);
+            _restingRadiatorTempAt4Percent = restingConvectionTempAt4Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt4Percent: Math.Min(restingDissipationRadiatorTempAt4Percent, restingConvectionTempAt4Percent * dissipationTempModifierAt4Percent);
+            _restingRadiatorTempAt2Percent = restingConvectionTempAt2Percent.IsInfinityOrNaN() ? restingDissipationRadiatorTempAt2Percent: Math.Min(restingDissipationRadiatorTempAt2Percent, restingConvectionTempAt2Percent * dissipationTempModifierAt2Percent);
 
             var thermalGenerators = generators.Where(m => !m.chargedParticleMode).ToList();
 
@@ -598,7 +770,7 @@ namespace FNPlugin.Wasteheat
 
                 var averageEfficiency = thermalGenerators.Sum(m => m.MaxStableMegaWattPower) / thermalGenerators.Sum(m => m.RawGeneratorSourcePower);
 
-                _hotColdBathEfficiencyAtCustomPct = averageEfficiency * CalculateHotColdBathEfficiency(_averageSourceCoreTempAtCustom, _restingRadiatorTempAtCustom);
+                _hotColdBathEfficiencyAtCustomPct = averageEfficiency * CalculateHotColdBathEfficiency(_averageSourceCoreTempAtCustom, _restingRadiatorTempAtCustomPct);
             }
             else
                 _hasThermalGenerators = false;
@@ -691,7 +863,7 @@ namespace FNPlugin.Wasteheat
                     var hotColdBathEfficiencyAt6Percent = Math.Max(1 - 0.75 * _restingRadiatorTempAt6Percent / generator.GetHotBathTemperature(_restingRadiatorTempAt6Percent), 0);
                     var hotColdBathEfficiencyAt4Percent = Math.Max(1 - 0.75 * _restingRadiatorTempAt4Percent / generator.GetHotBathTemperature(_restingRadiatorTempAt4Percent), 0);
                     var hotColdBathEfficiencyAt2Percent = Math.Max(1 - 0.75 * _restingRadiatorTempAt2Percent / generator.GetHotBathTemperature(_restingRadiatorTempAt2Percent), 0);
-                    var hotColdBathEfficiencyAtCustomPct = Math.Max(1 - 0.75 * _restingRadiatorTempAtCustom / generator.GetHotBathTemperature(_restingRadiatorTempAtCustom), 0);
+                    var hotColdBathEfficiencyAtCustomPct = Math.Max(1 - 0.75 * _restingRadiatorTempAtCustomPct / generator.GetHotBathTemperature(_restingRadiatorTempAtCustomPct), 0);
 
                     _electricPowerAt100 += generatorMaximumGeneratorPower * hotColdBathEfficiencyAt100Percent;
                     _electricPowerAt90 += generatorMaximumGeneratorPower * hotColdBathEfficiencyAt90Percent * 0.90;
@@ -740,7 +912,7 @@ namespace FNPlugin.Wasteheat
 
         private void GetBestPowerAndPercentage (int percentage, double scenarioElectricPower)
         {
-            if (scenarioElectricPower <= _bestScenarioElectricPower) return;
+            if (scenarioElectricPower.IsInfinityOrNaN() ||  scenarioElectricPower <= _bestScenarioElectricPower) return;
 
             _bestScenarioPercentage = percentage;
             _bestScenarioElectricPower = scenarioElectricPower;
@@ -771,8 +943,19 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalHeatProduction"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Heat Production:"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_totalSourcePower), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_AtmosphereTitle"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            atmosphereDensity = GUILayout.HorizontalSlider(atmosphereDensity, 0, 4, GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.Label(atmosphereDensity.ToString("0.00") + " " + Localizer.Format("#LOC_KSPIE_VABThermalUI_AtmosphereUnit"), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorsSubmergedPercentage"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);//Radiators Submerged (Percentage):
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            submergedPercentage = GUILayout.HorizontalSlider(submergedPercentage, 0, 100, GUILayout.ExpandWidth(true), guiLabelWidth);
+            GUILayout.Label(submergedPercentage.ToString("0.0") + " %", GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -781,13 +964,27 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalHeatProduction"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Heat Production:"
+            GUILayout.Label(PluginHelper.getFormattedPowerString(_totalSourcePower), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.EndHorizontal();
+
+            // prevent non logical input
+            if (submergedPercentage > 0 && atmosphereDensity < 0.0313f)
+                atmosphereDensity = 0.0313f;
+
+            GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalAreaRadiators") + " (" + _numberOfRadiators + ")", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Area Radiators:"
-            GUILayout.Label(_totalArea.ToString("0.0") + " m\xB2", GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(_vesselBaseRadiatorArea.ToString("0.0") + " m\xB2", GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(Localizer.Format("Radiator Maximum Convection:"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
+            GUILayout.Label(PluginHelper.getFormattedPowerString(_vesselMaxRadConvection), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumDissipation"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_radMaxDissipation), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(PluginHelper.getFormattedPowerString(_vesselMaxRadDissipation), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -816,7 +1013,7 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            string restingRadiatorTempAtCustomPercentageStr = !_restingRadiatorTempAtCustom.IsInfinityOrNaN() ? _restingRadiatorTempAtCustom.ToString("0.0") + " K" : "N/A";
+            string restingRadiatorTempAtCustomPercentageStr = !_restingRadiatorTempAtCustomPct.IsInfinityOrNaN() ? _restingRadiatorTempAtCustomPct.ToString("0.0") + " K" : "N/A";
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorRestingTemperatureAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Resting Temperature at"
             GUILayout.Label(restingRadiatorTempAtCustomPercentageStr, _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
@@ -856,11 +1053,11 @@ namespace FNPlugin.Wasteheat
                 RenderWindow = false;
 
             _radiatorLabel = _blueLabel;
-            if (_bestScenarioPercentage >= 100 && _radMaxDissipation > _totalSourcePower) return;
+            if (_bestScenarioPercentage >= 100 && _vesselMaxRadDissipation > _totalSourcePower) return;
             _radiatorLabel = _greenLabel;
-            if (!(_radMaxDissipation < _totalSourcePower)) return;
-            _radiatorLabel = _orangeLabel;
-            if (_radMaxDissipation < _totalSourcePower * 0.3)
+            if (_bestScenarioPercentage >= 100 || _vesselMaxRadConvection > _totalSourcePower || _vesselMaxRadDissipation > _totalSourcePower) return;
+                _radiatorLabel = _orangeLabel;
+            if (_vesselMaxRadConvectionAndDissipation < _totalSourcePower * 0.3)
                 _radiatorLabel = _redLabel;
         }
     }
