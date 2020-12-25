@@ -42,12 +42,12 @@ namespace FNPlugin.Reactors
         PartResourceDefinition enrichedUraniumDefinition;
         PartResourceDefinition oxygenGasDefinition;
 
-        private BaseEvent _manualRestartEvent;
+        BaseEvent _manualRestartEvent;
 
         double fluorineDepletedFuelVolumeMultiplier;
         double enrichedUraniumVolumeMultiplier;
-        double depletedToEnrichVolumeMultplier;
-        double oxygenDepletedUraniumVolumeMultipler;
+        double depletedToEnrichVolumeMultiplier;
+        double oxygenDepletedUraniumVolumeMultiplier;
         double reactorFuelMaxAmount;
 
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic;
@@ -272,10 +272,10 @@ namespace FNPlugin.Reactors
             depletedFuelDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.DepletedFuel);
             enrichedUraniumDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.EnrichedUranium);
 
-            depletedToEnrichVolumeMultplier = enrichedUraniumDefinition.density / depletedFuelDefinition.density;
+            depletedToEnrichVolumeMultiplier = enrichedUraniumDefinition.density / depletedFuelDefinition.density;
             fluorineDepletedFuelVolumeMultiplier = ((19 * 4) / 232d) * (depletedFuelDefinition.density / fluorineGasDefinition.density);
             enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
-            oxygenDepletedUraniumVolumeMultipler = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
+            oxygenDepletedUraniumVolumeMultiplier = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
 
             var mainReactorFuel = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName);
             if (mainReactorFuel != null)
@@ -335,7 +335,7 @@ namespace FNPlugin.Reactors
                 var receivedEnrichedUraniumFraction = enrichedUraniumRequest > 0 ? enrichedUraniumRetrieved / enrichedUraniumRequest : 0;
 
                 // if missing fluorine is dumped
-                var oxygenChange = -Part.RequestResource(oxygenGasDefinition.id, -depletedFuelsProduced * oxygenDepletedUraniumVolumeMultipler * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var oxygenChange = -Part.RequestResource(oxygenGasDefinition.id, -depletedFuelsProduced * oxygenDepletedUraniumVolumeMultiplier * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
                 var fluorineChange = -Part.RequestResource(fluorineGasDefinition.id, -depletedFuelsProduced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
                 var reactorFuels = CurrentFuelMode.Variants.First().ReactorFuels;
@@ -345,7 +345,7 @@ namespace FNPlugin.Reactors
                 {
                     var fuelResource = part.Resources[fuel.ResourceName];
                     var powerFraction = sumUsagePerMw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sumUsagePerMw : 1;
-                    var newFuelAmount = Math.Min(fuelResource.amount + ((depletedFuelsProduced * 4) + (depletedFuelsProduced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultplier, fuelResource.maxAmount);
+                    var newFuelAmount = Math.Min(fuelResource.amount + ((depletedFuelsProduced * 4) + (depletedFuelsProduced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultiplier, fuelResource.maxAmount);
                     fuelResource.amount = newFuelAmount;
                 }
 
@@ -448,21 +448,21 @@ namespace FNPlugin.Reactors
         // Returns the number of fuel-modes available for the currently selected fuel-type
         public int CheckFuelModes()
         {
-            int modesAvailable = 0;
+            var modesAvailable = 0;
             var fuelType = CurrentFuelMode.Variants.First().ReactorFuels.First().FuelName;
             foreach (var reactorFuelType in fuelModes)
             {
                 var currentMode = reactorFuelType.Variants.First().ReactorFuels.First().FuelName;
                 if (currentMode == fuelType)
-                {
                     modesAvailable++;
-                }
             }
             return modesAvailable;
         }
 
         public override void Update()
         {
+            base.Update();
+
             if (_manualRestartEvent != null)
                 _manualRestartEvent.externalToEVAOnly = !CheatOptions.NonStrictAttachmentOrientation;
         }

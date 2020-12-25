@@ -860,12 +860,13 @@ namespace FNPlugin.Powermanagement
 
             if (!chargedParticleMode) // thermal or plasma mode
             {
-                averageRadiatorTemperatureQueue.Enqueue(FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel));
+                //averageRadiatorTemperatureQueue.Enqueue(FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel));
 
-                while (averageRadiatorTemperatureQueue.Count > 10)
-                    averageRadiatorTemperatureQueue.Dequeue();
+                //while (averageRadiatorTemperatureQueue.Count > 10)
+                //    averageRadiatorTemperatureQueue.Dequeue();
 
-                coldBathTempDisplay = averageRadiatorTemperatureQueue.Average();
+                //coldBathTempDisplay = averageRadiatorTemperatureQueue.Average();
+                coldBathTempDisplay = FNRadiator.GetCurrentRadiatorTemperatureForVessel(vessel);
 
                 hotBathTemp = GetHotBathTemperature(coldBathTempDisplay);
 

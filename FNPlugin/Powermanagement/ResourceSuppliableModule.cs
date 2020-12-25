@@ -72,7 +72,9 @@ namespace FNPlugin.Powermanagement
             if (!fnresource_supplied.TryGetValue(resourcename, out var availablePower))
                 fnresource_supplied[resourcename] = 0;
 
-            fixedDeltaTime = fixedDeltaTime > 0 ? fixedDeltaTime : TimeWarp.fixedDeltaTime;
+            fixedDeltaTime = fixedDeltaTime > 0
+                ? Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, fixedDeltaTime)
+                : Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
 
             double power_taken_fixed = Math.Max(Math.Min(power_fixed, availablePower * fixedDeltaTime), 0);
 
@@ -82,7 +84,7 @@ namespace FNPlugin.Powermanagement
             return power_taken_fixed;
         }
 
-        public double consumeFNResourcePerSecond(double power_requested_per_second, string resourcename, ResourceManager manager = null)
+        public double consumeFNResourcePerSecond(double power_requested_per_second, string resourceName, ResourceManager manager = null)
         {
             if (power_requested_per_second.IsInfinityOrNaN())
             {
@@ -91,17 +93,17 @@ namespace FNPlugin.Powermanagement
             }
 
             if (manager == null)
-                manager = getManagerForVessel(resourcename);
+                manager = getManagerForVessel(resourceName);
             if (manager == null)
                 return 0;
 
-            if (!fnresource_supplied.TryGetValue(resourcename, out var availablePower))
-                fnresource_supplied[resourcename] = 0;
+            if (!fnresource_supplied.TryGetValue(resourceName, out var availablePower))
+                fnresource_supplied[resourceName] = 0;
 
             power_requested_per_second = Math.Max(power_requested_per_second, 0);
 
             double power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, availablePower), 0);
-            fnresource_supplied[resourcename] -= power_taken_per_second;
+            fnresource_supplied[resourceName] -= power_taken_per_second;
 
             manager.powerDrawPerSecond(this, power_requested_per_second, power_taken_per_second);
 
@@ -134,7 +136,8 @@ namespace FNPlugin.Powermanagement
 
         public double consumeFNResourcePerSecondBuffered(double requestedPowerPerSecond, string resourceName, double limitBarRatio = 0.1, ResourceManager manager = null)
         {
-            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
+            double timeWarpFixedDeltaTime = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
+
             if (requestedPowerPerSecond.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName))
             {
                 Debug.Log("[KSPI]: consumeFNResourcePerSecondBuffered was called with illegal value");
@@ -171,11 +174,12 @@ namespace FNPlugin.Powermanagement
             return power_taken_per_second;
         }
 
-        protected double consumeMegawatts(double requestedMW, bool allowCapacitor = true,
-            bool allowKilowattHour = false, bool allowEC = false, double fixedDeltaTime = 0)
+        protected double consumeMegawatts(double requestedMW, bool allowCapacitor = true, bool allowKilowattHour = false, bool allowEC = false, double fixedDeltaTime = 0)
         {
             const double KILOWATT_RATIO = GameConstants.ecPerMJ / GameConstants.SECONDS_IN_HOUR;
-            double dt = fixedDeltaTime > 0 ? fixedDeltaTime : TimeWarp.fixedDeltaTime;
+            double dt = fixedDeltaTime > 0
+                ? Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, fixedDeltaTime)
+                : Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
 
             // First try to consume MJ from ResourceManager
             double add, result = CheatOptions.InfiniteElectricity ? requestedMW :
@@ -743,15 +747,15 @@ namespace FNPlugin.Powermanagement
 
         public override void OnFixedUpdate()
         {
-            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
+            double timeWarpFixedDeltaTime = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
 
             updateCounter++;
 
             if (resources_to_supply == null) return;
 
-            foreach (string resourcename in resources_to_supply)
+            foreach (string resourceName in resources_to_supply)
             {
-                var overmanager = getOvermanagerForResource(resourcename);
+                var overmanager = getOvermanagerForResource(resourceName);
 
                 ResourceManager resource_manager = null;;
 
@@ -761,9 +765,9 @@ namespace FNPlugin.Powermanagement
                 if (resource_manager == null)
                 {
                     similarParts = null;
-                    resource_manager = CreateResourceManagerForResource(resourcename);
+                    resource_manager = CreateResourceManagerForResource(resourceName);
 
-                    Debug.Log("[KSPI]: ResourceSuppliableModule.OnFixedUpdate created Resourcemanager for Vessel " + vessel.GetName() + " for " + resourcename + " with ResourceManagerId " + resource_manager.Id + " and OvermanagerId" + resource_manager.Id);
+                    Debug.Log("[KSPI]: ResourceSuppliableModule.OnFixedUpdate created Resourcemanager for Vessel " + vessel.GetName() + " for " + resourceName + " with ResourceManagerId " + resource_manager.Id + " and OvermanagerId" + resource_manager.Id);
                 }
 
                 if (resource_manager != null) // part.State == PartStates.ACTIVE

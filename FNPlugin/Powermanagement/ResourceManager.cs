@@ -475,7 +475,7 @@ namespace FNPlugin.Powermanagement
             if (power_draw.IsInfinityOrNaN() || power_consumption.IsInfinityOrNaN())
                 return;
 
-            double timeWarpDT = TimeWarp.fixedDeltaTime;
+            double timeWarpDT = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
             double powerPerSecond = power_draw / timeWarpDT;
             powerDrawPerSecond(pm, powerPerSecond, powerPerSecond, power_consumption / timeWarpDT);
         }
@@ -504,7 +504,7 @@ namespace FNPlugin.Powermanagement
 
         public double powerSupplyFixed(IResourceSupplier pm, double power)
         {
-            double powerFixed = power / TimeWarp.fixedDeltaTime;
+            double powerFixed = power / Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
             return powerSupplyPerSecondWithMaxAndEfficiency(pm, powerFixed, powerFixed, 1.0);
         }
 
@@ -515,7 +515,7 @@ namespace FNPlugin.Powermanagement
 
         public double powerSupplyFixedWithMax(IResourceSupplier pm, double power, double maxpower)
         {
-            double timeWarpDT = TimeWarp.fixedDeltaTime;
+            double timeWarpDT = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
             return powerSupplyPerSecondWithMaxAndEfficiency(pm, power / timeWarpDT, maxpower / timeWarpDT, 1.0);
         }
 
@@ -553,7 +553,7 @@ namespace FNPlugin.Powermanagement
 
         public virtual void update(long counter)
         {
-            double timeWarpDT = TimeWarp.fixedDeltaTime;
+            double timeWarpDT = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
             double sumPowerProduced = 0.0, supplyEfficiencyRatio = 0.0;
             int prevPriority = -1;
 

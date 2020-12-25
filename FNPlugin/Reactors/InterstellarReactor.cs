@@ -619,7 +619,7 @@ namespace FNPlugin.Reactors
             set
             {
                 _currentFuelMode = value;
-                maxPowerToSupply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
+                maxPowerToSupply = Math.Max(MaximumPower * (double)(decimal)TimeWarp.fixedDeltaTime, 0);
                 currentFuelVariantsSorted = _currentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult);
                 currentFuelVariant = currentFuelVariantsSorted.First();
 
@@ -681,7 +681,7 @@ namespace FNPlugin.Reactors
                 part.RequestResource(product.fuelmode.ResourceName, fuelAmount);
             }
 
-            part.RequestResource(resource.name, -propellantMassPerSecond * TimeWarp.fixedDeltaTime / resource.density, ResourceFlowMode.ALL_VESSEL);
+            part.RequestResource(resource.name, -propellantMassPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime / resource.density, ResourceFlowMode.ALL_VESSEL);
         }
 
         public void ConnectWithEngine(IEngineNoozle engine)
@@ -1597,7 +1597,7 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
-            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
+            double timeWarpFixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
             if (!IsEnabled && !IsStarted)
             {
                 IsStarted = true;
@@ -2421,7 +2421,7 @@ namespace FNPlugin.Reactors
 
             CurrentFuelMode = fuelModes.FirstOrDefault();
 
-            maxPowerToSupply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
+            maxPowerToSupply = Math.Max(MaximumPower * (double)(decimal)TimeWarp.fixedDeltaTime, 0);
 
             if (CurrentFuelMode == null)
                 print("[KSPI]: Warning : CurrentFuelMode is null");

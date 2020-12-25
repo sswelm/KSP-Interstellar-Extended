@@ -92,8 +92,9 @@ namespace FNPlugin.Wasteheat
         [KSPField]
         public double wasteHeatMultiplier = 1; // Reduce heat radiated in NF mode.
 
-        private int intakeLqdID;
-        private int intakeAtmID;
+        private int intakeLqdId;
+        private int intakeAtmId;
+
         private double intakeLqdDensity;
         private double intakeAtmDensity;
 
@@ -310,9 +311,9 @@ namespace FNPlugin.Wasteheat
             }
             processUpgrades();
 
-            var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeLqd");
+            var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeLiquid);
             var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeOxygenAir);
-            var intakeAtmDefinition = PartResourceLibrary.Instance.GetDefinition("IntakeAtm");
+            var intakeAtmDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeAtmosphere);
 
             if (intakeLqdDefinition == null || intakeAirDefinition == null || intakeAtmDefinition == null)
             {
@@ -321,10 +322,11 @@ namespace FNPlugin.Wasteheat
             }
 
             intakeLqdSpecificHeatCapacity = intakeLqdDefinition.specificHeatCapacity;
-            intakeAtmSpecificHeatCapacity = (intakeAtmDefinition.specificHeatCapacity == 0) ? intakeAirDefinition.specificHeatCapacity : intakeAtmDefinition.specificHeatCapacity;
+            intakeAtmSpecificHeatCapacity = intakeAtmDefinition.specificHeatCapacity == 0 ? intakeAirDefinition.specificHeatCapacity : intakeAtmDefinition.specificHeatCapacity;
 
-            intakeLqdID = intakeLqdDefinition.id;
-            intakeAtmID = intakeAtmDefinition.id;
+            intakeLqdId = intakeLqdDefinition.id;
+            intakeAtmId = intakeAtmDefinition.id;
+
             intakeAtmDensity = intakeAtmDefinition.density;
             intakeLqdDensity = intakeLqdDefinition.density;
         }
@@ -348,8 +350,8 @@ namespace FNPlugin.Wasteheat
 
             if (null == vessel || null == part) return;
 
-            part.GetConnectedResourceTotals(intakeAtmID, out intakeAtmAmount, out _);
-            part.GetConnectedResourceTotals(intakeLqdID, out intakeLqdAmount, out _);
+            part.GetConnectedResourceTotals(intakeAtmId, out intakeAtmAmount, out _);
+            part.GetConnectedResourceTotals(intakeLqdId, out intakeLqdAmount, out _);
 
             if (intakeAtmAmount == 0 && intakeLqdAmount == 0) return;
 
@@ -362,7 +364,7 @@ namespace FNPlugin.Wasteheat
             maxSupplyOfHeat = wasteheatManager.CurrentSurplus + wasteheatManager.GetResourceAvailability();
             if (maxSupplyOfHeat == 0) return;
 
-            var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
+            var fixedDeltaTime = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
 
             airHeatTransferrable = waterHeatTransferrable = steamHeatTransferrable = heatTransferrable = 0;
 
@@ -513,8 +515,8 @@ namespace FNPlugin.Wasteheat
 
             if (heatTransferred == 0) return;
 
-            if (intakeAtmAmount > 0) part.RequestResource(intakeAtmID, intakeAtmAmount * intakeReduction * fixedDeltaTime);
-            if (intakeLqdAmount > 0) part.RequestResource(intakeLqdID, intakeLqdAmount * intakeReduction * fixedDeltaTime);
+            if (intakeAtmAmount > 0) part.RequestResource(intakeAtmId, intakeAtmAmount * intakeReduction * fixedDeltaTime);
+            if (intakeLqdAmount > 0) part.RequestResource(intakeLqdId, intakeLqdAmount * intakeReduction * fixedDeltaTime);
         }
         public override int getPowerPriority()
         {
@@ -719,8 +721,6 @@ namespace FNPlugin.Wasteheat
         public double convectiveBonus = 1;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_EffectiveArea", guiFormat = "F2", guiUnits = " m\xB2")]//Effective Area
         public double effectiveRadiatorArea;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_Radiator_AtmosphereModifier")]//Atmosphere Modifier
-        public double atmosphere_modifier;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
         public double radiatorArea = 1;
 
@@ -791,7 +791,6 @@ namespace FNPlugin.Wasteheat
         private double deltaTemp;
         private double spaceRadiatorModifier;
         private double oxidationModifier;
-        private double temperatureDifference;
         private double _attachedPartsModifier;
         private double _upgradeModifier;
 
@@ -841,12 +840,11 @@ namespace FNPlugin.Wasteheat
         private static AnimationCurve greenTempColorChannel;
         private static AnimationCurve blueTempColorChannel;
 
+        private double _intakeLqdDensity;
+        private double _intakeAtmDensity;
 
-        private double intakeLqdDensity;
-        private double intakeAtmDensity;
-        private double intakeAtmSpecificHeatCapacity;
-        private double intakeLqdSpecificHeatCapacity;
-
+        private double _intakeAtmSpecificHeatCapacity;
+        private double _intakeLqdSpecificHeatCapacity;
 
         public GenerationType CurrentGenerationType { get; private set; }
 
@@ -1356,6 +1354,13 @@ namespace FNPlugin.Wasteheat
             return GetRadiatorsForVessel(vess).Any();
         }
 
+        public static double GetCurrentRadiatorTemperatureForVessel(Vessel vess)
+        {
+            var vesselRadiators = GetRadiatorsForVessel(vess);
+
+            return vesselRadiators.Average(m => m.CurrentRadiatorTemperature);
+        }
+
         public static double GetAverageRadiatorTemperatureForVessel(Vessel vess)
         {
             var radiatorVessel = GetRadiatorsForVessel(vess);
@@ -1561,6 +1566,8 @@ namespace FNPlugin.Wasteheat
 
             DetermineGenerationType();
             InitializeRadiatorAreaWhenMissing();
+            UpdateAttachedPartsModifier();
+            UpdateRadiatorArea();
 
             _isGraphene = !string.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
             _maximumRadiatorTempInSpace = RadiatorProperties.RadiatorTemperatureMk6;
@@ -1574,8 +1581,6 @@ namespace FNPlugin.Wasteheat
                 part.emissiveConstant = 1.6;
 
             radiatorType = RadiatorType;
-
-            UpdateRadiatorArea();
 
             _deployRadiatorEvent = Events[nameof(DeployRadiator)];
             _retractRadiatorEvent = Events[nameof(RetractRadiator)];
@@ -1663,10 +1668,10 @@ namespace FNPlugin.Wasteheat
 
             if (intakeLqdDefinition != null && intakeAirDefinition != null && intakeAtmDefinition != null)
             {
-                intakeLqdSpecificHeatCapacity = intakeLqdDefinition.specificHeatCapacity;
-                intakeAtmSpecificHeatCapacity = (intakeAtmDefinition.specificHeatCapacity == 0) ? intakeAirDefinition.specificHeatCapacity : intakeAtmDefinition.specificHeatCapacity;
-                intakeAtmDensity = intakeAtmDefinition.density;
-                intakeLqdDensity = intakeLqdDefinition.density;
+                _intakeLqdSpecificHeatCapacity = intakeLqdDefinition.specificHeatCapacity;
+                _intakeAtmSpecificHeatCapacity = intakeAtmDefinition.specificHeatCapacity == 0 ? intakeAirDefinition.specificHeatCapacity : intakeAtmDefinition.specificHeatCapacity;
+                _intakeAtmDensity = intakeAtmDefinition.density;
+                _intakeLqdDensity = intakeLqdDefinition.density;
             }
             else
             {
@@ -1734,6 +1739,13 @@ namespace FNPlugin.Wasteheat
             Fields[nameof(dynamicPressureStress)].guiActive = isDeployable;
         }
 
+        private void UpdateAttachedPartsModifier()
+        {
+            var stackAttachedNodesCount = part.attachNodes.Count(m => m.attachedPart != null && m.nodeType == AttachNode.NodeType.Stack);
+            var surfaceAttachedNodesCount = part.attachNodes.Count(m => m.attachedPart != null && m.nodeType == AttachNode.NodeType.Surface);
+            _attachedPartsModifier = Math.Max(0, 1 - (0.2 * stackAttachedNodesCount + 0.1 * surfaceAttachedNodesCount));
+        }
+
         private void InitializeRadiatorAreaWhenMissing()
         {
             if (radiatorArea != 0) return;
@@ -1760,9 +1772,7 @@ namespace FNPlugin.Wasteheat
         {
             partMass = part.mass;
 
-            var stackAttachedNodesCount = part.attachNodes.Count(m => m.attachedPart != null && m.nodeType == AttachNode.NodeType.Stack);
-            var surfaceAttachedNodesCount = part.attachNodes.Count(m => m.attachedPart != null && m.nodeType == AttachNode.NodeType.Surface);
-            _attachedPartsModifier = Math.Max(0, 1 - (0.2 * stackAttachedNodesCount + 0.1 * surfaceAttachedNodesCount));
+            UpdateAttachedPartsModifier();
 
             var isDeployStateUndefined = _moduleDeployableRadiator == null
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING
@@ -1895,7 +1905,7 @@ namespace FNPlugin.Wasteheat
             // and then distance traveled.
             double distanceTraveled = effectiveRadiatorArea * tmpVelocity;
 
-            partRotationDistance = Math.Round(distanceTraveled, 2) * TimeWarp.fixedDeltaTime;
+            partRotationDistance = Math.Round(distanceTraveled, 2) * Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
 
             return partRotationDistance;
         }
@@ -1978,51 +1988,58 @@ namespace FNPlugin.Wasteheat
                 {
                     atmDensity = AtmDensity();
 
-                    // density * exposed surface area * specific heat capacity
-
-                    var heatTransferModifier = atmDensity * (intakeAtmDensity * effectiveRadiatorArea * intakeAtmSpecificHeatCapacity) * (1 - part.submergedPortion);
-                    heatTransferModifier *= convectiveBonus;
-                    heatTransferModifier += intakeLqdDensity * effectiveRadiatorArea * intakeLqdSpecificHeatCapacity * part.submergedPortion;
-
-                    atmosphere_modifier = heatTransferModifier * Math.Max(1, vessel.speed.Sqrt() + PartRotationDistance().Sqrt());
-
-                    temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - ExternalTemp());
-
-                    var heatTransferCoefficient = part.submergedPortion > 0 ? lqdHeatTransferCoefficient : airHeatTransferCoefficient;
-
-                    var convPowerDissipation = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCoefficient;
+                    var convPowerDissipation = CalculateConvPowerDissipation(
+                        radiatorTemperature: CurrentRadiatorTemperature,
+                        externalTemperature: ExternalTemp(),
+                        effectiveVesselSpeed:  vessel.speed.Sqrt(),
+                        atmosphericDensity:  atmDensity,
+                        submergedPortion:  part.submergedPortion,
+                        rotationModifier: PartRotationDistance().Sqrt());
 
                     if (!radiatorIsEnabled)
-                        convPowerDissipation *= 0.25;
+                        convPowerDissipation *= 0.2;
 
-                    if(_isGraphene)
-                    {
-                        // Per AntaresMC and others in #development, graphene is chemically unstable in an atmosphere,
-                        // prone to oxidation etc which reduces its effectiveness.
-                        convPowerDissipation *= 0.10;
-                    }
+                    //_convectedThermalPower = canRadiateHeat && convPowerDissipation > 0 ? ConsumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager) : 0;
 
-                    _convectedThermalPower = canRadiateHeat ? ConsumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager) : 0;
+                    _convectedThermalPower = canRadiateHeat
+                        ? convPowerDissipation > 0
+                            ? ConsumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager)
+                            : supplyManagedFNResourcePerSecond(-convPowerDissipation, ResourceSettings.Config.WasteHeatInMegawatt)
+                        : 0;
 
                     if (_radiatorDeployDelay >= DEPLOYMENT_DELAY)
                         DeploymentControl();
                 }
                 else
                 {
-                    temperatureDifference = 0;
                     _convectedThermalPower = 0;
-
                     if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls || _radiatorDeployDelay < DEPLOYMENT_DELAY) return;
-
                     Deploy();
                 }
-
             }
             catch (Exception e)
             {
                 Debug.LogError("[KSPI]: Exception on " + part.name + " during FNRadiator.FixedUpdate with message " + e.Message);
                 throw;
             }
+        }
+
+        public double CalculateConvPowerDissipation(
+            double radiatorTemperature,
+            double externalTemperature,
+            double effectiveVesselSpeed,
+            double atmosphericDensity,
+            double submergedPortion,
+            double rotationModifier)
+        {
+            var airHeatTransferModifier = airHeatTransferCoefficient * _intakeAtmSpecificHeatCapacity * _intakeAtmDensity * (1 - submergedPortion) * convectiveBonus * atmosphericDensity;
+            var lqdHeatTransferModifier = lqdHeatTransferCoefficient * _intakeLqdSpecificHeatCapacity * _intakeLqdDensity * submergedPortion;
+            var heatTransferCoefficient = PluginSettings.Config.ConvectionMultiplier * (airHeatTransferModifier + lqdHeatTransferModifier) * Math.Max(1, effectiveVesselSpeed + rotationModifier) * (_isGraphene ? 0.10 : 1);
+
+            var temperatureDifference = radiatorTemperature - externalTemperature;
+
+            // q = h * A * deltaT
+            return heatTransferCoefficient * radiatorArea *  temperatureDifference;
         }
 
         protected virtual bool CanConvect()
@@ -2093,7 +2110,7 @@ namespace FNPlugin.Wasteheat
             get => currentRadTemp;
             set
             {
-                if (!value.IsInfinityOrNaNorZero())
+                if (!value.IsInfinityOrNaN())
                 {
                     currentRadTemp = value;
                     _radTempQueue.Enqueue(currentRadTemp);
@@ -2112,9 +2129,14 @@ namespace FNPlugin.Wasteheat
             }
         }
 
+        private double GetStableRadiatorTemperature()
+        {
+            return _radTempQueue.Count > 0 ? _radTempQueue.Average() : currentRadTemp;
+        }
+
         private double GetAverageRadiatorTemperature()
         {
-            return Math.Max(_externalTempQueue.Count > 0 ? _externalTempQueue.Average() : Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature), _radTempQueue.Count > 0 ? _radTempQueue.Average() : currentRadTemp);
+            return Math.Max(_externalTempQueue.Count > 0 ? _externalTempQueue.Average() : Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature), GetStableRadiatorTemperature());
         }
 
         public override string GetInfo()
