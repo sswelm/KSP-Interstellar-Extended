@@ -752,8 +752,8 @@ namespace FNPlugin.Wasteheat
         [KSPField] public double areaMultiplier = 1;
 
         // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
-        static public double airHeatTransferCoefficient = 0.001; // 100W/m2/K, range: 10 - 100, "Air"
-        static public double lqdHeatTransferCoefficient = 0.01; // 1000/m2/K, range: 100-1200, "Water in Free Convection"
+        //static public double airHeatTransferCoefficient = 0.001; // 100W/m2/K, range: 10 - 100, "Air"
+        //static public double lqdHeatTransferCoefficient = 0.01; // 1000/m2/K, range: 100-1200, "Water in Free Convection"
 
         [KSPField] public string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         [KSPField] public int RADIATOR_DELAY = 20;
@@ -2045,8 +2045,8 @@ namespace FNPlugin.Wasteheat
              if (radiatorTemperature.IsInfinityOrNaN())
                  return 0;
 
-            var airHeatTransferModifier = airHeatTransferCoefficient * (1 - submergedPortion) * atmosphericDensity;
-            var lqdHeatTransferModifier = lqdHeatTransferCoefficient * submergedPortion;
+            var airHeatTransferModifier = PluginSettings.Config.AirHeatTransferCoefficient * (1 - submergedPortion) * atmosphericDensity;
+            var lqdHeatTransferModifier = PluginSettings.Config.LqdHeatTransferCoefficient * submergedPortion;
             var grapheneModifier = 1 - grapheneRadiatorRatio + grapheneRadiatorRatio * 0.10;
             var movementModifier = Math.Max(1, effectiveVesselSpeed + rotationModifier);
 
