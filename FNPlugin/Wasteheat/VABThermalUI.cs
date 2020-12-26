@@ -951,7 +951,7 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorsSubmergedPercentage"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);//Radiators Submerged (Percentage):
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorsSubmergedPercentage"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);//Submerged Radiators (Percentage):
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             submergedPercentage = GUILayout.HorizontalSlider(submergedPercentage, 0, 100, GUILayout.ExpandWidth(true), guiLabelWidth);
