@@ -2048,14 +2048,13 @@ namespace FNPlugin.Wasteheat
             var airHeatTransferModifier = PluginSettings.Config.AirHeatTransferCoefficient * (1 - submergedPortion) * atmosphericDensity;
             var lqdHeatTransferModifier = PluginSettings.Config.LqdHeatTransferCoefficient * submergedPortion;
             var grapheneModifier = 1 - grapheneRadiatorRatio + grapheneRadiatorRatio * 0.10;
-            var movementModifier = Math.Max(1, effectiveVesselSpeed + rotationModifier);
-
-            var heatTransferCoefficient = radiatorConvectiveBonus * PluginSettings.Config.ConvectionMultiplier * (airHeatTransferModifier + lqdHeatTransferModifier) * movementModifier * grapheneModifier;
+            var totalHeatTransferModifier = airHeatTransferModifier + lqdHeatTransferModifier;
+            var heatTransferModifier = radiatorConvectiveBonus + Math.Max(1, effectiveVesselSpeed + rotationModifier);
 
             var temperatureDifference = radiatorTemperature - externalTemperature;
 
             // q = h * A * deltaT
-            return heatTransferCoefficient * radiatorSurfaceArea *  temperatureDifference;
+            return heatTransferModifier * radiatorSurfaceArea *  temperatureDifference * PluginSettings.Config.ConvectionMultiplier * grapheneModifier * totalHeatTransferModifier;
         }
 
         protected virtual bool CanConvect()

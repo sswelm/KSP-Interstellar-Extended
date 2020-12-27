@@ -38,7 +38,6 @@ namespace FNPlugin.Wasteheat
         private float atmosphereDensity;
         private float submergedPercentage;
         private float externalTemperatureInKelvin = 290;
-        private float engineThrottlePercentage = 100;
         private float customScenarioPercentage = 100;
         private float customScenarioFraction = 1;
 
@@ -107,6 +106,7 @@ namespace FNPlugin.Wasteheat
         private double _electricPowerAt4;
         private double _electricPowerAt2;
 
+        private double _bestWasteheatPower;
         private double _totalSourcePower;
         private double _vesselMaxRadConvection;
         private double _vesselMaxRadDissipation;
@@ -460,11 +460,14 @@ namespace FNPlugin.Wasteheat
                 _wasteheatSourcePower2Pc += Math.Min(_electricPowerAt2, powerCapacity) * wasteheatFraction;
             }
 
-            var engineThrottleRatio = 0.01 * engineThrottlePercentage;
-
             foreach (ThermalEngineController thermalNozzle in thermalEngines)
             {
-                var maxWasteheatProduction = engineThrottleRatio * thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
+                var moduleEngine = thermalNozzle.part.FindModuleImplementing<ModuleEngines>();
+
+                if (moduleEngine == null)
+                    continue;
+
+                var maxWasteheatProduction = moduleEngine.thrustPercentage * 0.01 * thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
 
                 _wasteheatSourcePower100Pc += maxWasteheatProduction;
                 _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;
@@ -489,7 +492,7 @@ namespace FNPlugin.Wasteheat
 
             foreach (FusionECU2 variableEngine in variableEngines)
             {
-                var maxWasteheatProduction = engineThrottleRatio * variableEngine.fusionWasteHeatMax;
+                var maxWasteheatProduction = 1 * variableEngine.fusionWasteHeatMax;
 
                 _wasteheatSourcePower100Pc += maxWasteheatProduction;
                 _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;
@@ -514,7 +517,12 @@ namespace FNPlugin.Wasteheat
 
             foreach (DaedalusEngineController fusionEngine in fusionEngines)
             {
-                var maxWasteheatProduction = 0.01 * engineThrottlePercentage * fusionEngine.wasteHeat;
+                var moduleEngine = fusionEngine.part.FindModuleImplementing<ModuleEngines>();
+
+                if (moduleEngine == null)
+                    continue;
+
+                var maxWasteheatProduction = moduleEngine.thrustPercentage * 0.01 * fusionEngine.wasteHeat;
 
                 _wasteheatSourcePower100Pc += maxWasteheatProduction;
                 _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;
@@ -890,30 +898,31 @@ namespace FNPlugin.Wasteheat
             _bestScenarioPercentage = 0;
             _bestScenarioElectricPower = 0;
 
-            GetBestPowerAndPercentage(100, _electricPowerAt100);
-            GetBestPowerAndPercentage(90, _electricPowerAt90);
-            GetBestPowerAndPercentage(80, _electricPowerAt80);
-            GetBestPowerAndPercentage(70, _electricPowerAt70);
-            GetBestPowerAndPercentage(60, _electricPowerAt60);
-            GetBestPowerAndPercentage(50, _electricPowerAt50);
-            GetBestPowerAndPercentage(45, _electricPowerAt45);
-            GetBestPowerAndPercentage(40, _electricPowerAt40);
-            GetBestPowerAndPercentage(35, _electricPowerAt35);
-            GetBestPowerAndPercentage(30, _electricPowerAt30);
-            GetBestPowerAndPercentage(25, _electricPowerAt25);
-            GetBestPowerAndPercentage(20, _electricPowerAt20);
-            GetBestPowerAndPercentage(15, _electricPowerAt15);
-            GetBestPowerAndPercentage(10, _electricPowerAt10);
-            GetBestPowerAndPercentage(8, _electricPowerAt8);
-            GetBestPowerAndPercentage(6, _electricPowerAt6);
-            GetBestPowerAndPercentage(4, _electricPowerAt4);
-            GetBestPowerAndPercentage(2, _electricPowerAt2);
+            GetBestPowerAndPercentage(100, _electricPowerAt100, _wasteheatSourcePower100Pc);
+            GetBestPowerAndPercentage(90, _electricPowerAt90, _wasteheatSourcePower90Pc);
+            GetBestPowerAndPercentage(80, _electricPowerAt80, _wasteheatSourcePower80Pc);
+            GetBestPowerAndPercentage(70, _electricPowerAt70, _wasteheatSourcePower70Pc);
+            GetBestPowerAndPercentage(60, _electricPowerAt60, _wasteheatSourcePower60Pc);
+            GetBestPowerAndPercentage(50, _electricPowerAt50, _wasteheatSourcePower50Pc);
+            GetBestPowerAndPercentage(45, _electricPowerAt45, _wasteheatSourcePower45Pc);
+            GetBestPowerAndPercentage(40, _electricPowerAt40, _wasteheatSourcePower40Pc);
+            GetBestPowerAndPercentage(35, _electricPowerAt35, _wasteheatSourcePower35Pc);
+            GetBestPowerAndPercentage(30, _electricPowerAt30, _wasteheatSourcePower30Pc);
+            GetBestPowerAndPercentage(25, _electricPowerAt25, _wasteheatSourcePower25Pc);
+            GetBestPowerAndPercentage(20, _electricPowerAt20, _wasteheatSourcePower20Pc);
+            GetBestPowerAndPercentage(15, _electricPowerAt15, _wasteheatSourcePower15Pc);
+            GetBestPowerAndPercentage(10, _electricPowerAt10, _wasteheatSourcePower10Pc);
+            GetBestPowerAndPercentage(8, _electricPowerAt8, _wasteheatSourcePower8Pc);
+            GetBestPowerAndPercentage(6, _electricPowerAt6, _wasteheatSourcePower6Pc);
+            GetBestPowerAndPercentage(4, _electricPowerAt4, _wasteheatSourcePower4Pc);
+            GetBestPowerAndPercentage(2, _electricPowerAt2, _wasteheatSourcePower2Pc);
         }
 
-        private void GetBestPowerAndPercentage (int percentage, double scenarioElectricPower)
+        private void GetBestPowerAndPercentage (int percentage, double scenarioElectricPower, double wasteheatPower)
         {
             if (scenarioElectricPower.IsInfinityOrNaN() ||  scenarioElectricPower <= _bestScenarioElectricPower) return;
 
+            _bestWasteheatPower = wasteheatPower;
             _bestScenarioPercentage = percentage;
             _bestScenarioElectricPower = scenarioElectricPower;
         }
@@ -935,14 +944,6 @@ namespace FNPlugin.Wasteheat
             GUILayout.BeginVertical();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_EngineThrottlePercentage"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            engineThrottlePercentage = GUILayout.HorizontalSlider(engineThrottlePercentage, 0, 100, GUILayout.ExpandWidth(true), guiLabelWidth);
-            GUILayout.Label(engineThrottlePercentage.ToString("0.0") + " %", GUILayout.ExpandWidth(false), guiValueWidth);
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_AtmosphereTitle"), GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true), guiLabelWidth);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
@@ -958,6 +959,10 @@ namespace FNPlugin.Wasteheat
             GUILayout.Label(submergedPercentage.ToString("0.0") + " %", GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
+            // prevent non logical input
+            if (submergedPercentage > 0 && atmosphereDensity < 0.0313f)
+                atmosphereDensity = 0.0313f;
+
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_VesselMass"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Vessel Mass:"
             GUILayout.Label((_dryMass + _wetMass).ToString("0.000") + " t", GUILayout.ExpandWidth(false), guiValueWidth);
@@ -967,10 +972,6 @@ namespace FNPlugin.Wasteheat
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalHeatProduction"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Heat Production:"
             GUILayout.Label(PluginHelper.getFormattedPowerString(_totalSourcePower), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
-
-            // prevent non logical input
-            if (submergedPercentage > 0 && atmosphereDensity < 0.0313f)
-                atmosphereDensity = 0.0313f;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalAreaRadiators") + " (" + _numberOfRadiators + ")", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Area Radiators:"
@@ -985,6 +986,11 @@ namespace FNPlugin.Wasteheat
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumDissipation"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
             GUILayout.Label(PluginHelper.getFormattedPowerString(_vesselMaxRadDissipation), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(Localizer.Format("Wasteheat Production at") + " " + _bestScenarioPercentage + "% Power", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Wasteheat Production at 100%"
+            GUILayout.Label(PluginHelper.getFormattedPowerString(_bestWasteheatPower), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -1055,7 +1061,7 @@ namespace FNPlugin.Wasteheat
             _radiatorLabel = _blueLabel;
             if (_bestScenarioPercentage >= 100 && _vesselMaxRadDissipation > _totalSourcePower) return;
             _radiatorLabel = _greenLabel;
-            if (_bestScenarioPercentage >= 100 || _vesselMaxRadConvection > _totalSourcePower || _vesselMaxRadDissipation > _totalSourcePower) return;
+            if (_bestScenarioPercentage >= 100 && (_vesselMaxRadConvection > _totalSourcePower || _vesselMaxRadDissipation > _totalSourcePower)) return;
                 _radiatorLabel = _orangeLabel;
             if (_vesselMaxRadConvectionAndDissipation < _totalSourcePower * 0.3)
                 _radiatorLabel = _redLabel;
