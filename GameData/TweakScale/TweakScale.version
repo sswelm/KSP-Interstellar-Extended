@@ -1,18 +1,23 @@
 {
 	"NAME"		: "TweakScale",
-	"URL"		: "https://github.com/net-lisias-ksp/TweakScale/blob/master/TweakScale.version",
+	"URL"		: "https://raw.githubusercontent.com/net-lisias-ksp/TweakScale/master/TweakScale.version",
 	"DOWNLOAD"	: "https://github.com/net-lisias-ksp/TweakScale/releases",
-	"CHANGE_LOG"	: "https://raw.githubusercontent.com/net-lisias-ksp/TweakScale/CHANGE_LOG.md",
-	"CHANGE_LOG_URL": "https://raw.githubusercontent.com/net-lisias-ksp/TweakScale/CHANGES.md",
+	"CHANGE_LOG"	: "https://raw.githubusercontent.com/net-lisias-ksp/TweakScale/master/CHANGE_LOG.md",
+	"CHANGE_LOG_URL": "https://raw.githubusercontent.com/net-lisias-ksp/TweakScale/master/CHANGES.md",
 	"VERSION":{
 		"MAJOR":2,
 		"MINOR":4,
-		"PATCH":3,
-		"BUILD":4
+		"PATCH":4,
+		"BUILD":0
 		},
 	"KSP_VERSION_MIN":{
 		"MAJOR":1,
 		"MINOR":4,
+		"PATCH":4
+		},
+	"KSP_VERSION_MAX":{
+		"MAJOR":1,
+		"MINOR":11,
 		"PATCH":1
 		}
 }

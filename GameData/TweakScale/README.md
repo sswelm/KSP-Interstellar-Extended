@@ -1,15 +1,20 @@
 # TweakScale /L : Under New Management
+- - - 
+*Lasciate ogne speranza, voi ch'intrate*
+- - - 
 
 **TweakScale** lets you change the size of a part.
 
 **TweakScale /L** is TweakScale under Lisias' management.
+
+**This is a Beta Release** ! Don't use on "production" installs. Patches and interfaces are expected to change between releases.
 
 
 ## In a Hurry
 
 * [Source](https://github.com/net-lisias-ksp/TweakScale)
 	+ [Issue Tracker](https://github.com/net-lisias-ksp/TweakScale/issues)
-	+ [Heterodox Branch](https://github.com/net-lisias-kspu/TweakScale/tree/dev/heterodox)
+	+ [Orthodox (development) Branch](https://github.com/net-lisias-kspu/TweakScale/tree/dev/orthodox)
 		- " *Lasciate ogne speranza, voi ch'intrate* "
 * Documentation
 	+ [Forum](https://forum.kerbalspaceprogram.com/index.php?/topic/179030-141-tweakscale-under-new-management/&)
@@ -18,6 +23,7 @@
 	+ [Install Instructions](https://github.com/net-lisias-ksp/TweakScale/blob/master/INSTALL.md)
 	+ [Change Log](./CHANGE_LOG.md)
 	+ [Known Issues](./KNOWN_ISSUES.md)
+	+ [Road Map](https://github.com/net-lisias-ksp/TweakScale/blob/master/ROAD_MAP.md)
 * Official Distribution Sites:
 	+ [CurseForge](https://kerbal.curseforge.com/projects/tweakscale)
 	+ [SpaceDock](https://spacedock.info/mod/127/TweakScale)
@@ -31,7 +37,7 @@
 
 TweakScale lets you change the size of a part. Not just that, but it will figure out how much fuel is in the resized part. And if it's an engine, it will become more powerful by scaling it bigger, or weaker by scaling it smaller.
 
-
+![uzqeB84.gif](./PR_material/img/uzqeB84.gif)
 
 TweakScale uses Swamp-Ig's KSPAPIExtensions and Module Manager.
 
@@ -75,16 +81,16 @@ Fission reactors, antimatter reactors and antimatter-initiated reactors are not 
 
 ### How to Use
 First add a part that's the wrong size:
-
+![NxMyyTK.png](./PR_material/img/NxMyyTK.png)
 
 Right click:
-
+![BBw1x4M.png](./PR_material/img/BBw1x4M.png)
 
 See how it says 3.75m? Well, the command capsule is 2.5m, so let's change it. You do this by pressing the << >> buttons or dragging the slider.
-
+![LCEiPHP.png](./PR_material/img/LCEiPHP.png)
 
 See how well it fits?
-
+![fAF2xsT.png](./PR_material/img/fAF2xsT.png)
 
 
 ### Examples
@@ -307,11 +313,41 @@ Detailed installation instructions are now on its own file (see the [In a Hurry]
 
 ### License
 
-* [WTFPL](http://www.wtfpl.net), see [here](./LICENSE).
-	+ You are free to:
-		- Do whatever you want!
-	+ Under the following terms:
-		- You follow your heart's desire. :)
+* TweakScale is double licensed as follows:
+	+ [SKL 1.0](https://ksp.lisias.net/SKL-1_0.txt). See [here](./LICENSE.SKL-1_0)
+		+ You are free to:
+			- Use : unpack and use the material in any computer or device
+			- Redistribute : redistribute the original package in any medium
+		+ Under the following terms:
+			- You agree to use the material only on (or to) KSP
+			- You don't alter the package in any form or way (but you can embedded it)
+			- You don't change the material in any way, and retain any copyright notices
+			- You must explicitly state the author's Copyright, as well an Official Site for downloading the original and new versions (the one you used to download is good enough)
+	+ [GPL 2.0](https://www.gnu.org/licenses/gpl-2.0.txt). See [here](./LICENSE.GPL-2_0)
+		+ You are free to:
+			- Use : unpack and use the material in any computer or device
+			- Redistribute : redistribute the original package in any medium
+			- Adapt : Reuse, modify or incorporate source code into your works (and redistribute it!) 
+		+ Under the following terms:
+			- You retain any copyright notices
+			- You recognize and respect any trademarks
+			- You don't impersonate the authors, neither redistribute a derivative that could be misrepresented as theirs.
+			- You credit the author and republish the copyright notices on your works where the code is used.
+			- You relicense (and fully comply) your works using GPL 2.0 (or later)
+			- You don't mix your work with GPL incompatible works.
+	* If by some reason the GPL would be invalid for you, rest assured that you still retain the right to Use the Work under SKL 1.0. 
+* Scale_Redist (`999_Scale_Redist.dll`) is licensed as follows
+	+ [WTFPL](http://www.wtfpl.net), see [here](./Source/Scale_Redist/LICENSE)
+		- You are free to:
+			- Do whatever you want!
+		- Under the following terms:
+			- You follow your heart's desire. :)
+* [Deprecating Patches](./GameData/TweakScale/Deprecating) and [Extra Patches](./Extras/TweakScale) are licensed as follows
+	+ [WTFPL](http://www.wtfpl.net), see [here](./Extras/TweakScale/LICENSE)
+		- You are free to:
+			- Do whatever you want!
+		- Under the following terms:
+			- You follow your heart's desire. :)
 * [KSPe.Light](https://github.com/net-lisias-ksp/KSPAPIExtensions/tree/local/TweakScale) is licensed to TweakScale under [SKL 1.0](https://ksp.lisias.net/SKL-1_0.txt)
 	+ KSPe.Light is a lighweight version of KSPe, a component from KSP API Extensions /L.
 	+ This library is not meant to general public consuption. Use [KSP API Extensions](https://github.com/net-lisias-ksp/KSPAPIExtensions/releases) instead.

@@ -1,0 +1,112 @@
+                    Standard Lisias' (unofficial) KSP License
+                           Version 1.0. March, 25 2018
+                         http://ksp.lisias.net/SOL-1_0.txt
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+0. Preamble
+
+The present License is intended to allow You, the user, to use and redistribute this Work as long as it is not modified and it is applied for KSP enhancement, development and/or promotion.
+
+Absolutely no other right is granted in any form, unless additional licensing terms (DOUBLE LICENSING) are mentioned explicitly on the Work's original documentation.
+
+You must comply with this License. Failing to fully accept these License terms, revokes any rights on this Work, unless additional licensing terms are available.
+
+The Author of this License and Work is not a native English speaker. For any orthographic error, misplaced word or false cognate, it should be understood in such a way this Preamble is satisfied.
+
+While some License terms were inspired by the BSD 2, Apache 2.0 and GPL 2.0 licenses, no affiliation or implications of any forms are intended or accepted.
+
+
+1. Definitions.
+
+"License" shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 9 of this document.
+
+"Licensor" shall mean the copyright owner, owners or entity authorized by the copyright owner(s) that is granting the License.
+
+"Legal Entity" shall mean the union of the acting entity and all other entities that control, are controlled by, or are under common control with that entity. For the purposes of this definition, "control" means:
+
+	(i) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise; or
+
+	(ii) ownership of fifty percent (50%) or more of the outstanding shares; or
+
+	(iii) beneficial ownership of such entity.
+
+"You" (or "Your") shall mean an individual or Legal Entity exercising permissions granted by this License.
+
+"Source" form shall mean the preferred form for making modifications, including (but not limited to) software source code, documentation source, and configuration files.
+
+"Object" form shall mean any form resulting from mechanical transformation or translation of a Source form, including (but not limited to) compiled object code, generated documentation, and conversions to other media types.
+
+"Work" shall mean the work of authorship, whether in Source or Object form, made available under the License, as indicated by a copyright notice that is included in or attached to the work.
+
+"Official Distribution Sites" shall mean http://ksp.lisias.net , any additional/replacement URLs as long as owned by Lisias A. Toledo or his affiliates, ass well the following third parties sites Curse Forge (https://www.curseforge.com/kerbal/ksp-mods), SpaceDock (https://spacedock.info/kerbal-space-program), Kerbal-X (https://kerbalx.com) *AND* CKAN (https://github.com/KSP-CKAN/CKAN) as long no conditions denying this License terms are imposed.
+
+"KSP" shall mean any past, present or future Software package currently (as March 2018) known as Kerbal Space Program (KSP), obtainable from the site https://kerbalspaceprogram.com/kspstore/ (or any other official distribution location) and copyrighted by Squad or Take Two Interactive.
+
+
+2. Grant of Copyright License.
+
+Subject to the terms and conditions of this License, the Licensor hereby grants to You a worldwide, non-exclusive, no-charge, royalty-free, conditioned copyright license to reproduce, publicly display, publicly perform, and distribute the Work in the presented unaltered package form as long as the conditions specified at Items 4 and 5 are satisfied.
+
+The Licensor retains the Right to DOUBLE LICENSE the Work. In such event, You are allowed to choose the License that better suits Your needs. The Termination of the Licensing Terms (see Item 9) does not revoke any rights granted to You by additional License(s). The termination of the licensing terms from eventual additional licenses mandatorily subjects You to fully compliance to this License.
+
+
+3. Grant of Patent License.
+
+Subject to the terms and conditions of this License, the Licensor hereby grants to You a worldwide, non-exclusive, no-charge, royalty-free, conditioned patent license to use the Work under the conditions of this License. If You institute patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Work constitutes direct or contributory patent infringement, then any patent licenses granted to You under this License for the Work shall terminate as of the date such litigation is filed.
+
+
+4. Redistribution.
+
+You may reproduce and further redistribute copies of the Work thereof in any medium, provided that You fulfil the following conditions:
+
+	(a) The Work must not be altered, edited, modified or tampered in any form; and
+
+	(b) You must give any other recipients of the Work a copy of this License in the same form(s) You receive it; and
+
+	(c) You must retain all copyright, patent, trademark, and attribution notices from the Work; and
+
+	(d) The distribution package is not changed, altered, obfuscated or edited in any way; and
+
+	(e) You explicitly mention the Official Distribution Sites as the canonical source of new versions, information and support for the Work; and
+
+	(f) Any and every licensing terms of any companion work that are packaged together the Work are respected and correctly enforced.
+
+
+5. Conditions for Use of the Work.
+
+You are allowed to use the Work as long the conditions presented in this Item are satisfied. Under no circumstances the Work can be used without the fully compliance of the following terms:
+
+	(1) The Work will only be used to produce, fix, promote, enhance or develop add-ons, plugins, modules or any KSP specific artifact including itself. By no means You are allowed to use the Work on or with any artifact intended to be solely used on any other Software than KSP; and
+
+	(2) You agree, accept and acquiesce to all the licensing terms of the Work; and
+
+	(3) You agree, accept and acquiesce to all the licensing terms of KSP; and
+
+	(4) No additional complementary or substituting licensing terms are provided by the Licensor.
+
+
+6. Access or Use of the Source code
+
+This license explicitly DOES NOT grant You any rights on the Work's Source code other that the right to read it as long the Source is available on the Official Distribution Sites, or other location directly linked or pinpointed by the Official Distribution Sites.
+
+
+7. Trademarks.
+
+This License DOES NOT grant permission to use the trade names, trademarks, service marks, or product names of the Licensor, except as required for reasonable and customary use in describing the origin of the Work and reproducing the content of the NOTICE file.
+
+
+8. Disclaimer of Warranty and Limitation of Liability.
+
+The Licensor provides the Work on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, including, without limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely responsible for determining the appropriateness of using or redistributing the Work and assume any risks associated with Your exercise of permissions under this License.
+
+In no event and under no legal theory, whether in tort (including negligence), contract, or otherwise shall the Licensor be liable to You for damages, including any direct, indirect, special, incidental, or consequential damages of any character arising as a result of this License or out of the use or inability to use the Work (including but not limited to damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses).
+
+
+9. Termination of the Licensing Terms
+
+If, as a consequence of a court judgment or allegation of patent infringement or for any other reason (not limited to patent issues), conditions are imposed on You (whether by court order, agreement or otherwise) that contradict any conditions of this License, they do not excuse You from the conditions of this License.
+
+If any portion of this section is held invalid or unenforceable under any particular circumstance, the whole License is Null and Void for You, and You are not allowed to further using and redistributing the Work unless under the terms of an additional license, if present.
+
+
