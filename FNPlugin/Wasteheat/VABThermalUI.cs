@@ -979,7 +979,7 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("Radiator Maximum Convection:"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumConvection"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
             GUILayout.Label(PluginHelper.getFormattedPowerString(_vesselMaxRadConvection), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
@@ -989,7 +989,7 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("Wasteheat Production at") + " " + _bestScenarioPercentage + "% Power", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Wasteheat Production at 100%"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_WasteheatProductionPowerAt") + " " + _bestScenarioPercentage + "% Power", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Wasteheat Production at 100%"
             GUILayout.Label(PluginHelper.getFormattedPowerString(_bestWasteheatPower), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
