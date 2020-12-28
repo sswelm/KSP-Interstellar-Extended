@@ -112,6 +112,8 @@ namespace FNPlugin.Wasteheat
         private double _vesselMaxRadDissipation;
         private double _vesselMaxRadConvectionAndDissipation;
         private double _vesselBaseRadiatorArea;
+        private double _totalConvectiveBonusArea;
+        private double _vesselConvectiveRadiatorArea;
         private double _averageMaxRadTemp;
         private double _averageConvectiveBonus;
         private double _bestScenarioElectricPower;
@@ -551,10 +553,11 @@ namespace FNPlugin.Wasteheat
             _vesselMaxRadDissipation = 0;
             _vesselMaxRadConvection = 0;
             _vesselBaseRadiatorArea = 0;
+            _totalConvectiveBonusArea = 0;
+            _vesselConvectiveRadiatorArea = 0;
 
-            double totalMaxRadTempArea = 0;
+            double totalConvectiveTempArea = 0;
             double totalConvectiveBonusArea = 0;
-            double vesselConvectiveRadiatorArea = 0;
             double submergedRatio = (double)(decimal)submergedPercentage * 0.01;
 
             foreach (FNRadiator radiator in radiators)
@@ -562,7 +565,7 @@ namespace FNPlugin.Wasteheat
                 _numberOfRadiators++;
                 var baseRadiatorArea = radiator.BaseRadiatorArea;
                 _vesselBaseRadiatorArea += baseRadiatorArea;
-                vesselConvectiveRadiatorArea += radiator.radiatorArea;
+                _vesselConvectiveRadiatorArea += radiator.radiatorArea;
 
                 var maxRadTemperature = Math.Min(radiator.MaxRadiatorTemperature, _averageSourceCoreTempAt100Pc);
 
@@ -579,14 +582,14 @@ namespace FNPlugin.Wasteheat
 
                 var tempToPowerFour = maxRadTemperature * maxRadTemperature * maxRadTemperature * maxRadTemperature;
                 _vesselMaxRadDissipation += GameConstants.stefan_const * radiator.EffectiveRadiatorArea * tempToPowerFour / 1e6;
-                totalMaxRadTempArea += maxRadTemperature * baseRadiatorArea;
-                totalConvectiveBonusArea += radiator.radiatorArea * radiator.convectiveBonus;
+                totalConvectiveTempArea += maxRadTemperature * baseRadiatorArea;
+                _totalConvectiveBonusArea += radiator.radiatorArea * radiator.convectiveBonus;
             }
 
             _vesselMaxRadConvectionAndDissipation = _vesselMaxRadConvection + _vesselMaxRadDissipation;
 
-            _averageConvectiveBonus = totalConvectiveBonusArea != 0 ? totalConvectiveBonusArea / vesselConvectiveRadiatorArea : 1;
-            _averageMaxRadTemp = totalMaxRadTempArea != 0 ? totalMaxRadTempArea / _vesselBaseRadiatorArea : double.NaN;
+            _averageConvectiveBonus = totalConvectiveBonusArea != 0 ? _totalConvectiveBonusArea / _vesselConvectiveRadiatorArea : 1;
+            _averageMaxRadTemp = _vesselBaseRadiatorArea != 0 ? totalConvectiveTempArea / _vesselBaseRadiatorArea : double.NaN;
 
             var radRatioConvectionCustom = _vesselMaxRadConvection > 0 && _wasteheatSourcePowerCustom < _vesselMaxRadConvection ?  _wasteheatSourcePowerCustom / _vesselMaxRadConvection: double.NaN;
             var radRatioConvection100Pc = _vesselMaxRadConvection > 0 && _wasteheatSourcePower100Pc < _vesselMaxRadConvection ? _wasteheatSourcePower100Pc / _vesselMaxRadConvection : double.NaN;
@@ -974,8 +977,13 @@ namespace FNPlugin.Wasteheat
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalAreaRadiators") + " (" + _numberOfRadiators + ")", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Area Radiators:"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalAreaRadiators"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Area Radiators:"
             GUILayout.Label(_vesselBaseRadiatorArea.ToString("0.0") + " m\xB2", GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalAreaConvection"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Area Radiators:"
+            GUILayout.Label(_totalConvectiveBonusArea.ToString("0.0") + " m\xB2", GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();

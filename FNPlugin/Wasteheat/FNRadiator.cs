@@ -1548,7 +1548,7 @@ namespace FNPlugin.Wasteheat
         protected virtual double ExternalTemp()
         {
             // subclass may override, if needed
-            return (vessel == null) ? PhysicsGlobals.SpaceTemperature : vessel.externalTemperature;
+            return vessel == null ? PhysicsGlobals.SpaceTemperature : vessel.externalTemperature;
         }
 
         protected void UpdateRadiatorArea()
