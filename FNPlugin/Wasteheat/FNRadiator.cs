@@ -719,10 +719,13 @@ namespace FNPlugin.Wasteheat
         public float partMass;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_ConverctionBonus", guiUnits = "x", guiFormat = "F3")]//Converction Bonus
         public double convectiveBonus = 1;
+
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_EffectiveArea", guiFormat = "F2", guiUnits = " m\xB2")]//Effective Area
         public double effectiveRadiatorArea;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE,  guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
         public double radiatorArea = 1;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive  =  true, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
+        public double baseRadiatorArea;
 
         [KSPField] public string radiatorTypeMk1 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk1");//NaK Loop Radiator
         [KSPField] public string radiatorTypeMk2 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk2");//Mo Li Heat Pipe Mk1
@@ -1776,9 +1779,11 @@ namespace FNPlugin.Wasteheat
 
             UpdateAttachedPartsModifier();
 
+            baseRadiatorArea = BaseRadiatorArea;
+
             var isDeployStateUndefined = _moduleDeployableRadiator == null
-                || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING
-                || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTING;
+                                         || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING
+                                         || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTING;
 
             var canBeActive = showControls && isDeployable && isDeployStateUndefined;
 
