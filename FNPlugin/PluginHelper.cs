@@ -419,8 +419,6 @@ namespace FNPlugin
             resourcesConfigured = true;
         }
 
-
-
         private static bool _warningDisplayed;
 
         public static void ShowInstallationErrorMessage()

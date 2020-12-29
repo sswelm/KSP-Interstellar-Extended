@@ -1461,13 +1461,7 @@ namespace InterstellarFuelSwitch
                 return _researchedTechs != null && _researchedTechs.Contains(techid);
             }
             else
-            {
-                var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
-                if (techstate != null)
-                    return techstate.state == RDTech.State.Available;
-                else
-                    return false;
-            }
+                return ResearchAndDevelopment.GetTechnologyState(techid) == RDTech.State.Available;
         }
 
         private static void LoadSaveFile()
