@@ -649,8 +649,8 @@ namespace FNPlugin.Beamedpower
 
             var relayPersistence = new VesselRelayPersistence(vessel) {IsActive = true};
 
-            if (relayPersistence.IsActive)
-                return relayPersistence;
+            //if (relayPersistence.IsActive)
+            //    return relayPersistence;
 
             foreach (var relay in relays)
             {
