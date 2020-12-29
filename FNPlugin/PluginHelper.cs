@@ -16,6 +16,7 @@ namespace FNPlugin
         public const string WARP_PLUGIN_SETTINGS_FILEPATH = "WarpPlugin/WarpPluginSettings/WarpPluginSettings";
 
         public static bool usingToolbar;
+        protected bool techNodesConfigured;
         protected static bool resourcesConfigured;
 
         private static Dictionary<string, RDTech> _rdTechByName;
@@ -405,6 +406,8 @@ namespace FNPlugin
                 _buttonAdded = true;
             }
 
+            AddMissingTechNodes();
+
             if (resourcesConfigured) return;
 
             // read WarpPluginSettings.cfg
@@ -417,6 +420,41 @@ namespace FNPlugin
             }
 
             resourcesConfigured = true;
+        }
+
+        private void AddMissingTechNodes()
+        {
+            if (techNodesConfigured) return;
+
+            if (ResearchAndDevelopment.Instance == null) return;
+
+            techNodesConfigured = true;
+            AssetBase.RnDTechTree.ReLoad();
+            List<ProtoRDNode> rdNodes = AssetBase.RnDTechTree.GetTreeNodes().ToList();
+
+            if (ResearchAndDevelopment.GetTechnologyState("advHeatManagement") == RDTech.State.Available &&
+                ResearchAndDevelopment.GetTechnologyState("intermediateHeatManagement") == RDTech.State.Unavailable)
+            {
+                //for some reason, FindNodeByID is not a static method and you need a reference
+                if (rdNodes[0].FindNodeByID("intermediateHeatManagement", rdNodes) is ProtoRDNode rdNode)
+                {
+                    rdNode.tech.state = RDTech.State.Available;
+                    ResearchAndDevelopment.Instance.SetTechState(rdNode.tech.techID, rdNode.tech);
+                    ResearchAndDevelopment.Instance.UnlockProtoTechNode(rdNode.tech);
+                }
+            }
+
+            if (ResearchAndDevelopment.GetTechnologyState("specializedRadiators") == RDTech.State.Available &&
+                ResearchAndDevelopment.GetTechnologyState("experimentalHeatManagement") == RDTech.State.Unavailable)
+            {
+                //for some reason, FindNodeByID is not a static method and you need a reference
+                if (rdNodes[0].FindNodeByID("experimentalHeatManagement", rdNodes) is ProtoRDNode rdNode)
+                {
+                    rdNode.tech.state = RDTech.State.Available;
+                    ResearchAndDevelopment.Instance.SetTechState(rdNode.tech.techID, rdNode.tech);
+                    ResearchAndDevelopment.Instance.UnlockProtoTechNode(rdNode.tech);
+                }
+            }
         }
 
         private static bool _warningDisplayed;
