@@ -432,6 +432,18 @@ namespace FNPlugin
             AssetBase.RnDTechTree.ReLoad();
             List<ProtoRDNode> rdNodes = AssetBase.RnDTechTree.GetTreeNodes().ToList();
 
+            if (ResearchAndDevelopment.GetTechnologyState("extremeNuclearPropulsion") == RDTech.State.Available &&
+                ResearchAndDevelopment.GetTechnologyState("highPowerExoticNuclearPropulsion") == RDTech.State.Unavailable)
+            {
+                //for some reason, FindNodeByID is not a static method and you need a reference
+                if (rdNodes[0].FindNodeByID("highPowerExoticNuclearPropulsion", rdNodes) is ProtoRDNode rdNode)
+                {
+                    rdNode.tech.state = RDTech.State.Available;
+                    ResearchAndDevelopment.Instance.SetTechState(rdNode.tech.techID, rdNode.tech);
+                    ResearchAndDevelopment.Instance.UnlockProtoTechNode(rdNode.tech);
+                }
+            }
+
             if (ResearchAndDevelopment.GetTechnologyState("advHeatManagement") == RDTech.State.Available &&
                 ResearchAndDevelopment.GetTechnologyState("intermediateHeatManagement") == RDTech.State.Unavailable)
             {
