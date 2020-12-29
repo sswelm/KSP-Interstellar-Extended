@@ -1115,6 +1115,8 @@ namespace FNPlugin.Powermanagement
 
         public override void OnPostResourceSuppliable(double fixedDeltaTime)
         {
+            if (attachedPowerSource == null) return;
+
             double totalPowerReceived;
 
             double postThermalPowerReceived = 0;

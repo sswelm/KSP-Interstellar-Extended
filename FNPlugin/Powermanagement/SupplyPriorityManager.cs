@@ -9,7 +9,7 @@ namespace FNPlugin.Powermanagement
     {
         private static Dictionary<Vessel, SupplyPriorityManager> supply_priority_managers = new Dictionary<Vessel, SupplyPriorityManager>();
 
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
         public Vessel Vessel { get; private set; }
         public PartModule ProcessingPart { get; private set; }
 
@@ -25,13 +25,13 @@ namespace FNPlugin.Powermanagement
             if (vessel == null)
                 return null;
 
-            if (!supply_priority_managers.TryGetValue(vessel, out var manager))
-            {
-                Debug.Log("[KSPI]: Creating new supply priority manager for " + vessel.GetName());
-                manager = new SupplyPriorityManager(vessel);
+            if (supply_priority_managers.TryGetValue(vessel, out var manager))
+                return manager;
 
-                supply_priority_managers.Add(vessel, manager);
-            }
+            Debug.Log("[KSPI]: Creating new supply priority manager for " + vessel.GetName());
+            manager = new SupplyPriorityManager(vessel);
+
+            supply_priority_managers.Add(vessel, manager);
             return manager;
         }
 

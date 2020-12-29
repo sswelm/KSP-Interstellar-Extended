@@ -184,11 +184,7 @@ namespace FNPlugin
             if (ResearchAndDevelopment.Instance == null)
                 return HasTechFromSaveFile(id);
 
-            var techState = ResearchAndDevelopment.Instance.GetTechState(id);
-            if (techState != null)
-                return techState.state == RDTech.State.Available;
-            else
-                return false;
+            return ResearchAndDevelopment.GetTechnologyState(id) == RDTech.State.Available;
         }
 
         private static HashSet<string> _researchedTechs;
@@ -409,8 +405,6 @@ namespace FNPlugin
                 _buttonAdded = true;
             }
 
-            this.enabled = true;
-
             if (resourcesConfigured) return;
 
             // read WarpPluginSettings.cfg
@@ -424,6 +418,8 @@ namespace FNPlugin
 
             resourcesConfigured = true;
         }
+
+
 
         private static bool _warningDisplayed;
 
@@ -473,6 +469,5 @@ namespace FNPlugin
                 return _mainFont;
             }
         }
-
     }
 }
