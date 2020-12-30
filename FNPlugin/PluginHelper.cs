@@ -432,52 +432,35 @@ namespace FNPlugin
             AssetBase.RnDTechTree.ReLoad();
             var rdNodes = AssetBase.RnDTechTree.GetTreeNodes().ToList();
 
-            if (ResearchAndDevelopment.GetTechnologyState("ionPropulsion") == RDTech.State.Available &&
-                ResearchAndDevelopment.GetTechnologyState("experimentalPropulsion") == RDTech.State.Unavailable)
+            if (!(rdNodes[0].FindNodeByID("start", rdNodes) is ProtoRDNode startNode)) return;
+
+            foreach (var childNode in startNode.children)
             {
-                //for some reason, FindNodeByID is not a static method and you need a reference
-                if (rdNodes[0].FindNodeByID("experimentalPropulsion", rdNodes) is ProtoRDNode rdNode)
-                {
-                    rdNode.tech.state = RDTech.State.Available;
-                    ResearchAndDevelopment.Instance.SetTechState(rdNode.tech.techID, rdNode.tech);
-                    ResearchAndDevelopment.Instance.UnlockProtoTechNode(rdNode.tech);
-                }
+                UnlockChildrenRecursively(childNode);
+            }
+        }
+
+        private void UnlockChildrenRecursively(ProtoRDNode parent)
+        {
+            foreach (var childNode in parent.children)
+            {
+                UnlockChildrenRecursively(childNode);
             }
 
-            if (ResearchAndDevelopment.GetTechnologyState("extremeNuclearPropulsion") == RDTech.State.Available &&
-                ResearchAndDevelopment.GetTechnologyState("highPowerExoticNuclearPropulsion") == RDTech.State.Unavailable)
-            {
-                //for some reason, FindNodeByID is not a static method and you need a reference
-                if (rdNodes[0].FindNodeByID("highPowerExoticNuclearPropulsion", rdNodes) is ProtoRDNode rdNode)
-                {
-                    rdNode.tech.state = RDTech.State.Available;
-                    ResearchAndDevelopment.Instance.SetTechState(rdNode.tech.techID, rdNode.tech);
-                    ResearchAndDevelopment.Instance.UnlockProtoTechNode(rdNode.tech);
-                }
-            }
+            UnlockParent(parent);
+        }
 
-            if (ResearchAndDevelopment.GetTechnologyState("advHeatManagement") == RDTech.State.Available &&
-                ResearchAndDevelopment.GetTechnologyState("intermediateHeatManagement") == RDTech.State.Unavailable)
-            {
-                //for some reason, FindNodeByID is not a static method and you need a reference
-                if (rdNodes[0].FindNodeByID("intermediateHeatManagement", rdNodes) is ProtoRDNode rdNode)
-                {
-                    rdNode.tech.state = RDTech.State.Available;
-                    ResearchAndDevelopment.Instance.SetTechState(rdNode.tech.techID, rdNode.tech);
-                    ResearchAndDevelopment.Instance.UnlockProtoTechNode(rdNode.tech);
-                }
-            }
+        private void UnlockParent(ProtoRDNode childNode)
+        {
+            if (childNode.tech.state == RDTech.State.Unavailable) return;
 
-            if (ResearchAndDevelopment.GetTechnologyState("specializedRadiators") == RDTech.State.Available &&
-                ResearchAndDevelopment.GetTechnologyState("experimentalHeatManagement") == RDTech.State.Unavailable)
+            foreach (ProtoRDNode parentNode in childNode.parents)
             {
-                //for some reason, FindNodeByID is not a static method and you need a reference
-                if (rdNodes[0].FindNodeByID("experimentalHeatManagement", rdNodes) is ProtoRDNode rdNode)
-                {
-                    rdNode.tech.state = RDTech.State.Available;
-                    ResearchAndDevelopment.Instance.SetTechState(rdNode.tech.techID, rdNode.tech);
-                    ResearchAndDevelopment.Instance.UnlockProtoTechNode(rdNode.tech);
-                }
+                if (parentNode.tech.state == RDTech.State.Available) continue;
+
+                parentNode.tech.state = RDTech.State.Available;
+                ResearchAndDevelopment.Instance.SetTechState(parentNode.tech.techID, parentNode.tech);
+                ResearchAndDevelopment.Instance.UnlockProtoTechNode(parentNode.tech);
             }
         }
 
