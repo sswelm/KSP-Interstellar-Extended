@@ -143,12 +143,5 @@ namespace PhotonSail
                 return rdTechByName;
             }
         }
-
-        public static bool TechnologyIsInUse => HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX;
-
-        public static int HasTech(string techid, int increase)
-        {
-            return ResearchAndDevelopment.Instance.GetTechState(techid) != null ? increase : 0;
-        }
     }
 }
