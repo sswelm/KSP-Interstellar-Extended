@@ -231,8 +231,8 @@ namespace FNPlugin
             solar_supply = _outputType == ResourceType.megajoule ? solarRate : solarRate / GameConstants.ecPerMJ;
             solarMaxSupply = _outputType == ResourceType.megajoule ? maxSupply : maxSupply / GameConstants.ecPerMJ;
 
-            mjSolarSupply = PluginHelper.getFormattedPowerString(supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceSettings.Config.ElectricPowerInMegawatt));
-            mjMaxSupply = PluginHelper.getFormattedPowerString(solarMaxSupply);
+            mjSolarSupply = PluginHelper.GetFormattedPowerString(supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceSettings.Config.ElectricPowerInMegawatt));
+            mjMaxSupply = PluginHelper.GetFormattedPowerString(solarMaxSupply);
         }
 
         private void CalculateSolarFlowRate(double efficiency, ref double maximumSupply, ref double solarPowerRate)

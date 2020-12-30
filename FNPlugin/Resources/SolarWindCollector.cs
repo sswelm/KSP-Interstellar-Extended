@@ -716,8 +716,8 @@ namespace FNPlugin.Resources
                 dPowerRequirementsMw = 0;
             }
 
-            strReceivedPower = PluginHelper.getFormattedPowerString(dLastPowerRatio * dPowerRequirementsMw) + " / " +
-                PluginHelper.getFormattedPowerString(dPowerRequirementsMw);
+            strReceivedPower = PluginHelper.GetFormattedPowerString(dLastPowerRatio * dPowerRequirementsMw) + " / " +
+                PluginHelper.GetFormattedPowerString(dPowerRequirementsMw);
 
             // get the shielding effect provided by the magnetosphere
             magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.GetMaxAtmosphericAltitude(vessel.mainBody));

@@ -2183,19 +2183,19 @@ namespace FNPlugin.Reactors
             {
 
                 sb.Append(headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_ReactorPower")).AppendLine(":</color><size=10>");
-                sb.Append("Mk1: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk1));
+                sb.Append("Mk1: ").AppendLine(PluginHelper.GetFormattedPowerString(powerOutputMk1));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk2))
-                    sb.Append("Mk2: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk2));
+                    sb.Append("Mk2: ").AppendLine(PluginHelper.GetFormattedPowerString(powerOutputMk2));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk3))
-                    sb.Append("Mk3: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk3));
+                    sb.Append("Mk3: ").AppendLine(PluginHelper.GetFormattedPowerString(powerOutputMk3));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk4))
-                    sb.Append("Mk4: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk4));
+                    sb.Append("Mk4: ").AppendLine(PluginHelper.GetFormattedPowerString(powerOutputMk4));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk5))
-                    sb.Append("Mk5: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk5));
+                    sb.Append("Mk5: ").AppendLine(PluginHelper.GetFormattedPowerString(powerOutputMk5));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk6))
-                    sb.Append("Mk6: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk6));
+                    sb.Append("Mk6: ").AppendLine(PluginHelper.GetFormattedPowerString(powerOutputMk6));
                 if (!string.IsNullOrEmpty(upgradeTechReqMk7))
-                    sb.Append("Mk7: ").AppendLine(PluginHelper.getFormattedPowerString(powerOutputMk7));
+                    sb.Append("Mk7: ").AppendLine(PluginHelper.GetFormattedPowerString(powerOutputMk7));
                 sb.AppendLine("</size>");
             }
 
@@ -2678,12 +2678,12 @@ namespace FNPlugin.Reactors
 
                 WindowReactorControlSpecificOverride();
 
-                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxPowerOutputLabel"), PluginHelper.getFormattedPowerString(ongoing_total_power_generated) + " / " + PluginHelper.getFormattedPowerString(NormalisedMaximumPower), boldStyle, textStyle);//"Current/Max Power Output"
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxPowerOutputLabel"), PluginHelper.GetFormattedPowerString(ongoing_total_power_generated) + " / " + PluginHelper.GetFormattedPowerString(NormalisedMaximumPower), boldStyle, textStyle);//"Current/Max Power Output"
 
                 if (ChargedPowerRatio < 1.0)
-                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxThermalPower"), PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated) + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower), boldStyle, textStyle);//"Current/Max Thermal Power"
+                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxThermalPower"), PluginHelper.GetFormattedPowerString(ongoing_thermal_power_generated) + " / " + PluginHelper.GetFormattedPowerString(MaximumThermalPower), boldStyle, textStyle);//"Current/Max Thermal Power"
                 if (ChargedPowerRatio > 0)
-                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxChargedPower"), PluginHelper.getFormattedPowerString(ongoing_charged_power_generated) + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower), boldStyle, textStyle);//"Current/Max Charged Power"
+                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CurrentMaxChargedPower"), PluginHelper.GetFormattedPowerString(ongoing_charged_power_generated) + " / " + PluginHelper.GetFormattedPowerString(MaximumChargedPower), boldStyle, textStyle);//"Current/Max Charged Power"
 
                 if (CurrentFuelMode != null && currentFuelVariant.ReactorFuels != null)
                 {

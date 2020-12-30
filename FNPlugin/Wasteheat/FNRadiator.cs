@@ -1839,8 +1839,8 @@ namespace FNPlugin.Wasteheat
 
             if (radiatorIsEnabled && canRadiateHeat)
             {
-                thermalPowerDissipStr = PluginHelper.getFormattedPowerString(_radiatedThermalPower);
-                thermalPowerConvStr = PluginHelper.getFormattedPowerString(_convectedThermalPower);
+                thermalPowerDissipStr = PluginHelper.GetFormattedPowerString(_radiatedThermalPower);
+                thermalPowerConvStr = PluginHelper.GetFormattedPowerString(_convectedThermalPower);
             }
             else
             {
@@ -2179,24 +2179,24 @@ namespace FNPlugin.Wasteheat
 
             sb.Append(Localizer.Format("#LOC_KSPIE_Radiator_MaximumWasteHeatRadiatedMk1")).Append(" ");//\nMaximum Waste Heat Radiated\nMk1:
             sb.Append(RadiatorProperties.RadiatorTemperatureMk1.ToString("F0")).Append(" K, ");
-            sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk1, 4)));
+            sb.AppendLine(PluginHelper.GetFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk1, 4)));
 
             sb.Append("Mk2: ").Append(RadiatorProperties.RadiatorTemperatureMk2.ToString("F0")).Append(" K, ");
-            sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk2, 4)));
+            sb.AppendLine(PluginHelper.GetFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk2, 4)));
 
             sb.Append("Mk3: ").Append(RadiatorProperties.RadiatorTemperatureMk3.ToString("F0")).Append(" K, ");
-            sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk3, 4)));
+            sb.AppendLine(PluginHelper.GetFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk3, 4)));
 
             sb.Append("Mk4: ").Append(RadiatorProperties.RadiatorTemperatureMk4.ToString("F0")).Append(" K, ");
-            sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk4, 4)));
+            sb.AppendLine(PluginHelper.GetFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk4, 4)));
 
             if (!string.IsNullOrEmpty(surfaceAreaUpgradeTechReq))
             {
                 sb.Append("Mk5: ").Append(RadiatorProperties.RadiatorTemperatureMk5.ToString("F0")).Append(" K, ");
-                sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk5, 4)));
+                sb.AppendLine(PluginHelper.GetFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk5, 4)));
 
                 sb.Append("Mk6: ").Append(RadiatorProperties.RadiatorTemperatureMk6.ToString("F0")).Append(" K, ");
-                sb.AppendLine(PluginHelper.getFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4)));
+                sb.AppendLine(PluginHelper.GetFormattedPowerString(_stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4)));
 
                 var convection = effectiveRadiatorArea * convectiveBonus;
                 var dissipation = _stefanArea * Math.Pow(900, 4);

@@ -225,19 +225,19 @@ namespace FNPlugin.Powermanagement
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_TheoreticalSupply"), left_bold_label, GUILayout.ExpandWidth(true));//"Theoretical Supply"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(StableResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(StableResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentSupply"), left_bold_label, GUILayout.ExpandWidth(true));//"Current Supply"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(ResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(ResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
             DoWindowInitial();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_PowerDemand"), left_bold_label, GUILayout.ExpandWidth(true));//"Power Demand"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(ResourceDemand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(ResourceDemand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -246,7 +246,7 @@ namespace FNPlugin.Powermanagement
 
             GUIStyle net_poer_style = netChange < -0.001 ? red_label : green_label;
 
-            GUILayout.Label(PluginHelper.getFormattedPowerString(netChange), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(netChange), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
             GUILayout.EndHorizontal();
 
             if (!netUtilization.IsInfinityOrNaN() && (resourceName != ResourceSettings.Config.ElectricPowerInMegawatt || netUtilization < 2.0 || ResourceSupply >= last.Demand))
@@ -296,8 +296,8 @@ namespace FNPlugin.Powermanagement
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(production.Component, left_aligned_label, GUILayout.ExpandWidth(true));
-                    GUILayout.Label(PluginHelper.getFormattedPowerString(production.AverageSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
-                    GUILayout.Label(PluginHelper.getFormattedPowerString(production.MaximumSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                    GUILayout.Label(PluginHelper.GetFormattedPowerString(production.AverageSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                    GUILayout.Label(PluginHelper.GetFormattedPowerString(production.MaximumSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
                     GUILayout.EndHorizontal();
                 }
             }
@@ -340,7 +340,7 @@ namespace FNPlugin.Powermanagement
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(consumption.Component, left_aligned_label, GUILayout.ExpandWidth(true));
-                    GUILayout.Label(PluginHelper.getFormattedPowerString(consumption.Sum), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                    GUILayout.Label(PluginHelper.GetFormattedPowerString(consumption.Sum), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
                     GUILayout.Label(consumption.Priority.ToString(), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PRIORITY_WIDTH));
                     GUILayout.EndHorizontal();
                 }

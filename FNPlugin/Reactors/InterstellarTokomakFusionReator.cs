@@ -61,7 +61,7 @@ namespace FNPlugin.Reactors
                 fusion_alert = true;
             }
 
-            electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(heatingPowerRequirements);
+            electricPowerMaintenance = PluginHelper.GetFormattedPowerString(power_consumed) + " / " + PluginHelper.GetFormattedPowerString(heatingPowerRequirements);
         }
 
         private double GetPlasmaRatio(double receivedPowerPerSecond, double fusionPowerRequirement)

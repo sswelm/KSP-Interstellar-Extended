@@ -22,7 +22,6 @@ namespace FNPlugin.Wasteheat
 
         private int _maxIterations = 10;
         private int _bestScenarioPercentage;
-        private int _numberOfRadiators;
         private int _thermalWindowId = 825462;
         private bool _hasThermalGenerators;
 
@@ -131,7 +130,7 @@ namespace FNPlugin.Wasteheat
             if (!RenderWindow)
                 return;
 
-            // thermal logic
+            // Thermal logic
             var thermalSources = new List<IFNPowerSource>();
             var radiators = new List<FNRadiator>();
             var generators = new List<FNGenerator>();
@@ -214,7 +213,7 @@ namespace FNPlugin.Wasteheat
                 var connectedThermalPowerGenerator = (IFNElectricPowerGeneratorSource)powerSource.ConnectedThermalElectricGenerator;
                 var connectedChargedPowerGenerator = (IFNElectricPowerGeneratorSource)powerSource.ConnectedChargedParticleElectricGenerator;
 
-                // when connected to a thermal source, assume most thermal energy thermal power can end up in the radiators
+                // when connected to a Thermal source, assume most thermal energy Thermal power can end up in the radiators
                 if (connectedThermalPowerGenerator != null)
                     combinedRawSourcePower += (1 - powerSource.ChargedPowerRatio) * connectedThermalPowerGenerator.RawGeneratorSourcePower;
                 else
@@ -549,7 +548,6 @@ namespace FNPlugin.Wasteheat
 
             CalculateGeneratedElectricPower(generators);
 
-            _numberOfRadiators = 0;
             _vesselMaxRadDissipation = 0;
             _vesselMaxRadConvection = 0;
             _vesselBaseRadiatorArea = 0;
@@ -562,7 +560,6 @@ namespace FNPlugin.Wasteheat
 
             foreach (FNRadiator radiator in radiators)
             {
-                _numberOfRadiators++;
                 var baseRadiatorArea = radiator.BaseRadiatorArea;
                 _vesselBaseRadiatorArea += baseRadiatorArea;
                 _vesselConvectiveRadiatorArea += radiator.radiatorArea;
@@ -973,7 +970,7 @@ namespace FNPlugin.Wasteheat
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_TotalHeatProduction"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Total Heat Production:"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_totalSourcePower), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(_totalSourcePower), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -988,22 +985,22 @@ namespace FNPlugin.Wasteheat
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumConvection"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_vesselMaxRadConvection), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(_vesselMaxRadConvection), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RadiatorMaximumDissipation"), _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Radiator Maximum Dissipation:"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_vesselMaxRadDissipation), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(_vesselMaxRadDissipation), _radiatorLabel, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_WasteheatProductionPowerAt") + " " + _bestScenarioPercentage + "% Power", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Wasteheat Production at 100%"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_bestWasteheatPower), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(_bestWasteheatPower), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_RestingElectricPowerAt") + " " + _bestScenarioPercentage + "% Power", _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Resting Electric Power at"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_bestScenarioElectricPower), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(_bestScenarioElectricPower), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -1017,7 +1014,7 @@ namespace FNPlugin.Wasteheat
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_WasteheatProductionAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Wasteheat Production at "
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_wasteheatSourcePowerCustom), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(_wasteheatSourcePowerCustom), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -1042,7 +1039,7 @@ namespace FNPlugin.Wasteheat
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_ElectricPowerOutputAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth);//"Electric Power Output at"
-            GUILayout.Label(PluginHelper.getFormattedPowerString(_electricPowerAtCustom), GUILayout.ExpandWidth(false), guiValueWidth);
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(_electricPowerAtCustom), GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.EndVertical();

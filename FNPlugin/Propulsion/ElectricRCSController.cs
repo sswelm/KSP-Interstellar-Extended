@@ -148,8 +148,8 @@ namespace FNPlugin.Propulsion
                     }
                     storedPower = totalPower;
                 }
-                powerConsumptionStr = PluginHelper.getFormattedPowerString(received) + " / " +
-                    PluginHelper.getFormattedPowerString(requested);
+                powerConsumptionStr = PluginHelper.GetFormattedPowerString(received) + " / " +
+                    PluginHelper.GetFormattedPowerString(requested);
 
                 if (hasSufficientPower != powerConsumed)
                 {

@@ -65,8 +65,8 @@ namespace FNPlugin.Powermanagement
 
         public override void OnUpdate()
         {
-            maximumPowerSupply = PluginHelper.getFormattedPowerString(maximumPowerSupplyInMegaWatt);
-            currentPowerSupply = PluginHelper.getFormattedPowerString(currentPowerSupplyInMegaWatt);
+            maximumPowerSupply = PluginHelper.GetFormattedPowerString(maximumPowerSupplyInMegaWatt);
+            currentPowerSupply = PluginHelper.GetFormattedPowerString(currentPowerSupplyInMegaWatt);
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
@@ -155,7 +155,7 @@ namespace FNPlugin.Powermanagement
 
         public override string GetInfo()
         {
-            return "Maximum Power: " + PluginHelper.getFormattedPowerString(maximumPowerCapacity);
+            return "Maximum Power: " + PluginHelper.GetFormattedPowerString(maximumPowerCapacity);
         }
     }
 }

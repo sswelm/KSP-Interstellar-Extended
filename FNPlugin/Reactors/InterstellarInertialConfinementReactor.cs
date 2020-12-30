@@ -178,7 +178,7 @@ namespace FNPlugin.Reactors
         public override void OnUpdate()
         {
             if (isChargingField.guiActive)
-                accumulatedChargeStr = PluginHelper.getFormattedPowerString(accumulatedElectricChargeInMW) + " / " + PluginHelper.getFormattedPowerString(StartupPower);
+                accumulatedChargeStr = PluginHelper.GetFormattedPowerString(accumulatedElectricChargeInMW) + " / " + PluginHelper.GetFormattedPowerString(StartupPower);
             else if (part.vessel.geeForce > startupMaximumGeforce)
                 accumulatedChargeStr = part.vessel.geeForce.ToString("F2") + "g > " + startupMaximumGeforce.ToString("F2") + "g";
             else
@@ -186,7 +186,7 @@ namespace FNPlugin.Reactors
 
             accumulatedChargeStrField.guiActive = plasma_ratio < 1;
 
-            electricPowerMaintenance = PluginHelper.getFormattedPowerString(_powerConsumed) + " / " + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
+            electricPowerMaintenance = PluginHelper.GetFormattedPowerString(_powerConsumed) + " / " + PluginHelper.GetFormattedPowerString(LaserPowerRequirements);
 
             if (startupAnimation != null && !initialized)
             {

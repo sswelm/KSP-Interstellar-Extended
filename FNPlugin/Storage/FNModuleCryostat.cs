@@ -221,8 +221,8 @@ namespace FNPlugin
 
         private void UpdatePowerStatusString()
         {
-            powerStatusStr = PluginHelper.getFormattedPowerString(recievedPowerKW / GameConstants.ecPerMJ) +
-                " / " + PluginHelper.getFormattedPowerString(currentPowerReq / GameConstants.ecPerMJ);
+            powerStatusStr = PluginHelper.GetFormattedPowerString(recievedPowerKW / GameConstants.ecPerMJ) +
+                " / " + PluginHelper.GetFormattedPowerString(currentPowerReq / GameConstants.ecPerMJ);
         }
 
         // FixedUpdate is also called while not staged

@@ -1367,7 +1367,7 @@ namespace FNPlugin.Beamedpower
             if (IsThermalSource)
                 coreTempererature = CoreTemperature.ToString("0.0") + " K";
 
-            beamedpower = receiverIsEnabled ? PluginHelper.getFormattedPowerString(ProducedPower) : Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_BeamPowerOffline");
+            beamedpower = receiverIsEnabled ? PluginHelper.GetFormattedPowerString(ProducedPower) : Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_BeamPowerOffline");
 
             connectedsats = $"{connectedsatsi}/{BeamedPowerSources.instance.globalTransmitters.Count}";
             connectedrelays = $"{connectedrelaysi}/{BeamedPowerSources.instance.globalRelays.Count}";
@@ -1424,9 +1424,9 @@ namespace FNPlugin.Beamedpower
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel2"), diameter.ToString("F2"), bold_black_style, text_black_style, 200, 400);//"Receiver Diameter"
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel3"), part.vessel.mainBody.name + " @ " + DistanceToText(part.vessel.altitude), bold_black_style, text_black_style, 200, 400);//"Receiver Location"
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel4"), powerCapacityEfficiency.ToString("P1"), bold_black_style, text_black_style, 200, 400);//"Power Capacity Efficiency"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel5"), PluginHelper.getFormattedPowerString(total_beamed_power), bold_black_style, text_black_style, 200, 400);//"Total Current Beamed Power"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel6"), PluginHelper.getFormattedPowerString(total_beamed_power_max), bold_black_style, text_black_style, 200, 400);//"Total Maximum Beamed Power"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel7"), PluginHelper.getFormattedPowerString(total_beamed_wasteheat), bold_black_style, text_black_style, 200, 400);//"Total Wasteheat Production"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel5"), PluginHelper.GetFormattedPowerString(total_beamed_power), bold_black_style, text_black_style, 200, 400);//"Total Current Beamed Power"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel6"), PluginHelper.GetFormattedPowerString(total_beamed_power_max), bold_black_style, text_black_style, 200, 400);//"Total Maximum Beamed Power"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel7"), PluginHelper.GetFormattedPowerString(total_beamed_wasteheat), bold_black_style, text_black_style, 200, 400);//"Total Wasteheat Production"
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel8"), bold_black_style, GUILayout.Width(labelWidth));//"Transmitter"
@@ -1454,13 +1454,13 @@ namespace FNPlugin.Beamedpower
                 GUILayout.Label(receivedPowerData.Transmitter.Vessel.mainBody.name + " @ " + DistanceToText(receivedPowerData.Transmitter.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
                 GUILayout.Label((receivedPowerData.Transmitter.Aperture).ToString("##.######") + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label(receivedPowerData.Route.FacingFactor.ToString("P3"), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(PluginHelper.getFormattedPowerString(receivedPowerData.TransmitPower), text_black_style, GUILayout.Width(valueWidthWide));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.TransmitPower), text_black_style, GUILayout.Width(valueWidthWide));
                 GUILayout.Label(DistanceToText(receivedPowerData.Route.Distance), text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label(SpotsizeToText(receivedPowerData.Route.Spotsize), text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label(receivedPowerData.Wavelengths, text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(PluginHelper.getFormattedPowerString(receivedPowerData.NetworkPower), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(PluginHelper.getFormattedPowerString(receivedPowerData.AvailablePower), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(PluginHelper.getFormattedPowerString(receivedPowerData.ConsumedPower), text_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.NetworkPower), text_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.AvailablePower), text_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.ConsumedPower), text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label(receivedPowerData.Route.Efficiency.ToString("P2"), text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label((receivedPowerData.ReceiverEfficiency * 0.01).ToString("P1"), text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.EndHorizontal();
@@ -1493,7 +1493,7 @@ namespace FNPlugin.Beamedpower
                         GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistence.Vessel.name, text_black_style, GUILayout.Width(wideLabelWidth));
                         GUILayout.Label(vesselPersistence.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistence.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
-                        GUILayout.Label(PluginHelper.getFormattedPowerString(vesselPersistence.PowerCapacity), text_black_style, GUILayout.Width(valueWidthWide));
+                        GUILayout.Label(PluginHelper.GetFormattedPowerString(vesselPersistence.PowerCapacity), text_black_style, GUILayout.Width(valueWidthWide));
                         GUILayout.Label(vesselPersistence.Aperture + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistence.Diameter + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(WavelengthToText(vesselPersistence.MinimumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));

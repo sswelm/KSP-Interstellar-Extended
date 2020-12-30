@@ -297,7 +297,7 @@ namespace FNPlugin
                 return vessel.mainBody.scienceValues.InSpaceHighDataValue;
         }
 
-        public static string getFormattedPowerString(double power)
+        public static string GetFormattedPowerString(double power)
         {
             var absPower = Math.Abs(power);
             string suffix;

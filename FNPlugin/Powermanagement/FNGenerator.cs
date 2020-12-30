@@ -677,7 +677,7 @@ namespace FNPlugin.Powermanagement
                     powerUsageEfficiency = 1;
 
                 var rawMaximumPower = attachedPowerSource.RawMaximumPowerForPowerGeneration * powerUsageEfficiency;
-                maximumTheoreticalPower = PluginHelper.getFormattedPowerString(rawMaximumPower * CapacityRatio * maxEfficiency);
+                maximumTheoreticalPower = PluginHelper.GetFormattedPowerString(rawMaximumPower * CapacityRatio * maxEfficiency);
 
                 // verify if mass calculation is active
                 if (!calculatedMass)
@@ -792,7 +792,7 @@ namespace FNPlugin.Powermanagement
                 var percentOutputPower = _totalEff * 100.0;
                 var outputPowerReport = -outputPower;
 
-                OutputPower = PluginHelper.getFormattedPowerString(outputPowerReport);
+                OutputPower = PluginHelper.GetFormattedPowerString(outputPowerReport);
                 overallEfficiencyStr = percentOutputPower.ToString("0.00") + "%";
 
                 maximumElectricPower = (_totalEff >= 0)
@@ -801,7 +801,7 @@ namespace FNPlugin.Powermanagement
                         : PowerRatio * _totalEff * maxChargedPowerForChargedGenerator
                     : 0;
 
-                MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower);
+                MaxPowerStr = PluginHelper.GetFormattedPowerString(maximumElectricPower);
             }
             else
                 OutputPower = Localizer.Format("#LOC_KSPIE_Generator_Offline");//"Generator Offline"

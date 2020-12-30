@@ -352,8 +352,8 @@ namespace FNPlugin.Resources
                 dPowerRequirementsMW = 0;
             }
 
-            strReceivedPower = PluginHelper.getFormattedPowerString(dLastPowerPercentage * dPowerRequirementsMW) + " / " +
-                PluginHelper.getFormattedPowerString(dPowerRequirementsMW);
+            strReceivedPower = PluginHelper.GetFormattedPowerString(dLastPowerPercentage * dPowerRequirementsMW) + " / " +
+                PluginHelper.GetFormattedPowerString(dPowerRequirementsMW);
 
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.

@@ -693,7 +693,7 @@ namespace FNPlugin.Propulsion
                 Fields[nameof(heatProductionStr)].guiActive = true;
                 Fields[nameof(efficiencyStr)].guiActive = true;
                 electricalPowerShareStr = _electricalShareF.ToString("P2");
-                heatProductionStr = PluginHelper.getFormattedPowerString(_heatProductionF);
+                heatProductionStr = PluginHelper.GetFormattedPowerString(_heatProductionF);
 
                 if (CurrentPropellant == null)
                     efficiencyStr = "";
@@ -1052,7 +1052,7 @@ namespace FNPlugin.Propulsion
 
         public override string GetInfo()
         {
-            return Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + ": " + PluginHelper.getFormattedPowerString(maxPower * powerReqMult);
+            return Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + ": " + PluginHelper.GetFormattedPowerString(maxPower * powerReqMult);
         }
 
         public override string getResourceManagerDisplayName()
