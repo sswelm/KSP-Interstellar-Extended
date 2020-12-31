@@ -598,7 +598,7 @@ namespace FNPlugin
             {
                 var ratio = waterPartResource.amount / waterPartResource.maxAmount;
                 waterPartResource.maxAmount = water;
-                waterPartResource.amount = water * waterPartResource.maxAmount;
+                waterPartResource.amount = ratio * waterPartResource.maxAmount;
             }
 
             var oxygenPartResource = part.Resources[ResourceSettings.Config.OxygenGas];
