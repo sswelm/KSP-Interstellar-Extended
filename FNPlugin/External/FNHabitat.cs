@@ -534,8 +534,7 @@ namespace FNPlugin
                     comfortModule = module;
 
                     comfortBonusField = module.Fields["bonus"];
-                    if (comfortBonusField != null)
-                        comfortBonusField.SetValue(isDeployed ? deployedComfortBonus : undeployedComfortBonus, comfortModule);
+                    comfortBonusField?.SetValue(isDeployed ? deployedComfortBonus : undeployedComfortBonus, comfortModule);
 
                     found = true;
                     break;
@@ -553,8 +552,7 @@ namespace FNPlugin
             if (comfortModule == null)
                 return;
 
-            if (comfortBonusField != null)
-                comfortBonusField.SetValue(isDeployed ? deployedComfortBonus : undeployedComfortBonus, comfortModule);
+            comfortBonusField?.SetValue(isDeployed ? deployedComfortBonus : undeployedComfortBonus, comfortModule);
         }
 
         private void InitializeKerbalismHabitat()
@@ -569,12 +567,10 @@ namespace FNPlugin
                     found = true;
 
                     habitatVolumeField = module.Fields["volume"];
-                    if (habitatVolumeField != null)
-                        habitatVolumeField.SetValue(isDeployed ? deployedHabitatVolume : undeployedHabitatVolume, habitatModule);
+                    habitatVolumeField?.SetValue(isDeployed ? deployedHabitatVolume : undeployedHabitatVolume, habitatModule);
 
                     habitatSurfaceField = module.Fields["surface"];
-                    if (habitatSurfaceField != null)
-                        habitatSurfaceField.SetValue(isDeployed ? deployedHabitatSurface : undeployedHabitatSurface, habitatModule);
+                    habitatSurfaceField?.SetValue(isDeployed ? deployedHabitatSurface : undeployedHabitatSurface, habitatModule);
 
                     break;
                 }
@@ -625,11 +621,9 @@ namespace FNPlugin
             if (habitatModule == null)
                 return;
 
-            if (habitatVolumeField != null)
-                habitatVolumeField.SetValue(isDeployed ? deployedHabitatVolume : undeployedHabitatVolume, habitatModule);
+            habitatVolumeField?.SetValue(isDeployed ? deployedHabitatVolume : undeployedHabitatVolume, habitatModule);
 
-            if (habitatSurfaceField != null)
-                habitatSurfaceField.SetValue(isDeployed ? deployedHabitatSurface : undeployedHabitatSurface, habitatModule);
+            habitatSurfaceField?.SetValue(isDeployed ? deployedHabitatSurface : undeployedHabitatSurface, habitatModule);
         }
 
         private void UpdatemenuNames()
