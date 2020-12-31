@@ -454,6 +454,9 @@ namespace FNPlugin
         {
             if (childNode.tech.state == RDTech.State.Unavailable) return;
 
+            if (childNode.AnyParentToUnlock && childNode.parents.Any(p => p.tech.state == RDTech.State.Available))
+                return;
+
             foreach (ProtoRDNode parentNode in childNode.parents)
             {
                 if (parentNode.tech.state == RDTech.State.Available) continue;
