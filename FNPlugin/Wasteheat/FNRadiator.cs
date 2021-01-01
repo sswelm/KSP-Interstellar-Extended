@@ -1755,6 +1755,8 @@ namespace FNPlugin.Wasteheat
         {
             if (radiatorArea != 0) return;
 
+            colorRatioExponent = 4;
+
             clarifyFunction = true;
 
             radiatorArea = Math.PI * part.partInfo.partSize;

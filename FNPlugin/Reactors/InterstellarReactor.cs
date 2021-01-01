@@ -2055,9 +2055,6 @@ namespace FNPlugin.Reactors
             totalAmountLithium = 0;
             totalMaxAmountLithium = 0;
 
-            if (breedtritium == false || neutronPowerReceivedEachSecond <= 0 || fixedDeltaTime <= 0)
-                return;
-
             // verify if there is any lithium6 present
             var partResourceLithium6 = part.Resources[ResourceSettings.Config.Lithium6];
             if (partResourceLithium6 == null)
@@ -2065,6 +2062,9 @@ namespace FNPlugin.Reactors
 
             totalAmountLithium = partResourceLithium6.amount;
             totalMaxAmountLithium = partResourceLithium6.maxAmount;
+
+            if (breedtritium == false || neutronPowerReceivedEachSecond <= 0 || fixedDeltaTime <= 0)
+                return;
 
             if (totalAmountLithium.IsInfinityOrNaNorZero() || totalMaxAmountLithium.IsInfinityOrNaNorZero())
                 return;

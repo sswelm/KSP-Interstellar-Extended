@@ -19,7 +19,7 @@ namespace FNPlugin.Wasteheat
         private const int ValueWidth = 85;
         private const float ExternalTemperatureInKelvin = 290;
 
-        public static bool RenderWindow { get; set; }
+        public static bool RenderWindow { get; set; } = true;
 
         private int _maxIterations = 10;
         private int _bestScenarioPercentage;
@@ -213,11 +213,16 @@ namespace FNPlugin.Wasteheat
                 var connectedThermalPowerGenerator = (IFNElectricPowerGeneratorSource)powerSource.ConnectedThermalElectricGenerator;
                 var connectedChargedPowerGenerator = (IFNElectricPowerGeneratorSource)powerSource.ConnectedChargedParticleElectricGenerator;
 
-                // when connected to a Thermal source, assume most thermal energy Thermal power can end up in the radiators
                 if (connectedThermalPowerGenerator != null)
-                    combinedRawSourcePower += (1 - powerSource.ChargedPowerRatio) * connectedThermalPowerGenerator.RawGeneratorSourcePower;
+                {
+                    if (connectedChargedPowerGenerator == null)
+                        combinedRawSourcePower += connectedThermalPowerGenerator.RawGeneratorSourcePower;
+                    else
+                        combinedRawSourcePower += (1 - powerSource.ChargedPowerRatio) * connectedThermalPowerGenerator.RawGeneratorSourcePower;
+                }
                 else
                 {
+                    // when connected to a Thermal source, assume most thermal energy Thermal power can end up in the radiators
                     maxWastedEnergyRatio = 1 - powerSource.ChargedPowerRatio;
                     combinedRawSourcePower += maxWastedEnergyRatio * powerSource.MaximumPower;
                 }
@@ -292,8 +297,6 @@ namespace FNPlugin.Wasteheat
                 var effectiveChargedPowerAt4Percent = combinedRawSourcePowerAt4Percent * chargedGeneratorMaxInefficiency;
                 var effectiveChargedPowerAt2Percent = combinedRawSourcePowerAt2Percent * chargedGeneratorMaxInefficiency;
 
-                double thermalGeneratorMaxEfficiency = connectedThermalPowerGenerator?.MaxEfficiency ?? 0;
-
                 var hotColdBathEfficiencyAt100Percent = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAt100Percent / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAt100Percent), 0);
                 var hotColdBathEfficiencyAt90Percent = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAt90Percent / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAt90Percent), 0);
                 var hotColdBathEfficiencyAt80Percent = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAt80Percent / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAt80Percent), 0);
@@ -314,25 +317,28 @@ namespace FNPlugin.Wasteheat
                 var hotColdBathEfficiencyAt2Percent = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAt2Percent / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAt2Percent), 0);
                 var hotColdBathEfficiencyAtCustomPct = connectedThermalPowerGenerator == null ? 0 : Math.Max(1 - 0.75 * _restingRadiatorTempAtCustomPct / connectedThermalPowerGenerator.GetHotBathTemperature(_restingRadiatorTempAtCustomPct), 0);
 
-                var effectiveThermalPowerAtCustomPct = combinedRawSourcePowerAtCustomPct * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAtCustomPct);
-                var effectiveThermalPowerAt100Percent = combinedRawSourcePowerAt100Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt100Percent);
-                var effectiveThermalPowerAt90Percent = combinedRawSourcePowerAt90Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt90Percent);
-                var effectiveThermalPowerAt80Percent = combinedRawSourcePowerAt80Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt80Percent);
-                var effectiveThermalPowerAt70Percent = combinedRawSourcePowerAt70Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt70Percent);
-                var effectiveThermalPowerAt60Percent = combinedRawSourcePowerAt60Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt60Percent);
-                var effectiveThermalPowerAt50Percent = combinedRawSourcePowerAt50Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt50Percent);
-                var effectiveThermalPowerAt45Percent = combinedRawSourcePowerAt45Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt45Percent);
-                var effectiveThermalPowerAt40Percent = combinedRawSourcePowerAt40Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt40Percent);
-                var effectiveThermalPowerAt35Percent = combinedRawSourcePowerAt35Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt35Percent);
-                var effectiveThermalPowerAt30Percent = combinedRawSourcePowerAt30Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt30Percent);
-                var effectiveThermalPowerAt25Percent = combinedRawSourcePowerAt25Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt25Percent);
-                var effectiveThermalPowerAt20Percent = combinedRawSourcePowerAt20Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt20Percent);
-                var effectiveThermalPowerAt15Percent = combinedRawSourcePowerAt15Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt15Percent);
-                var effectiveThermalPowerAt10Percent = combinedRawSourcePowerAt10Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt10Percent);
-                var effectiveThermalPowerAt8Percent = combinedRawSourcePowerAt8Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt8Percent);
-                var effectiveThermalPowerAt6Percent = combinedRawSourcePowerAt6Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt6Percent);
-                var effectiveThermalPowerAt4Percent = combinedRawSourcePowerAt4Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt4Percent);
-                var effectiveThermalPowerAt2Percent = combinedRawSourcePowerAt2Percent * (1 - thermalGeneratorMaxEfficiency * hotColdBathEfficiencyAt2Percent);
+                double thermalGeneratorMaxIEfficiency = connectedThermalPowerGenerator?.MaxEfficiency ?? 0;
+                double thermalPowerRatio = connectedThermalPowerGenerator == null ? 1 : 1 - powerSource.ChargedPowerRatio;
+
+                var effectiveThermalPowerAtCustomPct = thermalPowerRatio * combinedRawSourcePowerAtCustomPct * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAtCustomPct);
+                var effectiveThermalPowerAt100Percent = thermalPowerRatio * combinedRawSourcePowerAt100Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt100Percent);
+                var effectiveThermalPowerAt90Percent = thermalPowerRatio * combinedRawSourcePowerAt90Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt90Percent);
+                var effectiveThermalPowerAt80Percent = thermalPowerRatio * combinedRawSourcePowerAt80Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt80Percent);
+                var effectiveThermalPowerAt70Percent = thermalPowerRatio * combinedRawSourcePowerAt70Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt70Percent);
+                var effectiveThermalPowerAt60Percent = thermalPowerRatio * combinedRawSourcePowerAt60Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt60Percent);
+                var effectiveThermalPowerAt50Percent = thermalPowerRatio * combinedRawSourcePowerAt50Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt50Percent);
+                var effectiveThermalPowerAt45Percent = thermalPowerRatio * combinedRawSourcePowerAt45Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt45Percent);
+                var effectiveThermalPowerAt40Percent = thermalPowerRatio * combinedRawSourcePowerAt40Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt40Percent);
+                var effectiveThermalPowerAt35Percent = thermalPowerRatio * combinedRawSourcePowerAt35Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt35Percent);
+                var effectiveThermalPowerAt30Percent = thermalPowerRatio * combinedRawSourcePowerAt30Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt30Percent);
+                var effectiveThermalPowerAt25Percent = thermalPowerRatio * combinedRawSourcePowerAt25Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt25Percent);
+                var effectiveThermalPowerAt20Percent = thermalPowerRatio * combinedRawSourcePowerAt20Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt20Percent);
+                var effectiveThermalPowerAt15Percent = thermalPowerRatio * combinedRawSourcePowerAt15Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt15Percent);
+                var effectiveThermalPowerAt10Percent = thermalPowerRatio * combinedRawSourcePowerAt10Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt10Percent);
+                var effectiveThermalPowerAt8Percent = thermalPowerRatio * combinedRawSourcePowerAt8Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt8Percent);
+                var effectiveThermalPowerAt6Percent = thermalPowerRatio * combinedRawSourcePowerAt6Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt6Percent);
+                var effectiveThermalPowerAt4Percent = thermalPowerRatio * combinedRawSourcePowerAt4Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt4Percent);
+                var effectiveThermalPowerAt2Percent = thermalPowerRatio * combinedRawSourcePowerAt2Percent * (1 - thermalGeneratorMaxIEfficiency * hotColdBathEfficiencyAt2Percent);
 
                 var effectiveWastedPowerAtCustomPct = combinedRawSourcePowerAtCustomPct * maxWastedEnergyRatio;
                 var effectiveWastedPowerAt100Percent = combinedRawSourcePowerAt100Percent * maxWastedEnergyRatio;

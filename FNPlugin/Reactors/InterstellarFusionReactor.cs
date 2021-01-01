@@ -79,7 +79,7 @@ namespace FNPlugin.Reactors
         {
             get
             {
-                var modifier = CheatOptions.InfinitePropellant || !powerIsAffectedByLithium || minimumLithiumModifier == 1 ? 1
+                var modifier = CheatOptions.InfinitePropellant || !powerIsAffectedByLithium || ChargedPowerRatio >= 1 || minimumLithiumModifier >= 1 ? 1
                     : totalAmountLithium > 0
                         ? Math.Min(maximumLithiumModifier, Math.Max(minimumLithiumModifier, Math.Pow(totalAmountLithium / totalMaxAmountLithium, lithiumModifierExponent)))
                         : minimumLithiumModifier;
