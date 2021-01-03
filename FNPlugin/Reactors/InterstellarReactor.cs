@@ -243,7 +243,7 @@ namespace FNPlugin.Reactors
         [KSPField] public bool containsPowerGenerator = false;
         [KSPField] public double fuelUsePerMJMult = 1;
         [KSPField] public double wasteHeatMultiplier = 1;
-        [KSPField] public double wasteHeatBufferMassMult = 2.0e+5;
+        [KSPField] public double wasteHeatBufferMassMult = 2.0e+6;
         [KSPField] public double wasteHeatBufferMult = 1;
         [KSPField] public double hotBathTemperature = 0;
         [KSPField] public bool usePropellantBaseIsp = false;
@@ -1223,7 +1223,7 @@ namespace FNPlugin.Reactors
             this.resources_to_supply = resourcesToSupply;
 
             _resourceBuffers = new ResourceBuffers();
-            _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
+            _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult, true));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ThermalPowerInMegawatt, thermalPowerBufferMult));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ChargedParticleInMegawatt, chargedPowerBufferMult));
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);

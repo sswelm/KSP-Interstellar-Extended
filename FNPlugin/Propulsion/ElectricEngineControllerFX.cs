@@ -357,7 +357,8 @@ namespace FNPlugin.Propulsion
                 if (HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || ignoreWasteheat)
                     return 1;
 
-                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+                //var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+                var wasteheatRatio = FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel) / 4500;
 
                 return 1 - wasteheatRatio * wasteheatRatio * wasteheatRatio;
             }

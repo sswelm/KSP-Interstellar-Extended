@@ -88,7 +88,7 @@ namespace FNPlugin.Powermanagement
         [KSPField] public bool showDetailedInfo = true;
         [KSPField] public bool controlWasteHeatBuffer = true;
 
-        [KSPField] public double baseHeatAmount = 2.0e+4;
+        [KSPField] public double baseHeatAmount = 2.0e+5;
         [KSPField] public double massModifier = 1;
         [KSPField] public double rawPowerToMassDivider = 1000;
         [KSPField] public double coreTemperateHotBathExponent = 0.7;
@@ -870,7 +870,7 @@ namespace FNPlugin.Powermanagement
                 //    averageRadiatorTemperatureQueue.Dequeue();
 
                 //coldBathTempDisplay = averageRadiatorTemperatureQueue.Average();
-                coldBathTempDisplay = FNRadiator.GetCurrentRadiatorTemperatureForVessel(vessel);
+                coldBathTempDisplay = FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel);
 
                 hotBathTemp = GetHotBathTemperature(coldBathTempDisplay);
 
@@ -953,7 +953,8 @@ namespace FNPlugin.Powermanagement
 
                 powerDownFraction = 1;
 
-                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+                //var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+                var wasteheatRatio = FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel) / 4500;
                 var overheatingModifier = wasteheatRatio < 0.9 ? 1 : (1 - wasteheatRatio) * 10;
 
                 var thermalPowerRatio = 1 - attachedPowerSource.ChargedPowerRatio;

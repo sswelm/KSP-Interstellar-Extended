@@ -47,7 +47,7 @@ namespace FNPlugin
         public double MaxThermalNozzleIsp { get; private set; } = GameConstants.MaxThermalNozzleIsp;
         public double SpotsizeMult { get; private set; } = 1.22;
         public double ThrustCoreTempThreshold { get; private set; }
-        public double MaxResourceProcessingTimewarp { get; private set; } = 200;
+        public double MaxResourceProcessingTimewarp { get; private set; } = 20;
         public double ConvectionMultiplier { get; private set; } = 0.01;
         public double AirHeatTransferCoefficient { get; private set; } = 0.001;
         public double LqdHeatTransferCoefficient { get; private set; } = 0.01;

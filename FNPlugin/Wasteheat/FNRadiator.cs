@@ -602,7 +602,7 @@ namespace FNPlugin.Wasteheat
             undergroundAmount = 0;
 
             // require the drill to be deployed
-            if (_radiatorState != ModuleDeployablePart.DeployState.EXTENDED) return;
+            if (radiatorState != ModuleDeployablePart.DeployState.EXTENDED) return;
             // require the drill to be underground
             if (!IsDrillUnderground(out undergroundAmount)) return;
             if (undergroundAmount == 0) return;
@@ -642,12 +642,12 @@ namespace FNPlugin.Wasteheat
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
-            if ((++_frameSkipper % 10) == 0)
+            if (++_frameSkipper % 10 == 0)
             {
                 // This code does not need to run all the time.
                 var undergroundTempField = Fields[nameof(undergroundTemp)];
 
-                if (vessel != null && vessel.Landed && _radiatorState == ModuleDeployablePart.DeployState.EXTENDED)
+                if (vessel != null && vessel.Landed && radiatorState == ModuleDeployablePart.DeployState.EXTENDED)
                 {
                     if (vessel.externalTemperature < coolTemp || coolTemp == 0) coolTemp = vessel.externalTemperature;
                     if (vessel.externalTemperature > hotTemp || hotTemp == 0) hotTemp = vessel.externalTemperature;
@@ -678,6 +678,12 @@ namespace FNPlugin.Wasteheat
         {
             return 1;
         }
+    }
+
+    internal class QueueId
+    {
+        public double Time { get; set; }
+        public Queue<double> Queue { get; } = new Queue<double>();
     }
 
     [KSPModule("Radiator")]
@@ -742,10 +748,8 @@ namespace FNPlugin.Wasteheat
         [KSPField] public bool isPassive = false;
         [KSPField] public string animName = "";
         [KSPField] public string thermalAnim = "";
-        [KSPField] public string originalName = "";
         [KSPField] public float upgradeCost = 100;
         [KSPField] public bool maintainResourceBuffers = true;
-        [KSPField] public float emissiveColorPower = 3;
         [KSPField] public float colorRatioExponent = 1;
         [KSPField] public double wasteHeatMultiplier = 1;
         [KSPField] public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
@@ -813,7 +817,6 @@ namespace FNPlugin.Wasteheat
 
         private bool _active;
 
-
         private int _radiatorDeployDelay;
         private int _explodeCounter;
 
@@ -833,23 +836,20 @@ namespace FNPlugin.Wasteheat
         private AnimationState[] _heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
-        internal ModuleDeployablePart.DeployState _radiatorState;
         private ResourceBuffers _resourceBuffers;
+
+        protected ModuleDeployablePart.DeployState radiatorState;
 
         private readonly Queue<double> _radTempQueue = new Queue<double>(20);
         private readonly Queue<double> _externalTempQueue = new Queue<double>(20);
 
+        private static readonly Dictionary<Vessel, QueueId> RadTemperatureQueues = new Dictionary<Vessel, QueueId>();
+
         private static readonly Dictionary<Vessel, List<FNRadiator>> RadiatorsByVessel = new Dictionary<Vessel, List<FNRadiator>>();
 
-        private static AnimationCurve redTempColorChannel;
-        private static AnimationCurve greenTempColorChannel;
-        private static AnimationCurve blueTempColorChannel;
-
-        static private double _intakeLqdDensity;
-        static private double _intakeAtmDensity;
-
-        static private double _intakeAtmSpecificHeatCapacity;
-        static private double _intakeLqdSpecificHeatCapacity;
+        private static AnimationCurve _redTempColorChannel;
+        private static AnimationCurve _greenTempColorChannel;
+        private static AnimationCurve _blueTempColorChannel;
 
         public GenerationType CurrentGenerationType { get; private set; }
 
@@ -859,405 +859,405 @@ namespace FNPlugin.Wasteheat
 
         public static void InitializeTemperatureColorChannels()
         {
-            if (redTempColorChannel != null)
+            if (_redTempColorChannel != null)
                 return;
 
-            redTempColorChannel = new AnimationCurve();
-            greenTempColorChannel = new AnimationCurve();
-            blueTempColorChannel = new AnimationCurve();
-            redTempColorChannel = new AnimationCurve();
-            greenTempColorChannel = new AnimationCurve();
-            blueTempColorChannel = new AnimationCurve();
+            _redTempColorChannel = new AnimationCurve();
+            _greenTempColorChannel = new AnimationCurve();
+            _blueTempColorChannel = new AnimationCurve();
+            _redTempColorChannel = new AnimationCurve();
+            _greenTempColorChannel = new AnimationCurve();
+            _blueTempColorChannel = new AnimationCurve();
 
-            redTempColorChannel.AddKey(500, 0 / 255f); greenTempColorChannel.AddKey(500, 0 / 255f); blueTempColorChannel.AddKey(500, 0 / 255f);
-            redTempColorChannel.AddKey(800, 100 / 255f); greenTempColorChannel.AddKey(800, 0 / 255f); blueTempColorChannel.AddKey(800, 0 / 255f);
+            _redTempColorChannel.AddKey(500, 0 / 255f); _greenTempColorChannel.AddKey(500, 0 / 255f); _blueTempColorChannel.AddKey(500, 0 / 255f);
+            _redTempColorChannel.AddKey(800, 100 / 255f); _greenTempColorChannel.AddKey(800, 0 / 255f); _blueTempColorChannel.AddKey(800, 0 / 255f);
 
-            redTempColorChannel.AddKey(1000, 255 / 255f); greenTempColorChannel.AddKey(1000, 56 / 255f); blueTempColorChannel.AddKey(1000, 0 / 255f);
-            redTempColorChannel.AddKey(1100, 255 / 255f); greenTempColorChannel.AddKey(1100, 71 / 255f); blueTempColorChannel.AddKey(1100, 0 / 255f);
-            redTempColorChannel.AddKey(1200, 255 / 255f); greenTempColorChannel.AddKey(1200, 83 / 255f); blueTempColorChannel.AddKey(1200, 0 / 255f);
-            redTempColorChannel.AddKey(1300, 255 / 255f); greenTempColorChannel.AddKey(1300, 93 / 255f); blueTempColorChannel.AddKey(1300, 0 / 255f);
-            redTempColorChannel.AddKey(1400, 255 / 255f); greenTempColorChannel.AddKey(1400, 101 / 255f); blueTempColorChannel.AddKey(1400, 0 / 255f);
-            redTempColorChannel.AddKey(1500, 255 / 255f); greenTempColorChannel.AddKey(1500, 109 / 255f); blueTempColorChannel.AddKey(1500, 0 / 255f);
-            redTempColorChannel.AddKey(1600, 255 / 255f); greenTempColorChannel.AddKey(1600, 115 / 255f); blueTempColorChannel.AddKey(1600, 0 / 255f);
-            redTempColorChannel.AddKey(1700, 255 / 255f); greenTempColorChannel.AddKey(1700, 121 / 255f); blueTempColorChannel.AddKey(1700, 0 / 255f);
-            redTempColorChannel.AddKey(1800, 255 / 255f); greenTempColorChannel.AddKey(1800, 126 / 255f); blueTempColorChannel.AddKey(1800, 0 / 255f);
-            redTempColorChannel.AddKey(1900, 255 / 255f); greenTempColorChannel.AddKey(1900, 131 / 255f); blueTempColorChannel.AddKey(1900, 0 / 255f);
-            redTempColorChannel.AddKey(2000, 255 / 255f); greenTempColorChannel.AddKey(2000, 137 / 255f); blueTempColorChannel.AddKey(2000, 18 / 255f);
-            redTempColorChannel.AddKey(2100, 255 / 255f); greenTempColorChannel.AddKey(2100, 142 / 255f); blueTempColorChannel.AddKey(2100, 33 / 255f);
-            redTempColorChannel.AddKey(2200, 255 / 255f); greenTempColorChannel.AddKey(2200, 147 / 255f); blueTempColorChannel.AddKey(2200, 44 / 255f);
-            redTempColorChannel.AddKey(2300, 255 / 255f); greenTempColorChannel.AddKey(2300, 152 / 255f); blueTempColorChannel.AddKey(2300, 54 / 255f);
-            redTempColorChannel.AddKey(2400, 255 / 255f); greenTempColorChannel.AddKey(2400, 157 / 255f); blueTempColorChannel.AddKey(2400, 63 / 255f);
-            redTempColorChannel.AddKey(2500, 255 / 255f); greenTempColorChannel.AddKey(2500, 161 / 255f); blueTempColorChannel.AddKey(2500, 72 / 255f);
-            redTempColorChannel.AddKey(2600, 255 / 255f); greenTempColorChannel.AddKey(2600, 165 / 255f); blueTempColorChannel.AddKey(2600, 79 / 255f);
-            redTempColorChannel.AddKey(2700, 255 / 255f); greenTempColorChannel.AddKey(2700, 169 / 255f); blueTempColorChannel.AddKey(2700, 87 / 255f);
-            redTempColorChannel.AddKey(2800, 255 / 255f); greenTempColorChannel.AddKey(2800, 173 / 255f); blueTempColorChannel.AddKey(2800, 94 / 255f);
-            redTempColorChannel.AddKey(2900, 255 / 255f); greenTempColorChannel.AddKey(2900, 177 / 255f); blueTempColorChannel.AddKey(2900, 101 / 255f);
-            redTempColorChannel.AddKey(3000, 255 / 255f); greenTempColorChannel.AddKey(3000, 180 / 255f); blueTempColorChannel.AddKey(3000, 107 / 255f);
-            redTempColorChannel.AddKey(3100, 255 / 255f); greenTempColorChannel.AddKey(3100, 184 / 255f); blueTempColorChannel.AddKey(3100, 114 / 255f);
-            redTempColorChannel.AddKey(3200, 255 / 255f); greenTempColorChannel.AddKey(3200, 187 / 255f); blueTempColorChannel.AddKey(3200, 120 / 255f);
-            redTempColorChannel.AddKey(3300, 255 / 255f); greenTempColorChannel.AddKey(3300, 190 / 255f); blueTempColorChannel.AddKey(3300, 126 / 255f);
-            redTempColorChannel.AddKey(3400, 255 / 255f); greenTempColorChannel.AddKey(3400, 193 / 255f); blueTempColorChannel.AddKey(3400, 132 / 255f);
-            redTempColorChannel.AddKey(3500, 255 / 255f); greenTempColorChannel.AddKey(3500, 196 / 255f); blueTempColorChannel.AddKey(3500, 137 / 255f);
-            redTempColorChannel.AddKey(3600, 255 / 255f); greenTempColorChannel.AddKey(3600, 199 / 255f); blueTempColorChannel.AddKey(3600, 143 / 255f);
-            redTempColorChannel.AddKey(3700, 255 / 255f); greenTempColorChannel.AddKey(3700, 201 / 255f); blueTempColorChannel.AddKey(3700, 148 / 255f);
-            redTempColorChannel.AddKey(3800, 255 / 255f); greenTempColorChannel.AddKey(3800, 204 / 255f); blueTempColorChannel.AddKey(3800, 153 / 255f);
-            redTempColorChannel.AddKey(3900, 255 / 255f); greenTempColorChannel.AddKey(3900, 206 / 255f); blueTempColorChannel.AddKey(3900, 159 / 255f);
-            redTempColorChannel.AddKey(4000, 255 / 255f); greenTempColorChannel.AddKey(4000, 209 / 255f); blueTempColorChannel.AddKey(4000, 163 / 255f);
-            redTempColorChannel.AddKey(4100, 255 / 255f); greenTempColorChannel.AddKey(4100, 211 / 255f); blueTempColorChannel.AddKey(4100, 168 / 255f);
-            redTempColorChannel.AddKey(4200, 255 / 255f); greenTempColorChannel.AddKey(4200, 213 / 255f); blueTempColorChannel.AddKey(4200, 173 / 255f);
-            redTempColorChannel.AddKey(4300, 255 / 255f); greenTempColorChannel.AddKey(4300, 215 / 255f); blueTempColorChannel.AddKey(4300, 177 / 255f);
-            redTempColorChannel.AddKey(4400, 255 / 255f); greenTempColorChannel.AddKey(4400, 217 / 255f); blueTempColorChannel.AddKey(4400, 182 / 255f);
-            redTempColorChannel.AddKey(4500, 255 / 255f); greenTempColorChannel.AddKey(4500, 219 / 255f); blueTempColorChannel.AddKey(4500, 186 / 255f);
-            redTempColorChannel.AddKey(4600, 255 / 255f); greenTempColorChannel.AddKey(4600, 221 / 255f); blueTempColorChannel.AddKey(4600, 190 / 255f);
-            redTempColorChannel.AddKey(4700, 255 / 255f); greenTempColorChannel.AddKey(4700, 223 / 255f); blueTempColorChannel.AddKey(4700, 194 / 255f);
-            redTempColorChannel.AddKey(4800, 255 / 255f); greenTempColorChannel.AddKey(4800, 225 / 255f); blueTempColorChannel.AddKey(4800, 198 / 255f);
-            redTempColorChannel.AddKey(4900, 255 / 255f); greenTempColorChannel.AddKey(4900, 227 / 255f); blueTempColorChannel.AddKey(4900, 202 / 255f);
-            redTempColorChannel.AddKey(5000, 255 / 255f); greenTempColorChannel.AddKey(5000, 228 / 255f); blueTempColorChannel.AddKey(5000, 206 / 255f);
-            redTempColorChannel.AddKey(5100, 255 / 255f); greenTempColorChannel.AddKey(5100, 230 / 255f); blueTempColorChannel.AddKey(5100, 210 / 255f);
-            redTempColorChannel.AddKey(5200, 255 / 255f); greenTempColorChannel.AddKey(5200, 232 / 255f); blueTempColorChannel.AddKey(5200, 213 / 255f);
-            redTempColorChannel.AddKey(5300, 255 / 255f); greenTempColorChannel.AddKey(5300, 233 / 255f); blueTempColorChannel.AddKey(5300, 217 / 255f);
-            redTempColorChannel.AddKey(5400, 255 / 255f); greenTempColorChannel.AddKey(5400, 235 / 255f); blueTempColorChannel.AddKey(5400, 220 / 255f);
-            redTempColorChannel.AddKey(5500, 255 / 255f); greenTempColorChannel.AddKey(5500, 236 / 255f); blueTempColorChannel.AddKey(5500, 224 / 255f);
-            redTempColorChannel.AddKey(5600, 255 / 255f); greenTempColorChannel.AddKey(5600, 238 / 255f); blueTempColorChannel.AddKey(5600, 227 / 255f);
-            redTempColorChannel.AddKey(5700, 255 / 255f); greenTempColorChannel.AddKey(5700, 239 / 255f); blueTempColorChannel.AddKey(5700, 230 / 255f);
-            redTempColorChannel.AddKey(5800, 255 / 255f); greenTempColorChannel.AddKey(5800, 240 / 255f); blueTempColorChannel.AddKey(5800, 233 / 255f);
-            redTempColorChannel.AddKey(5900, 255 / 255f); greenTempColorChannel.AddKey(5900, 242 / 255f); blueTempColorChannel.AddKey(5900, 236 / 255f);
-            redTempColorChannel.AddKey(6000, 255 / 255f); greenTempColorChannel.AddKey(6000, 243 / 255f); blueTempColorChannel.AddKey(6000, 239 / 255f);
-            redTempColorChannel.AddKey(6100, 255 / 255f); greenTempColorChannel.AddKey(6100, 244 / 255f); blueTempColorChannel.AddKey(6100, 242 / 255f);
-            redTempColorChannel.AddKey(6200, 255 / 255f); greenTempColorChannel.AddKey(6200, 245 / 255f); blueTempColorChannel.AddKey(6200, 245 / 255f);
-            redTempColorChannel.AddKey(6300, 255 / 255f); greenTempColorChannel.AddKey(6300, 246 / 255f); blueTempColorChannel.AddKey(6300, 248 / 255f);
-            redTempColorChannel.AddKey(6400, 255 / 255f); greenTempColorChannel.AddKey(6400, 248 / 255f); blueTempColorChannel.AddKey(6400, 251 / 255f);
-            redTempColorChannel.AddKey(6500, 255 / 255f); greenTempColorChannel.AddKey(6500, 249 / 255f); blueTempColorChannel.AddKey(6500, 253 / 255f);
-            redTempColorChannel.AddKey(6600, 254 / 255f); greenTempColorChannel.AddKey(6600, 249 / 255f); blueTempColorChannel.AddKey(6600, 255 / 255f);
-            redTempColorChannel.AddKey(6700, 252 / 255f); greenTempColorChannel.AddKey(6700, 247 / 255f); blueTempColorChannel.AddKey(6700, 255 / 255f);
-            redTempColorChannel.AddKey(6800, 249 / 255f); greenTempColorChannel.AddKey(6800, 246 / 255f); blueTempColorChannel.AddKey(6800, 255 / 255f);
-            redTempColorChannel.AddKey(6900, 247 / 255f); greenTempColorChannel.AddKey(6900, 245 / 255f); blueTempColorChannel.AddKey(6900, 255 / 255f);
-            redTempColorChannel.AddKey(7000, 245 / 255f); greenTempColorChannel.AddKey(7000, 243 / 255f); blueTempColorChannel.AddKey(7000, 255 / 255f);
-            redTempColorChannel.AddKey(7100, 243 / 255f); greenTempColorChannel.AddKey(7100, 242 / 255f); blueTempColorChannel.AddKey(7100, 255 / 255f);
-            redTempColorChannel.AddKey(7200, 240 / 255f); greenTempColorChannel.AddKey(7200, 241 / 255f); blueTempColorChannel.AddKey(7200, 255 / 255f);
-            redTempColorChannel.AddKey(7300, 239 / 255f); greenTempColorChannel.AddKey(7300, 240 / 255f); blueTempColorChannel.AddKey(7300, 255 / 255f);
-            redTempColorChannel.AddKey(7400, 237 / 255f); greenTempColorChannel.AddKey(7400, 239 / 255f); blueTempColorChannel.AddKey(7400, 255 / 255f);
-            redTempColorChannel.AddKey(7500, 235 / 255f); greenTempColorChannel.AddKey(7500, 238 / 255f); blueTempColorChannel.AddKey(7500, 255 / 255f);
-            redTempColorChannel.AddKey(7600, 233 / 255f); greenTempColorChannel.AddKey(7600, 237 / 255f); blueTempColorChannel.AddKey(7600, 255 / 255f);
-            redTempColorChannel.AddKey(7700, 231 / 255f); greenTempColorChannel.AddKey(7700, 236 / 255f); blueTempColorChannel.AddKey(7700, 255 / 255f);
-            redTempColorChannel.AddKey(7800, 230 / 255f); greenTempColorChannel.AddKey(7800, 235 / 255f); blueTempColorChannel.AddKey(7800, 255 / 255f);
-            redTempColorChannel.AddKey(7900, 228 / 255f); greenTempColorChannel.AddKey(7900, 234 / 255f); blueTempColorChannel.AddKey(7900, 255 / 255f);
-            redTempColorChannel.AddKey(8000, 227 / 255f); greenTempColorChannel.AddKey(8000, 233 / 255f); blueTempColorChannel.AddKey(8000, 255 / 255f);
-            redTempColorChannel.AddKey(8100, 225 / 255f); greenTempColorChannel.AddKey(8100, 232 / 255f); blueTempColorChannel.AddKey(8100, 255 / 255f);
-            redTempColorChannel.AddKey(8200, 224 / 255f); greenTempColorChannel.AddKey(8200, 231 / 255f); blueTempColorChannel.AddKey(8200, 255 / 255f);
-            redTempColorChannel.AddKey(8300, 222 / 255f); greenTempColorChannel.AddKey(8300, 230 / 255f); blueTempColorChannel.AddKey(8300, 255 / 255f);
-            redTempColorChannel.AddKey(8400, 221 / 255f); greenTempColorChannel.AddKey(8400, 230 / 255f); blueTempColorChannel.AddKey(8400, 255 / 255f);
-            redTempColorChannel.AddKey(8500, 220 / 255f); greenTempColorChannel.AddKey(8500, 229 / 255f); blueTempColorChannel.AddKey(8500, 255 / 255f);
-            redTempColorChannel.AddKey(8600, 218 / 255f); greenTempColorChannel.AddKey(8600, 228 / 255f); blueTempColorChannel.AddKey(8600, 255 / 255f);
-            redTempColorChannel.AddKey(8700, 217 / 255f); greenTempColorChannel.AddKey(8700, 227 / 255f); blueTempColorChannel.AddKey(8700, 255 / 255f);
-            redTempColorChannel.AddKey(8800, 216 / 255f); greenTempColorChannel.AddKey(8800, 227 / 255f); blueTempColorChannel.AddKey(8800, 255 / 255f);
-            redTempColorChannel.AddKey(8900, 215 / 255f); greenTempColorChannel.AddKey(8900, 226 / 255f); blueTempColorChannel.AddKey(8900, 255 / 255f);
-            redTempColorChannel.AddKey(9000, 214 / 255f); greenTempColorChannel.AddKey(9000, 225 / 255f); blueTempColorChannel.AddKey(9000, 255 / 255f);
-            redTempColorChannel.AddKey(9100, 212 / 255f); greenTempColorChannel.AddKey(9100, 225 / 255f); blueTempColorChannel.AddKey(9100, 255 / 255f);
-            redTempColorChannel.AddKey(9200, 211 / 255f); greenTempColorChannel.AddKey(9200, 224 / 255f); blueTempColorChannel.AddKey(9200, 255 / 255f);
-            redTempColorChannel.AddKey(9300, 210 / 255f); greenTempColorChannel.AddKey(9300, 223 / 255f); blueTempColorChannel.AddKey(9300, 255 / 255f);
-            redTempColorChannel.AddKey(9400, 209 / 255f); greenTempColorChannel.AddKey(9400, 223 / 255f); blueTempColorChannel.AddKey(9400, 255 / 255f);
-            redTempColorChannel.AddKey(9500, 208 / 255f); greenTempColorChannel.AddKey(9500, 222 / 255f); blueTempColorChannel.AddKey(9500, 255 / 255f);
-            redTempColorChannel.AddKey(9600, 207 / 255f); greenTempColorChannel.AddKey(9600, 221 / 255f); blueTempColorChannel.AddKey(9600, 255 / 255f);
-            redTempColorChannel.AddKey(9700, 207 / 255f); greenTempColorChannel.AddKey(9700, 221 / 255f); blueTempColorChannel.AddKey(9700, 255 / 255f);
-            redTempColorChannel.AddKey(9800, 206 / 255f); greenTempColorChannel.AddKey(9800, 220 / 255f); blueTempColorChannel.AddKey(9800, 255 / 255f);
-            redTempColorChannel.AddKey(9900, 205 / 255f); greenTempColorChannel.AddKey(9900, 220 / 255f); blueTempColorChannel.AddKey(9900, 255 / 255f);
-            redTempColorChannel.AddKey(10000, 204 / 255f); greenTempColorChannel.AddKey(10000, 219 / 255f); blueTempColorChannel.AddKey(10000, 255 / 255f);
-            redTempColorChannel.AddKey(10100, 203 / 255f); greenTempColorChannel.AddKey(10100, 219 / 255f); blueTempColorChannel.AddKey(10100, 255 / 255f);
-            redTempColorChannel.AddKey(10200, 202 / 255f); greenTempColorChannel.AddKey(10200, 218 / 255f); blueTempColorChannel.AddKey(10200, 255 / 255f);
-            redTempColorChannel.AddKey(10300, 201 / 255f); greenTempColorChannel.AddKey(10300, 218 / 255f); blueTempColorChannel.AddKey(10300, 255 / 255f);
-            redTempColorChannel.AddKey(10400, 201 / 255f); greenTempColorChannel.AddKey(10400, 217 / 255f); blueTempColorChannel.AddKey(10400, 255 / 255f);
-            redTempColorChannel.AddKey(10500, 200 / 255f); greenTempColorChannel.AddKey(10500, 217 / 255f); blueTempColorChannel.AddKey(10500, 255 / 255f);
-            redTempColorChannel.AddKey(10600, 199 / 255f); greenTempColorChannel.AddKey(10600, 216 / 255f); blueTempColorChannel.AddKey(10600, 255 / 255f);
-            redTempColorChannel.AddKey(10700, 199 / 255f); greenTempColorChannel.AddKey(10700, 216 / 255f); blueTempColorChannel.AddKey(10700, 255 / 255f);
-            redTempColorChannel.AddKey(10800, 198 / 255f); greenTempColorChannel.AddKey(10800, 216 / 255f); blueTempColorChannel.AddKey(10800, 255 / 255f);
-            redTempColorChannel.AddKey(10900, 197 / 255f); greenTempColorChannel.AddKey(10900, 215 / 255f); blueTempColorChannel.AddKey(10900, 255 / 255f);
-            redTempColorChannel.AddKey(11000, 196 / 255f); greenTempColorChannel.AddKey(11000, 215 / 255f); blueTempColorChannel.AddKey(11000, 255 / 255f);
-            redTempColorChannel.AddKey(11100, 196 / 255f); greenTempColorChannel.AddKey(11100, 214 / 255f); blueTempColorChannel.AddKey(11100, 255 / 255f);
-            redTempColorChannel.AddKey(11200, 195 / 255f); greenTempColorChannel.AddKey(11200, 214 / 255f); blueTempColorChannel.AddKey(11200, 255 / 255f);
-            redTempColorChannel.AddKey(11300, 195 / 255f); greenTempColorChannel.AddKey(11300, 214 / 255f); blueTempColorChannel.AddKey(11300, 255 / 255f);
-            redTempColorChannel.AddKey(11400, 194 / 255f); greenTempColorChannel.AddKey(11400, 213 / 255f); blueTempColorChannel.AddKey(11400, 255 / 255f);
-            redTempColorChannel.AddKey(11500, 193 / 255f); greenTempColorChannel.AddKey(11500, 213 / 255f); blueTempColorChannel.AddKey(11500, 255 / 255f);
-            redTempColorChannel.AddKey(11600, 193 / 255f); greenTempColorChannel.AddKey(11600, 212 / 255f); blueTempColorChannel.AddKey(11600, 255 / 255f);
-            redTempColorChannel.AddKey(11700, 192 / 255f); greenTempColorChannel.AddKey(11700, 212 / 255f); blueTempColorChannel.AddKey(11700, 255 / 255f);
-            redTempColorChannel.AddKey(11800, 192 / 255f); greenTempColorChannel.AddKey(11800, 212 / 255f); blueTempColorChannel.AddKey(11800, 255 / 255f);
-            redTempColorChannel.AddKey(11900, 191 / 255f); greenTempColorChannel.AddKey(11900, 211 / 255f); blueTempColorChannel.AddKey(11900, 255 / 255f);
-            redTempColorChannel.AddKey(12000, 191 / 255f); greenTempColorChannel.AddKey(12000, 211 / 255f); blueTempColorChannel.AddKey(12000, 255 / 255f);
-            redTempColorChannel.AddKey(12100, 190 / 255f); greenTempColorChannel.AddKey(12100, 211 / 255f); blueTempColorChannel.AddKey(12100, 255 / 255f);
-            redTempColorChannel.AddKey(12200, 190 / 255f); greenTempColorChannel.AddKey(12200, 210 / 255f); blueTempColorChannel.AddKey(12200, 255 / 255f);
-            redTempColorChannel.AddKey(12300, 189 / 255f); greenTempColorChannel.AddKey(12300, 210 / 255f); blueTempColorChannel.AddKey(12300, 255 / 255f);
-            redTempColorChannel.AddKey(12400, 189 / 255f); greenTempColorChannel.AddKey(12400, 210 / 255f); blueTempColorChannel.AddKey(12400, 255 / 255f);
-            redTempColorChannel.AddKey(12500, 188 / 255f); greenTempColorChannel.AddKey(12500, 210 / 255f); blueTempColorChannel.AddKey(12500, 255 / 255f);
-            redTempColorChannel.AddKey(12600, 188 / 255f); greenTempColorChannel.AddKey(12600, 209 / 255f); blueTempColorChannel.AddKey(12600, 255 / 255f);
-            redTempColorChannel.AddKey(12700, 187 / 255f); greenTempColorChannel.AddKey(12700, 209 / 255f); blueTempColorChannel.AddKey(12700, 255 / 255f);
-            redTempColorChannel.AddKey(12800, 187 / 255f); greenTempColorChannel.AddKey(12800, 209 / 255f); blueTempColorChannel.AddKey(12800, 255 / 255f);
-            redTempColorChannel.AddKey(12900, 186 / 255f); greenTempColorChannel.AddKey(12900, 208 / 255f); blueTempColorChannel.AddKey(12900, 255 / 255f);
-            redTempColorChannel.AddKey(13000, 186 / 255f); greenTempColorChannel.AddKey(13000, 208 / 255f); blueTempColorChannel.AddKey(13000, 255 / 255f);
-            redTempColorChannel.AddKey(13100, 185 / 255f); greenTempColorChannel.AddKey(13100, 208 / 255f); blueTempColorChannel.AddKey(13100, 255 / 255f);
-            redTempColorChannel.AddKey(13200, 185 / 255f); greenTempColorChannel.AddKey(13200, 208 / 255f); blueTempColorChannel.AddKey(13200, 255 / 255f);
-            redTempColorChannel.AddKey(13300, 185 / 255f); greenTempColorChannel.AddKey(13300, 207 / 255f); blueTempColorChannel.AddKey(13300, 255 / 255f);
-            redTempColorChannel.AddKey(13400, 184 / 255f); greenTempColorChannel.AddKey(13400, 207 / 255f); blueTempColorChannel.AddKey(13400, 255 / 255f);
-            redTempColorChannel.AddKey(13500, 184 / 255f); greenTempColorChannel.AddKey(13500, 207 / 255f); blueTempColorChannel.AddKey(13500, 255 / 255f);
-            redTempColorChannel.AddKey(13600, 183 / 255f); greenTempColorChannel.AddKey(13600, 207 / 255f); blueTempColorChannel.AddKey(13600, 255 / 255f);
-            redTempColorChannel.AddKey(13700, 183 / 255f); greenTempColorChannel.AddKey(13700, 206 / 255f); blueTempColorChannel.AddKey(13700, 255 / 255f);
-            redTempColorChannel.AddKey(13800, 183 / 255f); greenTempColorChannel.AddKey(13800, 206 / 255f); blueTempColorChannel.AddKey(13800, 255 / 255f);
-            redTempColorChannel.AddKey(13900, 182 / 255f); greenTempColorChannel.AddKey(13900, 206 / 255f); blueTempColorChannel.AddKey(13900, 255 / 255f);
-            redTempColorChannel.AddKey(14000, 182 / 255f); greenTempColorChannel.AddKey(14000, 206 / 255f); blueTempColorChannel.AddKey(14000, 255 / 255f);
-            redTempColorChannel.AddKey(14100, 182 / 255f); greenTempColorChannel.AddKey(14100, 205 / 255f); blueTempColorChannel.AddKey(14100, 255 / 255f);
-            redTempColorChannel.AddKey(14200, 181 / 255f); greenTempColorChannel.AddKey(14200, 205 / 255f); blueTempColorChannel.AddKey(14200, 255 / 255f);
-            redTempColorChannel.AddKey(14300, 181 / 255f); greenTempColorChannel.AddKey(14300, 205 / 255f); blueTempColorChannel.AddKey(14300, 255 / 255f);
-            redTempColorChannel.AddKey(14400, 181 / 255f); greenTempColorChannel.AddKey(14400, 205 / 255f); blueTempColorChannel.AddKey(14400, 255 / 255f);
-            redTempColorChannel.AddKey(14500, 180 / 255f); greenTempColorChannel.AddKey(14500, 205 / 255f); blueTempColorChannel.AddKey(14500, 255 / 255f);
-            redTempColorChannel.AddKey(14600, 180 / 255f); greenTempColorChannel.AddKey(14600, 204 / 255f); blueTempColorChannel.AddKey(14600, 255 / 255f);
-            redTempColorChannel.AddKey(14700, 180 / 255f); greenTempColorChannel.AddKey(14700, 204 / 255f); blueTempColorChannel.AddKey(14700, 255 / 255f);
-            redTempColorChannel.AddKey(14800, 179 / 255f); greenTempColorChannel.AddKey(14800, 204 / 255f); blueTempColorChannel.AddKey(14800, 255 / 255f);
-            redTempColorChannel.AddKey(14900, 179 / 255f); greenTempColorChannel.AddKey(14900, 204 / 255f); blueTempColorChannel.AddKey(14900, 255 / 255f);
-            redTempColorChannel.AddKey(15000, 179 / 255f); greenTempColorChannel.AddKey(15000, 204 / 255f); blueTempColorChannel.AddKey(15000, 255 / 255f);
-            redTempColorChannel.AddKey(15100, 178 / 255f); greenTempColorChannel.AddKey(15100, 203 / 255f); blueTempColorChannel.AddKey(15100, 255 / 255f);
-            redTempColorChannel.AddKey(15200, 178 / 255f); greenTempColorChannel.AddKey(15200, 203 / 255f); blueTempColorChannel.AddKey(15200, 255 / 255f);
-            redTempColorChannel.AddKey(15300, 178 / 255f); greenTempColorChannel.AddKey(15300, 203 / 255f); blueTempColorChannel.AddKey(15300, 255 / 255f);
-            redTempColorChannel.AddKey(15400, 178 / 255f); greenTempColorChannel.AddKey(15400, 203 / 255f); blueTempColorChannel.AddKey(15400, 255 / 255f);
-            redTempColorChannel.AddKey(15500, 177 / 255f); greenTempColorChannel.AddKey(15500, 203 / 255f); blueTempColorChannel.AddKey(15500, 255 / 255f);
-            redTempColorChannel.AddKey(15600, 177 / 255f); greenTempColorChannel.AddKey(15600, 202 / 255f); blueTempColorChannel.AddKey(15600, 255 / 255f);
-            redTempColorChannel.AddKey(15700, 177 / 255f); greenTempColorChannel.AddKey(15700, 202 / 255f); blueTempColorChannel.AddKey(15700, 255 / 255f);
-            redTempColorChannel.AddKey(15800, 177 / 255f); greenTempColorChannel.AddKey(15800, 202 / 255f); blueTempColorChannel.AddKey(15800, 255 / 255f);
-            redTempColorChannel.AddKey(15900, 176 / 255f); greenTempColorChannel.AddKey(15900, 202 / 255f); blueTempColorChannel.AddKey(15900, 255 / 255f);
-            redTempColorChannel.AddKey(16000, 176 / 255f); greenTempColorChannel.AddKey(16000, 202 / 255f); blueTempColorChannel.AddKey(16000, 255 / 255f);
-            redTempColorChannel.AddKey(16100, 176 / 255f); greenTempColorChannel.AddKey(16100, 202 / 255f); blueTempColorChannel.AddKey(16100, 255 / 255f);
-            redTempColorChannel.AddKey(16200, 175 / 255f); greenTempColorChannel.AddKey(16200, 201 / 255f); blueTempColorChannel.AddKey(16200, 255 / 255f);
-            redTempColorChannel.AddKey(16300, 175 / 255f); greenTempColorChannel.AddKey(16300, 201 / 255f); blueTempColorChannel.AddKey(16300, 255 / 255f);
-            redTempColorChannel.AddKey(16400, 175 / 255f); greenTempColorChannel.AddKey(16400, 201 / 255f); blueTempColorChannel.AddKey(16400, 255 / 255f);
-            redTempColorChannel.AddKey(16500, 175 / 255f); greenTempColorChannel.AddKey(16500, 201 / 255f); blueTempColorChannel.AddKey(16500, 255 / 255f);
-            redTempColorChannel.AddKey(16600, 175 / 255f); greenTempColorChannel.AddKey(16600, 201 / 255f); blueTempColorChannel.AddKey(16600, 255 / 255f);
-            redTempColorChannel.AddKey(16700, 174 / 255f); greenTempColorChannel.AddKey(16700, 201 / 255f); blueTempColorChannel.AddKey(16700, 255 / 255f);
-            redTempColorChannel.AddKey(16800, 174 / 255f); greenTempColorChannel.AddKey(16800, 201 / 255f); blueTempColorChannel.AddKey(16800, 255 / 255f);
-            redTempColorChannel.AddKey(16900, 174 / 255f); greenTempColorChannel.AddKey(16900, 200 / 255f); blueTempColorChannel.AddKey(16900, 255 / 255f);
-            redTempColorChannel.AddKey(17000, 174 / 255f); greenTempColorChannel.AddKey(17000, 200 / 255f); blueTempColorChannel.AddKey(17000, 255 / 255f);
-            redTempColorChannel.AddKey(17100, 173 / 255f); greenTempColorChannel.AddKey(17100, 200 / 255f); blueTempColorChannel.AddKey(17100, 255 / 255f);
-            redTempColorChannel.AddKey(17200, 173 / 255f); greenTempColorChannel.AddKey(17200, 200 / 255f); blueTempColorChannel.AddKey(17200, 255 / 255f);
-            redTempColorChannel.AddKey(17300, 173 / 255f); greenTempColorChannel.AddKey(17300, 200 / 255f); blueTempColorChannel.AddKey(17300, 255 / 255f);
-            redTempColorChannel.AddKey(17400, 173 / 255f); greenTempColorChannel.AddKey(17400, 200 / 255f); blueTempColorChannel.AddKey(17400, 255 / 255f);
-            redTempColorChannel.AddKey(17500, 173 / 255f); greenTempColorChannel.AddKey(17500, 200 / 255f); blueTempColorChannel.AddKey(17500, 255 / 255f);
-            redTempColorChannel.AddKey(17600, 172 / 255f); greenTempColorChannel.AddKey(17600, 199 / 255f); blueTempColorChannel.AddKey(17600, 255 / 255f);
-            redTempColorChannel.AddKey(17700, 172 / 255f); greenTempColorChannel.AddKey(17700, 199 / 255f); blueTempColorChannel.AddKey(17700, 255 / 255f);
-            redTempColorChannel.AddKey(17800, 172 / 255f); greenTempColorChannel.AddKey(17800, 199 / 255f); blueTempColorChannel.AddKey(17800, 255 / 255f);
-            redTempColorChannel.AddKey(17900, 172 / 255f); greenTempColorChannel.AddKey(17900, 199 / 255f); blueTempColorChannel.AddKey(17900, 255 / 255f);
-            redTempColorChannel.AddKey(18000, 172 / 255f); greenTempColorChannel.AddKey(18000, 199 / 255f); blueTempColorChannel.AddKey(18000, 255 / 255f);
-            redTempColorChannel.AddKey(18100, 171 / 255f); greenTempColorChannel.AddKey(18100, 199 / 255f); blueTempColorChannel.AddKey(18100, 255 / 255f);
-            redTempColorChannel.AddKey(18200, 171 / 255f); greenTempColorChannel.AddKey(18200, 199 / 255f); blueTempColorChannel.AddKey(18200, 255 / 255f);
-            redTempColorChannel.AddKey(18300, 171 / 255f); greenTempColorChannel.AddKey(18300, 199 / 255f); blueTempColorChannel.AddKey(18300, 255 / 255f);
-            redTempColorChannel.AddKey(18400, 171 / 255f); greenTempColorChannel.AddKey(18400, 198 / 255f); blueTempColorChannel.AddKey(18400, 255 / 255f);
-            redTempColorChannel.AddKey(18500, 171 / 255f); greenTempColorChannel.AddKey(18500, 198 / 255f); blueTempColorChannel.AddKey(18500, 255 / 255f);
-            redTempColorChannel.AddKey(18600, 170 / 255f); greenTempColorChannel.AddKey(18600, 198 / 255f); blueTempColorChannel.AddKey(18600, 255 / 255f);
-            redTempColorChannel.AddKey(18700, 170 / 255f); greenTempColorChannel.AddKey(18700, 198 / 255f); blueTempColorChannel.AddKey(18700, 255 / 255f);
-            redTempColorChannel.AddKey(18800, 170 / 255f); greenTempColorChannel.AddKey(18800, 198 / 255f); blueTempColorChannel.AddKey(18800, 255 / 255f);
-            redTempColorChannel.AddKey(18900, 170 / 255f); greenTempColorChannel.AddKey(18900, 198 / 255f); blueTempColorChannel.AddKey(18900, 255 / 255f);
-            redTempColorChannel.AddKey(19000, 170 / 255f); greenTempColorChannel.AddKey(19000, 198 / 255f); blueTempColorChannel.AddKey(19000, 255 / 255f);
-            redTempColorChannel.AddKey(19100, 170 / 255f); greenTempColorChannel.AddKey(19100, 198 / 255f); blueTempColorChannel.AddKey(19100, 255 / 255f);
-            redTempColorChannel.AddKey(19200, 169 / 255f); greenTempColorChannel.AddKey(19200, 198 / 255f); blueTempColorChannel.AddKey(19200, 255 / 255f);
-            redTempColorChannel.AddKey(19300, 169 / 255f); greenTempColorChannel.AddKey(19300, 197 / 255f); blueTempColorChannel.AddKey(19300, 255 / 255f);
-            redTempColorChannel.AddKey(19400, 169 / 255f); greenTempColorChannel.AddKey(19400, 197 / 255f); blueTempColorChannel.AddKey(19400, 255 / 255f);
-            redTempColorChannel.AddKey(19500, 169 / 255f); greenTempColorChannel.AddKey(19500, 197 / 255f); blueTempColorChannel.AddKey(19500, 255 / 255f);
-            redTempColorChannel.AddKey(19600, 169 / 255f); greenTempColorChannel.AddKey(19600, 197 / 255f); blueTempColorChannel.AddKey(19600, 255 / 255f);
-            redTempColorChannel.AddKey(19700, 169 / 255f); greenTempColorChannel.AddKey(19700, 197 / 255f); blueTempColorChannel.AddKey(19700, 255 / 255f);
-            redTempColorChannel.AddKey(19800, 169 / 255f); greenTempColorChannel.AddKey(19800, 197 / 255f); blueTempColorChannel.AddKey(19800, 255 / 255f);
-            redTempColorChannel.AddKey(19900, 168 / 255f); greenTempColorChannel.AddKey(19900, 197 / 255f); blueTempColorChannel.AddKey(19900, 255 / 255f);
-            redTempColorChannel.AddKey(20000, 168 / 255f); greenTempColorChannel.AddKey(20000, 197 / 255f); blueTempColorChannel.AddKey(20000, 255 / 255f);
-            redTempColorChannel.AddKey(20100, 168 / 255f); greenTempColorChannel.AddKey(20100, 197 / 255f); blueTempColorChannel.AddKey(20100, 255 / 255f);
-            redTempColorChannel.AddKey(20200, 168 / 255f); greenTempColorChannel.AddKey(20200, 197 / 255f); blueTempColorChannel.AddKey(20200, 255 / 255f);
-            redTempColorChannel.AddKey(20300, 168 / 255f); greenTempColorChannel.AddKey(20300, 196 / 255f); blueTempColorChannel.AddKey(20300, 255 / 255f);
-            redTempColorChannel.AddKey(20400, 168 / 255f); greenTempColorChannel.AddKey(20400, 196 / 255f); blueTempColorChannel.AddKey(20400, 255 / 255f);
-            redTempColorChannel.AddKey(20500, 168 / 255f); greenTempColorChannel.AddKey(20500, 196 / 255f); blueTempColorChannel.AddKey(20500, 255 / 255f);
-            redTempColorChannel.AddKey(20600, 167 / 255f); greenTempColorChannel.AddKey(20600, 196 / 255f); blueTempColorChannel.AddKey(20600, 255 / 255f);
-            redTempColorChannel.AddKey(20700, 167 / 255f); greenTempColorChannel.AddKey(20700, 196 / 255f); blueTempColorChannel.AddKey(20700, 255 / 255f);
-            redTempColorChannel.AddKey(20800, 167 / 255f); greenTempColorChannel.AddKey(20800, 196 / 255f); blueTempColorChannel.AddKey(20800, 255 / 255f);
-            redTempColorChannel.AddKey(20900, 167 / 255f); greenTempColorChannel.AddKey(20900, 196 / 255f); blueTempColorChannel.AddKey(20900, 255 / 255f);
-            redTempColorChannel.AddKey(21000, 167 / 255f); greenTempColorChannel.AddKey(21000, 196 / 255f); blueTempColorChannel.AddKey(21000, 255 / 255f);
-            redTempColorChannel.AddKey(21100, 167 / 255f); greenTempColorChannel.AddKey(21100, 196 / 255f); blueTempColorChannel.AddKey(21100, 255 / 255f);
-            redTempColorChannel.AddKey(21200, 167 / 255f); greenTempColorChannel.AddKey(21200, 196 / 255f); blueTempColorChannel.AddKey(21200, 255 / 255f);
-            redTempColorChannel.AddKey(21300, 166 / 255f); greenTempColorChannel.AddKey(21300, 196 / 255f); blueTempColorChannel.AddKey(21300, 255 / 255f);
-            redTempColorChannel.AddKey(21400, 166 / 255f); greenTempColorChannel.AddKey(21400, 195 / 255f); blueTempColorChannel.AddKey(21400, 255 / 255f);
-            redTempColorChannel.AddKey(21500, 166 / 255f); greenTempColorChannel.AddKey(21500, 195 / 255f); blueTempColorChannel.AddKey(21500, 255 / 255f);
-            redTempColorChannel.AddKey(21600, 166 / 255f); greenTempColorChannel.AddKey(21600, 195 / 255f); blueTempColorChannel.AddKey(21600, 255 / 255f);
-            redTempColorChannel.AddKey(21700, 166 / 255f); greenTempColorChannel.AddKey(21700, 195 / 255f); blueTempColorChannel.AddKey(21700, 255 / 255f);
-            redTempColorChannel.AddKey(21800, 166 / 255f); greenTempColorChannel.AddKey(21800, 195 / 255f); blueTempColorChannel.AddKey(21800, 255 / 255f);
-            redTempColorChannel.AddKey(21900, 166 / 255f); greenTempColorChannel.AddKey(21900, 195 / 255f); blueTempColorChannel.AddKey(21900, 255 / 255f);
-            redTempColorChannel.AddKey(22000, 166 / 255f); greenTempColorChannel.AddKey(22000, 195 / 255f); blueTempColorChannel.AddKey(22000, 255 / 255f);
-            redTempColorChannel.AddKey(22100, 165 / 255f); greenTempColorChannel.AddKey(22100, 195 / 255f); blueTempColorChannel.AddKey(22100, 255 / 255f);
-            redTempColorChannel.AddKey(22200, 165 / 255f); greenTempColorChannel.AddKey(22200, 195 / 255f); blueTempColorChannel.AddKey(22200, 255 / 255f);
-            redTempColorChannel.AddKey(22300, 165 / 255f); greenTempColorChannel.AddKey(22300, 195 / 255f); blueTempColorChannel.AddKey(22300, 255 / 255f);
-            redTempColorChannel.AddKey(22400, 165 / 255f); greenTempColorChannel.AddKey(22400, 195 / 255f); blueTempColorChannel.AddKey(22400, 255 / 255f);
-            redTempColorChannel.AddKey(22500, 165 / 255f); greenTempColorChannel.AddKey(22500, 195 / 255f); blueTempColorChannel.AddKey(22500, 255 / 255f);
-            redTempColorChannel.AddKey(22600, 165 / 255f); greenTempColorChannel.AddKey(22600, 195 / 255f); blueTempColorChannel.AddKey(22600, 255 / 255f);
-            redTempColorChannel.AddKey(22700, 165 / 255f); greenTempColorChannel.AddKey(22700, 194 / 255f); blueTempColorChannel.AddKey(22700, 255 / 255f);
-            redTempColorChannel.AddKey(22800, 165 / 255f); greenTempColorChannel.AddKey(22800, 194 / 255f); blueTempColorChannel.AddKey(22800, 255 / 255f);
-            redTempColorChannel.AddKey(22900, 165 / 255f); greenTempColorChannel.AddKey(22900, 194 / 255f); blueTempColorChannel.AddKey(22900, 255 / 255f);
-            redTempColorChannel.AddKey(23000, 164 / 255f); greenTempColorChannel.AddKey(23000, 194 / 255f); blueTempColorChannel.AddKey(23000, 255 / 255f);
-            redTempColorChannel.AddKey(23100, 164 / 255f); greenTempColorChannel.AddKey(23100, 194 / 255f); blueTempColorChannel.AddKey(23100, 255 / 255f);
-            redTempColorChannel.AddKey(23200, 164 / 255f); greenTempColorChannel.AddKey(23200, 194 / 255f); blueTempColorChannel.AddKey(23200, 255 / 255f);
-            redTempColorChannel.AddKey(23300, 164 / 255f); greenTempColorChannel.AddKey(23300, 194 / 255f); blueTempColorChannel.AddKey(23300, 255 / 255f);
-            redTempColorChannel.AddKey(23400, 164 / 255f); greenTempColorChannel.AddKey(23400, 194 / 255f); blueTempColorChannel.AddKey(23400, 255 / 255f);
-            redTempColorChannel.AddKey(23500, 164 / 255f); greenTempColorChannel.AddKey(23500, 194 / 255f); blueTempColorChannel.AddKey(23500, 255 / 255f);
-            redTempColorChannel.AddKey(23600, 164 / 255f); greenTempColorChannel.AddKey(23600, 194 / 255f); blueTempColorChannel.AddKey(23600, 255 / 255f);
-            redTempColorChannel.AddKey(23700, 164 / 255f); greenTempColorChannel.AddKey(23700, 194 / 255f); blueTempColorChannel.AddKey(23700, 255 / 255f);
-            redTempColorChannel.AddKey(23800, 164 / 255f); greenTempColorChannel.AddKey(23800, 194 / 255f); blueTempColorChannel.AddKey(23800, 255 / 255f);
-            redTempColorChannel.AddKey(23900, 164 / 255f); greenTempColorChannel.AddKey(23900, 194 / 255f); blueTempColorChannel.AddKey(23900, 255 / 255f);
-            redTempColorChannel.AddKey(24000, 163 / 255f); greenTempColorChannel.AddKey(24000, 194 / 255f); blueTempColorChannel.AddKey(24000, 255 / 255f);
-            redTempColorChannel.AddKey(24100, 163 / 255f); greenTempColorChannel.AddKey(24100, 194 / 255f); blueTempColorChannel.AddKey(24100, 255 / 255f);
-            redTempColorChannel.AddKey(24200, 163 / 255f); greenTempColorChannel.AddKey(24200, 193 / 255f); blueTempColorChannel.AddKey(24200, 255 / 255f);
-            redTempColorChannel.AddKey(24300, 163 / 255f); greenTempColorChannel.AddKey(24300, 193 / 255f); blueTempColorChannel.AddKey(24300, 255 / 255f);
-            redTempColorChannel.AddKey(24400, 163 / 255f); greenTempColorChannel.AddKey(24400, 193 / 255f); blueTempColorChannel.AddKey(24400, 255 / 255f);
-            redTempColorChannel.AddKey(24500, 163 / 255f); greenTempColorChannel.AddKey(24500, 193 / 255f); blueTempColorChannel.AddKey(24500, 255 / 255f);
-            redTempColorChannel.AddKey(24600, 163 / 255f); greenTempColorChannel.AddKey(24600, 193 / 255f); blueTempColorChannel.AddKey(24600, 255 / 255f);
-            redTempColorChannel.AddKey(24700, 163 / 255f); greenTempColorChannel.AddKey(24700, 193 / 255f); blueTempColorChannel.AddKey(24700, 255 / 255f);
-            redTempColorChannel.AddKey(24800, 163 / 255f); greenTempColorChannel.AddKey(24800, 193 / 255f); blueTempColorChannel.AddKey(24800, 255 / 255f);
-            redTempColorChannel.AddKey(24900, 163 / 255f); greenTempColorChannel.AddKey(24900, 193 / 255f); blueTempColorChannel.AddKey(24900, 255 / 255f);
-            redTempColorChannel.AddKey(25000, 163 / 255f); greenTempColorChannel.AddKey(25000, 193 / 255f); blueTempColorChannel.AddKey(25000, 255 / 255f);
-            redTempColorChannel.AddKey(25100, 162 / 255f); greenTempColorChannel.AddKey(25100, 193 / 255f); blueTempColorChannel.AddKey(25100, 255 / 255f);
-            redTempColorChannel.AddKey(25200, 162 / 255f); greenTempColorChannel.AddKey(25200, 193 / 255f); blueTempColorChannel.AddKey(25200, 255 / 255f);
-            redTempColorChannel.AddKey(25300, 162 / 255f); greenTempColorChannel.AddKey(25300, 193 / 255f); blueTempColorChannel.AddKey(25300, 255 / 255f);
-            redTempColorChannel.AddKey(25400, 162 / 255f); greenTempColorChannel.AddKey(25400, 193 / 255f); blueTempColorChannel.AddKey(25400, 255 / 255f);
-            redTempColorChannel.AddKey(25500, 162 / 255f); greenTempColorChannel.AddKey(25500, 193 / 255f); blueTempColorChannel.AddKey(25500, 255 / 255f);
-            redTempColorChannel.AddKey(25600, 162 / 255f); greenTempColorChannel.AddKey(25600, 193 / 255f); blueTempColorChannel.AddKey(25600, 255 / 255f);
-            redTempColorChannel.AddKey(25700, 162 / 255f); greenTempColorChannel.AddKey(25700, 193 / 255f); blueTempColorChannel.AddKey(25700, 255 / 255f);
-            redTempColorChannel.AddKey(25800, 162 / 255f); greenTempColorChannel.AddKey(25800, 193 / 255f); blueTempColorChannel.AddKey(25800, 255 / 255f);
-            redTempColorChannel.AddKey(25900, 162 / 255f); greenTempColorChannel.AddKey(25900, 192 / 255f); blueTempColorChannel.AddKey(25900, 255 / 255f);
-            redTempColorChannel.AddKey(26000, 162 / 255f); greenTempColorChannel.AddKey(26000, 192 / 255f); blueTempColorChannel.AddKey(26000, 255 / 255f);
-            redTempColorChannel.AddKey(26100, 162 / 255f); greenTempColorChannel.AddKey(26100, 192 / 255f); blueTempColorChannel.AddKey(26100, 255 / 255f);
-            redTempColorChannel.AddKey(26200, 162 / 255f); greenTempColorChannel.AddKey(26200, 192 / 255f); blueTempColorChannel.AddKey(26200, 255 / 255f);
-            redTempColorChannel.AddKey(26300, 162 / 255f); greenTempColorChannel.AddKey(26300, 192 / 255f); blueTempColorChannel.AddKey(26300, 255 / 255f);
-            redTempColorChannel.AddKey(26400, 161 / 255f); greenTempColorChannel.AddKey(26400, 192 / 255f); blueTempColorChannel.AddKey(26400, 255 / 255f);
-            redTempColorChannel.AddKey(26500, 161 / 255f); greenTempColorChannel.AddKey(26500, 192 / 255f); blueTempColorChannel.AddKey(26500, 255 / 255f);
-            redTempColorChannel.AddKey(26600, 161 / 255f); greenTempColorChannel.AddKey(26600, 192 / 255f); blueTempColorChannel.AddKey(26600, 255 / 255f);
-            redTempColorChannel.AddKey(26700, 161 / 255f); greenTempColorChannel.AddKey(26700, 192 / 255f); blueTempColorChannel.AddKey(26700, 255 / 255f);
-            redTempColorChannel.AddKey(26800, 161 / 255f); greenTempColorChannel.AddKey(26800, 192 / 255f); blueTempColorChannel.AddKey(26800, 255 / 255f);
-            redTempColorChannel.AddKey(26900, 161 / 255f); greenTempColorChannel.AddKey(26900, 192 / 255f); blueTempColorChannel.AddKey(26900, 255 / 255f);
-            redTempColorChannel.AddKey(27000, 161 / 255f); greenTempColorChannel.AddKey(27000, 192 / 255f); blueTempColorChannel.AddKey(27000, 255 / 255f);
-            redTempColorChannel.AddKey(27100, 161 / 255f); greenTempColorChannel.AddKey(27100, 192 / 255f); blueTempColorChannel.AddKey(27100, 255 / 255f);
-            redTempColorChannel.AddKey(27200, 161 / 255f); greenTempColorChannel.AddKey(27200, 192 / 255f); blueTempColorChannel.AddKey(27200, 255 / 255f);
-            redTempColorChannel.AddKey(27300, 161 / 255f); greenTempColorChannel.AddKey(27300, 192 / 255f); blueTempColorChannel.AddKey(27300, 255 / 255f);
-            redTempColorChannel.AddKey(27400, 161 / 255f); greenTempColorChannel.AddKey(27400, 192 / 255f); blueTempColorChannel.AddKey(27400, 255 / 255f);
-            redTempColorChannel.AddKey(27500, 161 / 255f); greenTempColorChannel.AddKey(27500, 192 / 255f); blueTempColorChannel.AddKey(27500, 255 / 255f);
-            redTempColorChannel.AddKey(27600, 161 / 255f); greenTempColorChannel.AddKey(27600, 192 / 255f); blueTempColorChannel.AddKey(27600, 255 / 255f);
-            redTempColorChannel.AddKey(27700, 161 / 255f); greenTempColorChannel.AddKey(27700, 192 / 255f); blueTempColorChannel.AddKey(27700, 255 / 255f);
-            redTempColorChannel.AddKey(27800, 160 / 255f); greenTempColorChannel.AddKey(27800, 192 / 255f); blueTempColorChannel.AddKey(27800, 255 / 255f);
-            redTempColorChannel.AddKey(27900, 160 / 255f); greenTempColorChannel.AddKey(27900, 192 / 255f); blueTempColorChannel.AddKey(27900, 255 / 255f);
-            redTempColorChannel.AddKey(28000, 160 / 255f); greenTempColorChannel.AddKey(28000, 191 / 255f); blueTempColorChannel.AddKey(28000, 255 / 255f);
-            redTempColorChannel.AddKey(28100, 160 / 255f); greenTempColorChannel.AddKey(28100, 191 / 255f); blueTempColorChannel.AddKey(28100, 255 / 255f);
-            redTempColorChannel.AddKey(28200, 160 / 255f); greenTempColorChannel.AddKey(28200, 191 / 255f); blueTempColorChannel.AddKey(28200, 255 / 255f);
-            redTempColorChannel.AddKey(28300, 160 / 255f); greenTempColorChannel.AddKey(28300, 191 / 255f); blueTempColorChannel.AddKey(28300, 255 / 255f);
-            redTempColorChannel.AddKey(28400, 160 / 255f); greenTempColorChannel.AddKey(28400, 191 / 255f); blueTempColorChannel.AddKey(28400, 255 / 255f);
-            redTempColorChannel.AddKey(28500, 160 / 255f); greenTempColorChannel.AddKey(28500, 191 / 255f); blueTempColorChannel.AddKey(28500, 255 / 255f);
-            redTempColorChannel.AddKey(28600, 160 / 255f); greenTempColorChannel.AddKey(28600, 191 / 255f); blueTempColorChannel.AddKey(28600, 255 / 255f);
-            redTempColorChannel.AddKey(28700, 160 / 255f); greenTempColorChannel.AddKey(28700, 191 / 255f); blueTempColorChannel.AddKey(28700, 255 / 255f);
-            redTempColorChannel.AddKey(28800, 160 / 255f); greenTempColorChannel.AddKey(28800, 191 / 255f); blueTempColorChannel.AddKey(28800, 255 / 255f);
-            redTempColorChannel.AddKey(28900, 160 / 255f); greenTempColorChannel.AddKey(28900, 191 / 255f); blueTempColorChannel.AddKey(28900, 255 / 255f);
-            redTempColorChannel.AddKey(29000, 160 / 255f); greenTempColorChannel.AddKey(29000, 191 / 255f); blueTempColorChannel.AddKey(29000, 255 / 255f);
-            redTempColorChannel.AddKey(29100, 160 / 255f); greenTempColorChannel.AddKey(29100, 191 / 255f); blueTempColorChannel.AddKey(29100, 255 / 255f);
-            redTempColorChannel.AddKey(29200, 160 / 255f); greenTempColorChannel.AddKey(29200, 191 / 255f); blueTempColorChannel.AddKey(29200, 255 / 255f);
-            redTempColorChannel.AddKey(29300, 159 / 255f); greenTempColorChannel.AddKey(29300, 191 / 255f); blueTempColorChannel.AddKey(29300, 255 / 255f);
-            redTempColorChannel.AddKey(29400, 159 / 255f); greenTempColorChannel.AddKey(29400, 191 / 255f); blueTempColorChannel.AddKey(29400, 255 / 255f);
-            redTempColorChannel.AddKey(29500, 159 / 255f); greenTempColorChannel.AddKey(29500, 191 / 255f); blueTempColorChannel.AddKey(29500, 255 / 255f);
-            redTempColorChannel.AddKey(29600, 159 / 255f); greenTempColorChannel.AddKey(29600, 191 / 255f); blueTempColorChannel.AddKey(29600, 255 / 255f);
-            redTempColorChannel.AddKey(29700, 159 / 255f); greenTempColorChannel.AddKey(29700, 191 / 255f); blueTempColorChannel.AddKey(29700, 255 / 255f);
-            redTempColorChannel.AddKey(29800, 159 / 255f); greenTempColorChannel.AddKey(29800, 191 / 255f); blueTempColorChannel.AddKey(29800, 255 / 255f);
-            redTempColorChannel.AddKey(29900, 159 / 255f); greenTempColorChannel.AddKey(29900, 191 / 255f); blueTempColorChannel.AddKey(29900, 255 / 255f);
-            redTempColorChannel.AddKey(30000, 159 / 255f); greenTempColorChannel.AddKey(30000, 191 / 255f); blueTempColorChannel.AddKey(30000, 255 / 255f);
-            redTempColorChannel.AddKey(30100, 159 / 255f); greenTempColorChannel.AddKey(30100, 191 / 255f); blueTempColorChannel.AddKey(30100, 255 / 255f);
-            redTempColorChannel.AddKey(30200, 159 / 255f); greenTempColorChannel.AddKey(30200, 191 / 255f); blueTempColorChannel.AddKey(30200, 255 / 255f);
-            redTempColorChannel.AddKey(30300, 159 / 255f); greenTempColorChannel.AddKey(30300, 191 / 255f); blueTempColorChannel.AddKey(30300, 255 / 255f);
-            redTempColorChannel.AddKey(30400, 159 / 255f); greenTempColorChannel.AddKey(30400, 190 / 255f); blueTempColorChannel.AddKey(30400, 255 / 255f);
-            redTempColorChannel.AddKey(30500, 159 / 255f); greenTempColorChannel.AddKey(30500, 190 / 255f); blueTempColorChannel.AddKey(30500, 255 / 255f);
-            redTempColorChannel.AddKey(30600, 159 / 255f); greenTempColorChannel.AddKey(30600, 190 / 255f); blueTempColorChannel.AddKey(30600, 255 / 255f);
-            redTempColorChannel.AddKey(30700, 159 / 255f); greenTempColorChannel.AddKey(30700, 190 / 255f); blueTempColorChannel.AddKey(30700, 255 / 255f);
-            redTempColorChannel.AddKey(30800, 159 / 255f); greenTempColorChannel.AddKey(30800, 190 / 255f); blueTempColorChannel.AddKey(30800, 255 / 255f);
-            redTempColorChannel.AddKey(30900, 159 / 255f); greenTempColorChannel.AddKey(30900, 190 / 255f); blueTempColorChannel.AddKey(30900, 255 / 255f);
-            redTempColorChannel.AddKey(31000, 159 / 255f); greenTempColorChannel.AddKey(31000, 190 / 255f); blueTempColorChannel.AddKey(31000, 255 / 255f);
-            redTempColorChannel.AddKey(31100, 158 / 255f); greenTempColorChannel.AddKey(31100, 190 / 255f); blueTempColorChannel.AddKey(31100, 255 / 255f);
-            redTempColorChannel.AddKey(31200, 158 / 255f); greenTempColorChannel.AddKey(31200, 190 / 255f); blueTempColorChannel.AddKey(31200, 255 / 255f);
-            redTempColorChannel.AddKey(31300, 158 / 255f); greenTempColorChannel.AddKey(31300, 190 / 255f); blueTempColorChannel.AddKey(31300, 255 / 255f);
-            redTempColorChannel.AddKey(31400, 158 / 255f); greenTempColorChannel.AddKey(31400, 190 / 255f); blueTempColorChannel.AddKey(31400, 255 / 255f);
-            redTempColorChannel.AddKey(31500, 158 / 255f); greenTempColorChannel.AddKey(31500, 190 / 255f); blueTempColorChannel.AddKey(31500, 255 / 255f);
-            redTempColorChannel.AddKey(31600, 158 / 255f); greenTempColorChannel.AddKey(31600, 190 / 255f); blueTempColorChannel.AddKey(31600, 255 / 255f);
-            redTempColorChannel.AddKey(31700, 158 / 255f); greenTempColorChannel.AddKey(31700, 190 / 255f); blueTempColorChannel.AddKey(31700, 255 / 255f);
-            redTempColorChannel.AddKey(31800, 158 / 255f); greenTempColorChannel.AddKey(31800, 190 / 255f); blueTempColorChannel.AddKey(31800, 255 / 255f);
-            redTempColorChannel.AddKey(31900, 158 / 255f); greenTempColorChannel.AddKey(31900, 190 / 255f); blueTempColorChannel.AddKey(31900, 255 / 255f);
-            redTempColorChannel.AddKey(32000, 158 / 255f); greenTempColorChannel.AddKey(32000, 190 / 255f); blueTempColorChannel.AddKey(32000, 255 / 255f);
-            redTempColorChannel.AddKey(32100, 158 / 255f); greenTempColorChannel.AddKey(32100, 190 / 255f); blueTempColorChannel.AddKey(32100, 255 / 255f);
-            redTempColorChannel.AddKey(32200, 158 / 255f); greenTempColorChannel.AddKey(32200, 190 / 255f); blueTempColorChannel.AddKey(32200, 255 / 255f);
-            redTempColorChannel.AddKey(32300, 158 / 255f); greenTempColorChannel.AddKey(32300, 190 / 255f); blueTempColorChannel.AddKey(32300, 255 / 255f);
-            redTempColorChannel.AddKey(32400, 158 / 255f); greenTempColorChannel.AddKey(32400, 190 / 255f); blueTempColorChannel.AddKey(32400, 255 / 255f);
-            redTempColorChannel.AddKey(32500, 158 / 255f); greenTempColorChannel.AddKey(32500, 190 / 255f); blueTempColorChannel.AddKey(32500, 255 / 255f);
-            redTempColorChannel.AddKey(32600, 158 / 255f); greenTempColorChannel.AddKey(32600, 190 / 255f); blueTempColorChannel.AddKey(32600, 255 / 255f);
-            redTempColorChannel.AddKey(32700, 158 / 255f); greenTempColorChannel.AddKey(32700, 190 / 255f); blueTempColorChannel.AddKey(32700, 255 / 255f);
-            redTempColorChannel.AddKey(32800, 158 / 255f); greenTempColorChannel.AddKey(32800, 190 / 255f); blueTempColorChannel.AddKey(32800, 255 / 255f);
-            redTempColorChannel.AddKey(32900, 158 / 255f); greenTempColorChannel.AddKey(32900, 190 / 255f); blueTempColorChannel.AddKey(32900, 255 / 255f);
-            redTempColorChannel.AddKey(33000, 158 / 255f); greenTempColorChannel.AddKey(33000, 190 / 255f); blueTempColorChannel.AddKey(33000, 255 / 255f);
-            redTempColorChannel.AddKey(33100, 158 / 255f); greenTempColorChannel.AddKey(33100, 190 / 255f); blueTempColorChannel.AddKey(33100, 255 / 255f);
-            redTempColorChannel.AddKey(33200, 157 / 255f); greenTempColorChannel.AddKey(33200, 190 / 255f); blueTempColorChannel.AddKey(33200, 255 / 255f);
-            redTempColorChannel.AddKey(33300, 157 / 255f); greenTempColorChannel.AddKey(33300, 190 / 255f); blueTempColorChannel.AddKey(33300, 255 / 255f);
-            redTempColorChannel.AddKey(33400, 157 / 255f); greenTempColorChannel.AddKey(33400, 189 / 255f); blueTempColorChannel.AddKey(33400, 255 / 255f);
-            redTempColorChannel.AddKey(33500, 157 / 255f); greenTempColorChannel.AddKey(33500, 189 / 255f); blueTempColorChannel.AddKey(33500, 255 / 255f);
-            redTempColorChannel.AddKey(33600, 157 / 255f); greenTempColorChannel.AddKey(33600, 189 / 255f); blueTempColorChannel.AddKey(33600, 255 / 255f);
-            redTempColorChannel.AddKey(33700, 157 / 255f); greenTempColorChannel.AddKey(33700, 189 / 255f); blueTempColorChannel.AddKey(33700, 255 / 255f);
-            redTempColorChannel.AddKey(33800, 157 / 255f); greenTempColorChannel.AddKey(33800, 189 / 255f); blueTempColorChannel.AddKey(33800, 255 / 255f);
-            redTempColorChannel.AddKey(33900, 157 / 255f); greenTempColorChannel.AddKey(33900, 189 / 255f); blueTempColorChannel.AddKey(33900, 255 / 255f);
-            redTempColorChannel.AddKey(34000, 157 / 255f); greenTempColorChannel.AddKey(34000, 189 / 255f); blueTempColorChannel.AddKey(34000, 255 / 255f);
-            redTempColorChannel.AddKey(34100, 157 / 255f); greenTempColorChannel.AddKey(34100, 189 / 255f); blueTempColorChannel.AddKey(34100, 255 / 255f);
-            redTempColorChannel.AddKey(34200, 157 / 255f); greenTempColorChannel.AddKey(34200, 189 / 255f); blueTempColorChannel.AddKey(34200, 255 / 255f);
-            redTempColorChannel.AddKey(34300, 157 / 255f); greenTempColorChannel.AddKey(34300, 189 / 255f); blueTempColorChannel.AddKey(34300, 255 / 255f);
-            redTempColorChannel.AddKey(34400, 157 / 255f); greenTempColorChannel.AddKey(34400, 189 / 255f); blueTempColorChannel.AddKey(34400, 255 / 255f);
-            redTempColorChannel.AddKey(34500, 157 / 255f); greenTempColorChannel.AddKey(34500, 189 / 255f); blueTempColorChannel.AddKey(34500, 255 / 255f);
-            redTempColorChannel.AddKey(34600, 157 / 255f); greenTempColorChannel.AddKey(34600, 189 / 255f); blueTempColorChannel.AddKey(34600, 255 / 255f);
-            redTempColorChannel.AddKey(34700, 157 / 255f); greenTempColorChannel.AddKey(34700, 189 / 255f); blueTempColorChannel.AddKey(34700, 255 / 255f);
-            redTempColorChannel.AddKey(34800, 157 / 255f); greenTempColorChannel.AddKey(34800, 189 / 255f); blueTempColorChannel.AddKey(34800, 255 / 255f);
-            redTempColorChannel.AddKey(34900, 157 / 255f); greenTempColorChannel.AddKey(34900, 189 / 255f); blueTempColorChannel.AddKey(34900, 255 / 255f);
-            redTempColorChannel.AddKey(35000, 157 / 255f); greenTempColorChannel.AddKey(35000, 189 / 255f); blueTempColorChannel.AddKey(35000, 255 / 255f);
-            redTempColorChannel.AddKey(35100, 157 / 255f); greenTempColorChannel.AddKey(35100, 189 / 255f); blueTempColorChannel.AddKey(35100, 255 / 255f);
-            redTempColorChannel.AddKey(35200, 157 / 255f); greenTempColorChannel.AddKey(35200, 189 / 255f); blueTempColorChannel.AddKey(35200, 255 / 255f);
-            redTempColorChannel.AddKey(35300, 157 / 255f); greenTempColorChannel.AddKey(35300, 189 / 255f); blueTempColorChannel.AddKey(35300, 255 / 255f);
-            redTempColorChannel.AddKey(35400, 157 / 255f); greenTempColorChannel.AddKey(35400, 189 / 255f); blueTempColorChannel.AddKey(35400, 255 / 255f);
-            redTempColorChannel.AddKey(35500, 157 / 255f); greenTempColorChannel.AddKey(35500, 189 / 255f); blueTempColorChannel.AddKey(35500, 255 / 255f);
-            redTempColorChannel.AddKey(35600, 156 / 255f); greenTempColorChannel.AddKey(35600, 189 / 255f); blueTempColorChannel.AddKey(35600, 255 / 255f);
-            redTempColorChannel.AddKey(35700, 156 / 255f); greenTempColorChannel.AddKey(35700, 189 / 255f); blueTempColorChannel.AddKey(35700, 255 / 255f);
-            redTempColorChannel.AddKey(35800, 156 / 255f); greenTempColorChannel.AddKey(35800, 189 / 255f); blueTempColorChannel.AddKey(35800, 255 / 255f);
-            redTempColorChannel.AddKey(35900, 156 / 255f); greenTempColorChannel.AddKey(35900, 189 / 255f); blueTempColorChannel.AddKey(35900, 255 / 255f);
-            redTempColorChannel.AddKey(36000, 156 / 255f); greenTempColorChannel.AddKey(36000, 189 / 255f); blueTempColorChannel.AddKey(36000, 255 / 255f);
-            redTempColorChannel.AddKey(36100, 156 / 255f); greenTempColorChannel.AddKey(36100, 189 / 255f); blueTempColorChannel.AddKey(36100, 255 / 255f);
-            redTempColorChannel.AddKey(36200, 156 / 255f); greenTempColorChannel.AddKey(36200, 189 / 255f); blueTempColorChannel.AddKey(36200, 255 / 255f);
-            redTempColorChannel.AddKey(36300, 156 / 255f); greenTempColorChannel.AddKey(36300, 189 / 255f); blueTempColorChannel.AddKey(36300, 255 / 255f);
-            redTempColorChannel.AddKey(36400, 156 / 255f); greenTempColorChannel.AddKey(36400, 189 / 255f); blueTempColorChannel.AddKey(36400, 255 / 255f);
-            redTempColorChannel.AddKey(36500, 156 / 255f); greenTempColorChannel.AddKey(36500, 189 / 255f); blueTempColorChannel.AddKey(36500, 255 / 255f);
-            redTempColorChannel.AddKey(36600, 156 / 255f); greenTempColorChannel.AddKey(36600, 189 / 255f); blueTempColorChannel.AddKey(36600, 255 / 255f);
-            redTempColorChannel.AddKey(36700, 156 / 255f); greenTempColorChannel.AddKey(36700, 189 / 255f); blueTempColorChannel.AddKey(36700, 255 / 255f);
-            redTempColorChannel.AddKey(36800, 156 / 255f); greenTempColorChannel.AddKey(36800, 189 / 255f); blueTempColorChannel.AddKey(36800, 255 / 255f);
-            redTempColorChannel.AddKey(36900, 156 / 255f); greenTempColorChannel.AddKey(36900, 189 / 255f); blueTempColorChannel.AddKey(36900, 255 / 255f);
-            redTempColorChannel.AddKey(37000, 156 / 255f); greenTempColorChannel.AddKey(37000, 189 / 255f); blueTempColorChannel.AddKey(37000, 255 / 255f);
-            redTempColorChannel.AddKey(37100, 156 / 255f); greenTempColorChannel.AddKey(37100, 189 / 255f); blueTempColorChannel.AddKey(37100, 255 / 255f);
-            redTempColorChannel.AddKey(37200, 156 / 255f); greenTempColorChannel.AddKey(37200, 188 / 255f); blueTempColorChannel.AddKey(37200, 255 / 255f);
-            redTempColorChannel.AddKey(37300, 156 / 255f); greenTempColorChannel.AddKey(37300, 188 / 255f); blueTempColorChannel.AddKey(37300, 255 / 255f);
-            redTempColorChannel.AddKey(37400, 156 / 255f); greenTempColorChannel.AddKey(37400, 188 / 255f); blueTempColorChannel.AddKey(37400, 255 / 255f);
-            redTempColorChannel.AddKey(37500, 156 / 255f); greenTempColorChannel.AddKey(37500, 188 / 255f); blueTempColorChannel.AddKey(37500, 255 / 255f);
-            redTempColorChannel.AddKey(37600, 156 / 255f); greenTempColorChannel.AddKey(37600, 188 / 255f); blueTempColorChannel.AddKey(37600, 255 / 255f);
-            redTempColorChannel.AddKey(37700, 156 / 255f); greenTempColorChannel.AddKey(37700, 188 / 255f); blueTempColorChannel.AddKey(37700, 255 / 255f);
-            redTempColorChannel.AddKey(37800, 156 / 255f); greenTempColorChannel.AddKey(37800, 188 / 255f); blueTempColorChannel.AddKey(37800, 255 / 255f);
-            redTempColorChannel.AddKey(37900, 156 / 255f); greenTempColorChannel.AddKey(37900, 188 / 255f); blueTempColorChannel.AddKey(37900, 255 / 255f);
-            redTempColorChannel.AddKey(38000, 156 / 255f); greenTempColorChannel.AddKey(38000, 188 / 255f); blueTempColorChannel.AddKey(38000, 255 / 255f);
-            redTempColorChannel.AddKey(38100, 156 / 255f); greenTempColorChannel.AddKey(38100, 188 / 255f); blueTempColorChannel.AddKey(38100, 255 / 255f);
-            redTempColorChannel.AddKey(38200, 156 / 255f); greenTempColorChannel.AddKey(38200, 188 / 255f); blueTempColorChannel.AddKey(38200, 255 / 255f);
-            redTempColorChannel.AddKey(38300, 156 / 255f); greenTempColorChannel.AddKey(38300, 188 / 255f); blueTempColorChannel.AddKey(38300, 255 / 255f);
+            _redTempColorChannel.AddKey(1000, 255 / 255f); _greenTempColorChannel.AddKey(1000, 56 / 255f); _blueTempColorChannel.AddKey(1000, 0 / 255f);
+            _redTempColorChannel.AddKey(1100, 255 / 255f); _greenTempColorChannel.AddKey(1100, 71 / 255f); _blueTempColorChannel.AddKey(1100, 0 / 255f);
+            _redTempColorChannel.AddKey(1200, 255 / 255f); _greenTempColorChannel.AddKey(1200, 83 / 255f); _blueTempColorChannel.AddKey(1200, 0 / 255f);
+            _redTempColorChannel.AddKey(1300, 255 / 255f); _greenTempColorChannel.AddKey(1300, 93 / 255f); _blueTempColorChannel.AddKey(1300, 0 / 255f);
+            _redTempColorChannel.AddKey(1400, 255 / 255f); _greenTempColorChannel.AddKey(1400, 101 / 255f); _blueTempColorChannel.AddKey(1400, 0 / 255f);
+            _redTempColorChannel.AddKey(1500, 255 / 255f); _greenTempColorChannel.AddKey(1500, 109 / 255f); _blueTempColorChannel.AddKey(1500, 0 / 255f);
+            _redTempColorChannel.AddKey(1600, 255 / 255f); _greenTempColorChannel.AddKey(1600, 115 / 255f); _blueTempColorChannel.AddKey(1600, 0 / 255f);
+            _redTempColorChannel.AddKey(1700, 255 / 255f); _greenTempColorChannel.AddKey(1700, 121 / 255f); _blueTempColorChannel.AddKey(1700, 0 / 255f);
+            _redTempColorChannel.AddKey(1800, 255 / 255f); _greenTempColorChannel.AddKey(1800, 126 / 255f); _blueTempColorChannel.AddKey(1800, 0 / 255f);
+            _redTempColorChannel.AddKey(1900, 255 / 255f); _greenTempColorChannel.AddKey(1900, 131 / 255f); _blueTempColorChannel.AddKey(1900, 0 / 255f);
+            _redTempColorChannel.AddKey(2000, 255 / 255f); _greenTempColorChannel.AddKey(2000, 137 / 255f); _blueTempColorChannel.AddKey(2000, 18 / 255f);
+            _redTempColorChannel.AddKey(2100, 255 / 255f); _greenTempColorChannel.AddKey(2100, 142 / 255f); _blueTempColorChannel.AddKey(2100, 33 / 255f);
+            _redTempColorChannel.AddKey(2200, 255 / 255f); _greenTempColorChannel.AddKey(2200, 147 / 255f); _blueTempColorChannel.AddKey(2200, 44 / 255f);
+            _redTempColorChannel.AddKey(2300, 255 / 255f); _greenTempColorChannel.AddKey(2300, 152 / 255f); _blueTempColorChannel.AddKey(2300, 54 / 255f);
+            _redTempColorChannel.AddKey(2400, 255 / 255f); _greenTempColorChannel.AddKey(2400, 157 / 255f); _blueTempColorChannel.AddKey(2400, 63 / 255f);
+            _redTempColorChannel.AddKey(2500, 255 / 255f); _greenTempColorChannel.AddKey(2500, 161 / 255f); _blueTempColorChannel.AddKey(2500, 72 / 255f);
+            _redTempColorChannel.AddKey(2600, 255 / 255f); _greenTempColorChannel.AddKey(2600, 165 / 255f); _blueTempColorChannel.AddKey(2600, 79 / 255f);
+            _redTempColorChannel.AddKey(2700, 255 / 255f); _greenTempColorChannel.AddKey(2700, 169 / 255f); _blueTempColorChannel.AddKey(2700, 87 / 255f);
+            _redTempColorChannel.AddKey(2800, 255 / 255f); _greenTempColorChannel.AddKey(2800, 173 / 255f); _blueTempColorChannel.AddKey(2800, 94 / 255f);
+            _redTempColorChannel.AddKey(2900, 255 / 255f); _greenTempColorChannel.AddKey(2900, 177 / 255f); _blueTempColorChannel.AddKey(2900, 101 / 255f);
+            _redTempColorChannel.AddKey(3000, 255 / 255f); _greenTempColorChannel.AddKey(3000, 180 / 255f); _blueTempColorChannel.AddKey(3000, 107 / 255f);
+            _redTempColorChannel.AddKey(3100, 255 / 255f); _greenTempColorChannel.AddKey(3100, 184 / 255f); _blueTempColorChannel.AddKey(3100, 114 / 255f);
+            _redTempColorChannel.AddKey(3200, 255 / 255f); _greenTempColorChannel.AddKey(3200, 187 / 255f); _blueTempColorChannel.AddKey(3200, 120 / 255f);
+            _redTempColorChannel.AddKey(3300, 255 / 255f); _greenTempColorChannel.AddKey(3300, 190 / 255f); _blueTempColorChannel.AddKey(3300, 126 / 255f);
+            _redTempColorChannel.AddKey(3400, 255 / 255f); _greenTempColorChannel.AddKey(3400, 193 / 255f); _blueTempColorChannel.AddKey(3400, 132 / 255f);
+            _redTempColorChannel.AddKey(3500, 255 / 255f); _greenTempColorChannel.AddKey(3500, 196 / 255f); _blueTempColorChannel.AddKey(3500, 137 / 255f);
+            _redTempColorChannel.AddKey(3600, 255 / 255f); _greenTempColorChannel.AddKey(3600, 199 / 255f); _blueTempColorChannel.AddKey(3600, 143 / 255f);
+            _redTempColorChannel.AddKey(3700, 255 / 255f); _greenTempColorChannel.AddKey(3700, 201 / 255f); _blueTempColorChannel.AddKey(3700, 148 / 255f);
+            _redTempColorChannel.AddKey(3800, 255 / 255f); _greenTempColorChannel.AddKey(3800, 204 / 255f); _blueTempColorChannel.AddKey(3800, 153 / 255f);
+            _redTempColorChannel.AddKey(3900, 255 / 255f); _greenTempColorChannel.AddKey(3900, 206 / 255f); _blueTempColorChannel.AddKey(3900, 159 / 255f);
+            _redTempColorChannel.AddKey(4000, 255 / 255f); _greenTempColorChannel.AddKey(4000, 209 / 255f); _blueTempColorChannel.AddKey(4000, 163 / 255f);
+            _redTempColorChannel.AddKey(4100, 255 / 255f); _greenTempColorChannel.AddKey(4100, 211 / 255f); _blueTempColorChannel.AddKey(4100, 168 / 255f);
+            _redTempColorChannel.AddKey(4200, 255 / 255f); _greenTempColorChannel.AddKey(4200, 213 / 255f); _blueTempColorChannel.AddKey(4200, 173 / 255f);
+            _redTempColorChannel.AddKey(4300, 255 / 255f); _greenTempColorChannel.AddKey(4300, 215 / 255f); _blueTempColorChannel.AddKey(4300, 177 / 255f);
+            _redTempColorChannel.AddKey(4400, 255 / 255f); _greenTempColorChannel.AddKey(4400, 217 / 255f); _blueTempColorChannel.AddKey(4400, 182 / 255f);
+            _redTempColorChannel.AddKey(4500, 255 / 255f); _greenTempColorChannel.AddKey(4500, 219 / 255f); _blueTempColorChannel.AddKey(4500, 186 / 255f);
+            _redTempColorChannel.AddKey(4600, 255 / 255f); _greenTempColorChannel.AddKey(4600, 221 / 255f); _blueTempColorChannel.AddKey(4600, 190 / 255f);
+            _redTempColorChannel.AddKey(4700, 255 / 255f); _greenTempColorChannel.AddKey(4700, 223 / 255f); _blueTempColorChannel.AddKey(4700, 194 / 255f);
+            _redTempColorChannel.AddKey(4800, 255 / 255f); _greenTempColorChannel.AddKey(4800, 225 / 255f); _blueTempColorChannel.AddKey(4800, 198 / 255f);
+            _redTempColorChannel.AddKey(4900, 255 / 255f); _greenTempColorChannel.AddKey(4900, 227 / 255f); _blueTempColorChannel.AddKey(4900, 202 / 255f);
+            _redTempColorChannel.AddKey(5000, 255 / 255f); _greenTempColorChannel.AddKey(5000, 228 / 255f); _blueTempColorChannel.AddKey(5000, 206 / 255f);
+            _redTempColorChannel.AddKey(5100, 255 / 255f); _greenTempColorChannel.AddKey(5100, 230 / 255f); _blueTempColorChannel.AddKey(5100, 210 / 255f);
+            _redTempColorChannel.AddKey(5200, 255 / 255f); _greenTempColorChannel.AddKey(5200, 232 / 255f); _blueTempColorChannel.AddKey(5200, 213 / 255f);
+            _redTempColorChannel.AddKey(5300, 255 / 255f); _greenTempColorChannel.AddKey(5300, 233 / 255f); _blueTempColorChannel.AddKey(5300, 217 / 255f);
+            _redTempColorChannel.AddKey(5400, 255 / 255f); _greenTempColorChannel.AddKey(5400, 235 / 255f); _blueTempColorChannel.AddKey(5400, 220 / 255f);
+            _redTempColorChannel.AddKey(5500, 255 / 255f); _greenTempColorChannel.AddKey(5500, 236 / 255f); _blueTempColorChannel.AddKey(5500, 224 / 255f);
+            _redTempColorChannel.AddKey(5600, 255 / 255f); _greenTempColorChannel.AddKey(5600, 238 / 255f); _blueTempColorChannel.AddKey(5600, 227 / 255f);
+            _redTempColorChannel.AddKey(5700, 255 / 255f); _greenTempColorChannel.AddKey(5700, 239 / 255f); _blueTempColorChannel.AddKey(5700, 230 / 255f);
+            _redTempColorChannel.AddKey(5800, 255 / 255f); _greenTempColorChannel.AddKey(5800, 240 / 255f); _blueTempColorChannel.AddKey(5800, 233 / 255f);
+            _redTempColorChannel.AddKey(5900, 255 / 255f); _greenTempColorChannel.AddKey(5900, 242 / 255f); _blueTempColorChannel.AddKey(5900, 236 / 255f);
+            _redTempColorChannel.AddKey(6000, 255 / 255f); _greenTempColorChannel.AddKey(6000, 243 / 255f); _blueTempColorChannel.AddKey(6000, 239 / 255f);
+            _redTempColorChannel.AddKey(6100, 255 / 255f); _greenTempColorChannel.AddKey(6100, 244 / 255f); _blueTempColorChannel.AddKey(6100, 242 / 255f);
+            _redTempColorChannel.AddKey(6200, 255 / 255f); _greenTempColorChannel.AddKey(6200, 245 / 255f); _blueTempColorChannel.AddKey(6200, 245 / 255f);
+            _redTempColorChannel.AddKey(6300, 255 / 255f); _greenTempColorChannel.AddKey(6300, 246 / 255f); _blueTempColorChannel.AddKey(6300, 248 / 255f);
+            _redTempColorChannel.AddKey(6400, 255 / 255f); _greenTempColorChannel.AddKey(6400, 248 / 255f); _blueTempColorChannel.AddKey(6400, 251 / 255f);
+            _redTempColorChannel.AddKey(6500, 255 / 255f); _greenTempColorChannel.AddKey(6500, 249 / 255f); _blueTempColorChannel.AddKey(6500, 253 / 255f);
+            _redTempColorChannel.AddKey(6600, 254 / 255f); _greenTempColorChannel.AddKey(6600, 249 / 255f); _blueTempColorChannel.AddKey(6600, 255 / 255f);
+            _redTempColorChannel.AddKey(6700, 252 / 255f); _greenTempColorChannel.AddKey(6700, 247 / 255f); _blueTempColorChannel.AddKey(6700, 255 / 255f);
+            _redTempColorChannel.AddKey(6800, 249 / 255f); _greenTempColorChannel.AddKey(6800, 246 / 255f); _blueTempColorChannel.AddKey(6800, 255 / 255f);
+            _redTempColorChannel.AddKey(6900, 247 / 255f); _greenTempColorChannel.AddKey(6900, 245 / 255f); _blueTempColorChannel.AddKey(6900, 255 / 255f);
+            _redTempColorChannel.AddKey(7000, 245 / 255f); _greenTempColorChannel.AddKey(7000, 243 / 255f); _blueTempColorChannel.AddKey(7000, 255 / 255f);
+            _redTempColorChannel.AddKey(7100, 243 / 255f); _greenTempColorChannel.AddKey(7100, 242 / 255f); _blueTempColorChannel.AddKey(7100, 255 / 255f);
+            _redTempColorChannel.AddKey(7200, 240 / 255f); _greenTempColorChannel.AddKey(7200, 241 / 255f); _blueTempColorChannel.AddKey(7200, 255 / 255f);
+            _redTempColorChannel.AddKey(7300, 239 / 255f); _greenTempColorChannel.AddKey(7300, 240 / 255f); _blueTempColorChannel.AddKey(7300, 255 / 255f);
+            _redTempColorChannel.AddKey(7400, 237 / 255f); _greenTempColorChannel.AddKey(7400, 239 / 255f); _blueTempColorChannel.AddKey(7400, 255 / 255f);
+            _redTempColorChannel.AddKey(7500, 235 / 255f); _greenTempColorChannel.AddKey(7500, 238 / 255f); _blueTempColorChannel.AddKey(7500, 255 / 255f);
+            _redTempColorChannel.AddKey(7600, 233 / 255f); _greenTempColorChannel.AddKey(7600, 237 / 255f); _blueTempColorChannel.AddKey(7600, 255 / 255f);
+            _redTempColorChannel.AddKey(7700, 231 / 255f); _greenTempColorChannel.AddKey(7700, 236 / 255f); _blueTempColorChannel.AddKey(7700, 255 / 255f);
+            _redTempColorChannel.AddKey(7800, 230 / 255f); _greenTempColorChannel.AddKey(7800, 235 / 255f); _blueTempColorChannel.AddKey(7800, 255 / 255f);
+            _redTempColorChannel.AddKey(7900, 228 / 255f); _greenTempColorChannel.AddKey(7900, 234 / 255f); _blueTempColorChannel.AddKey(7900, 255 / 255f);
+            _redTempColorChannel.AddKey(8000, 227 / 255f); _greenTempColorChannel.AddKey(8000, 233 / 255f); _blueTempColorChannel.AddKey(8000, 255 / 255f);
+            _redTempColorChannel.AddKey(8100, 225 / 255f); _greenTempColorChannel.AddKey(8100, 232 / 255f); _blueTempColorChannel.AddKey(8100, 255 / 255f);
+            _redTempColorChannel.AddKey(8200, 224 / 255f); _greenTempColorChannel.AddKey(8200, 231 / 255f); _blueTempColorChannel.AddKey(8200, 255 / 255f);
+            _redTempColorChannel.AddKey(8300, 222 / 255f); _greenTempColorChannel.AddKey(8300, 230 / 255f); _blueTempColorChannel.AddKey(8300, 255 / 255f);
+            _redTempColorChannel.AddKey(8400, 221 / 255f); _greenTempColorChannel.AddKey(8400, 230 / 255f); _blueTempColorChannel.AddKey(8400, 255 / 255f);
+            _redTempColorChannel.AddKey(8500, 220 / 255f); _greenTempColorChannel.AddKey(8500, 229 / 255f); _blueTempColorChannel.AddKey(8500, 255 / 255f);
+            _redTempColorChannel.AddKey(8600, 218 / 255f); _greenTempColorChannel.AddKey(8600, 228 / 255f); _blueTempColorChannel.AddKey(8600, 255 / 255f);
+            _redTempColorChannel.AddKey(8700, 217 / 255f); _greenTempColorChannel.AddKey(8700, 227 / 255f); _blueTempColorChannel.AddKey(8700, 255 / 255f);
+            _redTempColorChannel.AddKey(8800, 216 / 255f); _greenTempColorChannel.AddKey(8800, 227 / 255f); _blueTempColorChannel.AddKey(8800, 255 / 255f);
+            _redTempColorChannel.AddKey(8900, 215 / 255f); _greenTempColorChannel.AddKey(8900, 226 / 255f); _blueTempColorChannel.AddKey(8900, 255 / 255f);
+            _redTempColorChannel.AddKey(9000, 214 / 255f); _greenTempColorChannel.AddKey(9000, 225 / 255f); _blueTempColorChannel.AddKey(9000, 255 / 255f);
+            _redTempColorChannel.AddKey(9100, 212 / 255f); _greenTempColorChannel.AddKey(9100, 225 / 255f); _blueTempColorChannel.AddKey(9100, 255 / 255f);
+            _redTempColorChannel.AddKey(9200, 211 / 255f); _greenTempColorChannel.AddKey(9200, 224 / 255f); _blueTempColorChannel.AddKey(9200, 255 / 255f);
+            _redTempColorChannel.AddKey(9300, 210 / 255f); _greenTempColorChannel.AddKey(9300, 223 / 255f); _blueTempColorChannel.AddKey(9300, 255 / 255f);
+            _redTempColorChannel.AddKey(9400, 209 / 255f); _greenTempColorChannel.AddKey(9400, 223 / 255f); _blueTempColorChannel.AddKey(9400, 255 / 255f);
+            _redTempColorChannel.AddKey(9500, 208 / 255f); _greenTempColorChannel.AddKey(9500, 222 / 255f); _blueTempColorChannel.AddKey(9500, 255 / 255f);
+            _redTempColorChannel.AddKey(9600, 207 / 255f); _greenTempColorChannel.AddKey(9600, 221 / 255f); _blueTempColorChannel.AddKey(9600, 255 / 255f);
+            _redTempColorChannel.AddKey(9700, 207 / 255f); _greenTempColorChannel.AddKey(9700, 221 / 255f); _blueTempColorChannel.AddKey(9700, 255 / 255f);
+            _redTempColorChannel.AddKey(9800, 206 / 255f); _greenTempColorChannel.AddKey(9800, 220 / 255f); _blueTempColorChannel.AddKey(9800, 255 / 255f);
+            _redTempColorChannel.AddKey(9900, 205 / 255f); _greenTempColorChannel.AddKey(9900, 220 / 255f); _blueTempColorChannel.AddKey(9900, 255 / 255f);
+            _redTempColorChannel.AddKey(10000, 204 / 255f); _greenTempColorChannel.AddKey(10000, 219 / 255f); _blueTempColorChannel.AddKey(10000, 255 / 255f);
+            _redTempColorChannel.AddKey(10100, 203 / 255f); _greenTempColorChannel.AddKey(10100, 219 / 255f); _blueTempColorChannel.AddKey(10100, 255 / 255f);
+            _redTempColorChannel.AddKey(10200, 202 / 255f); _greenTempColorChannel.AddKey(10200, 218 / 255f); _blueTempColorChannel.AddKey(10200, 255 / 255f);
+            _redTempColorChannel.AddKey(10300, 201 / 255f); _greenTempColorChannel.AddKey(10300, 218 / 255f); _blueTempColorChannel.AddKey(10300, 255 / 255f);
+            _redTempColorChannel.AddKey(10400, 201 / 255f); _greenTempColorChannel.AddKey(10400, 217 / 255f); _blueTempColorChannel.AddKey(10400, 255 / 255f);
+            _redTempColorChannel.AddKey(10500, 200 / 255f); _greenTempColorChannel.AddKey(10500, 217 / 255f); _blueTempColorChannel.AddKey(10500, 255 / 255f);
+            _redTempColorChannel.AddKey(10600, 199 / 255f); _greenTempColorChannel.AddKey(10600, 216 / 255f); _blueTempColorChannel.AddKey(10600, 255 / 255f);
+            _redTempColorChannel.AddKey(10700, 199 / 255f); _greenTempColorChannel.AddKey(10700, 216 / 255f); _blueTempColorChannel.AddKey(10700, 255 / 255f);
+            _redTempColorChannel.AddKey(10800, 198 / 255f); _greenTempColorChannel.AddKey(10800, 216 / 255f); _blueTempColorChannel.AddKey(10800, 255 / 255f);
+            _redTempColorChannel.AddKey(10900, 197 / 255f); _greenTempColorChannel.AddKey(10900, 215 / 255f); _blueTempColorChannel.AddKey(10900, 255 / 255f);
+            _redTempColorChannel.AddKey(11000, 196 / 255f); _greenTempColorChannel.AddKey(11000, 215 / 255f); _blueTempColorChannel.AddKey(11000, 255 / 255f);
+            _redTempColorChannel.AddKey(11100, 196 / 255f); _greenTempColorChannel.AddKey(11100, 214 / 255f); _blueTempColorChannel.AddKey(11100, 255 / 255f);
+            _redTempColorChannel.AddKey(11200, 195 / 255f); _greenTempColorChannel.AddKey(11200, 214 / 255f); _blueTempColorChannel.AddKey(11200, 255 / 255f);
+            _redTempColorChannel.AddKey(11300, 195 / 255f); _greenTempColorChannel.AddKey(11300, 214 / 255f); _blueTempColorChannel.AddKey(11300, 255 / 255f);
+            _redTempColorChannel.AddKey(11400, 194 / 255f); _greenTempColorChannel.AddKey(11400, 213 / 255f); _blueTempColorChannel.AddKey(11400, 255 / 255f);
+            _redTempColorChannel.AddKey(11500, 193 / 255f); _greenTempColorChannel.AddKey(11500, 213 / 255f); _blueTempColorChannel.AddKey(11500, 255 / 255f);
+            _redTempColorChannel.AddKey(11600, 193 / 255f); _greenTempColorChannel.AddKey(11600, 212 / 255f); _blueTempColorChannel.AddKey(11600, 255 / 255f);
+            _redTempColorChannel.AddKey(11700, 192 / 255f); _greenTempColorChannel.AddKey(11700, 212 / 255f); _blueTempColorChannel.AddKey(11700, 255 / 255f);
+            _redTempColorChannel.AddKey(11800, 192 / 255f); _greenTempColorChannel.AddKey(11800, 212 / 255f); _blueTempColorChannel.AddKey(11800, 255 / 255f);
+            _redTempColorChannel.AddKey(11900, 191 / 255f); _greenTempColorChannel.AddKey(11900, 211 / 255f); _blueTempColorChannel.AddKey(11900, 255 / 255f);
+            _redTempColorChannel.AddKey(12000, 191 / 255f); _greenTempColorChannel.AddKey(12000, 211 / 255f); _blueTempColorChannel.AddKey(12000, 255 / 255f);
+            _redTempColorChannel.AddKey(12100, 190 / 255f); _greenTempColorChannel.AddKey(12100, 211 / 255f); _blueTempColorChannel.AddKey(12100, 255 / 255f);
+            _redTempColorChannel.AddKey(12200, 190 / 255f); _greenTempColorChannel.AddKey(12200, 210 / 255f); _blueTempColorChannel.AddKey(12200, 255 / 255f);
+            _redTempColorChannel.AddKey(12300, 189 / 255f); _greenTempColorChannel.AddKey(12300, 210 / 255f); _blueTempColorChannel.AddKey(12300, 255 / 255f);
+            _redTempColorChannel.AddKey(12400, 189 / 255f); _greenTempColorChannel.AddKey(12400, 210 / 255f); _blueTempColorChannel.AddKey(12400, 255 / 255f);
+            _redTempColorChannel.AddKey(12500, 188 / 255f); _greenTempColorChannel.AddKey(12500, 210 / 255f); _blueTempColorChannel.AddKey(12500, 255 / 255f);
+            _redTempColorChannel.AddKey(12600, 188 / 255f); _greenTempColorChannel.AddKey(12600, 209 / 255f); _blueTempColorChannel.AddKey(12600, 255 / 255f);
+            _redTempColorChannel.AddKey(12700, 187 / 255f); _greenTempColorChannel.AddKey(12700, 209 / 255f); _blueTempColorChannel.AddKey(12700, 255 / 255f);
+            _redTempColorChannel.AddKey(12800, 187 / 255f); _greenTempColorChannel.AddKey(12800, 209 / 255f); _blueTempColorChannel.AddKey(12800, 255 / 255f);
+            _redTempColorChannel.AddKey(12900, 186 / 255f); _greenTempColorChannel.AddKey(12900, 208 / 255f); _blueTempColorChannel.AddKey(12900, 255 / 255f);
+            _redTempColorChannel.AddKey(13000, 186 / 255f); _greenTempColorChannel.AddKey(13000, 208 / 255f); _blueTempColorChannel.AddKey(13000, 255 / 255f);
+            _redTempColorChannel.AddKey(13100, 185 / 255f); _greenTempColorChannel.AddKey(13100, 208 / 255f); _blueTempColorChannel.AddKey(13100, 255 / 255f);
+            _redTempColorChannel.AddKey(13200, 185 / 255f); _greenTempColorChannel.AddKey(13200, 208 / 255f); _blueTempColorChannel.AddKey(13200, 255 / 255f);
+            _redTempColorChannel.AddKey(13300, 185 / 255f); _greenTempColorChannel.AddKey(13300, 207 / 255f); _blueTempColorChannel.AddKey(13300, 255 / 255f);
+            _redTempColorChannel.AddKey(13400, 184 / 255f); _greenTempColorChannel.AddKey(13400, 207 / 255f); _blueTempColorChannel.AddKey(13400, 255 / 255f);
+            _redTempColorChannel.AddKey(13500, 184 / 255f); _greenTempColorChannel.AddKey(13500, 207 / 255f); _blueTempColorChannel.AddKey(13500, 255 / 255f);
+            _redTempColorChannel.AddKey(13600, 183 / 255f); _greenTempColorChannel.AddKey(13600, 207 / 255f); _blueTempColorChannel.AddKey(13600, 255 / 255f);
+            _redTempColorChannel.AddKey(13700, 183 / 255f); _greenTempColorChannel.AddKey(13700, 206 / 255f); _blueTempColorChannel.AddKey(13700, 255 / 255f);
+            _redTempColorChannel.AddKey(13800, 183 / 255f); _greenTempColorChannel.AddKey(13800, 206 / 255f); _blueTempColorChannel.AddKey(13800, 255 / 255f);
+            _redTempColorChannel.AddKey(13900, 182 / 255f); _greenTempColorChannel.AddKey(13900, 206 / 255f); _blueTempColorChannel.AddKey(13900, 255 / 255f);
+            _redTempColorChannel.AddKey(14000, 182 / 255f); _greenTempColorChannel.AddKey(14000, 206 / 255f); _blueTempColorChannel.AddKey(14000, 255 / 255f);
+            _redTempColorChannel.AddKey(14100, 182 / 255f); _greenTempColorChannel.AddKey(14100, 205 / 255f); _blueTempColorChannel.AddKey(14100, 255 / 255f);
+            _redTempColorChannel.AddKey(14200, 181 / 255f); _greenTempColorChannel.AddKey(14200, 205 / 255f); _blueTempColorChannel.AddKey(14200, 255 / 255f);
+            _redTempColorChannel.AddKey(14300, 181 / 255f); _greenTempColorChannel.AddKey(14300, 205 / 255f); _blueTempColorChannel.AddKey(14300, 255 / 255f);
+            _redTempColorChannel.AddKey(14400, 181 / 255f); _greenTempColorChannel.AddKey(14400, 205 / 255f); _blueTempColorChannel.AddKey(14400, 255 / 255f);
+            _redTempColorChannel.AddKey(14500, 180 / 255f); _greenTempColorChannel.AddKey(14500, 205 / 255f); _blueTempColorChannel.AddKey(14500, 255 / 255f);
+            _redTempColorChannel.AddKey(14600, 180 / 255f); _greenTempColorChannel.AddKey(14600, 204 / 255f); _blueTempColorChannel.AddKey(14600, 255 / 255f);
+            _redTempColorChannel.AddKey(14700, 180 / 255f); _greenTempColorChannel.AddKey(14700, 204 / 255f); _blueTempColorChannel.AddKey(14700, 255 / 255f);
+            _redTempColorChannel.AddKey(14800, 179 / 255f); _greenTempColorChannel.AddKey(14800, 204 / 255f); _blueTempColorChannel.AddKey(14800, 255 / 255f);
+            _redTempColorChannel.AddKey(14900, 179 / 255f); _greenTempColorChannel.AddKey(14900, 204 / 255f); _blueTempColorChannel.AddKey(14900, 255 / 255f);
+            _redTempColorChannel.AddKey(15000, 179 / 255f); _greenTempColorChannel.AddKey(15000, 204 / 255f); _blueTempColorChannel.AddKey(15000, 255 / 255f);
+            _redTempColorChannel.AddKey(15100, 178 / 255f); _greenTempColorChannel.AddKey(15100, 203 / 255f); _blueTempColorChannel.AddKey(15100, 255 / 255f);
+            _redTempColorChannel.AddKey(15200, 178 / 255f); _greenTempColorChannel.AddKey(15200, 203 / 255f); _blueTempColorChannel.AddKey(15200, 255 / 255f);
+            _redTempColorChannel.AddKey(15300, 178 / 255f); _greenTempColorChannel.AddKey(15300, 203 / 255f); _blueTempColorChannel.AddKey(15300, 255 / 255f);
+            _redTempColorChannel.AddKey(15400, 178 / 255f); _greenTempColorChannel.AddKey(15400, 203 / 255f); _blueTempColorChannel.AddKey(15400, 255 / 255f);
+            _redTempColorChannel.AddKey(15500, 177 / 255f); _greenTempColorChannel.AddKey(15500, 203 / 255f); _blueTempColorChannel.AddKey(15500, 255 / 255f);
+            _redTempColorChannel.AddKey(15600, 177 / 255f); _greenTempColorChannel.AddKey(15600, 202 / 255f); _blueTempColorChannel.AddKey(15600, 255 / 255f);
+            _redTempColorChannel.AddKey(15700, 177 / 255f); _greenTempColorChannel.AddKey(15700, 202 / 255f); _blueTempColorChannel.AddKey(15700, 255 / 255f);
+            _redTempColorChannel.AddKey(15800, 177 / 255f); _greenTempColorChannel.AddKey(15800, 202 / 255f); _blueTempColorChannel.AddKey(15800, 255 / 255f);
+            _redTempColorChannel.AddKey(15900, 176 / 255f); _greenTempColorChannel.AddKey(15900, 202 / 255f); _blueTempColorChannel.AddKey(15900, 255 / 255f);
+            _redTempColorChannel.AddKey(16000, 176 / 255f); _greenTempColorChannel.AddKey(16000, 202 / 255f); _blueTempColorChannel.AddKey(16000, 255 / 255f);
+            _redTempColorChannel.AddKey(16100, 176 / 255f); _greenTempColorChannel.AddKey(16100, 202 / 255f); _blueTempColorChannel.AddKey(16100, 255 / 255f);
+            _redTempColorChannel.AddKey(16200, 175 / 255f); _greenTempColorChannel.AddKey(16200, 201 / 255f); _blueTempColorChannel.AddKey(16200, 255 / 255f);
+            _redTempColorChannel.AddKey(16300, 175 / 255f); _greenTempColorChannel.AddKey(16300, 201 / 255f); _blueTempColorChannel.AddKey(16300, 255 / 255f);
+            _redTempColorChannel.AddKey(16400, 175 / 255f); _greenTempColorChannel.AddKey(16400, 201 / 255f); _blueTempColorChannel.AddKey(16400, 255 / 255f);
+            _redTempColorChannel.AddKey(16500, 175 / 255f); _greenTempColorChannel.AddKey(16500, 201 / 255f); _blueTempColorChannel.AddKey(16500, 255 / 255f);
+            _redTempColorChannel.AddKey(16600, 175 / 255f); _greenTempColorChannel.AddKey(16600, 201 / 255f); _blueTempColorChannel.AddKey(16600, 255 / 255f);
+            _redTempColorChannel.AddKey(16700, 174 / 255f); _greenTempColorChannel.AddKey(16700, 201 / 255f); _blueTempColorChannel.AddKey(16700, 255 / 255f);
+            _redTempColorChannel.AddKey(16800, 174 / 255f); _greenTempColorChannel.AddKey(16800, 201 / 255f); _blueTempColorChannel.AddKey(16800, 255 / 255f);
+            _redTempColorChannel.AddKey(16900, 174 / 255f); _greenTempColorChannel.AddKey(16900, 200 / 255f); _blueTempColorChannel.AddKey(16900, 255 / 255f);
+            _redTempColorChannel.AddKey(17000, 174 / 255f); _greenTempColorChannel.AddKey(17000, 200 / 255f); _blueTempColorChannel.AddKey(17000, 255 / 255f);
+            _redTempColorChannel.AddKey(17100, 173 / 255f); _greenTempColorChannel.AddKey(17100, 200 / 255f); _blueTempColorChannel.AddKey(17100, 255 / 255f);
+            _redTempColorChannel.AddKey(17200, 173 / 255f); _greenTempColorChannel.AddKey(17200, 200 / 255f); _blueTempColorChannel.AddKey(17200, 255 / 255f);
+            _redTempColorChannel.AddKey(17300, 173 / 255f); _greenTempColorChannel.AddKey(17300, 200 / 255f); _blueTempColorChannel.AddKey(17300, 255 / 255f);
+            _redTempColorChannel.AddKey(17400, 173 / 255f); _greenTempColorChannel.AddKey(17400, 200 / 255f); _blueTempColorChannel.AddKey(17400, 255 / 255f);
+            _redTempColorChannel.AddKey(17500, 173 / 255f); _greenTempColorChannel.AddKey(17500, 200 / 255f); _blueTempColorChannel.AddKey(17500, 255 / 255f);
+            _redTempColorChannel.AddKey(17600, 172 / 255f); _greenTempColorChannel.AddKey(17600, 199 / 255f); _blueTempColorChannel.AddKey(17600, 255 / 255f);
+            _redTempColorChannel.AddKey(17700, 172 / 255f); _greenTempColorChannel.AddKey(17700, 199 / 255f); _blueTempColorChannel.AddKey(17700, 255 / 255f);
+            _redTempColorChannel.AddKey(17800, 172 / 255f); _greenTempColorChannel.AddKey(17800, 199 / 255f); _blueTempColorChannel.AddKey(17800, 255 / 255f);
+            _redTempColorChannel.AddKey(17900, 172 / 255f); _greenTempColorChannel.AddKey(17900, 199 / 255f); _blueTempColorChannel.AddKey(17900, 255 / 255f);
+            _redTempColorChannel.AddKey(18000, 172 / 255f); _greenTempColorChannel.AddKey(18000, 199 / 255f); _blueTempColorChannel.AddKey(18000, 255 / 255f);
+            _redTempColorChannel.AddKey(18100, 171 / 255f); _greenTempColorChannel.AddKey(18100, 199 / 255f); _blueTempColorChannel.AddKey(18100, 255 / 255f);
+            _redTempColorChannel.AddKey(18200, 171 / 255f); _greenTempColorChannel.AddKey(18200, 199 / 255f); _blueTempColorChannel.AddKey(18200, 255 / 255f);
+            _redTempColorChannel.AddKey(18300, 171 / 255f); _greenTempColorChannel.AddKey(18300, 199 / 255f); _blueTempColorChannel.AddKey(18300, 255 / 255f);
+            _redTempColorChannel.AddKey(18400, 171 / 255f); _greenTempColorChannel.AddKey(18400, 198 / 255f); _blueTempColorChannel.AddKey(18400, 255 / 255f);
+            _redTempColorChannel.AddKey(18500, 171 / 255f); _greenTempColorChannel.AddKey(18500, 198 / 255f); _blueTempColorChannel.AddKey(18500, 255 / 255f);
+            _redTempColorChannel.AddKey(18600, 170 / 255f); _greenTempColorChannel.AddKey(18600, 198 / 255f); _blueTempColorChannel.AddKey(18600, 255 / 255f);
+            _redTempColorChannel.AddKey(18700, 170 / 255f); _greenTempColorChannel.AddKey(18700, 198 / 255f); _blueTempColorChannel.AddKey(18700, 255 / 255f);
+            _redTempColorChannel.AddKey(18800, 170 / 255f); _greenTempColorChannel.AddKey(18800, 198 / 255f); _blueTempColorChannel.AddKey(18800, 255 / 255f);
+            _redTempColorChannel.AddKey(18900, 170 / 255f); _greenTempColorChannel.AddKey(18900, 198 / 255f); _blueTempColorChannel.AddKey(18900, 255 / 255f);
+            _redTempColorChannel.AddKey(19000, 170 / 255f); _greenTempColorChannel.AddKey(19000, 198 / 255f); _blueTempColorChannel.AddKey(19000, 255 / 255f);
+            _redTempColorChannel.AddKey(19100, 170 / 255f); _greenTempColorChannel.AddKey(19100, 198 / 255f); _blueTempColorChannel.AddKey(19100, 255 / 255f);
+            _redTempColorChannel.AddKey(19200, 169 / 255f); _greenTempColorChannel.AddKey(19200, 198 / 255f); _blueTempColorChannel.AddKey(19200, 255 / 255f);
+            _redTempColorChannel.AddKey(19300, 169 / 255f); _greenTempColorChannel.AddKey(19300, 197 / 255f); _blueTempColorChannel.AddKey(19300, 255 / 255f);
+            _redTempColorChannel.AddKey(19400, 169 / 255f); _greenTempColorChannel.AddKey(19400, 197 / 255f); _blueTempColorChannel.AddKey(19400, 255 / 255f);
+            _redTempColorChannel.AddKey(19500, 169 / 255f); _greenTempColorChannel.AddKey(19500, 197 / 255f); _blueTempColorChannel.AddKey(19500, 255 / 255f);
+            _redTempColorChannel.AddKey(19600, 169 / 255f); _greenTempColorChannel.AddKey(19600, 197 / 255f); _blueTempColorChannel.AddKey(19600, 255 / 255f);
+            _redTempColorChannel.AddKey(19700, 169 / 255f); _greenTempColorChannel.AddKey(19700, 197 / 255f); _blueTempColorChannel.AddKey(19700, 255 / 255f);
+            _redTempColorChannel.AddKey(19800, 169 / 255f); _greenTempColorChannel.AddKey(19800, 197 / 255f); _blueTempColorChannel.AddKey(19800, 255 / 255f);
+            _redTempColorChannel.AddKey(19900, 168 / 255f); _greenTempColorChannel.AddKey(19900, 197 / 255f); _blueTempColorChannel.AddKey(19900, 255 / 255f);
+            _redTempColorChannel.AddKey(20000, 168 / 255f); _greenTempColorChannel.AddKey(20000, 197 / 255f); _blueTempColorChannel.AddKey(20000, 255 / 255f);
+            _redTempColorChannel.AddKey(20100, 168 / 255f); _greenTempColorChannel.AddKey(20100, 197 / 255f); _blueTempColorChannel.AddKey(20100, 255 / 255f);
+            _redTempColorChannel.AddKey(20200, 168 / 255f); _greenTempColorChannel.AddKey(20200, 197 / 255f); _blueTempColorChannel.AddKey(20200, 255 / 255f);
+            _redTempColorChannel.AddKey(20300, 168 / 255f); _greenTempColorChannel.AddKey(20300, 196 / 255f); _blueTempColorChannel.AddKey(20300, 255 / 255f);
+            _redTempColorChannel.AddKey(20400, 168 / 255f); _greenTempColorChannel.AddKey(20400, 196 / 255f); _blueTempColorChannel.AddKey(20400, 255 / 255f);
+            _redTempColorChannel.AddKey(20500, 168 / 255f); _greenTempColorChannel.AddKey(20500, 196 / 255f); _blueTempColorChannel.AddKey(20500, 255 / 255f);
+            _redTempColorChannel.AddKey(20600, 167 / 255f); _greenTempColorChannel.AddKey(20600, 196 / 255f); _blueTempColorChannel.AddKey(20600, 255 / 255f);
+            _redTempColorChannel.AddKey(20700, 167 / 255f); _greenTempColorChannel.AddKey(20700, 196 / 255f); _blueTempColorChannel.AddKey(20700, 255 / 255f);
+            _redTempColorChannel.AddKey(20800, 167 / 255f); _greenTempColorChannel.AddKey(20800, 196 / 255f); _blueTempColorChannel.AddKey(20800, 255 / 255f);
+            _redTempColorChannel.AddKey(20900, 167 / 255f); _greenTempColorChannel.AddKey(20900, 196 / 255f); _blueTempColorChannel.AddKey(20900, 255 / 255f);
+            _redTempColorChannel.AddKey(21000, 167 / 255f); _greenTempColorChannel.AddKey(21000, 196 / 255f); _blueTempColorChannel.AddKey(21000, 255 / 255f);
+            _redTempColorChannel.AddKey(21100, 167 / 255f); _greenTempColorChannel.AddKey(21100, 196 / 255f); _blueTempColorChannel.AddKey(21100, 255 / 255f);
+            _redTempColorChannel.AddKey(21200, 167 / 255f); _greenTempColorChannel.AddKey(21200, 196 / 255f); _blueTempColorChannel.AddKey(21200, 255 / 255f);
+            _redTempColorChannel.AddKey(21300, 166 / 255f); _greenTempColorChannel.AddKey(21300, 196 / 255f); _blueTempColorChannel.AddKey(21300, 255 / 255f);
+            _redTempColorChannel.AddKey(21400, 166 / 255f); _greenTempColorChannel.AddKey(21400, 195 / 255f); _blueTempColorChannel.AddKey(21400, 255 / 255f);
+            _redTempColorChannel.AddKey(21500, 166 / 255f); _greenTempColorChannel.AddKey(21500, 195 / 255f); _blueTempColorChannel.AddKey(21500, 255 / 255f);
+            _redTempColorChannel.AddKey(21600, 166 / 255f); _greenTempColorChannel.AddKey(21600, 195 / 255f); _blueTempColorChannel.AddKey(21600, 255 / 255f);
+            _redTempColorChannel.AddKey(21700, 166 / 255f); _greenTempColorChannel.AddKey(21700, 195 / 255f); _blueTempColorChannel.AddKey(21700, 255 / 255f);
+            _redTempColorChannel.AddKey(21800, 166 / 255f); _greenTempColorChannel.AddKey(21800, 195 / 255f); _blueTempColorChannel.AddKey(21800, 255 / 255f);
+            _redTempColorChannel.AddKey(21900, 166 / 255f); _greenTempColorChannel.AddKey(21900, 195 / 255f); _blueTempColorChannel.AddKey(21900, 255 / 255f);
+            _redTempColorChannel.AddKey(22000, 166 / 255f); _greenTempColorChannel.AddKey(22000, 195 / 255f); _blueTempColorChannel.AddKey(22000, 255 / 255f);
+            _redTempColorChannel.AddKey(22100, 165 / 255f); _greenTempColorChannel.AddKey(22100, 195 / 255f); _blueTempColorChannel.AddKey(22100, 255 / 255f);
+            _redTempColorChannel.AddKey(22200, 165 / 255f); _greenTempColorChannel.AddKey(22200, 195 / 255f); _blueTempColorChannel.AddKey(22200, 255 / 255f);
+            _redTempColorChannel.AddKey(22300, 165 / 255f); _greenTempColorChannel.AddKey(22300, 195 / 255f); _blueTempColorChannel.AddKey(22300, 255 / 255f);
+            _redTempColorChannel.AddKey(22400, 165 / 255f); _greenTempColorChannel.AddKey(22400, 195 / 255f); _blueTempColorChannel.AddKey(22400, 255 / 255f);
+            _redTempColorChannel.AddKey(22500, 165 / 255f); _greenTempColorChannel.AddKey(22500, 195 / 255f); _blueTempColorChannel.AddKey(22500, 255 / 255f);
+            _redTempColorChannel.AddKey(22600, 165 / 255f); _greenTempColorChannel.AddKey(22600, 195 / 255f); _blueTempColorChannel.AddKey(22600, 255 / 255f);
+            _redTempColorChannel.AddKey(22700, 165 / 255f); _greenTempColorChannel.AddKey(22700, 194 / 255f); _blueTempColorChannel.AddKey(22700, 255 / 255f);
+            _redTempColorChannel.AddKey(22800, 165 / 255f); _greenTempColorChannel.AddKey(22800, 194 / 255f); _blueTempColorChannel.AddKey(22800, 255 / 255f);
+            _redTempColorChannel.AddKey(22900, 165 / 255f); _greenTempColorChannel.AddKey(22900, 194 / 255f); _blueTempColorChannel.AddKey(22900, 255 / 255f);
+            _redTempColorChannel.AddKey(23000, 164 / 255f); _greenTempColorChannel.AddKey(23000, 194 / 255f); _blueTempColorChannel.AddKey(23000, 255 / 255f);
+            _redTempColorChannel.AddKey(23100, 164 / 255f); _greenTempColorChannel.AddKey(23100, 194 / 255f); _blueTempColorChannel.AddKey(23100, 255 / 255f);
+            _redTempColorChannel.AddKey(23200, 164 / 255f); _greenTempColorChannel.AddKey(23200, 194 / 255f); _blueTempColorChannel.AddKey(23200, 255 / 255f);
+            _redTempColorChannel.AddKey(23300, 164 / 255f); _greenTempColorChannel.AddKey(23300, 194 / 255f); _blueTempColorChannel.AddKey(23300, 255 / 255f);
+            _redTempColorChannel.AddKey(23400, 164 / 255f); _greenTempColorChannel.AddKey(23400, 194 / 255f); _blueTempColorChannel.AddKey(23400, 255 / 255f);
+            _redTempColorChannel.AddKey(23500, 164 / 255f); _greenTempColorChannel.AddKey(23500, 194 / 255f); _blueTempColorChannel.AddKey(23500, 255 / 255f);
+            _redTempColorChannel.AddKey(23600, 164 / 255f); _greenTempColorChannel.AddKey(23600, 194 / 255f); _blueTempColorChannel.AddKey(23600, 255 / 255f);
+            _redTempColorChannel.AddKey(23700, 164 / 255f); _greenTempColorChannel.AddKey(23700, 194 / 255f); _blueTempColorChannel.AddKey(23700, 255 / 255f);
+            _redTempColorChannel.AddKey(23800, 164 / 255f); _greenTempColorChannel.AddKey(23800, 194 / 255f); _blueTempColorChannel.AddKey(23800, 255 / 255f);
+            _redTempColorChannel.AddKey(23900, 164 / 255f); _greenTempColorChannel.AddKey(23900, 194 / 255f); _blueTempColorChannel.AddKey(23900, 255 / 255f);
+            _redTempColorChannel.AddKey(24000, 163 / 255f); _greenTempColorChannel.AddKey(24000, 194 / 255f); _blueTempColorChannel.AddKey(24000, 255 / 255f);
+            _redTempColorChannel.AddKey(24100, 163 / 255f); _greenTempColorChannel.AddKey(24100, 194 / 255f); _blueTempColorChannel.AddKey(24100, 255 / 255f);
+            _redTempColorChannel.AddKey(24200, 163 / 255f); _greenTempColorChannel.AddKey(24200, 193 / 255f); _blueTempColorChannel.AddKey(24200, 255 / 255f);
+            _redTempColorChannel.AddKey(24300, 163 / 255f); _greenTempColorChannel.AddKey(24300, 193 / 255f); _blueTempColorChannel.AddKey(24300, 255 / 255f);
+            _redTempColorChannel.AddKey(24400, 163 / 255f); _greenTempColorChannel.AddKey(24400, 193 / 255f); _blueTempColorChannel.AddKey(24400, 255 / 255f);
+            _redTempColorChannel.AddKey(24500, 163 / 255f); _greenTempColorChannel.AddKey(24500, 193 / 255f); _blueTempColorChannel.AddKey(24500, 255 / 255f);
+            _redTempColorChannel.AddKey(24600, 163 / 255f); _greenTempColorChannel.AddKey(24600, 193 / 255f); _blueTempColorChannel.AddKey(24600, 255 / 255f);
+            _redTempColorChannel.AddKey(24700, 163 / 255f); _greenTempColorChannel.AddKey(24700, 193 / 255f); _blueTempColorChannel.AddKey(24700, 255 / 255f);
+            _redTempColorChannel.AddKey(24800, 163 / 255f); _greenTempColorChannel.AddKey(24800, 193 / 255f); _blueTempColorChannel.AddKey(24800, 255 / 255f);
+            _redTempColorChannel.AddKey(24900, 163 / 255f); _greenTempColorChannel.AddKey(24900, 193 / 255f); _blueTempColorChannel.AddKey(24900, 255 / 255f);
+            _redTempColorChannel.AddKey(25000, 163 / 255f); _greenTempColorChannel.AddKey(25000, 193 / 255f); _blueTempColorChannel.AddKey(25000, 255 / 255f);
+            _redTempColorChannel.AddKey(25100, 162 / 255f); _greenTempColorChannel.AddKey(25100, 193 / 255f); _blueTempColorChannel.AddKey(25100, 255 / 255f);
+            _redTempColorChannel.AddKey(25200, 162 / 255f); _greenTempColorChannel.AddKey(25200, 193 / 255f); _blueTempColorChannel.AddKey(25200, 255 / 255f);
+            _redTempColorChannel.AddKey(25300, 162 / 255f); _greenTempColorChannel.AddKey(25300, 193 / 255f); _blueTempColorChannel.AddKey(25300, 255 / 255f);
+            _redTempColorChannel.AddKey(25400, 162 / 255f); _greenTempColorChannel.AddKey(25400, 193 / 255f); _blueTempColorChannel.AddKey(25400, 255 / 255f);
+            _redTempColorChannel.AddKey(25500, 162 / 255f); _greenTempColorChannel.AddKey(25500, 193 / 255f); _blueTempColorChannel.AddKey(25500, 255 / 255f);
+            _redTempColorChannel.AddKey(25600, 162 / 255f); _greenTempColorChannel.AddKey(25600, 193 / 255f); _blueTempColorChannel.AddKey(25600, 255 / 255f);
+            _redTempColorChannel.AddKey(25700, 162 / 255f); _greenTempColorChannel.AddKey(25700, 193 / 255f); _blueTempColorChannel.AddKey(25700, 255 / 255f);
+            _redTempColorChannel.AddKey(25800, 162 / 255f); _greenTempColorChannel.AddKey(25800, 193 / 255f); _blueTempColorChannel.AddKey(25800, 255 / 255f);
+            _redTempColorChannel.AddKey(25900, 162 / 255f); _greenTempColorChannel.AddKey(25900, 192 / 255f); _blueTempColorChannel.AddKey(25900, 255 / 255f);
+            _redTempColorChannel.AddKey(26000, 162 / 255f); _greenTempColorChannel.AddKey(26000, 192 / 255f); _blueTempColorChannel.AddKey(26000, 255 / 255f);
+            _redTempColorChannel.AddKey(26100, 162 / 255f); _greenTempColorChannel.AddKey(26100, 192 / 255f); _blueTempColorChannel.AddKey(26100, 255 / 255f);
+            _redTempColorChannel.AddKey(26200, 162 / 255f); _greenTempColorChannel.AddKey(26200, 192 / 255f); _blueTempColorChannel.AddKey(26200, 255 / 255f);
+            _redTempColorChannel.AddKey(26300, 162 / 255f); _greenTempColorChannel.AddKey(26300, 192 / 255f); _blueTempColorChannel.AddKey(26300, 255 / 255f);
+            _redTempColorChannel.AddKey(26400, 161 / 255f); _greenTempColorChannel.AddKey(26400, 192 / 255f); _blueTempColorChannel.AddKey(26400, 255 / 255f);
+            _redTempColorChannel.AddKey(26500, 161 / 255f); _greenTempColorChannel.AddKey(26500, 192 / 255f); _blueTempColorChannel.AddKey(26500, 255 / 255f);
+            _redTempColorChannel.AddKey(26600, 161 / 255f); _greenTempColorChannel.AddKey(26600, 192 / 255f); _blueTempColorChannel.AddKey(26600, 255 / 255f);
+            _redTempColorChannel.AddKey(26700, 161 / 255f); _greenTempColorChannel.AddKey(26700, 192 / 255f); _blueTempColorChannel.AddKey(26700, 255 / 255f);
+            _redTempColorChannel.AddKey(26800, 161 / 255f); _greenTempColorChannel.AddKey(26800, 192 / 255f); _blueTempColorChannel.AddKey(26800, 255 / 255f);
+            _redTempColorChannel.AddKey(26900, 161 / 255f); _greenTempColorChannel.AddKey(26900, 192 / 255f); _blueTempColorChannel.AddKey(26900, 255 / 255f);
+            _redTempColorChannel.AddKey(27000, 161 / 255f); _greenTempColorChannel.AddKey(27000, 192 / 255f); _blueTempColorChannel.AddKey(27000, 255 / 255f);
+            _redTempColorChannel.AddKey(27100, 161 / 255f); _greenTempColorChannel.AddKey(27100, 192 / 255f); _blueTempColorChannel.AddKey(27100, 255 / 255f);
+            _redTempColorChannel.AddKey(27200, 161 / 255f); _greenTempColorChannel.AddKey(27200, 192 / 255f); _blueTempColorChannel.AddKey(27200, 255 / 255f);
+            _redTempColorChannel.AddKey(27300, 161 / 255f); _greenTempColorChannel.AddKey(27300, 192 / 255f); _blueTempColorChannel.AddKey(27300, 255 / 255f);
+            _redTempColorChannel.AddKey(27400, 161 / 255f); _greenTempColorChannel.AddKey(27400, 192 / 255f); _blueTempColorChannel.AddKey(27400, 255 / 255f);
+            _redTempColorChannel.AddKey(27500, 161 / 255f); _greenTempColorChannel.AddKey(27500, 192 / 255f); _blueTempColorChannel.AddKey(27500, 255 / 255f);
+            _redTempColorChannel.AddKey(27600, 161 / 255f); _greenTempColorChannel.AddKey(27600, 192 / 255f); _blueTempColorChannel.AddKey(27600, 255 / 255f);
+            _redTempColorChannel.AddKey(27700, 161 / 255f); _greenTempColorChannel.AddKey(27700, 192 / 255f); _blueTempColorChannel.AddKey(27700, 255 / 255f);
+            _redTempColorChannel.AddKey(27800, 160 / 255f); _greenTempColorChannel.AddKey(27800, 192 / 255f); _blueTempColorChannel.AddKey(27800, 255 / 255f);
+            _redTempColorChannel.AddKey(27900, 160 / 255f); _greenTempColorChannel.AddKey(27900, 192 / 255f); _blueTempColorChannel.AddKey(27900, 255 / 255f);
+            _redTempColorChannel.AddKey(28000, 160 / 255f); _greenTempColorChannel.AddKey(28000, 191 / 255f); _blueTempColorChannel.AddKey(28000, 255 / 255f);
+            _redTempColorChannel.AddKey(28100, 160 / 255f); _greenTempColorChannel.AddKey(28100, 191 / 255f); _blueTempColorChannel.AddKey(28100, 255 / 255f);
+            _redTempColorChannel.AddKey(28200, 160 / 255f); _greenTempColorChannel.AddKey(28200, 191 / 255f); _blueTempColorChannel.AddKey(28200, 255 / 255f);
+            _redTempColorChannel.AddKey(28300, 160 / 255f); _greenTempColorChannel.AddKey(28300, 191 / 255f); _blueTempColorChannel.AddKey(28300, 255 / 255f);
+            _redTempColorChannel.AddKey(28400, 160 / 255f); _greenTempColorChannel.AddKey(28400, 191 / 255f); _blueTempColorChannel.AddKey(28400, 255 / 255f);
+            _redTempColorChannel.AddKey(28500, 160 / 255f); _greenTempColorChannel.AddKey(28500, 191 / 255f); _blueTempColorChannel.AddKey(28500, 255 / 255f);
+            _redTempColorChannel.AddKey(28600, 160 / 255f); _greenTempColorChannel.AddKey(28600, 191 / 255f); _blueTempColorChannel.AddKey(28600, 255 / 255f);
+            _redTempColorChannel.AddKey(28700, 160 / 255f); _greenTempColorChannel.AddKey(28700, 191 / 255f); _blueTempColorChannel.AddKey(28700, 255 / 255f);
+            _redTempColorChannel.AddKey(28800, 160 / 255f); _greenTempColorChannel.AddKey(28800, 191 / 255f); _blueTempColorChannel.AddKey(28800, 255 / 255f);
+            _redTempColorChannel.AddKey(28900, 160 / 255f); _greenTempColorChannel.AddKey(28900, 191 / 255f); _blueTempColorChannel.AddKey(28900, 255 / 255f);
+            _redTempColorChannel.AddKey(29000, 160 / 255f); _greenTempColorChannel.AddKey(29000, 191 / 255f); _blueTempColorChannel.AddKey(29000, 255 / 255f);
+            _redTempColorChannel.AddKey(29100, 160 / 255f); _greenTempColorChannel.AddKey(29100, 191 / 255f); _blueTempColorChannel.AddKey(29100, 255 / 255f);
+            _redTempColorChannel.AddKey(29200, 160 / 255f); _greenTempColorChannel.AddKey(29200, 191 / 255f); _blueTempColorChannel.AddKey(29200, 255 / 255f);
+            _redTempColorChannel.AddKey(29300, 159 / 255f); _greenTempColorChannel.AddKey(29300, 191 / 255f); _blueTempColorChannel.AddKey(29300, 255 / 255f);
+            _redTempColorChannel.AddKey(29400, 159 / 255f); _greenTempColorChannel.AddKey(29400, 191 / 255f); _blueTempColorChannel.AddKey(29400, 255 / 255f);
+            _redTempColorChannel.AddKey(29500, 159 / 255f); _greenTempColorChannel.AddKey(29500, 191 / 255f); _blueTempColorChannel.AddKey(29500, 255 / 255f);
+            _redTempColorChannel.AddKey(29600, 159 / 255f); _greenTempColorChannel.AddKey(29600, 191 / 255f); _blueTempColorChannel.AddKey(29600, 255 / 255f);
+            _redTempColorChannel.AddKey(29700, 159 / 255f); _greenTempColorChannel.AddKey(29700, 191 / 255f); _blueTempColorChannel.AddKey(29700, 255 / 255f);
+            _redTempColorChannel.AddKey(29800, 159 / 255f); _greenTempColorChannel.AddKey(29800, 191 / 255f); _blueTempColorChannel.AddKey(29800, 255 / 255f);
+            _redTempColorChannel.AddKey(29900, 159 / 255f); _greenTempColorChannel.AddKey(29900, 191 / 255f); _blueTempColorChannel.AddKey(29900, 255 / 255f);
+            _redTempColorChannel.AddKey(30000, 159 / 255f); _greenTempColorChannel.AddKey(30000, 191 / 255f); _blueTempColorChannel.AddKey(30000, 255 / 255f);
+            _redTempColorChannel.AddKey(30100, 159 / 255f); _greenTempColorChannel.AddKey(30100, 191 / 255f); _blueTempColorChannel.AddKey(30100, 255 / 255f);
+            _redTempColorChannel.AddKey(30200, 159 / 255f); _greenTempColorChannel.AddKey(30200, 191 / 255f); _blueTempColorChannel.AddKey(30200, 255 / 255f);
+            _redTempColorChannel.AddKey(30300, 159 / 255f); _greenTempColorChannel.AddKey(30300, 191 / 255f); _blueTempColorChannel.AddKey(30300, 255 / 255f);
+            _redTempColorChannel.AddKey(30400, 159 / 255f); _greenTempColorChannel.AddKey(30400, 190 / 255f); _blueTempColorChannel.AddKey(30400, 255 / 255f);
+            _redTempColorChannel.AddKey(30500, 159 / 255f); _greenTempColorChannel.AddKey(30500, 190 / 255f); _blueTempColorChannel.AddKey(30500, 255 / 255f);
+            _redTempColorChannel.AddKey(30600, 159 / 255f); _greenTempColorChannel.AddKey(30600, 190 / 255f); _blueTempColorChannel.AddKey(30600, 255 / 255f);
+            _redTempColorChannel.AddKey(30700, 159 / 255f); _greenTempColorChannel.AddKey(30700, 190 / 255f); _blueTempColorChannel.AddKey(30700, 255 / 255f);
+            _redTempColorChannel.AddKey(30800, 159 / 255f); _greenTempColorChannel.AddKey(30800, 190 / 255f); _blueTempColorChannel.AddKey(30800, 255 / 255f);
+            _redTempColorChannel.AddKey(30900, 159 / 255f); _greenTempColorChannel.AddKey(30900, 190 / 255f); _blueTempColorChannel.AddKey(30900, 255 / 255f);
+            _redTempColorChannel.AddKey(31000, 159 / 255f); _greenTempColorChannel.AddKey(31000, 190 / 255f); _blueTempColorChannel.AddKey(31000, 255 / 255f);
+            _redTempColorChannel.AddKey(31100, 158 / 255f); _greenTempColorChannel.AddKey(31100, 190 / 255f); _blueTempColorChannel.AddKey(31100, 255 / 255f);
+            _redTempColorChannel.AddKey(31200, 158 / 255f); _greenTempColorChannel.AddKey(31200, 190 / 255f); _blueTempColorChannel.AddKey(31200, 255 / 255f);
+            _redTempColorChannel.AddKey(31300, 158 / 255f); _greenTempColorChannel.AddKey(31300, 190 / 255f); _blueTempColorChannel.AddKey(31300, 255 / 255f);
+            _redTempColorChannel.AddKey(31400, 158 / 255f); _greenTempColorChannel.AddKey(31400, 190 / 255f); _blueTempColorChannel.AddKey(31400, 255 / 255f);
+            _redTempColorChannel.AddKey(31500, 158 / 255f); _greenTempColorChannel.AddKey(31500, 190 / 255f); _blueTempColorChannel.AddKey(31500, 255 / 255f);
+            _redTempColorChannel.AddKey(31600, 158 / 255f); _greenTempColorChannel.AddKey(31600, 190 / 255f); _blueTempColorChannel.AddKey(31600, 255 / 255f);
+            _redTempColorChannel.AddKey(31700, 158 / 255f); _greenTempColorChannel.AddKey(31700, 190 / 255f); _blueTempColorChannel.AddKey(31700, 255 / 255f);
+            _redTempColorChannel.AddKey(31800, 158 / 255f); _greenTempColorChannel.AddKey(31800, 190 / 255f); _blueTempColorChannel.AddKey(31800, 255 / 255f);
+            _redTempColorChannel.AddKey(31900, 158 / 255f); _greenTempColorChannel.AddKey(31900, 190 / 255f); _blueTempColorChannel.AddKey(31900, 255 / 255f);
+            _redTempColorChannel.AddKey(32000, 158 / 255f); _greenTempColorChannel.AddKey(32000, 190 / 255f); _blueTempColorChannel.AddKey(32000, 255 / 255f);
+            _redTempColorChannel.AddKey(32100, 158 / 255f); _greenTempColorChannel.AddKey(32100, 190 / 255f); _blueTempColorChannel.AddKey(32100, 255 / 255f);
+            _redTempColorChannel.AddKey(32200, 158 / 255f); _greenTempColorChannel.AddKey(32200, 190 / 255f); _blueTempColorChannel.AddKey(32200, 255 / 255f);
+            _redTempColorChannel.AddKey(32300, 158 / 255f); _greenTempColorChannel.AddKey(32300, 190 / 255f); _blueTempColorChannel.AddKey(32300, 255 / 255f);
+            _redTempColorChannel.AddKey(32400, 158 / 255f); _greenTempColorChannel.AddKey(32400, 190 / 255f); _blueTempColorChannel.AddKey(32400, 255 / 255f);
+            _redTempColorChannel.AddKey(32500, 158 / 255f); _greenTempColorChannel.AddKey(32500, 190 / 255f); _blueTempColorChannel.AddKey(32500, 255 / 255f);
+            _redTempColorChannel.AddKey(32600, 158 / 255f); _greenTempColorChannel.AddKey(32600, 190 / 255f); _blueTempColorChannel.AddKey(32600, 255 / 255f);
+            _redTempColorChannel.AddKey(32700, 158 / 255f); _greenTempColorChannel.AddKey(32700, 190 / 255f); _blueTempColorChannel.AddKey(32700, 255 / 255f);
+            _redTempColorChannel.AddKey(32800, 158 / 255f); _greenTempColorChannel.AddKey(32800, 190 / 255f); _blueTempColorChannel.AddKey(32800, 255 / 255f);
+            _redTempColorChannel.AddKey(32900, 158 / 255f); _greenTempColorChannel.AddKey(32900, 190 / 255f); _blueTempColorChannel.AddKey(32900, 255 / 255f);
+            _redTempColorChannel.AddKey(33000, 158 / 255f); _greenTempColorChannel.AddKey(33000, 190 / 255f); _blueTempColorChannel.AddKey(33000, 255 / 255f);
+            _redTempColorChannel.AddKey(33100, 158 / 255f); _greenTempColorChannel.AddKey(33100, 190 / 255f); _blueTempColorChannel.AddKey(33100, 255 / 255f);
+            _redTempColorChannel.AddKey(33200, 157 / 255f); _greenTempColorChannel.AddKey(33200, 190 / 255f); _blueTempColorChannel.AddKey(33200, 255 / 255f);
+            _redTempColorChannel.AddKey(33300, 157 / 255f); _greenTempColorChannel.AddKey(33300, 190 / 255f); _blueTempColorChannel.AddKey(33300, 255 / 255f);
+            _redTempColorChannel.AddKey(33400, 157 / 255f); _greenTempColorChannel.AddKey(33400, 189 / 255f); _blueTempColorChannel.AddKey(33400, 255 / 255f);
+            _redTempColorChannel.AddKey(33500, 157 / 255f); _greenTempColorChannel.AddKey(33500, 189 / 255f); _blueTempColorChannel.AddKey(33500, 255 / 255f);
+            _redTempColorChannel.AddKey(33600, 157 / 255f); _greenTempColorChannel.AddKey(33600, 189 / 255f); _blueTempColorChannel.AddKey(33600, 255 / 255f);
+            _redTempColorChannel.AddKey(33700, 157 / 255f); _greenTempColorChannel.AddKey(33700, 189 / 255f); _blueTempColorChannel.AddKey(33700, 255 / 255f);
+            _redTempColorChannel.AddKey(33800, 157 / 255f); _greenTempColorChannel.AddKey(33800, 189 / 255f); _blueTempColorChannel.AddKey(33800, 255 / 255f);
+            _redTempColorChannel.AddKey(33900, 157 / 255f); _greenTempColorChannel.AddKey(33900, 189 / 255f); _blueTempColorChannel.AddKey(33900, 255 / 255f);
+            _redTempColorChannel.AddKey(34000, 157 / 255f); _greenTempColorChannel.AddKey(34000, 189 / 255f); _blueTempColorChannel.AddKey(34000, 255 / 255f);
+            _redTempColorChannel.AddKey(34100, 157 / 255f); _greenTempColorChannel.AddKey(34100, 189 / 255f); _blueTempColorChannel.AddKey(34100, 255 / 255f);
+            _redTempColorChannel.AddKey(34200, 157 / 255f); _greenTempColorChannel.AddKey(34200, 189 / 255f); _blueTempColorChannel.AddKey(34200, 255 / 255f);
+            _redTempColorChannel.AddKey(34300, 157 / 255f); _greenTempColorChannel.AddKey(34300, 189 / 255f); _blueTempColorChannel.AddKey(34300, 255 / 255f);
+            _redTempColorChannel.AddKey(34400, 157 / 255f); _greenTempColorChannel.AddKey(34400, 189 / 255f); _blueTempColorChannel.AddKey(34400, 255 / 255f);
+            _redTempColorChannel.AddKey(34500, 157 / 255f); _greenTempColorChannel.AddKey(34500, 189 / 255f); _blueTempColorChannel.AddKey(34500, 255 / 255f);
+            _redTempColorChannel.AddKey(34600, 157 / 255f); _greenTempColorChannel.AddKey(34600, 189 / 255f); _blueTempColorChannel.AddKey(34600, 255 / 255f);
+            _redTempColorChannel.AddKey(34700, 157 / 255f); _greenTempColorChannel.AddKey(34700, 189 / 255f); _blueTempColorChannel.AddKey(34700, 255 / 255f);
+            _redTempColorChannel.AddKey(34800, 157 / 255f); _greenTempColorChannel.AddKey(34800, 189 / 255f); _blueTempColorChannel.AddKey(34800, 255 / 255f);
+            _redTempColorChannel.AddKey(34900, 157 / 255f); _greenTempColorChannel.AddKey(34900, 189 / 255f); _blueTempColorChannel.AddKey(34900, 255 / 255f);
+            _redTempColorChannel.AddKey(35000, 157 / 255f); _greenTempColorChannel.AddKey(35000, 189 / 255f); _blueTempColorChannel.AddKey(35000, 255 / 255f);
+            _redTempColorChannel.AddKey(35100, 157 / 255f); _greenTempColorChannel.AddKey(35100, 189 / 255f); _blueTempColorChannel.AddKey(35100, 255 / 255f);
+            _redTempColorChannel.AddKey(35200, 157 / 255f); _greenTempColorChannel.AddKey(35200, 189 / 255f); _blueTempColorChannel.AddKey(35200, 255 / 255f);
+            _redTempColorChannel.AddKey(35300, 157 / 255f); _greenTempColorChannel.AddKey(35300, 189 / 255f); _blueTempColorChannel.AddKey(35300, 255 / 255f);
+            _redTempColorChannel.AddKey(35400, 157 / 255f); _greenTempColorChannel.AddKey(35400, 189 / 255f); _blueTempColorChannel.AddKey(35400, 255 / 255f);
+            _redTempColorChannel.AddKey(35500, 157 / 255f); _greenTempColorChannel.AddKey(35500, 189 / 255f); _blueTempColorChannel.AddKey(35500, 255 / 255f);
+            _redTempColorChannel.AddKey(35600, 156 / 255f); _greenTempColorChannel.AddKey(35600, 189 / 255f); _blueTempColorChannel.AddKey(35600, 255 / 255f);
+            _redTempColorChannel.AddKey(35700, 156 / 255f); _greenTempColorChannel.AddKey(35700, 189 / 255f); _blueTempColorChannel.AddKey(35700, 255 / 255f);
+            _redTempColorChannel.AddKey(35800, 156 / 255f); _greenTempColorChannel.AddKey(35800, 189 / 255f); _blueTempColorChannel.AddKey(35800, 255 / 255f);
+            _redTempColorChannel.AddKey(35900, 156 / 255f); _greenTempColorChannel.AddKey(35900, 189 / 255f); _blueTempColorChannel.AddKey(35900, 255 / 255f);
+            _redTempColorChannel.AddKey(36000, 156 / 255f); _greenTempColorChannel.AddKey(36000, 189 / 255f); _blueTempColorChannel.AddKey(36000, 255 / 255f);
+            _redTempColorChannel.AddKey(36100, 156 / 255f); _greenTempColorChannel.AddKey(36100, 189 / 255f); _blueTempColorChannel.AddKey(36100, 255 / 255f);
+            _redTempColorChannel.AddKey(36200, 156 / 255f); _greenTempColorChannel.AddKey(36200, 189 / 255f); _blueTempColorChannel.AddKey(36200, 255 / 255f);
+            _redTempColorChannel.AddKey(36300, 156 / 255f); _greenTempColorChannel.AddKey(36300, 189 / 255f); _blueTempColorChannel.AddKey(36300, 255 / 255f);
+            _redTempColorChannel.AddKey(36400, 156 / 255f); _greenTempColorChannel.AddKey(36400, 189 / 255f); _blueTempColorChannel.AddKey(36400, 255 / 255f);
+            _redTempColorChannel.AddKey(36500, 156 / 255f); _greenTempColorChannel.AddKey(36500, 189 / 255f); _blueTempColorChannel.AddKey(36500, 255 / 255f);
+            _redTempColorChannel.AddKey(36600, 156 / 255f); _greenTempColorChannel.AddKey(36600, 189 / 255f); _blueTempColorChannel.AddKey(36600, 255 / 255f);
+            _redTempColorChannel.AddKey(36700, 156 / 255f); _greenTempColorChannel.AddKey(36700, 189 / 255f); _blueTempColorChannel.AddKey(36700, 255 / 255f);
+            _redTempColorChannel.AddKey(36800, 156 / 255f); _greenTempColorChannel.AddKey(36800, 189 / 255f); _blueTempColorChannel.AddKey(36800, 255 / 255f);
+            _redTempColorChannel.AddKey(36900, 156 / 255f); _greenTempColorChannel.AddKey(36900, 189 / 255f); _blueTempColorChannel.AddKey(36900, 255 / 255f);
+            _redTempColorChannel.AddKey(37000, 156 / 255f); _greenTempColorChannel.AddKey(37000, 189 / 255f); _blueTempColorChannel.AddKey(37000, 255 / 255f);
+            _redTempColorChannel.AddKey(37100, 156 / 255f); _greenTempColorChannel.AddKey(37100, 189 / 255f); _blueTempColorChannel.AddKey(37100, 255 / 255f);
+            _redTempColorChannel.AddKey(37200, 156 / 255f); _greenTempColorChannel.AddKey(37200, 188 / 255f); _blueTempColorChannel.AddKey(37200, 255 / 255f);
+            _redTempColorChannel.AddKey(37300, 156 / 255f); _greenTempColorChannel.AddKey(37300, 188 / 255f); _blueTempColorChannel.AddKey(37300, 255 / 255f);
+            _redTempColorChannel.AddKey(37400, 156 / 255f); _greenTempColorChannel.AddKey(37400, 188 / 255f); _blueTempColorChannel.AddKey(37400, 255 / 255f);
+            _redTempColorChannel.AddKey(37500, 156 / 255f); _greenTempColorChannel.AddKey(37500, 188 / 255f); _blueTempColorChannel.AddKey(37500, 255 / 255f);
+            _redTempColorChannel.AddKey(37600, 156 / 255f); _greenTempColorChannel.AddKey(37600, 188 / 255f); _blueTempColorChannel.AddKey(37600, 255 / 255f);
+            _redTempColorChannel.AddKey(37700, 156 / 255f); _greenTempColorChannel.AddKey(37700, 188 / 255f); _blueTempColorChannel.AddKey(37700, 255 / 255f);
+            _redTempColorChannel.AddKey(37800, 156 / 255f); _greenTempColorChannel.AddKey(37800, 188 / 255f); _blueTempColorChannel.AddKey(37800, 255 / 255f);
+            _redTempColorChannel.AddKey(37900, 156 / 255f); _greenTempColorChannel.AddKey(37900, 188 / 255f); _blueTempColorChannel.AddKey(37900, 255 / 255f);
+            _redTempColorChannel.AddKey(38000, 156 / 255f); _greenTempColorChannel.AddKey(38000, 188 / 255f); _blueTempColorChannel.AddKey(38000, 255 / 255f);
+            _redTempColorChannel.AddKey(38100, 156 / 255f); _greenTempColorChannel.AddKey(38100, 188 / 255f); _blueTempColorChannel.AddKey(38100, 255 / 255f);
+            _redTempColorChannel.AddKey(38200, 156 / 255f); _greenTempColorChannel.AddKey(38200, 188 / 255f); _blueTempColorChannel.AddKey(38200, 255 / 255f);
+            _redTempColorChannel.AddKey(38300, 156 / 255f); _greenTempColorChannel.AddKey(38300, 188 / 255f); _blueTempColorChannel.AddKey(38300, 255 / 255f);
 
-            for (var i = 0; i < redTempColorChannel.keys.Length; i++)
+            for (var i = 0; i < _redTempColorChannel.keys.Length; i++)
             {
-                redTempColorChannel.SmoothTangents(i, 0);
+                _redTempColorChannel.SmoothTangents(i, 0);
             }
-            for (var i = 0; i < greenTempColorChannel.keys.Length; i++)
+            for (var i = 0; i < _greenTempColorChannel.keys.Length; i++)
             {
-                greenTempColorChannel.SmoothTangents(i, 0);
+                _greenTempColorChannel.SmoothTangents(i, 0);
             }
-            for (var i = 0; i < blueTempColorChannel.keys.Length; i++)
+            for (var i = 0; i < _blueTempColorChannel.keys.Length; i++)
             {
-                blueTempColorChannel.SmoothTangents(i, 0);
+                _blueTempColorChannel.SmoothTangents(i, 0);
             }
         }
 
@@ -1363,7 +1363,7 @@ namespace FNPlugin.Wasteheat
         {
             var vesselRadiators = GetRadiatorsForVessel(vess);
 
-            return vesselRadiators.Average(m => m.CurrentRadiatorTemperature);
+            return vesselRadiators.Max(m => m.CurrentRadiatorTemperature);
         }
 
         public static double GetAverageRadiatorTemperatureForVessel(Vessel vess)
@@ -1375,10 +1375,28 @@ namespace FNPlugin.Wasteheat
 
             if (radiatorVessel.Any())
             {
-                var maxRadiatorTemperature = radiatorVessel.Max(r => r.MaxRadiatorTemperature);
-                var totalRadiatorsMass = radiatorVessel.Sum(r => (double)(decimal)r.part.mass);
+                if (!RadTemperatureQueues.TryGetValue(vess, out var queue))
+                {
+                    queue = new QueueId();
+                    RadTemperatureQueues.Add(vess, queue);
+                }
 
-                return radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperature) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
+                if (queue.Time == vess.missionTime && queue.Queue.Count > 0)
+                {
+                    return queue.Queue.Max();
+                }
+
+                var maxTemperature = radiatorVessel.Max(r => r.MaxRadiatorTemperature);
+                var totalRadiatorsMass = radiatorVessel.Sum(r => (double)(decimal)r.part.mass);
+                var temp = radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperature) * maxTemperature * (r.part.mass / totalRadiatorsMass));
+
+                //var temp = GetCurrentRadiatorTemperatureForVessel(vess);
+
+                queue.Time = vess.missionTime;
+                queue.Queue.Enqueue(temp);
+                if (queue.Queue.Count > 4)
+                    queue.Queue.Dequeue();
+                return queue.Queue.Max();
             }
             else
                 return _maximumRadiatorTempInSpace;
@@ -1531,7 +1549,7 @@ namespace FNPlugin.Wasteheat
                 totalArea += Vector3.Cross(a, b).magnitude;
             }
 
-            if (totalArea.IsInfinityOrNaNorZero() == true)
+            if (totalArea.IsInfinityOrNaNorZero())
             {
                 Debug.Log("MeshRadiatorSize: total_area is IsInfinityOrNaNorZero :(");
                 return false;
@@ -1566,18 +1584,17 @@ namespace FNPlugin.Wasteheat
 
             _radiatedThermalPower = 0;
             _convectedThermalPower = 0;
-            CurrentRadiatorTemperature = 0;
             _radiatorDeployDelay = 0;
-
-            DetermineGenerationType();
-            InitializeRadiatorAreaWhenMissing();
-            UpdateAttachedPartsModifier();
-            UpdateRadiatorArea();
 
             IsGraphene = !string.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
             _maximumRadiatorTempInSpace = RadiatorProperties.RadiatorTemperatureMk6;
             _maxSpaceTempBonus = _maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
             _temperatureRange = _maximumRadiatorTempInSpace - drapperPoint;
+
+            DetermineGenerationType();
+            InitializeRadiatorAreaWhenMissing();
+            UpdateAttachedPartsModifier();
+            UpdateRadiatorArea();
 
             _kspShader = Shader.Find(kspShaderLocation);
 
@@ -1639,7 +1656,7 @@ namespace FNPlugin.Wasteheat
             }
             _moduleDeployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
             if (_moduleDeployableRadiator != null)
-                _radiatorState = _moduleDeployableRadiator.deployState;
+                radiatorState = _moduleDeployableRadiator.deployState;
 
             var radiatorField = Fields[nameof(radiatorIsEnabled)];
             radiatorField.guiActive = showControls;
@@ -1665,23 +1682,6 @@ namespace FNPlugin.Wasteheat
                     _moduleActiveRadiator.Activate();
                 else
                     _moduleActiveRadiator.Shutdown();
-            }
-
-            var intakeLqdDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeLiquid);
-            var intakeAirDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeOxygenAir);
-            var intakeAtmDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeAtmosphere);
-
-            if (intakeLqdDefinition != null && intakeAirDefinition != null && intakeAtmDefinition != null)
-            {
-                _intakeLqdSpecificHeatCapacity = intakeLqdDefinition.specificHeatCapacity;
-                _intakeAtmSpecificHeatCapacity = intakeAtmDefinition.specificHeatCapacity == 0 ? intakeAirDefinition.specificHeatCapacity : intakeAtmDefinition.specificHeatCapacity;
-                _intakeAtmDensity = intakeAtmDefinition.density;
-                _intakeLqdDensity = intakeLqdDefinition.density;
-            }
-            else
-            {
-                Debug.Log("[radiator initialization] Missing definitions for Lqd/Air/Atm :(");
-                return;
             }
 
             if (state == StartState.Editor)
@@ -1755,13 +1755,12 @@ namespace FNPlugin.Wasteheat
         {
             if (radiatorArea != 0) return;
 
-            colorRatioExponent = 4;
-
+            colorRatioExponent = 0;
+            maintainResourceBuffers = false;
             clarifyFunction = true;
-
             radiatorArea = Math.PI * part.partInfo.partSize;
 
-            if (MeshRadiatorSize(out var size))
+            if (radiatorArea > 0 && MeshRadiatorSize(out var size))
                 convectiveBonus = Math.Max(1, size / radiatorArea);
         }
 
@@ -1800,11 +1799,11 @@ namespace FNPlugin.Wasteheat
             if (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
                                                        _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDED))
             {
-                if (_radiatorState != _moduleDeployableRadiator.deployState)
+                if (radiatorState != _moduleDeployableRadiator.deployState)
                 {
                     part.SendMessage("GeometryPartModuleRebuildMeshData");
                 }
-                _radiatorState = _moduleDeployableRadiator.deployState;
+                radiatorState = _moduleDeployableRadiator.deployState;
             }
 
             _stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
@@ -2153,12 +2152,12 @@ namespace FNPlugin.Wasteheat
 
         private double GetStableRadiatorTemperature()
         {
-            return _radTempQueue.Count > 0 ? _radTempQueue.Average() : currentRadTemp;
+            return _radTempQueue.Count > 0 ? _radTempQueue.Max(): currentRadTemp;
         }
 
         private double GetAverageRadiatorTemperature()
         {
-            return Math.Max(_externalTempQueue.Count > 0 ? _externalTempQueue.Average() : Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature), GetStableRadiatorTemperature());
+            return Math.Max(_externalTempQueue.Count > 0 ? _externalTempQueue.Max() : Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature), GetStableRadiatorTemperature());
         }
 
         public override string GetInfo()
@@ -2230,6 +2229,9 @@ namespace FNPlugin.Wasteheat
 
         private void ApplyColorHeat()
         {
+            if (colorRatioExponent == 0)
+                return;
+
             displayTemperature = (float)GetAverageRadiatorTemperature();
 
             colorRatio = displayTemperature < drapperPoint ? 0 : (float)Math.Min(1, (Math.Max(0, displayTemperature - drapperPoint) / _temperatureRange) * 1.05f);
@@ -2249,9 +2251,9 @@ namespace FNPlugin.Wasteheat
 
                 if (displayTemperature >= drapperPoint)
                 {
-                    colorRatioRed = redTempColorChannel.Evaluate(displayTemperature);
-                    colorRatioGreen = greenTempColorChannel.Evaluate(displayTemperature);
-                    colorRatioBlue = blueTempColorChannel.Evaluate(displayTemperature);
+                    colorRatioRed = _redTempColorChannel.Evaluate(displayTemperature);
+                    colorRatioGreen = _greenTempColorChannel.Evaluate(displayTemperature);
+                    colorRatioBlue = _blueTempColorChannel.Evaluate(displayTemperature);
                 }
 
                 var effectiveColorRatio = Mathf.Pow(colorRatio, colorRatioExponent);
