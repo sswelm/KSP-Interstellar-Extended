@@ -787,10 +787,10 @@ namespace FNPlugin.Powermanagement
                 OutputPower = PluginHelper.GetFormattedPowerString(outputPowerReport);
                 overallEfficiencyStr = percentOutputPower.ToString("0.00") + "%";
 
-                maximumElectricPower = (_totalEff >= 0)
+                maximumElectricPower = _totalEff >= 0
                     ? !chargedParticleMode
-                        ? Math.Min(1, PowerControlRatio) * _totalEff * maxThermalPower
-                        : Math.Min(1, PowerControlRatio) * _totalEff * maxChargedPowerForChargedGenerator
+                        ? _totalEff * maxThermalPower
+                        : _totalEff * maxChargedPowerForChargedGenerator
                     : 0;
 
                 MaxPowerStr = PluginHelper.GetFormattedPowerString(maximumElectricPower);
@@ -1178,7 +1178,7 @@ namespace FNPlugin.Powermanagement
 
             var possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity, maxStableMegaWattPower);
 
-            return Math.Min(1, PowerControlRatio) * Math.Min(maximumElectricPower, _powerDemandQueue.Max() + Math.Max(0, PowerControlRatio - 1) * possibleSpareResourceCapacityFilling);
+            return Math.Min(maximumElectricPower, Math.Min(1, PowerControlRatio) * _powerDemandQueue.Max() + Math.Max(0, PowerControlRatio - 1) * possibleSpareResourceCapacityFilling);
         }
 
         private void PowerDown()
