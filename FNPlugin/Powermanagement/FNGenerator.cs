@@ -95,12 +95,16 @@ namespace FNPlugin.Powermanagement
         [KSPField] public double capacityToMassExponent = 0.7;
         [KSPField] public double minimumBufferSize = 0;
         [KSPField] public double coldBathTemp = 500;
-        [KSPField] public double maximumGeneratorPowerEC = 0;
+        [KSPField] public double maximumGeneratorPowerEC;
+
+        //[KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "MHD Power %")
+        // , UI_FloatRange(stepIncrement = 1f, maxValue = 200, minValue = 0, affectSymCounterparts = UI_Scene.All)]
+        //public float mhdPowerGenerationPercentage = 101;
 
         // Gui
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_powerCapacity"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerCapacity = 100;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 1f, maxValue = 200f, minValue = 1f)]
         public float powerPercentage = 100;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxGeneratorEfficiency", guiFormat = "P1")]
         public double maxEfficiency;
@@ -159,7 +163,6 @@ namespace FNPlugin.Powermanagement
         private double targetMass;
         private double initialMass;
         private double maxThermalPower;
-        private double powerRatio;
         private double effectiveMaximumThermalPower;
         private double maxChargedPowerForThermalGenerator;
         private double maxChargedPowerForChargedGenerator;
@@ -174,7 +177,6 @@ namespace FNPlugin.Powermanagement
         private double electricdtps;
         private double maxElectricdtps;
         private double _totalEff;
-        private double capacityRatio;
         private double outputPower;
         private double powerDownFraction;
 
@@ -372,9 +374,9 @@ namespace FNPlugin.Powermanagement
                 powerCapacity = Math.Min(powerCapacityMaxValue, powerCapacity);
             }
 
-            Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
-            Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
-            Fields["radius"].guiActiveEditor = showSpecialisedUI;
+            Fields[nameof(partMass)].guiActive = Fields[nameof(partMass)].guiActiveEditor = calculatedMass;
+            Fields[nameof(powerPercentage)].guiActive = Fields[nameof(powerPercentage)].guiActiveEditor = showSpecialisedUI;
+            Fields[nameof(radius)].guiActiveEditor = showSpecialisedUI;
 
             if (state == StartState.Editor)
             {
@@ -702,23 +704,9 @@ namespace FNPlugin.Powermanagement
             }
         }
 
-        public double CapacityRatio
-        {
-            get
-            {
-                capacityRatio = powerCapacity / 100;
-                return capacityRatio;
-            }
-        }
+        public double CapacityRatio => (double)(decimal)powerCapacity * 0.01;
 
-        public double PowerRatio
-        {
-            get
-            {
-                powerRatio = (double)(decimal)powerPercentage / 100;
-                return powerRatio;
-            }
-        }
+        public double PowerControlRatio => (double)(decimal)powerPercentage * 0.01;
 
         public double GetHotBathTemperature(double coldBathTemperature)
         {
@@ -801,8 +789,8 @@ namespace FNPlugin.Powermanagement
 
                 maximumElectricPower = (_totalEff >= 0)
                     ? !chargedParticleMode
-                        ? PowerRatio * _totalEff * maxThermalPower
-                        : PowerRatio * _totalEff * maxChargedPowerForChargedGenerator
+                        ? Math.Min(1, PowerControlRatio) * _totalEff * maxThermalPower
+                        : Math.Min(1, PowerControlRatio) * _totalEff * maxChargedPowerForChargedGenerator
                     : 0;
 
                 MaxPowerStr = PluginHelper.GetFormattedPowerString(maximumElectricPower);
@@ -881,10 +869,10 @@ namespace FNPlugin.Powermanagement
                 UpdateHeatExchangedThrustDivisor();
 
             var attachedPowerSourceRatio = attachedPowerSource.PowerRatio;
-            effectiveMaximumThermalPower = attachedPowerSource.MaximumThermalPower * PowerRatio * CapacityRatio;
+            effectiveMaximumThermalPower = attachedPowerSource.MaximumThermalPower * Math.Min(1, PowerControlRatio) * CapacityRatio;
 
             var rawThermalPower = isLimitedByMinThrottle ? attachedPowerSource.MinimumPower : effectiveMaximumThermalPower;
-            var rawChargedPower = attachedPowerSource.MaximumChargedPower * PowerRatio * CapacityRatio;
+            var rawChargedPower = attachedPowerSource.MaximumChargedPower * Math.Min(1, PowerControlRatio) * CapacityRatio;
             var rawReactorPower = rawThermalPower + rawChargedPower;
 
             if (!(attachedPowerSourceRatio > 0))
@@ -1190,7 +1178,7 @@ namespace FNPlugin.Powermanagement
 
             var possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity, maxStableMegaWattPower);
 
-            return Math.Min(maximumElectricPower, _powerDemandQueue.Max() + possibleSpareResourceCapacityFilling);
+            return Math.Min(1, PowerControlRatio) * Math.Min(maximumElectricPower, _powerDemandQueue.Max() + Math.Max(0, PowerControlRatio - 1) * possibleSpareResourceCapacityFilling);
         }
 
         private void PowerDown()
