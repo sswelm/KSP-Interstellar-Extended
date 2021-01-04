@@ -19,14 +19,14 @@ namespace FNPlugin.Wasteheat
         private const int ValueWidth = 85;
         private const float ExternalTemperatureInKelvin = 290;
 
-        public static bool RenderWindow { get; set; } = true;
+        public static bool RenderWindow { get; set; }
 
         private int _maxIterations = 10;
         private int _bestScenarioPercentage;
         private int _thermalWindowId = 825462;
         private bool _hasThermalGenerators;
 
-        private Rect _windowPosition = new Rect(500, 500, LabelWidth + ValueWidth, 100);
+        private Rect _windowPosition = new Rect(500, 300, LabelWidth + ValueWidth, 100);
 
         private GUIStyle _boldLabel;
         private GUIStyle _blueLabel;
