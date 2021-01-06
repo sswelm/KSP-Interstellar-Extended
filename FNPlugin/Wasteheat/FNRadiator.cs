@@ -899,9 +899,12 @@ namespace FNPlugin.Wasteheat
             _redTempColorChannel.AddKey(4200, 255 / 255f); _greenTempColorChannel.AddKey(4200, 247 / 255f); _blueTempColorChannel.AddKey(4200, 195 / 255f);
             _redTempColorChannel.AddKey(4300, 255 / 255f); _greenTempColorChannel.AddKey(4300, 250 / 255f); _blueTempColorChannel.AddKey(4300, 210 / 255f);
             _redTempColorChannel.AddKey(4400, 255 / 255f); _greenTempColorChannel.AddKey(4400, 253 / 255f); _blueTempColorChannel.AddKey(4400, 225 / 255f);
-            _redTempColorChannel.AddKey(4500, 255 / 255f); _greenTempColorChannel.AddKey(4500, 255 / 255f); _blueTempColorChannel.AddKey(4500, 240 / 255f);
-            _redTempColorChannel.AddKey(4600, 255 / 255f); _greenTempColorChannel.AddKey(4600, 255 / 255f); _blueTempColorChannel.AddKey(4600, 250 / 255f);
-            _redTempColorChannel.AddKey(4700, 255 / 255f); _greenTempColorChannel.AddKey(4700, 255 / 255f); _blueTempColorChannel.AddKey(4700, 255 / 255f);
+            _redTempColorChannel.AddKey(4500, 255 / 255f); _greenTempColorChannel.AddKey(4500, 255 / 255f); _blueTempColorChannel.AddKey(4500, 239 / 255f);
+            _redTempColorChannel.AddKey(4600, 255 / 255f); _greenTempColorChannel.AddKey(4600, 255 / 255f); _blueTempColorChannel.AddKey(4600, 243 / 255f);
+            _redTempColorChannel.AddKey(4700, 255 / 255f); _greenTempColorChannel.AddKey(4700, 255 / 255f); _blueTempColorChannel.AddKey(4700, 247 / 255f);
+            _redTempColorChannel.AddKey(4800, 255 / 255f); _greenTempColorChannel.AddKey(4800, 255 / 255f); _blueTempColorChannel.AddKey(4800, 251 / 255f);
+            _redTempColorChannel.AddKey(4900, 255 / 255f); _greenTempColorChannel.AddKey(4900, 255 / 255f); _blueTempColorChannel.AddKey(4900, 253 / 255f);
+            _redTempColorChannel.AddKey(5000, 255 / 255f); _greenTempColorChannel.AddKey(5000, 255 / 255f); _blueTempColorChannel.AddKey(5000, 255 / 255f);
 
             for (var i = 0; i < _redTempColorChannel.keys.Length; i++)
             {
