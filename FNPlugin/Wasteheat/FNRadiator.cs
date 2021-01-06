@@ -774,7 +774,7 @@ namespace FNPlugin.Wasteheat
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_RadUpgradeCost")]//Rad Upgrade Cost
         public string upgradeCostStr;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_RadiatorStartTemp")]//Radiator Start Temp
-        public double radiator_temperature_temp_val;
+        public double radiatorTemperatureTempVal;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_DynamicPressureStress", guiActive = true, guiFormat = "P2")]//Dynamic Pressure Stress
         public double dynamicPressureStress;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_MaxEnergyTransfer", guiFormat = "F2")]//Max Energy Transfer
@@ -901,7 +901,7 @@ namespace FNPlugin.Wasteheat
             _redTempColorChannel.AddKey(4300, 255 / 255f); _greenTempColorChannel.AddKey(4300, 245 / 255f); _blueTempColorChannel.AddKey(4300, 210 / 255f);
             _redTempColorChannel.AddKey(4400, 255 / 255f); _greenTempColorChannel.AddKey(4400, 250 / 255f); _blueTempColorChannel.AddKey(4400, 225 / 255f);
             _redTempColorChannel.AddKey(4500, 255 / 255f); _greenTempColorChannel.AddKey(4500, 255 / 255f); _blueTempColorChannel.AddKey(4500, 240 / 255f);
-            _redTempColorChannel.AddKey(4600, 255 / 255f); _greenTempColorChannel.AddKey(4600, 255 / 255f); _blueTempColorChannel.AddKey(4600, 255 / 255f);
+            _redTempColorChannel.AddKey(4600, 255 / 255f); _greenTempColorChannel.AddKey(4600, 255 / 255f); _blueTempColorChannel.AddKey(4600, 250 / 255f);
             _redTempColorChannel.AddKey(4700, 255 / 255f); _greenTempColorChannel.AddKey(4700, 255 / 255f); _blueTempColorChannel.AddKey(4700, 255 / 255f);
 
             for (var i = 0; i < _redTempColorChannel.keys.Length; i++)
@@ -1046,8 +1046,6 @@ namespace FNPlugin.Wasteheat
                 var maxTemperature = radiatorVessel.Max(r => r.MaxRadiatorTemperature);
                 var totalRadiatorsMass = radiatorVessel.Sum(r => (double)(decimal)r.part.mass);
                 var temp = radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperature) * maxTemperature * (r.part.mass / totalRadiatorsMass));
-
-                //var temp = GetCurrentRadiatorTemperatureForVessel(vess);
 
                 queue.Time = vess.missionTime;
                 queue.Queue.Enqueue(temp);
@@ -1605,9 +1603,9 @@ namespace FNPlugin.Wasteheat
                 }
 
                 // ToDo replace wasteheatManager.SqrtResourceBarRatioBegin by ResourceBarRatioBegin after generators hot bath takes into account expected temperature
-                radiator_temperature_temp_val = Math.Min(maxRadiatorTemperature * wasteheatManager.TemperatureRatio, maxCurrentRadiatorTemperature);
+                radiatorTemperatureTempVal = Math.Min(maxRadiatorTemperature * wasteheatManager.TemperatureRatio, maxCurrentRadiatorTemperature);
 
-                deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(ExternalTemp() * Math.Min(1, wasteheatManager.AtmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
+                deltaTemp = Math.Max(radiatorTemperatureTempVal - Math.Max(ExternalTemp() * Math.Min(1, wasteheatManager.AtmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
@@ -1733,7 +1731,7 @@ namespace FNPlugin.Wasteheat
 
         private double CalculateInstantaneousRadTemp()
         {
-            var result = Math.Min(maxCurrentRadiatorTemperature, radiator_temperature_temp_val);
+            var result = Math.Min(maxCurrentRadiatorTemperature, radiatorTemperatureTempVal);
 
             if (result.IsInfinityOrNaN())
                 Debug.LogError("[KSPI]: FNRadiator: FixedUpdate IsNaN or Infinity detected in CalculateInstantaneousRadTemp");
