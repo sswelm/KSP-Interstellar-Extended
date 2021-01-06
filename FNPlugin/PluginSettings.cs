@@ -49,6 +49,10 @@ namespace FNPlugin
         public double ThrustCoreTempThreshold { get; private set; }
         public double MaxResourceProcessingTimewarp { get; private set; } = 20;
         public double ConvectionMultiplier { get; private set; } = 0.01;
+
+        // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
+        //static public double airHeatTransferCoefficient = 0.001; // 100W/m2/K, range: 10 - 100, "Air"
+        //static public double lqdHeatTransferCoefficient = 0.01; // 1000/m2/K, range: 100-1200, "Water in Free Convection"
         public double AirHeatTransferCoefficient { get; private set; } = 0.001;
         public double LqdHeatTransferCoefficient { get; private set; } = 0.01;
 
