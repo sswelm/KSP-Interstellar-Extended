@@ -1,5 +1,21 @@
 # TweakScale :: Change Log
 
+* 2021-0105: 2.4.4.3 R2 (Lisias) for 1.4.4 <= KSP <= 1.11.1
+	+ Same old 2.4.4.3 release, but with some additional dummy patches to prevent FATALities when updating over a dirty TweakScale folder.
+	+ Fix some regressions from 2.4.4.2 that passed through.
+	+ Updates KSPe.Light for TweakScale
+	+ Closes Issues:
+		- [#154](https://github.com/net-lisias-ksp/TweakScale/issues/154) Problems on loading crafts with parts with variants that are surface attached
+		- [#143](https://github.com/net-lisias-ksp/TweakScale/issues/143) Wait for KSP Recall to close its issue #9 *AND* #11
+* 2021-0104: 2.4.4.3 (Lisias) for 1.4.4 <= KSP <= 1.11.1
+	+ ***ditched***
+* 2020-1228: 2.4.4.2 (Lisias) for 1.4.4 <= KSP <= 1.11.1
+	+ Fixes a NRE that passed through unattended for some time since last refactoring.
+	+ **FINALLY** identified the merge error that leaked a duplicated patch file into the distribution stream!
+	+ Closes issues:
+		- [#152](https://github.com/net-lisias-ksp/TweakScale/issues/152) Unexpected NRE while initialising scaled parts on launch
+* 2020-1228: 2.4.4.1 (Lisias) for 1.4.4 <= KSP <= 1.11.1
+	+ ***DITCHED***
 * 2020-1226: 2.4.4.0 (Lisias) for 1.4.4 <= KSP <= 1.11.1
 	+ (Temporarily) Raises the bar to KSP 1.4.4 due the Variant stunt.
 		- Support for KSP down to 1.2.2 is still on the back log, but I need to finish support for modern KSP first!
