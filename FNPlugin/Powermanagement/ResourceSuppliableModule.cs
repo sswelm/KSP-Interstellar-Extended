@@ -363,10 +363,8 @@ namespace FNPlugin.Powermanagement
 
             if (manager == null)
                 manager = getManagerForVessel(resourceName);
-            if (manager == null)
-                return null;
 
-            return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
+            return manager?.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
         }
 
         public double getTotalPowerSupplied(string resourcename)

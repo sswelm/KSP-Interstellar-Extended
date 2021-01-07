@@ -16,21 +16,9 @@ namespace FNPlugin.Powermanagement
         private double lastMJConverted;
         private double mjConverted;
 
-        protected override double AuxiliaryResourceDemand
-        {
-            get
-            {
-                return lastMJConverted;
-            }
-        }
+        protected override double AuxiliaryResourceDemand => lastMJConverted;
 
-        public override double CurrentSurplus
-        {
-            get
-            {
-                return Math.Max(0.0, base.CurrentSurplus - lastMJConverted);
-            }
-        }
+        public override double CurrentSurplus => Math.Max(0.0, base.CurrentSurplus - lastMJConverted);
 
         public MegajoulesResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ElectricPowerInMegawatt, FNRESOURCE_FLOWTYPE_SMALLEST_FIRST)
         {

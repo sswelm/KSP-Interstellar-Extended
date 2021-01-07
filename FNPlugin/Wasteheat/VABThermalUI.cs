@@ -415,7 +415,7 @@ namespace FNPlugin.Wasteheat
                 if (!beamedReceiver.receiverIsEnabled)
                     continue;
 
-                var maxWasteheatProduction = beamedReceiver.MaximumRecievePower * (1 - beamedReceiver.activeBandwidthConfiguration.MaxEfficiencyPercentage * 0.01);
+                var maxWasteheatProduction = beamedReceiver.MaximumReceiverPowerCapacity * (1 - beamedReceiver.activeBandwidthConfiguration.MaxEfficiencyPercentage * 0.01);
 
                 _wasteheatSourcePower100Pc += maxWasteheatProduction;
                 _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;

@@ -76,13 +76,35 @@ namespace FNPlugin.Beamedpower
     [KSPModule("#LOC_KSPIE_BeamPowerReceiver_ModulueName17")]//Beamed Power Receiver
     class BeamedPowerReceiver : ResourceSuppliableModule, IFNPowerSource, IElectricPowerGeneratorSource, IBeamedPowerReceiver // tweakscales with exponent 2.5
     {
+        private const int LabelWidth = 200;
+        private const int WideLabelWidth = 250;
+        private const int ValueWidthWide = 100;
+        private const int ValueWidthNormal = 65;
+
         public const string GROUP = "BeamedPowerReceiver";
         public const string GROUP_TITLE = "#LOC_KSPIE_BeamPowerReceiver_groupName";
 
         //Persistent True
+        [KSPField(isPersistant = true)] public double storedTemp;
+        [KSPField(isPersistant = true)] public float windowPositionX = 200;
+        [KSPField(isPersistant = true)] public float windowPositionY = 100;
+        [KSPField(isPersistant = true)] public bool forceActivateAtStartup;
+        [KSPField(isPersistant = true)] protected double total_sat_efficiency_fraction;
+        [KSPField(isPersistant = true)] protected double total_beamed_power;
+        [KSPField(isPersistant = true)] protected double total_beamed_power_max;
+        [KSPField(isPersistant = true)] protected double total_beamed_wasteheat;
+        [KSPField(isPersistant = true)] public double thermalSolarInputMegajoules;
+        [KSPField(isPersistant = true)] public double thermalSolarInputMegajoulesMax;
+        [KSPField(isPersistant = true)] public double storedGeneratorThermalEnergyRequestRatio;
+        [KSPField(isPersistant = true)] public double storedIsThermalEnergyGeneratorEfficiency;
+
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_Bandwidth")]//Bandwidth
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedBandwidthConfiguration;
+
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Max Power Capacity", guiFormat = "F3", guiUnits = " MW")]
+        public double maximumReceiverPowerCapacity;
+
 
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_BeamPowerReceiver_TargetWavelength")]
         public string bandWidthName;
@@ -96,21 +118,6 @@ namespace FNPlugin.Beamedpower
         public bool linkedForRelay;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_TargetWavelength", guiFormat = "F5")]//Target Wavelength
         public double targetWavelength;
-
-        [KSPField(isPersistant = true)] public double storedTemp;
-        [KSPField(isPersistant = true)] public bool animatonDeployed = false;
-        [KSPField(isPersistant = true)] public float windowPositionX = 200;
-        [KSPField(isPersistant = true)] public float windowPositionY = 100;
-        [KSPField(isPersistant = true)] public bool forceActivateAtStartup;
-        [KSPField(isPersistant = true)] protected double total_sat_efficiency_fraction;
-        [KSPField(isPersistant = true)] protected double total_beamed_power;
-        [KSPField(isPersistant = true)] protected double total_beamed_power_max;
-        [KSPField(isPersistant = true)] protected double total_beamed_wasteheat;
-        [KSPField(isPersistant = true)] public double thermalSolarInputMegajoules;
-        [KSPField(isPersistant = true)] public double thermalSolarInputMegajoulesMax;
-        [KSPField(isPersistant = true)] public double storedGeneratorThermalEnergyRequestRatio;
-        [KSPField(isPersistant = true)] public double storedIsThermalEnergyGeneratorEfficiency;
-
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_WasteheatRatio", guiFormat = "F6")]//Wasteheat Ratio
         public double wasteheatRatio;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_WasteheatElectricEfficiency", guiFormat = "F6")]//Wasteheat Electric Efficiency
@@ -121,99 +128,26 @@ namespace FNPlugin.Beamedpower
         public double effectiveSolarThermalElectricEfficiency;
 
         //Persistent False
-        [KSPField] public int instanceId;
-        [KSPField] public int supportedPropellantAtoms = 511;
-        [KSPField] public int supportedPropellantTypes = 127;
-
-        [KSPField] public double electricWasteheatExponent = 1;
-        [KSPField] public double electricMaxEfficiency = 1;
-        [KSPField] public double facingThreshold = 0;
-        [KSPField] public double facingSurfaceExponent = 1;
-        [KSPField] public double facingEfficiencyExponent = 0.1;
-        [KSPField] public double spotsizeNormalizationExponent = 1;
-        [KSPField] public double solarReceptionEfficiency = 0;
-        [KSPField] public double solarElectricEfficiency = 0.33;
-        [KSPField] public double solarReceptionSurfaceArea = 0;
-        [KSPField] public double solarFacingExponent = 1;
-
-        [KSPField] public bool autoDeploy = true;
-        [KSPField] public bool canLinkup = true;
-        [KSPField] public bool isMirror = false;
-
-        [KSPField] public string animName= "";
-        [KSPField] public string animTName = "";
-        [KSPField] public string animGenericName = "";
-
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_ReceiverDiameter", guiFormat = "F3", guiUnits = " m")]//Receiver Diameter
         public double diameter = 1;
-        [KSPField(isPersistant = false)]
-        public bool isThermalReceiver = false;
-        [KSPField(isPersistant = false)]
-        public bool isEnergyReceiver = true;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_IsThermalReceiverSlave")]//Is Slave
         public bool isThermalReceiverSlave = false;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_InputPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Input Power
-        public double powerInputMegajoules = 0;
+        public double powerInputMegajoules;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaxInputPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Max Input Power
-        public double powerInputMegajoulesMax = 0;
-
+        public double powerInputMegajoulesMax;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ThermalPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Thermal Power
         public double ThermalPower;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Radius", guiFormat = "F2", guiUnits = " m")]//Radius
         public double radius = 2.5;
-        [KSPField]
-        public float alternatorRatio = 1;
-
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MinWavelength")]//min Wavelength
         public double minimumWavelength = 0.00000001;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaxWavelength")]//max Wavelength
         public double maximumWavelength = 1;
-
-        [KSPField] public double minCoolingFactor = 1;
-        [KSPField] public double engineHeatProductionMult = 1;
-        [KSPField] public double plasmaHeatProductionMult = 1;
-        [KSPField] public double engineWasteheatProductionMult = 1;
-        [KSPField] public double plasmaWasteheatProductionMult = 1;
-        [KSPField] public double heatTransportationEfficiency = 0.7;
-        [KSPField] public double powerHeatExponent = 0.7;
-
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotbathTechLevel")]//Hotbath TechLevel
         public int hothBathtechLevel;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotBathTemperature", guiUnits = " K")]//HotBath Temperature
         public double hothBathTemperature = 3200;
-
-        [KSPField] public double hothBathTemperatureMk1 = 2000;
-        [KSPField] public double hothBathTemperatureMk2 = 2500;
-        [KSPField] public double hothBathTemperatureMk3 = 3000;
-        [KSPField] public double hothBathTemperatureMk4 = 3500;
-        [KSPField] public double hothBathTemperatureMk5 = 4000;
-        [KSPField] public double hothBathTemperatureMk6 = 4500;
-
-        [KSPField] public string upgradeTechReqMk2 = "heatManagementSystems";
-        [KSPField] public string upgradeTechReqMk3 = "advHeatManagement";
-        [KSPField] public string upgradeTechReqMk4 = "specializedRadiators";
-        [KSPField] public string upgradeTechReqMk5 = "exoticRadiators";
-        [KSPField] public string upgradeTechReqMk6 = "extremeRadiators";
-
-        [KSPField] public int receiverType = 0;
-        [KSPField] public double receiverFracionBonus = 0;
-        [KSPField] public double thermalPowerBufferMult = 2;
-        [KSPField] public double wasteHeatMultiplier = 1;
-        [KSPField] public double wasteHeatModifier = 1;
-        [KSPField] public double apertureMultiplier = 1;
-        [KSPField] public double highSpeedAtmosphereFactor = 0;
-        [KSPField] public double atmosphereToleranceModifier = 1;
-        [KSPField] public double thermalPropulsionEfficiency = 1;
-        [KSPField] public double thermalEnergyEfficiency = 1;
-        [KSPField] public double thermalProcessingModifier = 1;
-        [KSPField] public bool canSwitchBandwidthInEditor = false;
-        [KSPField] public bool canSwitchBandwidthInFlight = false;
-        [KSPField] public int connectStackdepth = 4;
-        [KSPField] public int connectParentdepth = 2;
-        [KSPField] public int connectSurfacedepth = 2;
-        [KSPField] public bool maintainResourceBuffers = true;
-
-        //GUI
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_CoreTemperature")]//Core Temperature
         public string coreTempererature;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ProducedPower")]//Produced Power
@@ -236,25 +170,18 @@ namespace FNPlugin.Beamedpower
         public double total_thermal_power_provided_max;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumInputPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Maximum Input Power
         public double maximumPower = 0;
-        [KSPField]
-        public double maximumElectricPower = 0;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumElectricPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Maximum Electric Power
-        public double maximumElectricPowerScaled;
-        [KSPField]
         public double maximumThermalPower = 0;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_MaximumThermalPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Maximum Thermal Power
-        public double maximumThermalPowerScaled;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_Dissipation", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]//Dissipation
         public double dissipationInMegaJoules;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarFacingFactor", guiFormat = "F4")]//Sun Facing Factor
         public double solarFacingFactor;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarFlux", guiFormat = "F4")]//Solar Flux
         public double solarFlux;
-
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW")]//Offscreen Power Generation
         public double initialGeneratorPowerEC;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_PowerMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_ElectricMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_ThermalMode")]//Power Mode--Electric--Thermal
-        public bool thermalMode = false;
+        public bool thermalMode;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_BeamPowerReceiver_RadiatorMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_BeamedPowerMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_RadiatorMode")]//Function--Beamed Power--Radiator
         public bool radiatorMode = false;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_SolarPowerMode"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_BeamedPowerMode", enabledText = "#LOC_KSPIE_BeamPowerReceiver_SolarMode")]//Power Mode--Beamed Power--Solar Only
@@ -262,91 +189,257 @@ namespace FNPlugin.Beamedpower
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_ShowWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowHide", enabledText = "#LOC_KSPIE_BeamPowerReceiver_WindowShow")]//Power Reciever Interface--Hidden--Shown
         public bool showWindow;
 
-        [KSPField] public double thermal_power_ratio;
-        [KSPField] public double powerCapacityEfficiency;
-        [KSPField] public double powerMult = 1;
-        [KSPField] public double averageEfficiencyFraction;
-        [KSPField] public double currentIsThermalEnergyGeneratorEfficiency;
-        [KSPField] public double currentGeneratorThermalEnergyRequestRatio;
-
+        // Settings
+        [KSPField] public bool isThermalReceiver = false;
+        [KSPField] public bool isEnergyReceiver = true;
+        [KSPField] public bool maintainResourceBuffers = true;
+        [KSPField] public bool canSwitchBandwidthInEditor = false;
+        [KSPField] public bool canSwitchBandwidthInFlight = false;
+        [KSPField] public bool autoDeploy = true;
+        [KSPField] public bool canLinkup = true;
+        [KSPField] public bool isMirror = false;
         [KSPField] public bool showBandWidthName = false;
         [KSPField] public bool showSelectedBandwidthConfiguration = true;
 
-        protected BaseField _beamedpowerField;
-        protected BaseField _powerInputMegajoulesField;
-        protected BaseField _linkedForRelayField;
-        protected BaseField _diameterField;
-        protected BaseField _slavesAmountField;
-        protected BaseField _ThermalPowerField;
-        protected BaseField _minimumConsumptionPercentageField;
-        protected BaseField _maximumConsumptionPercentageField;
-        protected BaseField _selectedBandwidthConfigurationField;
-        protected BaseField _maximumWavelengthField;
-        protected BaseField _minimumWavelengthField;
-        protected BaseField _solarFacingFactorField;
-        protected BaseField _solarFluxField;
-        protected BaseField _coreTempereratureField;
-        protected BaseField _field_kerbalism_output;
+        [KSPField] public int connectStackdepth = 4;
+        [KSPField] public int connectParentdepth = 2;
+        [KSPField] public int connectSurfacedepth = 2;
+        [KSPField] public int receiverType = 0;
+        [KSPField] public int supportedPropellantAtoms = 511;
+        [KSPField] public int supportedPropellantTypes = 127;
 
-        protected BaseField _bandWidthNameField;
-        protected BaseField _connectedsatsField;
-        protected BaseField _connectedrelaysField;
-        protected BaseField _networkDepthStringField;
+        [KSPField] public double maximumElectricPower = 0;
+        [KSPField] public double electricWasteheatExponent = 1;
+        [KSPField] public double electricMaxEfficiency = 1;
+        [KSPField] public double facingThreshold = 0;
+        [KSPField] public double facingSurfaceExponent = 1;
+        [KSPField] public double facingEfficiencyExponent = 0.1;
+        [KSPField] public double spotsizeNormalizationExponent = 1;
+        [KSPField] public double solarReceptionEfficiency = 0;
+        [KSPField] public double solarElectricEfficiency = 0.33;
+        [KSPField] public double solarReceptionSurfaceArea = 0;
+        [KSPField] public double solarFacingExponent = 1;
+        [KSPField] public double alternatorRatio = 1;
+        [KSPField] public double minCoolingFactor = 1;
+        [KSPField] public double engineHeatProductionMult = 1;
+        [KSPField] public double plasmaHeatProductionMult = 1;
+        [KSPField] public double engineWasteheatProductionMult = 1;
+        [KSPField] public double plasmaWasteheatProductionMult = 1;
+        [KSPField] public double heatTransportationEfficiency = 0.7;
+        [KSPField] public double thermalPowerBufferMult = 2;
+        [KSPField] public double wasteHeatMultiplier = 1;
+        [KSPField] public double wasteHeatModifier = 1;
+        [KSPField] public double apertureMultiplier = 1;
+        [KSPField] public double highSpeedAtmosphereFactor = 0;
+        [KSPField] public double atmosphereToleranceModifier = 1;
+        [KSPField] public double thermalPropulsionEfficiency = 1;
+        [KSPField] public double thermalEnergyEfficiency = 1;
+        [KSPField] public double thermalProcessingModifier = 1;
 
-        protected BaseEvent _linkReceiverBaseEvent;
-        protected BaseEvent _unlinkReceiverBaseEvent;
-        protected BaseEvent _activateReceiverBaseEvent;
-        protected BaseEvent _disableReceiverBaseEvent;
+        [KSPField] public double hothBathTemperatureMk1 = 2000;
+        [KSPField] public double hothBathTemperatureMk2 = 2500;
+        [KSPField] public double hothBathTemperatureMk3 = 3000;
+        [KSPField] public double hothBathTemperatureMk4 = 3500;
+        [KSPField] public double hothBathTemperatureMk5 = 4000;
+        [KSPField] public double hothBathTemperatureMk6 = 4500;
 
+        [KSPField] public string animName = "";
+        [KSPField] public string animTName = "";
+        [KSPField] public string upgradeTechReqMk2 = "heatManagementSystems";
+        [KSPField] public string upgradeTechReqMk3 = "advHeatManagement";
+        [KSPField] public string upgradeTechReqMk4 = "specializedRadiators";
+        [KSPField] public string upgradeTechReqMk5 = "exoticRadiators";
+        [KSPField] public string upgradeTechReqMk6 = "extremeRadiators";
+
+        [KSPField] public double powerCapacityEfficiency;
+        [KSPField] public double powerMult = 1;
+        [KSPField] public double currentIsThermalEnergyGeneratorEfficiency;
+        [KSPField] public double currentGeneratorThermalEnergyRequestRatio;
+
+        private BaseField _beamedpowerField;
+        private BaseField _linkedForRelayField;
+        private BaseField _slavesAmountField;
+        private BaseField _thermalPowerField;
+        private BaseField _minimumConsumptionPercentageField;
+        private BaseField _maximumConsumptionPercentageField;
+        private BaseField _selectedBandwidthConfigurationField;
+        private BaseField _maximumWavelengthField;
+        private BaseField _minimumWavelengthField;
+        private BaseField _solarFacingFactorField;
+        private BaseField _solarFluxField;
+        private BaseField _coreTempereratureField;
+        private BaseField _bandWidthNameField;
+        private BaseField _connectedsatsField;
+        private BaseField _connectedrelaysField;
+        private BaseField _networkDepthStringField;
+
+        private BaseEvent _linkReceiverBaseEvent;
+        private BaseEvent _unlinkReceiverBaseEvent;
+        private BaseEvent _activateReceiverBaseEvent;
+        private BaseEvent _disableReceiverBaseEvent;
+
+        private FNRadiator fnRadiator;
         private ModuleGenerator stockModuleGenerator;
         private ModuleResource mockInputResource;
         private ModuleResource outputModuleResource;
         private BaseEvent moduleGeneratorShutdownBaseEvent;
         private BaseEvent moduleGeneratorActivateBaseEvent;
-        private BaseField moduleGeneratorEfficienctBaseField;
+        private BaseField moduleGeneratorEfficientBaseField;
 
-        protected ModuleDeployableSolarPanel deployableSolarPanel;
-        protected ModuleDeployableRadiator deployableRadiator;
-        protected ModuleDeployableAntenna deployableAntenna;
+        private ModuleDeployableSolarPanel deployableSolarPanel;
+        private ModuleDeployableRadiator deployableRadiator;
+        private ModuleDeployableAntenna deployableAntenna;
 
-        protected FNRadiator fnRadiator;
-        protected PartModule warpFixer;
-
-        public Queue<double> beamedPowerQueue = new Queue<double>(10);
-        public Queue<double> beamedPowerMaxQueue = new Queue<double>(10);
-        public Queue<double> solarFluxQueue = new Queue<double>(50);
+        private Queue<double> beamedPowerQueue = new Queue<double>(10);
+        private Queue<double> beamedPowerMaxQueue = new Queue<double>(10);
+        private Queue<double> solarFluxQueue = new Queue<double>(50);
 
         //Internal
-        protected bool isLoaded;
-        protected double total_conversion_waste_heat_production;
-        protected double connectedRecieversSum;
-        protected int initializationCountdown;
-        protected double powerDownFraction;
+        private int _connectedsatsi;
+        private int _connectedrelaysi;
+        private int _networkDepth;
+        private int _activeSatsIncr;
 
-        protected PowerStates _powerState;
-        protected ResourceBuffers _resourceBuffers;
-        protected List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
-        protected Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
-        protected List<BeamedPowerReceiver> thermalReceiverSlaves = new List<BeamedPowerReceiver>();
-
-        // reference types
-        protected Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
-        protected Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
-
-        protected GUIStyle bold_black_style;
-        protected GUIStyle text_black_style;
-
-        private const int labelWidth = 200;
-        private const int wideLabelWidth = 250;
-        private const int valueWidthWide = 100;
-        private const int ValueWidthNormal = 65;
-        private const int ValueWidthShort = 30;
-
-        // GUI elements declaration
-        private Rect windowPosition;
-        private int windowID;
+        private bool _hasTransmitter;
+        private bool _isLoaded;
 
         private int restartCounter;
+        private int _windowId;
+        private int _initializationCountdown;
+        private long _deactivateTimer;
+
+        private double _totalConversionWasteHeatProduction;
+        private double _powerDownFraction;
+
+        private Animation animT;
+        private GUIStyle _boldBlackStyle;
+        private GUIStyle _textBlackStyle;
+        private Rect _windowPosition;
+        private BeamedPowerTransmitter partTransmitter;
+        private ModuleAnimateGeneric genericAnimation;
+        private CelestialBody localStar;
+        private PowerStates _powerState;
+        private ResourceBuffers _resourceBuffers;
+        private Dictionary<Guid, double> _connectedReceiverFractionById = new Dictionary<Guid, double>();
+
+        private readonly List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
+        private readonly Dictionary<Vessel, ReceivedPowerData> _receivedPower = new Dictionary<Vessel, ReceivedPowerData>();
+        private readonly List<BeamedPowerReceiver> thermalReceiverSlaves = new List<BeamedPowerReceiver>();
+        private readonly Dictionary<Guid, double> connectedReceiverById = new Dictionary<Guid, double>();
+
+        // Properties
+        public double FuelRato => 1;
+        public double MagneticNozzlePowerMult => 1;
+        public bool MayExhaustInAtmosphereHomeworld => true;
+        public bool MayExhaustInLowSpaceHomeworld => true;
+        public double MinThermalNozzleTempRequired => 0;
+        public double CurrentMeVPerChargedProduct => 0;
+        public bool UsePropellantBaseIsp => false;
+        public bool CanUseAllPowerForPlasma => false;
+        public bool CanProducePower => ProducedThermalHeat > 0;
+        public double MinCoolingFactor => minCoolingFactor;
+        public double EngineHeatProductionMult => engineHeatProductionMult;
+        public double PlasmaHeatProductionMult => plasmaHeatProductionMult;
+        public double EngineWasteheatProductionMult => engineWasteheatProductionMult;
+        public double PlasmaWasteheatProductionMult => plasmaWasteheatProductionMult;
+        public int ReceiverType => receiverType;
+        public double Diameter => diameter;
+        public double ApertureMultiplier => apertureMultiplier;
+        public double MaximumWavelength => maximumWavelength;
+        public double MinimumWavelength => minimumWavelength;
+        public double HighSpeedAtmosphereFactor => highSpeedAtmosphereFactor;
+        public double FacingThreshold => facingThreshold;
+        public double FacingSurfaceExponent => facingSurfaceExponent;
+        public double FacingEfficiencyExponent => facingEfficiencyExponent;
+        public double SpotsizeNormalizationExponent => spotsizeNormalizationExponent;
+        public Part Part => part;
+        public Vessel Vessel => vessel;
+        public int ProviderPowerPriority => 1;
+        public double ConsumedFuelFixed => 0;
+        public double ProducedThermalHeat => powerInputMegajoules;
+        public double ProducedChargedPower => 0;
+        public double PowerRatio => maximumConsumptionPercentage / 100d;
+        public double ProducedPower => ProducedThermalHeat;
+        public bool SupportMHD => false;
+        public double MinimumThrottle => 0;
+        public double AverageEfficiencyFraction => total_beamed_power > 0 ? total_sat_efficiency_fraction / total_beamed_power : 0;
+        public int SupportedPropellantAtoms => supportedPropellantAtoms;
+        public int SupportedPropellantTypes => supportedPropellantTypes;
+        public bool FullPowerForNonNeutronAbsorbants => true;
+        public double ReactorSpeedMult => 1;
+        public double ThermalProcessingModifier => thermalProcessingModifier;
+        public double ThermalPropulsionWasteheatModifier => 1;
+        public double EfficencyConnectedThermalEnergyGenerator => storedIsThermalEnergyGeneratorEfficiency;
+        public double EfficencyConnectedChargedEnergyGenerator => 0;
+        public bool IsThermalSource => this.isThermalReceiver;
+        public double RawMaximumPowerForPowerGeneration => powerInputMegajoulesMax;
+        public double RawMaximumPower => MaximumReceiverPowerCapacity;
+        public double RawTotalPowerProduced => ThermalPower * TimeWarp.fixedDeltaTime;
+        public double ChargedPowerRatio => 0;
+        public double PowerBufferBonus => 0;
+        public double ThermalTransportationEfficiency => heatTransportationEfficiency;
+        public double ThermalPropulsionEfficiency => thermalPropulsionEfficiency;
+        public double PlasmaPropulsionEfficiency => 0;
+        public double ChargedParticlePropulsionEfficiency => 0;
+        public double ThermalEnergyEfficiency => thermalEnergyEfficiency;
+        public double PlasmaEnergyEfficiency => 0;
+        public double ChargedParticleEnergyEfficiency => 0;
+        public bool IsSelfContained => false;
+        public double CoreTemperature => hothBathTemperature;
+        public double MaxCoreTemperature => hothBathTemperature;
+        public double HotBathTemperature => hothBathTemperature;
+        public double StableMaximumReactorPower => RawMaximumPower;
+        public double MaximumPower => MaximumThermalPower;
+        public double MaximumThermalPower => HighLogic.LoadedSceneIsEditor ? maximumThermalPower * powerMult : ThermalPower;
+        public double NormalisedMaximumPower => ThermalPower;
+        public double MaximumChargedPower => 0;
+        public double MinimumPower => 0;
+        public bool IsVolatileSource => true;
+        public bool IsActive => receiverIsEnabled;
+        public bool IsNuclear => false;
+
+        public double PowerCapacityEfficiency
+        {
+            get
+            {
+                if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || isThermalReceiver)
+                    return 1;
+
+                return 1 - wasteheatRatio * getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+            }
+        }
+
+        public double WasteheatElectricConversionEfficiency
+        {
+            get
+            {
+                if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || electricWasteheatExponent == 0) return 1;
+
+                if (electricWasteheatExponent == 1)
+                    return 1 - wasteheatRatio;
+                else
+                    return 1 - Math.Pow(wasteheatRatio, electricWasteheatExponent);
+            }
+        }
+
+        public double MaximumReceiverPowerCapacity
+        {
+            get
+            {
+                var maxPower = thermalMode && maximumThermalPower > 0
+                    ? maximumThermalPower
+                    : maximumElectricPower > 0
+                        ? maximumElectricPower
+                        : maximumPower;
+
+                var scaledPower = maxPower * powerMult;
+                return CanBeActiveInAtmosphere ? scaledPower : scaledPower * highSpeedAtmosphereFactor;
+            }
+        }
+
+        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
+
+        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
         public void Restart(int counter)
         {
@@ -357,7 +450,7 @@ namespace FNPlugin.Beamedpower
         {
             var deleteList = new List<Vessel>();
 
-            foreach(var r in  received_power)
+            foreach(var r in  _receivedPower)
             {
                 if (r.Key != vessel)
                     deleteList.Add(r.Key);
@@ -365,102 +458,18 @@ namespace FNPlugin.Beamedpower
 
             foreach(Vessel otherVessel in  deleteList)
             {
-                received_power.Remove(otherVessel);
+                _receivedPower.Remove(otherVessel);
             }
         }
 
         public void Reset()
         {
             Debug.Log("[KSPI]: BeamedPowerReceiver reset called");
-            received_power.Clear();
+            _receivedPower.Clear();
         }
 
-        public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource)
-        {
-            // do nothing
-        }
-
-        public double FuelRato => 1;
-
-        public double MagneticNozzlePowerMult => 1;
-
-        public bool MayExhaustInAtmosphereHomeworld => true;
-
-        public bool MayExhaustInLowSpaceHomeworld => true;
-
-        public double MinThermalNozzleTempRequired => 0;
-
-        public double CurrentMeVPerChargedProduct => 0;
-
-        public bool UsePropellantBaseIsp => false;
-
-        public bool CanUseAllPowerForPlasma => false;
-
-        public bool CanProducePower => ProducedThermalHeat > 0;
-
-        public double MinCoolingFactor => minCoolingFactor;
-
-        public double EngineHeatProductionMult => engineHeatProductionMult;
-
-        public double PlasmaHeatProductionMult => plasmaHeatProductionMult;
-
-        public double EngineWasteheatProductionMult => engineWasteheatProductionMult;
-
-        public double PlasmaWasteheatProductionMult => plasmaWasteheatProductionMult;
-
-        public int ReceiverType => receiverType;
-
-        public double Diameter => diameter;
-
-        public double ApertureMultiplier => apertureMultiplier;
-
-        public double MaximumWavelength => maximumWavelength;
-
-        public double MinimumWavelength => minimumWavelength;
-
-        public double HighSpeedAtmosphereFactor => highSpeedAtmosphereFactor;
-
-        public double FacingThreshold => facingThreshold;
-
-        public double FacingSurfaceExponent => facingSurfaceExponent;
-
-        public double FacingEfficiencyExponent => facingEfficiencyExponent;
-
-        public double SpotsizeNormalizationExponent => spotsizeNormalizationExponent;
-
-        public Part Part => this.part;
-
-        public Vessel Vessel => this.vessel;
-
-        public int ProviderPowerPriority => 1;
-
-        public double ConsumedFuelFixed => 0;
-
-        public double ProducedThermalHeat => powerInputMegajoules;
-
-        public double ProducedChargedPower => 0;
-
-        public double PowerRatio => maximumConsumptionPercentage / 100d;
-
-        public double ProducedPower => ProducedThermalHeat;
-
-        public double PowerCapacityEfficiency
-        {
-            get
-            {
-                if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || isThermalReceiver)
-                    return 1;
-
-                var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
-
-                return 1 - wasteheatRatio * wasteheatRatio;
-            }
-        }
-
-        public void FindAndAttachToPowerSource()
-        {
-            // do nothing
-        }
+        public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource) {}
+        public void FindAndAttachToPowerSource() {}
 
         private void DetermineTechLevel()
         {
@@ -487,51 +496,10 @@ namespace FNPlugin.Beamedpower
             }
         }
 
-        public double WasteheatElectricConversionEfficiency
-        {
-            get
-            {
-                if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || electricWasteheatExponent == 0) return 1;
-
-                if (electricWasteheatExponent == 1)
-                    return 1 - wasteheatRatio;
-                else
-                    return 1 -  Math.Pow(wasteheatRatio, electricWasteheatExponent);
-            }
-        }
-
-        public double MaximumRecievePower
-        {
-            get
-            {
-                var maxPower = thermalMode && maximumThermalPower > 0
-                    ? maximumThermalPower
-                    : maximumElectricPower > 0
-                        ? maximumElectricPower
-                        : maximumPower;
-
-                var scaledPower = maxPower * powerMult;
-                return CanBeActiveInAtmosphere ? scaledPower : scaledPower * highSpeedAtmosphereFactor;
-            }
-        }
-
-        public double AverageEfficiencyFraction
-        {
-            get
-            {
-                averageEfficiencyFraction = total_beamed_power > 0 ? total_sat_efficiency_fraction / total_beamed_power : 0;
-                return averageEfficiencyFraction;
-            }
-        }
-
         public void RegisterAsSlave(BeamedPowerReceiver receiver)
         {
             thermalReceiverSlaves.Add(receiver);
         }
-
-        public bool SupportMHD { get { return false; } }
-
-        public double MinimumThrottle { get { return 0; } }
 
         public void ConnectWithEngine(IEngineNoozle engine)
         {
@@ -553,26 +521,6 @@ namespace FNPlugin.Beamedpower
                 connectedEngines.Remove(fnEngine);
         }
 
-        public int SupportedPropellantAtoms => supportedPropellantAtoms;
-
-        public int SupportedPropellantTypes => supportedPropellantTypes;
-
-        public bool FullPowerForNonNeutronAbsorbants => true;
-
-        public double ReactorSpeedMult => 1;
-
-        public double ThermalProcessingModifier => thermalProcessingModifier;
-
-        public double ThermalPropulsionWasteheatModifier => 1;
-
-        public double EfficencyConnectedThermalEnergyGenerator => storedIsThermalEnergyGeneratorEfficiency;
-
-        public double EfficencyConnectedChargedEnergyGenerator => 0;
-
-        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
-
-        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
-
         public void NotifyActiveThermalEnergyGenerator(double efficiency, double power_ratio, bool isMHD, double mass)
         {
             NotifyActiveThermalEnergyGenerator(efficiency, power_ratio);
@@ -588,76 +536,35 @@ namespace FNPlugin.Beamedpower
 
         public void NotifyActiveChargedEnergyGenerator(double efficiency, double power_ratio, double mass) { }
 
-        public bool IsThermalSource => this.isThermalReceiver;
-
-        public double RawMaximumPowerForPowerGeneration => powerInputMegajoulesMax;
-
-        public double RawMaximumPower => MaximumRecievePower;
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
         public override void AttachThermalReciever(Guid key, double radius)
         {
-            if (connectedRecievers.ContainsKey(key)) return;
+            if (connectedReceiverById.ContainsKey(key)) return;
 
-            connectedRecievers.Add(key, radius);
-            connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
-            connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum);
+            connectedReceiverById.Add(key, radius);
+            var connectedReceiversSum = connectedReceiverById.Sum(r => r.Value);
+            _connectedReceiverFractionById = connectedReceiverById.ToDictionary(a => a.Key, a => a.Value / connectedReceiversSum);
         }
 
-        public double ProducedWasteHeat { get { return total_conversion_waste_heat_production; } }
+        public double ProducedWasteHeat { get { return _totalConversionWasteHeatProduction; } }
 
         public void Refresh() { }
 
         public override void DetachThermalReciever(Guid key)
         {
-            if (!connectedRecievers.ContainsKey(key)) return;
+            if (!connectedReceiverById.ContainsKey(key)) return;
 
-            connectedRecievers.Remove(key);
-            connectedRecieversSum = connectedRecievers.Sum(r => r.Value);
-            connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value / connectedRecieversSum);
+            connectedReceiverById.Remove(key);
+            var connectedReceiversSum = connectedReceiverById.Sum(r => r.Value);
+            _connectedReceiverFractionById = connectedReceiverById.ToDictionary(a => a.Key, a => a.Value / connectedReceiversSum);
         }
 
         public override double GetFractionThermalReciever(Guid key)
         {
-            return connectedRecieversFraction.TryGetValue(key, out double result) ? result : 0.0;
+            return _connectedReceiverFractionById.TryGetValue(key, out double result) ? result : 0.0;
         }
-
-        protected Animation animT;
-        protected BeamedPowerTransmitter partTransmitter;
-        protected ModuleAnimateGeneric genericAnimation;
-        protected CelestialBody localStar;
-
-        protected int connectedsatsi;
-        protected int connectedrelaysi;
-        protected int networkDepth;
-        protected int activeSatsIncr;
-        protected long deactivate_timer;
-        protected bool has_transmitter;
-
-        public double RawTotalPowerProduced => ThermalPower * TimeWarp.fixedDeltaTime;
-        public double ChargedPowerRatio => 0;
-        public double PowerBufferBonus => 0;
-        public double ThermalTransportationEfficiency => heatTransportationEfficiency;
-        public double ThermalPropulsionEfficiency => thermalPropulsionEfficiency;
-        public double PlasmaPropulsionEfficiency => 0;
-        public double ChargedParticlePropulsionEfficiency => 0;
-        public double ThermalEnergyEfficiency => thermalEnergyEfficiency;
-        public double PlasmaEnergyEfficiency => 0;
-        public double ChargedParticleEnergyEfficiency => 0;
-        public bool IsSelfContained => false;
-        public double CoreTemperature => hothBathTemperature;
-        public double MaxCoreTemperature => hothBathTemperature;
-        public double HotBathTemperature => hothBathTemperature;
-        public double StableMaximumReactorPower => RawMaximumPower;
-        public double MaximumPower => MaximumThermalPower;
-        public double MaximumThermalPower => HighLogic.LoadedSceneIsEditor ? maximumThermalPower * powerMult : ThermalPower;
-        public double NormalisedMaximumPower => ThermalPower;
-        public double MaximumChargedPower => 0;
-        public double MinimumPower => 0;
-        public bool IsVolatileSource => true;
-        public bool IsActive => receiverIsEnabled;
-        public bool IsNuclear => false;
 
         [KSPAction("Toggle Receiver Interface")]
         public void ToggleWindow()
@@ -785,7 +692,7 @@ namespace FNPlugin.Beamedpower
 
             if (foundBandwidthConfiguration == null) return;
 
-            isLoaded = true;
+            _isLoaded = true;
             Debug.Log("[KSPI]: BeamedPowerReceiver - found " + foundBandwidthConfiguration.bandwidthName);
             activeBandwidthConfiguration = foundBandwidthConfiguration;
             UpdateProperties();
@@ -829,33 +736,29 @@ namespace FNPlugin.Beamedpower
 
         public static double PhotonicLaserMomentum(double Lambda, uint Time, ulong Wattage)//Lamdba= Wavelength in nanometers, Time in seconds, Wattage in normal Watts, returns momentum of whole laser
         {
-            double EnergySingle = 6.626e-34 * 3e8 / Lambda;
-            double PhotonImpulse = Wattage * Time / EnergySingle;
-            double MomentumSingle = 6.626e-34 / Lambda;
-            double MomentumWhole = MomentumSingle * PhotonImpulse;
+            double energySingle = 6.626e-34 * 3e8 / Lambda;
+            double photonImpulse = Wattage * Time / energySingle;
+            double momentumSingle = 6.626e-34 / Lambda;
+            double momentumWhole = momentumSingle * photonImpulse;
 
-            return 2 * MomentumWhole; //output is in Newtons per second
+            return 2 * momentumWhole; //output is in Newtons per second
         }
 
         public static double PhotonicLaserMomentum2(double Lambda, int Time, long Wattage)//Lamdba= Wavelength in nanometers, Time in seconds, Wattage in normal Watts, returns momentum of whole laser
         {
-            double PhotonImpulse;
-            double EnergyLaser = Wattage * Time;
-            double EnergySingle;
-            double MomentumSingle;
-            double MomentumWhole;
+            double energyLaser = Wattage * Time;
 
-            EnergySingle = 6.626e-34 * 3e8 / Lambda;
-            PhotonImpulse = EnergyLaser / EnergySingle;
-            MomentumSingle = (6.626e-34 / (3e8 * Lambda)) * 3e8;
-            MomentumWhole = MomentumSingle * PhotonImpulse;
+            var energySingle = 6.626e-34 * 3e8 / Lambda;
+            var photonImpulse = energyLaser / energySingle;
+            var momentumSingle = (6.626e-34 / (3e8 * Lambda)) * 3e8;
+            var momentumWhole = momentumSingle * photonImpulse;
 
-            return 2 * MomentumWhole;
+            return 2 * momentumWhole;
         }
 
         public override void OnStart(StartState state)
         {
-            string[] resourcesToSupply = new [] {ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt};
+            string[] resourcesToSupply = {ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt};
 
             this.resources_to_supply = resourcesToSupply;
             base.OnStart(state);
@@ -863,9 +766,6 @@ namespace FNPlugin.Beamedpower
             DetermineTechLevel();
             DetermineCoreTemperature();
             ConnectToModuleGenerator();
-
-            maximumThermalPowerScaled = maximumThermalPower * powerMult;
-            maximumElectricPowerScaled = maximumElectricPower * powerMult;
 
             // while in edit mode, listen to on attach/detach event
             if (state == StartState.Editor)
@@ -878,8 +778,6 @@ namespace FNPlugin.Beamedpower
 
             InitializeBandwidthSelector();
 
-            instanceId = GetInstanceID();
-
             Fields[nameof(hothBathtechLevel)].guiActiveEditor = isThermalReceiver;
             Fields[nameof(hothBathTemperature)].guiActiveEditor = isThermalReceiver;
 
@@ -891,11 +789,9 @@ namespace FNPlugin.Beamedpower
             coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields[nameof(coreTempererature)];
 
-            if (part.Modules.Contains("WarpFixer"))
-            {
-                warpFixer = part.Modules["WarpFixer"];
-                _field_kerbalism_output = warpFixer.Fields["field_output"];
-            }
+            // hide heat fields when not a thermal reciever
+            Fields[nameof(total_thermal_power_provided)].guiActive = IsThermalSource || isThermalReceiverSlave;
+            Fields[nameof(total_thermal_power_provided_max)].guiActive = IsThermalSource || isThermalReceiverSlave;
 
             if (IsThermalSource && !isThermalReceiverSlave)
             {
@@ -971,15 +867,15 @@ namespace FNPlugin.Beamedpower
 
             if (state != StartState.Editor)
             {
-                windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidthWide * 1 + ValueWidthNormal * 10, 100);
+                _windowPosition = new Rect(windowPositionX, windowPositionY, LabelWidth * 2 + ValueWidthWide * 1 + ValueWidthNormal * 10, 100);
 
                 // create the id for the GUI window
-                windowID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
+                _windowId = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
                 localStar = GetCurrentStar();
 
                 // compensate for stock solar initialization heating bug
-                initializationCountdown = 10;
+                _initializationCountdown = 10;
 
                 if (forceActivateAtStartup)
                 {
@@ -1014,7 +910,7 @@ namespace FNPlugin.Beamedpower
                 // look for any transmitter partModule
                 partTransmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
                 if (partTransmitter != null)
-                    has_transmitter = true;
+                    _hasTransmitter = true;
 
                 deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
                 if (deployableRadiator != null)
@@ -1064,7 +960,7 @@ namespace FNPlugin.Beamedpower
         {
             try
             {
-                powerDownFraction = 1;
+                _powerDownFraction = 1;
                 _powerState = PowerStates.PowerOnline;
 
                 if (maintainResourceBuffers)
@@ -1086,17 +982,17 @@ namespace FNPlugin.Beamedpower
         {
             if (_powerState == PowerStates.PowerOffline) return;
 
-            if (powerDownFraction > 0)
-                powerDownFraction -= 0.01;
+            if (_powerDownFraction > 0)
+                _powerDownFraction -= 0.01;
 
-            if (powerDownFraction <= 0)
+            if (_powerDownFraction <= 0)
                 _powerState = PowerStates.PowerOffline;
 
             if (maintainResourceBuffers)
             {
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower * powerDownFraction);
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower * powerDownFraction);
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower * powerDownFraction);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower * _powerDownFraction);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower * _powerDownFraction);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower * _powerDownFraction);
                 _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
                 _resourceBuffers.UpdateBuffers();
             }
@@ -1167,18 +1063,16 @@ namespace FNPlugin.Beamedpower
         {
             Debug.Log("[KSPI]: Setup Receiver BandWidth Configurations for " + part.partInfo.title);
 
-            _powerInputMegajoulesField = Fields[nameof(powerInputMegajoules)];
             _maximumWavelengthField = Fields[nameof(maximumWavelength)];
             _minimumWavelengthField = Fields[nameof(minimumWavelength)];
             _solarFacingFactorField = Fields[nameof(solarFacingFactor)];
             _linkedForRelayField = Fields[nameof(linkedForRelay)];
             _slavesAmountField = Fields[nameof(slavesAmount)];
-            _ThermalPowerField = Fields[nameof(ThermalPower)];
+            _thermalPowerField = Fields[nameof(ThermalPower)];
             _minimumConsumptionPercentageField = Fields[nameof(minimumConsumptionPercentage)];
             _maximumConsumptionPercentageField = Fields[nameof(maximumConsumptionPercentage)];
             _beamedpowerField = Fields[nameof(beamedpower)];
             _solarFluxField = Fields[nameof(solarFlux)];
-            _diameterField = Fields[nameof(diameter)];
 
             _connectedsatsField = Fields[nameof(connectedsats)];
             _connectedrelaysField = Fields[nameof(connectedrelays)];
@@ -1211,7 +1105,7 @@ namespace FNPlugin.Beamedpower
 
         private void LoadInitialConfiguration()
         {
-            isLoaded = true;
+            _isLoaded = true;
 
             var currentWavelength = targetWavelength != 0 ? targetWavelength : 1;
 
@@ -1243,7 +1137,7 @@ namespace FNPlugin.Beamedpower
             if (!BandwidthConverters.Any())
                 return;
 
-            if (isLoaded == false)
+            if (_isLoaded == false)
                 LoadInitialConfiguration();
             else
             {
@@ -1328,7 +1222,7 @@ namespace FNPlugin.Beamedpower
 
         public void Update()
         {
-            var transmitterOn = has_transmitter && (partTransmitter.IsEnabled || partTransmitter.relay);
+            var transmitterOn = _hasTransmitter && (partTransmitter.IsEnabled || partTransmitter.relay);
             var canBeActive = CanBeActiveInAtmosphere;
 
             _linkReceiverBaseEvent.active = canLinkup && !linkedForRelay && !receiverIsEnabled && !transmitterOn && canBeActive;
@@ -1343,7 +1237,7 @@ namespace FNPlugin.Beamedpower
             _linkedForRelayField.guiActive = canLinkup && isNotRelayingOrTransmitting;
 
             _slavesAmountField.guiActive = thermalMode && slavesAmount > 0;
-            _ThermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
+            _thermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
 
             _maximumConsumptionPercentageField.guiActive = receiverIsEnabled;
             _minimumConsumptionPercentageField.guiActive = receiverIsEnabled;
@@ -1355,9 +1249,9 @@ namespace FNPlugin.Beamedpower
 
         public override void OnUpdate()
         {
-            _connectedsatsField.guiActive = connectedsatsi > 0;
-            _connectedrelaysField.guiActive = connectedrelaysi > 0;
-            _networkDepthStringField.guiActive = networkDepth > 0;
+            _connectedsatsField.guiActive = _connectedsatsi > 0;
+            _connectedrelaysField.guiActive = _connectedrelaysi > 0;
+            _networkDepthStringField.guiActive = _networkDepth > 0;
 
             _solarFacingFactorField.guiActive = solarReceptionSurfaceArea > 0;
             _solarFluxField.guiActive = solarReceptionSurfaceArea > 0;
@@ -1367,11 +1261,12 @@ namespace FNPlugin.Beamedpower
             if (IsThermalSource)
                 coreTempererature = CoreTemperature.ToString("0.0") + " K";
 
+            maximumReceiverPowerCapacity = MaximumReceiverPowerCapacity;
             beamedpower = receiverIsEnabled ? PluginHelper.GetFormattedPowerString(ProducedPower) : Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_BeamPowerOffline");
 
-            connectedsats = $"{connectedsatsi}/{BeamedPowerSources.instance.globalTransmitters.Count}";
-            connectedrelays = $"{connectedrelaysi}/{BeamedPowerSources.instance.globalRelays.Count}";
-            networkDepthString = networkDepth.ToString();
+            connectedsats = $"{_connectedsatsi}/{BeamedPowerSources.instance.globalTransmitters.Count}";
+            connectedrelays = $"{_connectedrelaysi}/{BeamedPowerSources.instance.globalRelays.Count}";
+            networkDepthString = _networkDepth.ToString();
 
             CalculateInputPower();
 
@@ -1405,99 +1300,99 @@ namespace FNPlugin.Beamedpower
         private void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && showWindow && !HighLogic.LoadedSceneIsEditor)
-                windowPosition = GUILayout.Window(windowID, windowPosition, DrawGui, Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_InterfaceWindowTitle"));//"Power Receiver Interface"
+                _windowPosition = GUILayout.Window(_windowId, _windowPosition, DrawGui, Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_InterfaceWindowTitle"));//"Power Receiver Interface"
         }
 
         private void DrawGui(int window)
         {
-            windowPositionX = windowPosition.x;
-            windowPositionY = windowPosition.y;
+            windowPositionX = _windowPosition.x;
+            windowPositionY = _windowPosition.y;
 
             InitializeStyles();
 
-            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
+            if (GUI.Button(new Rect(_windowPosition.width - 20, 2, 18, 18), "x"))
                 showWindow = false;
 
             GUILayout.BeginVertical();
 
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel1"), part.partInfo.title, bold_black_style, text_black_style, 200, 400);//"Receiver Type"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel2"), diameter.ToString("F2"), bold_black_style, text_black_style, 200, 400);//"Receiver Diameter"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel3"), part.vessel.mainBody.name + " @ " + DistanceToText(part.vessel.altitude), bold_black_style, text_black_style, 200, 400);//"Receiver Location"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel4"), powerCapacityEfficiency.ToString("P1"), bold_black_style, text_black_style, 200, 400);//"Power Capacity Efficiency"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel5"), PluginHelper.GetFormattedPowerString(total_beamed_power), bold_black_style, text_black_style, 200, 400);//"Total Current Beamed Power"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel6"), PluginHelper.GetFormattedPowerString(total_beamed_power_max), bold_black_style, text_black_style, 200, 400);//"Total Maximum Beamed Power"
-            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel7"), PluginHelper.GetFormattedPowerString(total_beamed_wasteheat), bold_black_style, text_black_style, 200, 400);//"Total Wasteheat Production"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel1"), part.partInfo.title, _boldBlackStyle, _textBlackStyle, 200, 400);//"Receiver Type"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel2"), diameter.ToString("F2"), _boldBlackStyle, _textBlackStyle, 200, 400);//"Receiver Diameter"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel3"), part.vessel.mainBody.name + " @ " + DistanceToText(part.vessel.altitude), _boldBlackStyle, _textBlackStyle, 200, 400);//"Receiver Location"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel4"), powerCapacityEfficiency.ToString("P1"), _boldBlackStyle, _textBlackStyle, 200, 400);//"Power Capacity Efficiency"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel5"), PluginHelper.GetFormattedPowerString(total_beamed_power), _boldBlackStyle, _textBlackStyle, 200, 400);//"Total Current Beamed Power"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel6"), PluginHelper.GetFormattedPowerString(total_beamed_power_max), _boldBlackStyle, _textBlackStyle, 200, 400);//"Total Maximum Beamed Power"
+            PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel7"), PluginHelper.GetFormattedPowerString(total_beamed_wasteheat), _boldBlackStyle, _textBlackStyle, 200, 400);//"Total Wasteheat Production"
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel8"), bold_black_style, GUILayout.Width(labelWidth));//"Transmitter"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel9"), bold_black_style, GUILayout.Width(labelWidth));//"Location"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel10"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Aperture"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel11"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Facing"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel12"), bold_black_style, GUILayout.Width(valueWidthWide));//"Transmit Power"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel13"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Distance"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel14"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Spotsize"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel15"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Wavelength"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel16"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Network Power"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel17"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Available Power"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel18"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Consumed Power"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel19"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Network Efficiency"
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel20"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Receiver Efficiency"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel8"), _boldBlackStyle, GUILayout.Width(LabelWidth));//"Transmitter"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel9"), _boldBlackStyle, GUILayout.Width(LabelWidth));//"Location"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel10"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Aperture"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel11"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Facing"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel12"), _boldBlackStyle, GUILayout.Width(ValueWidthWide));//"Transmit Power"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel13"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Distance"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel14"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Spotsize"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel15"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Wavelength"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel16"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Network Power"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel17"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Available Power"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel18"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Consumed Power"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel19"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Network Efficiency"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel20"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Receiver Efficiency"
             GUILayout.EndHorizontal();
 
-            foreach (ReceivedPowerData receivedPowerData in received_power.Values)
+            foreach (ReceivedPowerData receivedPowerData in _receivedPower.Values)
             {
                 if (receivedPowerData.Wavelengths == string.Empty)
                     continue;
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label(receivedPowerData.Transmitter.Vessel.mainBody.name + " @ " + DistanceToText(receivedPowerData.Transmitter.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label((receivedPowerData.Transmitter.Aperture).ToString("##.######") + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(receivedPowerData.Route.FacingFactor.ToString("P3"), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.TransmitPower), text_black_style, GUILayout.Width(valueWidthWide));
-                GUILayout.Label(DistanceToText(receivedPowerData.Route.Distance), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(SpotsizeToText(receivedPowerData.Route.Spotsize), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(receivedPowerData.Wavelengths, text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.NetworkPower), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.AvailablePower), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.ConsumedPower), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label(receivedPowerData.Route.Efficiency.ToString("P2"), text_black_style, GUILayout.Width(ValueWidthNormal));
-                GUILayout.Label((receivedPowerData.ReceiverEfficiency * 0.01).ToString("P1"), text_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, _textBlackStyle, GUILayout.Width(LabelWidth));
+                GUILayout.Label(receivedPowerData.Transmitter.Vessel.mainBody.name + " @ " + DistanceToText(receivedPowerData.Transmitter.Vessel.altitude), _textBlackStyle, GUILayout.Width(LabelWidth));
+                GUILayout.Label((receivedPowerData.Transmitter.Aperture).ToString("##.######") + " m", _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(receivedPowerData.Route.FacingFactor.ToString("P3"), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.TransmitPower), _textBlackStyle, GUILayout.Width(ValueWidthWide));
+                GUILayout.Label(DistanceToText(receivedPowerData.Route.Distance), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(SpotsizeToText(receivedPowerData.Route.Spotsize), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(receivedPowerData.Wavelengths, _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.NetworkPower), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.AvailablePower), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(receivedPowerData.ConsumedPower), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(receivedPowerData.Route.Efficiency.ToString("P2"), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label((receivedPowerData.ReceiverEfficiency * 0.01).ToString("P1"), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
                 GUILayout.EndHorizontal();
             }
 
-            if (received_power.Values.Any(m => m.Relays.Count > 0))
+            if (_receivedPower.Values.Any(m => m.Relays.Count > 0))
             {
-                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel21"), "", bold_black_style, text_black_style, 200);//"Relays"
+                PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel21"), "", _boldBlackStyle, _textBlackStyle, 200);//"Relays"
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel22"), bold_black_style, GUILayout.Width(wideLabelWidth));//"Transmitter"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel23"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Relay Nr"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel24"), bold_black_style, GUILayout.Width(wideLabelWidth));//"Relay Name"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel25"), bold_black_style, GUILayout.Width(labelWidth));//"Relay Location"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel26"), bold_black_style, GUILayout.Width(valueWidthWide));//"Max Capacity"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel27"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Aperture"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Diameter"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Diameter"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_MinimumWavelength"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Min Wavelength"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_MaximumWavelength"), bold_black_style, GUILayout.Width(ValueWidthNormal));//"Max Wavelength"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel22"), _boldBlackStyle, GUILayout.Width(WideLabelWidth));//"Transmitter"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel23"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Relay Nr"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel24"), _boldBlackStyle, GUILayout.Width(WideLabelWidth));//"Relay Name"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel25"), _boldBlackStyle, GUILayout.Width(LabelWidth));//"Relay Location"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel26"), _boldBlackStyle, GUILayout.Width(ValueWidthWide));//"Max Capacity"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_WinLabel27"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Aperture"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Diameter"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Diameter"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_MinimumWavelength"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Min Wavelength"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_MaximumWavelength"), _boldBlackStyle, GUILayout.Width(ValueWidthNormal));//"Max Wavelength"
                 GUILayout.EndHorizontal();
 
-                foreach (ReceivedPowerData receivedPowerData in received_power.Values)
+                foreach (ReceivedPowerData receivedPowerData in _receivedPower.Values)
                 {
                     for (int r = 0; r < receivedPowerData.Relays.Count; r++)
                     {
                         VesselRelayPersistence vesselPersistence = receivedPowerData.Relays[r];
 
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label(r == 0 ? receivedPowerData.Transmitter.Vessel.name : "", text_black_style, GUILayout.Width(wideLabelWidth));
-                        GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthNormal));
-                        GUILayout.Label(vesselPersistence.Vessel.name, text_black_style, GUILayout.Width(wideLabelWidth));
-                        GUILayout.Label(vesselPersistence.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistence.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
-                        GUILayout.Label(PluginHelper.GetFormattedPowerString(vesselPersistence.PowerCapacity), text_black_style, GUILayout.Width(valueWidthWide));
-                        GUILayout.Label(vesselPersistence.Aperture + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
-                        GUILayout.Label(vesselPersistence.Diameter + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
-                        GUILayout.Label(WavelengthToText(vesselPersistence.MinimumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));
-                        GUILayout.Label(WavelengthToText(vesselPersistence.MaximumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(r == 0 ? receivedPowerData.Transmitter.Vessel.name : "", _textBlackStyle, GUILayout.Width(WideLabelWidth));
+                        GUILayout.Label(r.ToString(), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(vesselPersistence.Vessel.name, _textBlackStyle, GUILayout.Width(WideLabelWidth));
+                        GUILayout.Label(vesselPersistence.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistence.Vessel.altitude), _textBlackStyle, GUILayout.Width(LabelWidth));
+                        GUILayout.Label(PluginHelper.GetFormattedPowerString(vesselPersistence.PowerCapacity), _textBlackStyle, GUILayout.Width(ValueWidthWide));
+                        GUILayout.Label(vesselPersistence.Aperture + " m", _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(vesselPersistence.Diameter + " m", _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(WavelengthToText(vesselPersistence.MinimumRelayWavelenght), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(WavelengthToText(vesselPersistence.MaximumRelayWavelenght), _textBlackStyle, GUILayout.Width(ValueWidthNormal));
                         GUILayout.EndHorizontal();
                     }
                 }
@@ -1509,18 +1404,18 @@ namespace FNPlugin.Beamedpower
 
         private void InitializeStyles()
         {
-            if (bold_black_style == null)
+            if (_boldBlackStyle == null)
             {
-                bold_black_style = new GUIStyle(GUI.skin.label)
+                _boldBlackStyle = new GUIStyle(GUI.skin.label)
                 {
                     fontStyle = FontStyle.Bold,
                     font = PluginHelper.MainFont
                 };
             }
 
-            if (text_black_style == null)
+            if (_textBlackStyle == null)
             {
-                text_black_style = new GUIStyle(GUI.skin.label)
+                _textBlackStyle = new GUIStyle(GUI.skin.label)
                 {
                     fontStyle = FontStyle.Normal,
                     font = PluginHelper.MainFont
@@ -1554,9 +1449,9 @@ namespace FNPlugin.Beamedpower
                 part.temperature = part.temperature + temperatureChange;
             }
 
-            if (initializationCountdown > 0)
+            if (_initializationCountdown > 0)
             {
-                initializationCountdown--;
+                _initializationCountdown--;
 
                 part.temperature = storedTemp;
                 part.skinTemperature = storedTemp;
@@ -1597,8 +1492,8 @@ namespace FNPlugin.Beamedpower
                     if (wasteheatRatio >= 0.95 && !isThermalReceiver && !solarPowerMode )
                     {
                         receiverIsEnabled = false;
-                        deactivate_timer++;
-                        if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2)
+                        _deactivateTimer++;
+                        if (FlightGlobals.ActiveVessel == vessel && _deactivateTimer > 2)
                             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_OverheatingMsg"), 5f, ScreenMessageStyle.UPPER_CENTER);//"Warning Dangerous Overheating Detected: Emergency beam power shutdown occuring NOW!"
                         PowerDown();
                         return;
@@ -1616,8 +1511,8 @@ namespace FNPlugin.Beamedpower
                         slavesPower = thermalReceiverSlaves.Sum(m => m.total_thermal_power_provided);
 
                         total_thermal_power_available = thermalSolarInputMegajoules + total_beamed_power + slavesPower;
-                        total_thermal_power_provided = Math.Min(MaximumRecievePower, total_thermal_power_available);
-                        total_thermal_power_provided_max = Math.Min(MaximumRecievePower, total_beamed_power_max + thermalSolarInputMegajoulesMax);
+                        total_thermal_power_provided = Math.Min(MaximumReceiverPowerCapacity, total_thermal_power_available);
+                        total_thermal_power_provided_max = Math.Min(MaximumReceiverPowerCapacity, total_beamed_power_max + thermalSolarInputMegajoulesMax);
 
                         if (!isThermalReceiverSlave && total_thermal_power_provided > 0)
                         {
@@ -1629,31 +1524,30 @@ namespace FNPlugin.Beamedpower
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
                                 var supplyRatio = powerGeneratedResult.CurrentSupply / total_thermal_power_provided;
-                                var finalThermalWasteheat = powerGeneratedResult.CurrentSupply + supplyRatio * total_conversion_waste_heat_production;
+                                var finalThermalWasteheat = powerGeneratedResult.CurrentSupply + supplyRatio * _totalConversionWasteHeatProduction;
 
                                 supplyFNResourcePerSecondWithMax(finalThermalWasteheat, total_thermal_power_provided_max, ResourceSettings.Config.WasteHeatInMegawatt);
                             }
 
-                            thermal_power_ratio = total_thermal_power_available > 0 ? powerGeneratedResult.CurrentSupply / total_thermal_power_available : 0;
+                            var thermalPowerRatio = total_thermal_power_available > 0 ? powerGeneratedResult.CurrentSupply / total_thermal_power_available : 0;
 
-                            foreach (var item in received_power)
+                            foreach (var item in _receivedPower)
                             {
-                                item.Value.ConsumedPower = item.Value.AvailablePower * thermal_power_ratio;
+                                item.Value.ConsumedPower = item.Value.AvailablePower * thermalPowerRatio;
                             }
 
                             foreach (var slave in thermalReceiverSlaves)
                             {
-                                foreach (var item in slave.received_power)
+                                foreach (var item in slave._receivedPower)
                                 {
-                                    item.Value.ConsumedPower = item.Value.AvailablePower * thermal_power_ratio;
+                                    item.Value.ConsumedPower = item.Value.AvailablePower * thermalPowerRatio;
                                 }
                             }
                         }
 
                         if (animT != null)
                         {
-                            var maximumRecievePower = MaximumRecievePower;
-                            animT[animTName].normalizedTime = maximumRecievePower > 0 ? (float)Math.Min(total_thermal_power_provided / maximumRecievePower, 1) : 0;
+                            animT[animTName].normalizedTime = maximumReceiverPowerCapacity > 0 ? (float)Math.Min(total_thermal_power_provided / maximumReceiverPowerCapacity, 1) : 0;
                             animT.Sample();
                         }
 
@@ -1668,24 +1562,24 @@ namespace FNPlugin.Beamedpower
                         effectiveBeamedPowerElectricEfficiency = wasteheatElectricConversionEfficiency * electricMaxEfficiency;
 
                         var totalBeamedElectricPowerAvailable = thermalSolarInputMegajoules * effectiveSolarThermalElectricEfficiency + total_beamed_power * effectiveBeamedPowerElectricEfficiency;
-                        var totalBeamedElectricPowerProvided = Math.Min(MaximumRecievePower, totalBeamedElectricPowerAvailable);
+                        var totalBeamedElectricPowerProvided = Math.Min(MaximumReceiverPowerCapacity, totalBeamedElectricPowerAvailable);
 
                         if (!(totalBeamedElectricPowerProvided > 0)) return;
 
-                        var minimumRequestedPower = MaximumRecievePower * (minimumConsumptionPercentage / 100d);
+                        var minimumRequestedPower = MaximumReceiverPowerCapacity * (minimumConsumptionPercentage / 100d);
                         var calculatedMinimumRatio = Math.Min(1, minimumRequestedPower / totalBeamedElectricPowerProvided);
 
                         var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(totalBeamedElectricPowerProvided, totalBeamedElectricPowerProvided, calculatedMinimumRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
                         var supplyRatio = powerGeneratedResult.CurrentProvided / totalBeamedElectricPowerProvided;
 
-                        // only generate wasteheat from beamed power when actualy using the energy
+                        // only generate wasteheat from beamed power when actually using the energy
                         if (!CheatOptions.IgnoreMaxTemperature)
                         {
                             var solarWasteheat = thermalSolarInputMegajoules * (1 - effectiveSolarThermalElectricEfficiency);
-                            supplyFNResourcePerSecond(supplyRatio * total_conversion_waste_heat_production + supplyRatio * solarWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
+                            supplyFNResourcePerSecond(supplyRatio * _totalConversionWasteHeatProduction + supplyRatio * solarWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
                         }
 
-                        foreach (var item in received_power)
+                        foreach (var item in _receivedPower)
                         {
                             item.Value.ConsumedPower = item.Value.AvailablePower * supplyRatio;
                         }
@@ -1737,7 +1631,8 @@ namespace FNPlugin.Beamedpower
         // Is called during OnUpdate to reduce processor load
         private void CalculateInputPower()
         {
-            total_conversion_waste_heat_production = 0;
+            _totalConversionWasteHeatProduction = 0;
+
             if (wasteheatRatio >= 0.95 && !isThermalReceiver) return;
 
             // reset all output variables at start of loop
@@ -1745,18 +1640,19 @@ namespace FNPlugin.Beamedpower
             total_beamed_power_max = 0;
             total_sat_efficiency_fraction = 0;
             total_beamed_wasteheat = 0;
-            connectedsatsi = 0;
-            connectedrelaysi = 0;
-            networkDepth = 0;
-            activeSatsIncr = 0;
+            _connectedsatsi = 0;
+            _connectedrelaysi = 0;
+            _networkDepth = 0;
+            _activeSatsIncr = 0;
+
 
             if (!solarPowerMode)
             {
-                deactivate_timer = 0;
+                _deactivateTimer = 0;
 
                 var usedRelays = new HashSet<VesselRelayPersistence>();
 
-                foreach (var beamedPowerData in received_power.Values)
+                foreach (var beamedPowerData in _receivedPower.Values)
                 {
                     beamedPowerData.IsAlive = false;
                 }
@@ -1766,7 +1662,7 @@ namespace FNPlugin.Beamedpower
                 {
                     var transmitter = connectedTransmitterEntry.Key;
 
-                    if (!received_power.TryGetValue(transmitter.Vessel, out ReceivedPowerData beamedPowerData))
+                    if (!_receivedPower.TryGetValue(transmitter.Vessel, out ReceivedPowerData beamedPowerData))
                     {
                         Debug.Log("[KSPI]: Added ReceivedPowerData for " + transmitter.Vessel.name);
                         beamedPowerData = new ReceivedPowerData
@@ -1774,7 +1670,7 @@ namespace FNPlugin.Beamedpower
                             Receiver = this,
                             Transmitter = transmitter
                         };
-                        received_power[beamedPowerData.Transmitter.Vessel] = beamedPowerData;
+                        _receivedPower[beamedPowerData.Transmitter.Vessel] = beamedPowerData;
                     }
 
                     // first reset owm received power to get correct amount received by others
@@ -1782,6 +1678,9 @@ namespace FNPlugin.Beamedpower
                     beamedPowerData.AvailablePower = 0;
                     beamedPowerData.NetworkPower = 0;
                     beamedPowerData.Wavelengths = string.Empty;
+                    beamedPowerData.CurrentRecievedPower = 0;
+                    beamedPowerData.MaximumReceivedPower = 0;
+                    beamedPowerData.ReceiverEfficiency = 0;
 
                     KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>> keyValuePair = connectedTransmitterEntry.Value;
                     beamedPowerData.Route = keyValuePair.Key;
@@ -1795,7 +1694,7 @@ namespace FNPlugin.Beamedpower
                         : beamedPowerData.TransmitPower;
 
                     // calculate maximum power available from beamed power network
-                    beamedPowerData.PowerUsageOthers = GetEnumeratedPowerFromSatelliteForAllLoadedVessels(beamedPowerData.Transmitter);
+                    beamedPowerData.PowerUsageOthers = GetEnumeratedPowerFromSatelliteForAllLoadedVessels(beamedPowerData.Transmitter, this);
 
                     // add to available network power
                     beamedPowerData.NetworkPower = beamedPowerData.NetworkCapacity;
@@ -1836,11 +1735,8 @@ namespace FNPlugin.Beamedpower
                         // subtract from remaining power
                         beamedPowerData.RemainingPower = Math.Max(0, beamedPowerData.RemainingPower - beamNetworkPower);
 
-                        // determine allowed power
-                        var maximumRecievePower = MaximumRecievePower;
-
-                        var currentRecievalPower = Math.Min(maximumRecievePower * PowerRatio, maximumRecievePower * powerCapacityEfficiency);
-                        var maximumRecievalPower = maximumRecievePower * powerCapacityEfficiency;
+                        var currentRecievalPower = Math.Min(maximumReceiverPowerCapacity * PowerRatio, maximumReceiverPowerCapacity * powerCapacityEfficiency);
+                        var maximumRecievalPower = maximumReceiverPowerCapacity * powerCapacityEfficiency;
 
                         // get effective beamtoPower efficiency
                         var efficiencyPercentage = thermalMode
@@ -1859,7 +1755,7 @@ namespace FNPlugin.Beamedpower
                         var conversionWasteheat = (thermalMode ? 0.05 : 1) * satPower * (1 - efficiencyFraction);
 
                         // generate conversion wasteheat
-                        total_conversion_waste_heat_production += conversionWasteheat; // + missedPowerPowerWasteheat;
+                        _totalConversionWasteHeatProduction += conversionWasteheat; // + missedPowerPowerWasteheat;
 
                         // register amount of raw power recieved
                         beamedPowerData.CurrentRecievedPower = satPower;
@@ -1875,7 +1771,7 @@ namespace FNPlugin.Beamedpower
 
                         if (!(satPower > 0)) continue;
 
-                        activeSatsIncr++;
+                        _activeSatsIncr++;
 
                         if (beamedPowerData.Relays == null) continue;
 
@@ -1883,20 +1779,24 @@ namespace FNPlugin.Beamedpower
                         {
                             usedRelays.Add(relay);
                         }
-                        networkDepth = Math.Max(networkDepth, beamedPowerData.Relays.Count);
+                        _networkDepth = Math.Max(_networkDepth, beamedPowerData.Relays.Count);
                     }
                 }
 
-                connectedsatsi = activeSatsIncr;
-                connectedrelaysi = usedRelays.Count;
+                _connectedsatsi = _activeSatsIncr;
+                _connectedrelaysi = usedRelays.Count;
+            }
+            else
+            {
+                _receivedPower.Clear();
             }
 
             //remove dead entries
-            var deadEntries = received_power.Where(m => !m.Value.IsAlive).ToList();
+            var deadEntries = _receivedPower.Where(m => !m.Value.IsAlive).ToList();
             foreach(var entry in deadEntries)
             {
                 Debug.LogWarning("[KSPI]: Removed received power from " + entry.Key.name);
-                received_power.Remove(entry.Key);
+                _receivedPower.Remove(entry.Key);
             }
         }
 
@@ -1964,17 +1864,13 @@ namespace FNPlugin.Beamedpower
             if (stockModuleGenerator != null)
                 stockModuleGenerator.generatorIsActive = alternatorPower > 0;
 
-            if (outputModuleResource != null)
-            {
-                outputModuleResource.rate = alternatorPower * GameConstants.ecPerMJ;
-                mockInputResource.rate = alternatorPower * -GameConstants.ecPerMJ;
-            }
+            if (outputModuleResource == null) return;
+
+            outputModuleResource.rate = alternatorPower * GameConstants.ecPerMJ;
+            mockInputResource.rate = alternatorPower * -GameConstants.ecPerMJ;
         }
 
-        public double MaxStableMegaWattPower
-        {
-            get { return isThermalReceiver ? 0 : powerInputMegajoules; }
-        }
+        public double MaxStableMegaWattPower => isThermalReceiver ? 0 : powerInputMegajoules;
 
         public virtual double GetCoreTempAtRadiatorTemp(double radTemp)
         {
@@ -1986,10 +1882,7 @@ namespace FNPlugin.Beamedpower
             return ThermalPower;
         }
 
-        public double Radius
-        {
-            get { return radius; }
-        }
+        public double Radius => radius;
 
         public bool isActive()
         {
@@ -2012,10 +1905,9 @@ namespace FNPlugin.Beamedpower
             return Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Getinfo", diameter);//"Diameter: " +  + " m"
         }
 
-        public double GetCurrentReceiverdPower(VesselMicrowavePersistence vmp)
+        public double GetCurrentReceivedPower(VesselMicrowavePersistence vmp)
         {
-            ReceivedPowerData data;
-            if (receiverIsEnabled && received_power.TryGetValue(vmp.Vessel, out data))
+            if (receiverIsEnabled && _receivedPower.TryGetValue(vmp.Vessel, out var data))
             {
                 return data.CurrentRecievedPower;
             }
@@ -2023,18 +1915,24 @@ namespace FNPlugin.Beamedpower
             return 0;
         }
 
-        public static double GetEnumeratedPowerFromSatelliteForAllLoadedVessels(VesselMicrowavePersistence vmp)
+        public static double GetEnumeratedPowerFromSatelliteForAllLoadedVessels(VesselMicrowavePersistence vmp, BeamedPowerReceiver currentReceiver)
         {
-            double enumerated_power = 0;
-            foreach (Vessel vess in FlightGlobals.Vessels)
+            double enumeratedPower = 0;
+            foreach (Vessel vessel in FlightGlobals.Vessels)
             {
-                var receivers = vess.FindPartModulesImplementing<BeamedPowerReceiver>();
+                if (vessel.isEVA)
+                    continue;
+
+                var receivers = vessel.FindPartModulesImplementing<BeamedPowerReceiver>();
                 foreach (BeamedPowerReceiver receiver in receivers)
                 {
-                    enumerated_power += receiver.GetCurrentReceiverdPower(vmp);
+                    if (currentReceiver == receiver)
+                        continue;
+
+                    enumeratedPower += receiver.GetCurrentReceivedPower(vmp);
                 }
             }
-            return enumerated_power;
+            return enumeratedPower;
         }
 
         public override int getPowerPriority()
@@ -2105,11 +2003,11 @@ namespace FNPlugin.Beamedpower
                 moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
             }
 
-            moduleGeneratorEfficienctBaseField = stockModuleGenerator.Fields[nameof(ModuleGenerator.efficiency)];
-            if (moduleGeneratorEfficienctBaseField != null)
+            moduleGeneratorEfficientBaseField = stockModuleGenerator.Fields[nameof(ModuleGenerator.efficiency)];
+            if (moduleGeneratorEfficientBaseField != null)
             {
-                moduleGeneratorEfficienctBaseField.guiActive = false;
-                moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
+                moduleGeneratorEfficientBaseField.guiActive = false;
+                moduleGeneratorEfficientBaseField.guiActiveEditor = false;
             }
 
             initialGeneratorPowerEC = outputModuleResource.rate;

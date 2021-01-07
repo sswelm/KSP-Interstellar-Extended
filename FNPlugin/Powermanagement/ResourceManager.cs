@@ -368,6 +368,7 @@ namespace FNPlugin.Powermanagement
                 productionRequests.Add(pm, powerGenerated = new PowerGenerated());
             }
 
+            powerGenerated.CurrentProvided = managedSupply;
             powerGenerated.CurrentSupply += managedSupply;
             powerGenerated.MaximumSupply += maximum_power;
             powerGenerated.MinimumSupply += minPower;
@@ -456,7 +457,7 @@ namespace FNPlugin.Powermanagement
             double providedPower = Math.Min(maximum_power, Math.Max(minPower, Math.Max(available_power, CurrentUnfilledResourceDemand)));
 
             var request = GetProductionRequest(pm, maximum_power, Math.Min(available_power, RequiredResourceDemand), minPower);
-            request.CurrentProvided += Math.Min(providedPower, CurrentUnfilledResourceDemand);
+            request.CurrentProvided = Math.Min(providedPower, request.CurrentProvided);
 
             return request;
         }
