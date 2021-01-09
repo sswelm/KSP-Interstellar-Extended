@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-
 namespace FNPlugin
 {
     public class AIHome : PartModule
@@ -16,7 +15,7 @@ namespace FNPlugin
 
         // Maximum loss of reputation from destroying the AI's home.
         [KSPField]
-        public float destructionPenaltyMax = 150;
+        public float destructionPenaltyMax = 15;
 
         private void OnJustAboutToBeDestroyed()
         {
@@ -48,7 +47,7 @@ namespace FNPlugin
             // Destroying peoples homes is never a good look.
 
             Reputation.Instance.AddReputation(-penalty, TransactionReasons.VesselLoss);
-            Debug.Log(String.Format("DestroyAIsHOME: removing {0} points of reputation", penalty));
+            Debug.Log($"[KSPI]: Destroyed AI HOME: removing {penalty} points of reputation");
         }
 
         public void NewHome()
@@ -119,7 +118,7 @@ namespace FNPlugin
         BaseEvent _retrofitCoreEvent;
         ModuleDataTransmitter _moduleDataTransmitter;
         ModuleCommand _moduleCommand;
-        AIHome _moduleAIHome;
+        AIHome _moduleAiHome;
 
         //Properties
         public string UpgradeTechnology => upgradeTechReq;
@@ -132,8 +131,8 @@ namespace FNPlugin
             if (ResearchAndDevelopment.Instance == null) return;
             if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
 
-            if (_moduleAIHome != null)
-                _moduleAIHome.NewHome();
+            if (_moduleAiHome != null)
+                _moduleAiHome.NewHome();
 
             upgradePartModule();
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
@@ -166,7 +165,7 @@ namespace FNPlugin
 
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
             _moduleCommand = part.FindModuleImplementing<ModuleCommand>();
-            _moduleAIHome = part.FindModuleImplementing<AIHome>();
+            _moduleAiHome = part.FindModuleImplementing<AIHome>();
 
             if (isupgraded || !PluginHelper.TechnologyIsInUse)
                 upgradePartModule();
