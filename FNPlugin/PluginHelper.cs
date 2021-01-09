@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using FNPlugin.Constants;
 using UnityEngine;
 
 namespace FNPlugin
@@ -93,6 +94,25 @@ namespace FNPlugin
 
                 return _partUpgradeByName;
             }
+        }
+
+        public static Vector3d CalculateDeltaVV(Vector3d thrustDirection, double totalMass, double deltaTime, double thrust, double isp, out double demandMass)
+        {
+            // Mass flow rate
+            var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
+            // Change in mass over time interval dT
+            var dm = massFlowRate * deltaTime;
+            // Resource demand from propellants with mass
+            demandMass = dm;
+            // Mass at end of time interval dT
+            var finalMass = totalMass - dm;
+            // deltaV amount
+            var deltaV = finalMass > 0 && totalMass > 0
+                ? isp * GameConstants.STANDARD_GRAVITY * Math.Log(totalMass / finalMass)
+                : 0;
+
+            // Return deltaV vector
+            return deltaV * thrustDirection;
         }
 
         private static bool _buttonAdded;
