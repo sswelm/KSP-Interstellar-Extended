@@ -2074,7 +2074,7 @@ namespace FNPlugin.Reactors
             return fuelUseForPower > 0 ? GetFuelAvailability(reactorFuel) / fuelUseForPower : 0;
         }
 
-        private void BreedTritium(double neutronPowerReceivedEachSecond, double fixedDeltaTime)
+        private void BreedTritium(double neutronPowerReceivedEachSecond, double fixedDeltaTime, bool immediate = false)
         {
             _lithiumConsumedPerSecond = 0;
             _tritiumProducedPerSecond = 0;
@@ -2116,13 +2116,15 @@ namespace FNPlugin.Reactors
             double lithiumUsed;
             // consume the lithium
 
-            if (Kerbalism.IsLoaded)
+            if (!immediate && Kerbalism.IsLoaded)
             {
                 lithiumUsed = CheatOptions.InfinitePropellant
                     ? lithiumRequest
-                    : part.RequestResource(_lithium6Def.id, lithiumRequest * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH, true);
+                    : part.RequestResource(_lithium6Def.id, lithiumRequest * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH, true) / fixedDeltaTime;
 
-                if (_counter % 10 == 0 && _previousLithiumRequest != lithiumRequest)
+                var delta = Math.Abs(lithiumRequest - _previousLithiumRequest);
+
+                if (_counter % 10 == 0 && delta > lithiumRequest * 0.01 || delta > _previousLithiumRequest * 0.01)
                 {
                     _lithium6BreederCapacity?.SetValue(lithiumRequest, lithium6BreederProcessController);
                     _lithium6BreederReliablityEvent?.Invoke(lithium6BreederProcessController, new object[] {false});
@@ -2135,7 +2137,7 @@ namespace FNPlugin.Reactors
             {
                 lithiumUsed = CheatOptions.InfinitePropellant
                     ? lithiumRequest
-                    : part.RequestResource(_lithium6Def.id, lithiumRequest * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                    : part.RequestResource(_lithium6Def.id, lithiumRequest * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fixedDeltaTime;
             }
 
             // calculate effective lithium used for tritium breeding
@@ -2415,7 +2417,7 @@ namespace FNPlugin.Reactors
             }
 
             // breed tritium
-            BreedTritium(ongoing_total_power_generated * ThermalPowerRatio, deltaTimeDiff);
+            BreedTritium(ongoing_total_power_generated * ThermalPowerRatio, deltaTimeDiff, true);
         }
 
         protected bool ReactorIsOverheating()
