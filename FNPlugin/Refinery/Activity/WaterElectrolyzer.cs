@@ -36,6 +36,7 @@ namespace FNPlugin.Refinery.Activity
 
         private double _availableWaterMass;
         private double _availableLqdWaterMass;
+
         private double _spareRoomOxygenMass;
         private double _spareRoomHydrogenMass;
 
@@ -87,7 +88,7 @@ namespace FNPlugin.Refinery.Activity
             _maxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * _hydrogen.density;
 
             _availableWaterMass = partsThatContainWater.Sum(p => p.amount) * _pureWater.density;
-            _availableLqdWaterMass = partsThatContainWater.Sum(p => p.amount) * _lqdWater.density;
+            _availableLqdWaterMass = partsThatContainLqdWater.Sum(p => p.amount) * _lqdWater.density;
             _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen.density;
             _spareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * _hydrogen.density;
 
