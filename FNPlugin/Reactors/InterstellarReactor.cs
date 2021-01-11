@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using TweakScale;
 using UnityEngine;
@@ -368,9 +369,9 @@ namespace FNPlugin.Reactors
         [KSPField]public bool isConnectedToThermalGenerator;
         [KSPField]public bool isConnectedToChargedGenerator;
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorControlWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_Reactor_reactorControlWindow_Hidden", enabledText = "#LOC_KSPIE_Reactor_reactorControlWindow_Shown", affectSymCounterparts = UI_Scene.None)]//Hidden-Shown
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorControlWindow", guiActiveUnfocused = true), UI_Toggle(disabledText = "#LOC_KSPIE_Reactor_reactorControlWindow_Hidden", enabledText = "#LOC_KSPIE_Reactor_reactorControlWindow_Shown", affectSymCounterparts = UI_Scene.None)]//Hidden-Shown
         public bool render_window;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_startEnabled"), UI_Toggle(disabledText = "#LOC_KSPIE_Reactor_startEnabled_True", enabledText = "#LOC_KSPIE_Reactor_startEnabled_False")]//True-False
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_startEnabled", guiActiveUnfocused = true), UI_Toggle(disabledText = "#LOC_KSPIE_Reactor_startEnabled_True", enabledText = "#LOC_KSPIE_Reactor_startEnabled_False")]//True-False
         public bool startDisabled;
 
         // shared variabels
@@ -381,8 +382,8 @@ namespace FNPlugin.Reactors
         protected double currentGeeForce;
         protected double animationStarted = 0;
         protected double powerPcnt;
-        protected double totalAmountLithium = 0;
-        protected double totalMaxAmountLithium = 0;
+        protected double totalAmountLithium;
+        protected double totalMaxAmountLithium;
 
         protected GUIStyle boldStyle;
         protected GUIStyle textStyle;
@@ -404,6 +405,9 @@ namespace FNPlugin.Reactors
         private ResourceBuffers _resourceBuffers;
         private FNEmitterController emitterController;
         private ModuleGenerator _heliumModuleGenerator;
+        private PartModule lithium6BreederProcessController;
+        private MethodInfo _lithium6BreederReliablityEvent;
+        private BaseField _lithium6BreederCapacity;
 
         private readonly List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         private readonly List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
@@ -445,6 +449,9 @@ namespace FNPlugin.Reactors
         private int _windowId = 90175467;
         private int _deactivateTimer;
         private int _chargedParticleUtilisationLevel = 1;
+        private long _counter;
+
+        private double _previousLithiumRequest;
 
         bool hasSpecificFuelModeTechs;
         bool? hasBimodelUpgradeTechReq;
@@ -1200,6 +1207,22 @@ namespace FNPlugin.Reactors
             UI_FloatRange[] powerPercentageFloatRange = { powerPercentageField.uiControlFlight as UI_FloatRange, powerPercentageField.uiControlEditor as UI_FloatRange };
             powerPercentageFloatRange[0].minValue = minimumPowerPercentage;
             powerPercentageFloatRange[1].minValue = minimumPowerPercentage;
+
+            foreach (var partModule in part.Modules)
+            {
+                if (partModule.ClassName != "ProcessController") continue;
+                var tittleField = partModule.Fields["title"];
+                if (tittleField == null) continue;
+                var title = (string)tittleField.GetValue(partModule);
+                if (title != "Lithium6Breeder") continue;
+                lithium6BreederProcessController = partModule;
+                var type = lithium6BreederProcessController.GetType();
+                _lithium6BreederCapacity = lithium6BreederProcessController.Fields["capacity"];
+                _lithium6BreederCapacity?.SetValue(0, lithium6BreederProcessController);
+                _lithium6BreederReliablityEvent = type.GetMethod("ReliablityEvent");
+                _lithium6BreederReliablityEvent?.Invoke(lithium6BreederProcessController, new object[] { false });
+                break;
+            }
 
             if (!part.Resources.Contains(ResourceSettings.Config.ThermalPowerInMegawatt))
             {
@@ -2090,10 +2113,30 @@ namespace FNPlugin.Reactors
             var maximumLithiumConsumptionRatio = maximumTritiumProduction > 0 ? Math.Min(maximumTritiumProduction, spareRoomTritiumAmount) / maximumTritiumProduction : 0;
             var lithiumRequest = lithiumRate * maximumLithiumConsumptionRatio;
 
+            double lithiumUsed;
             // consume the lithium
-            var lithiumUsed = CheatOptions.InfinitePropellant
-                ? lithiumRequest
-                : part.RequestResource(_lithium6Def.id, lithiumRequest, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+
+            if (Kerbalism.IsLoaded)
+            {
+                lithiumUsed = CheatOptions.InfinitePropellant
+                    ? lithiumRequest
+                    : part.RequestResource(_lithium6Def.id, lithiumRequest * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH, true);
+
+                if (_counter % 10 == 0 && _previousLithiumRequest != lithiumRequest)
+                {
+                    _lithium6BreederCapacity?.SetValue(lithiumRequest, lithium6BreederProcessController);
+                    _lithium6BreederReliablityEvent?.Invoke(lithium6BreederProcessController, new object[] {false});
+
+                    _previousLithiumRequest = lithiumRequest;
+                }
+                _counter++;
+            }
+            else
+            {
+                lithiumUsed = CheatOptions.InfinitePropellant
+                    ? lithiumRequest
+                    : part.RequestResource(_lithium6Def.id, lithiumRequest * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+            }
 
             // calculate effective lithium used for tritium breeding
             _lithiumConsumedPerSecond = lithiumUsed;
@@ -2105,7 +2148,7 @@ namespace FNPlugin.Reactors
             // produce tritium and helium
             _tritiumProducedPerSecond = CheatOptions.InfinitePropellant
                 ? tritiumProduction
-                : -part.RequestResource(_tritiumDef.name, -tritiumProduction);
+                : -part.RequestResource(_tritiumDef.name, -tritiumProduction * fixedDeltaTime);
 
             _heliumProducedPerSecond = heliumProduction;
 

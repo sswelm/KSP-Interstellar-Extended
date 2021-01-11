@@ -188,9 +188,9 @@ namespace FNPlugin.Powermanagement
         private Animation anim;
         private ResourceBuffers _resourceBuffers;
         private ModuleGenerator stockModuleGenerator;
-        private BaseField _capacityBaseField;
-        private BaseField _runningBaseField;
-        private MethodInfo _reliablityEventMethodInfo;
+        private BaseField _powerGeneratorCapacity;
+        private BaseField _powerGeneratorRunning;
+        private MethodInfo _powerGeneratorReliablityEvent;
         private ModuleResource outputModuleResource;
         private BaseEvent moduleGeneratorShutdownBaseEvent;
         private BaseEvent moduleGeneratorActivateBaseEvent;
@@ -206,9 +206,9 @@ namespace FNPlugin.Powermanagement
         {
             previousRequiredElectricCharge = 0;
 
-            _capacityBaseField?.SetValue(0, powerGeneratorProcessController);
+            _powerGeneratorCapacity?.SetValue(0, powerGeneratorProcessController);
 
-            _reliablityEventMethodInfo?.Invoke(powerGeneratorProcessController, new object[] { false });
+            _powerGeneratorReliablityEvent?.Invoke(powerGeneratorProcessController, new object[] { false });
         }
 
 
@@ -473,24 +473,15 @@ namespace FNPlugin.Powermanagement
             foreach (var partModule in part.Modules)
             {
                 if (partModule.ClassName != "ProcessController") continue;
-
                 var tittleField = partModule.Fields["title"];
-
                 if (tittleField == null) continue;
-
                 var title = (string) tittleField.GetValue(partModule);
-
                 if (title != "Power Generator") continue;
-
                 powerGeneratorProcessController = partModule;
-
                 var type = powerGeneratorProcessController.GetType();
-
-                _reliablityEventMethodInfo =  type.GetMethod("ReliablityEvent");
-
-                _capacityBaseField = powerGeneratorProcessController.Fields["capacity"];
-                _runningBaseField = powerGeneratorProcessController.Fields["running"];
-
+                _powerGeneratorReliablityEvent =  type.GetMethod("ReliablityEvent");
+                _powerGeneratorCapacity = powerGeneratorProcessController.Fields["capacity"];
+                _powerGeneratorRunning = powerGeneratorProcessController.Fields["running"];
                 break;
             }
 
@@ -695,9 +686,9 @@ namespace FNPlugin.Powermanagement
             else
             {
                 if (HighLogic.LoadedSceneIsFlight)
-                    _capacityBaseField?.SetValue(0, powerGeneratorProcessController);
+                    _powerGeneratorCapacity?.SetValue(0, powerGeneratorProcessController);
                 else
-                    _capacityBaseField?.SetValue(generatorRate, powerGeneratorProcessController);
+                    _powerGeneratorCapacity?.SetValue(generatorRate, powerGeneratorProcessController);
             }
         }
 
@@ -1122,13 +1113,14 @@ namespace FNPlugin.Powermanagement
                 if (outputModuleResource != null)
                     outputModuleResource.rate = requiredElectricCharge;
 
-                if (_reliablityEventMethodInfo != null &&  requiredElectricCharge > 0)
+                if (_powerGeneratorReliablityEvent != null &&  requiredElectricCharge > 0)
                 {
                     var newElectricRate = Math.Min(maximumGeneratorPowerMJ * GameConstants.ecPerMJ, previousRequiredElectricCharge + 0.2 * requiredElectricCharge + 0.01);
 
-                    _capacityBaseField?.SetValue(newElectricRate, powerGeneratorProcessController);
+                    _powerGeneratorRunning?.SetValue(true, powerGeneratorProcessController);
+                    _powerGeneratorCapacity?.SetValue(newElectricRate, powerGeneratorProcessController);
 
-                    _reliablityEventMethodInfo.Invoke(powerGeneratorProcessController, new object[] {false});
+                    _powerGeneratorReliablityEvent.Invoke(powerGeneratorProcessController, new object[] {false});
 
                     previousRequiredElectricCharge = newElectricRate;
 
