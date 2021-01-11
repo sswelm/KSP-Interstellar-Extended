@@ -11,6 +11,7 @@ using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using TweakScale;
 using UnityEngine;
 
@@ -46,6 +47,7 @@ namespace FNPlugin.Powermanagement
         [KSPField(isPersistant = true)] public bool chargedParticleMode = false;
         [KSPField(isPersistant = true)] public double storedMassMultiplier;
         [KSPField(isPersistant = true)] public double maximumElectricPower;
+        [KSPField(isPersistant = true)] public bool hasAdjustPowerPercentage;   // ToDo remove in the future
 
         // Settings
         [KSPField] public string animName = "";
@@ -105,7 +107,7 @@ namespace FNPlugin.Powermanagement
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_powerCapacity"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerCapacity = 100;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 1f, maxValue = 200f, minValue = 1f)]
-        public float powerPercentage = 100;
+        public float powerPercentage = 101;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxGeneratorEfficiency", guiFormat = "P1")]
         public double maxEfficiency;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Generator_maxUsageRatio")]
@@ -179,21 +181,36 @@ namespace FNPlugin.Powermanagement
         private double _totalEff;
         private double outputPower;
         private double powerDownFraction;
+        private double previousRequiredElectricCharge;
 
         private PowerStates _powerState;
         private IFNPowerSource attachedPowerSource;
         private Animation anim;
         private ResourceBuffers _resourceBuffers;
         private ModuleGenerator stockModuleGenerator;
-        private ModuleResource mockInputResource;
+        private BaseField _capacityBaseField;
+        private BaseField _runningBaseField;
+        private MethodInfo _reliablityEventMethodInfo;
         private ModuleResource outputModuleResource;
         private BaseEvent moduleGeneratorShutdownBaseEvent;
         private BaseEvent moduleGeneratorActivateBaseEvent;
         private BaseField moduleGeneratorEfficientBaseField;
+        private PartModule powerGeneratorProcessController;
 
         private readonly Queue<double> _powerDemandQueue = new Queue<double>();
 
         public string UpgradeTechnology => upgradeTechReq;
+
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "Reset", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]
+        public void Reset()
+        {
+            previousRequiredElectricCharge = 0;
+
+            _capacityBaseField?.SetValue(0, powerGeneratorProcessController);
+
+            _reliablityEventMethodInfo?.Invoke(powerGeneratorProcessController, new object[] { false });
+        }
+
 
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_Generator_activateGenerator", active = true)]
         public void ActivateGenerator()
@@ -331,15 +348,26 @@ namespace FNPlugin.Powermanagement
             string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt };
             this.resources_to_supply = resourcesToSupply;
 
+            // adjust power percentage to for recharging to buffer
+            if (!hasAdjustPowerPercentage)
+            {
+                if (powerPercentage == 100)
+                    powerPercentage = 101;
+
+                hasAdjustPowerPercentage = true;
+            }
+
             _resourceBuffers = new ResourceBuffers();
 
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000 / powerOutputMultiplier));
+
+            if(!Kerbalism.IsLoaded)
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000 / powerOutputMultiplier));
 
             if (controlWasteHeatBuffer)
             {
                 _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, baseHeatAmount, true));
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             }
 
             _resourceBuffers.Init(part);
@@ -442,6 +470,30 @@ namespace FNPlugin.Powermanagement
             if (maintainsMegaWattPowerBuffer == false)
                 return;
 
+            foreach (var partModule in part.Modules)
+            {
+                if (partModule.ClassName != "ProcessController") continue;
+
+                var tittleField = partModule.Fields["title"];
+
+                if (tittleField == null) continue;
+
+                var title = (string) tittleField.GetValue(partModule);
+
+                if (title != "Power Generator") continue;
+
+                powerGeneratorProcessController = partModule;
+
+                var type = powerGeneratorProcessController.GetType();
+
+                _reliablityEventMethodInfo =  type.GetMethod("ReliablityEvent");
+
+                _capacityBaseField = powerGeneratorProcessController.Fields["capacity"];
+                _runningBaseField = powerGeneratorProcessController.Fields["running"];
+
+                break;
+            }
+
             stockModuleGenerator = part.FindModuleImplementing<ModuleGenerator>();
 
             if (stockModuleGenerator == null) return;
@@ -474,17 +526,19 @@ namespace FNPlugin.Powermanagement
             initialGeneratorPowerEC = outputModuleResource.rate;
 
             if (maximumGeneratorPowerEC > 0)
-                outputModuleResource.rate = maximumGeneratorPowerEC;
+            {
+                //outputModuleResource.rate = maximumGeneratorPowerEC;
+            }
 
             maximumGeneratorPowerEC = outputModuleResource.rate;
             maximumGeneratorPowerMJ = maximumGeneratorPowerEC / GameConstants.ecPerMJ;
 
-            mockInputResource = new ModuleResource
-            {
-                name = outputModuleResource.name, id = outputModuleResource.name.GetHashCode()
-            };
+            //mockInputResource = new ModuleResource
+            //{
+            //    name = outputModuleResource.name, id = outputModuleResource.name.GetHashCode()
+            //};
 
-            stockModuleGenerator.resHandler.inputResources.Add(mockInputResource);
+            //stockModuleGenerator.resHandler.inputResources.Add(mockInputResource);
         }
 
         private void InitializeEfficiency()
@@ -628,12 +682,23 @@ namespace FNPlugin.Powermanagement
 
         private void UpdateModuleGeneratorOutput()
         {
-            if (attachedPowerSource == null || outputModuleResource == null)
+            if (attachedPowerSource == null)
                 return;
 
             var maximumPower = isLimitedByMinThrottle ? attachedPowerSource.MinimumPower : attachedPowerSource.MaximumPower;
             maximumGeneratorPowerMJ = maximumPower * maxEfficiency * heatExchangerThrustDivisor;
-            outputModuleResource.rate = maximumGeneratorPowerMJ * GameConstants.ecPerMJ;
+
+            var generatorRate = maximumGeneratorPowerMJ * GameConstants.ecPerMJ;
+
+            if (outputModuleResource != null)
+                outputModuleResource.rate = maximumGeneratorPowerMJ * GameConstants.ecPerMJ;
+            else
+            {
+                if (HighLogic.LoadedSceneIsFlight)
+                    _capacityBaseField?.SetValue(0, powerGeneratorProcessController);
+                else
+                    _capacityBaseField?.SetValue(generatorRate, powerGeneratorProcessController);
+            }
         }
 
         private PowerSourceSearchResult FindThermalPowerSource()
@@ -1050,11 +1115,26 @@ namespace FNPlugin.Powermanagement
                 else
                     maxElectricdtps = overheatingModifier * maxChargedPowerForChargedGenerator * _totalEff;
 
+                //var generatorRate = Math.Min(maximumGeneratorPowerMJ, electricdtps) * GameConstants.ecPerMJ;
+
+                var requiredElectricCharge = (GetRequiredElectricCharge() * GameConstants.ecPerMJ);
+
                 if (outputModuleResource != null)
+                    outputModuleResource.rate = requiredElectricCharge;
+
+                if (_reliablityEventMethodInfo != null &&  requiredElectricCharge > 0)
                 {
-                    outputModuleResource.rate = Math.Min(maximumGeneratorPowerMJ, electricdtps) * GameConstants.ecPerMJ;
-                    mockInputResource.rate = outputModuleResource.rate;
+                    var newElectricRate = Math.Min(maximumGeneratorPowerMJ * GameConstants.ecPerMJ, previousRequiredElectricCharge + 0.2 * requiredElectricCharge + 0.01);
+
+                    _capacityBaseField?.SetValue(newElectricRate, powerGeneratorProcessController);
+
+                    _reliablityEventMethodInfo.Invoke(powerGeneratorProcessController, new object[] {false});
+
+                    previousRequiredElectricCharge = newElectricRate;
+
+                    AuxiliaryResourceSupplied(newElectricRate / GameConstants.ecPerMJ);
                 }
+
 
                 outputPower = isLimitedByMinThrottle
                     ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceSettings.Config.ElectricPowerInMegawatt)
@@ -1156,7 +1236,8 @@ namespace FNPlugin.Powermanagement
 
                 megawattBufferAmount = (minimumBufferSize * 50) + (attachedPowerSource.PowerBufferBonus + 1) * stablePowerForBuffer;
                 _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, megawattBufferAmount);
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, megawattBufferAmount);
+                if (!Kerbalism.IsLoaded)
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, megawattBufferAmount);
             }
 
             _resourceBuffers.UpdateBuffers();
@@ -1202,7 +1283,8 @@ namespace FNPlugin.Powermanagement
                 _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
 
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, megawattBufferAmount);
-            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, megawattBufferAmount);
+            if (!Kerbalism.IsLoaded)
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, megawattBufferAmount);
             _resourceBuffers.UpdateBuffers();
         }
 

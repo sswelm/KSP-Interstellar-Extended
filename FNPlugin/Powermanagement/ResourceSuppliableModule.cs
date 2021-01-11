@@ -228,6 +228,22 @@ namespace FNPlugin.Powermanagement
             return manager.powerSupplyFixed(this, Math.Max(supply, 0));
         }
 
+        public double GetRequiredElectricCharge()
+        {
+            var manager = (MegajoulesResourceManager)getManagerForVessel(ResourceSettings.Config.ElectricPowerInMegawatt);
+            if (manager == null)
+                return 0;
+
+            return manager.MjConverted;
+        }
+
+        public void AuxiliaryResourceSupplied(double rate)
+        {
+            var manager = (MegajoulesResourceManager)getManagerForVessel(ResourceSettings.Config.ElectricPowerInMegawatt);
+
+            manager?.AuxiliaryResourceSupplied(rate);
+        }
+
         public double supplyFNResourcePerSecond(double supply, string resourceName)
         {
             if (supply.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName))

@@ -33,15 +33,16 @@ namespace FNPlugin.Powermanagement
         public override void OnStart(PartModule.StartState state)
         {
             displayName = part.partInfo.title;
-            String[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resources_to_supply = resources_to_supply;
+            string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
+            this.resources_to_supply = resourcesToSupply;
 
             if (state == StartState.Editor) return;
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000));
-            resourceBuffers.Init(this.part);
+            if (!Kerbalism.IsLoaded)
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000));
+            resourceBuffers.Init(part);
 
             Debug.Log("[KSPI]: PowerSupply on " + part.name + " was Force Activated");
             this.part.force_activate();
@@ -92,7 +93,8 @@ namespace FNPlugin.Powermanagement
             base.OnFixedUpdate();
 
             resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, currentPowerSupply);
-            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, currentPowerSupply);
+            if (!Kerbalism.IsLoaded)
+                resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, currentPowerSupply);
             resourceBuffers.UpdateBuffers();
 
             currentPowerSupply = 0;

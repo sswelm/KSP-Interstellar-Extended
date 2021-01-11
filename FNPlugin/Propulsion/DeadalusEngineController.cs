@@ -743,7 +743,7 @@ namespace FNPlugin.Propulsion
                 if (fuelRatio < 0.999)
                 {
                     var message = (fuelRatio <= 0) ? Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg2") : Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg3");//"Thrust warp stopped - propellant depleted" : "Thrust warp stopped - running out of propellant"
-                    UnityEngine.Debug.Log("[KSPI]: " + message);
+                    Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                     // Return to realtime
                     TimeWarp.SetRate(0, true);

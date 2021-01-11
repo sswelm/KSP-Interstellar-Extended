@@ -129,9 +129,14 @@ namespace FNPlugin
             {
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt));
+
                 _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate / GameConstants.ecPerMJ : _solarPanel.chargeRate);
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * GameConstants.ecPerMJ);
+                if (!Kerbalism.IsLoaded)
+                {
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt));
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, _outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * GameConstants.ecPerMJ);
+                }
+
                 _resourceBuffers.Init(part);
             }
 

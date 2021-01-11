@@ -758,7 +758,11 @@ namespace FNPlugin.Beamedpower
 
         public override void OnStart(StartState state)
         {
-            string[] resourcesToSupply = {ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt};
+            string[] resourcesToSupply =
+            {
+                ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt,
+                ResourceSettings.Config.ThermalPowerInMegawatt
+            };
 
             this.resources_to_supply = resourcesToSupply;
             base.OnStart(state);
@@ -789,7 +793,7 @@ namespace FNPlugin.Beamedpower
             coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields[nameof(coreTempererature)];
 
-            // hide heat fields when not a thermal reciever
+            // hide heat fields when not a thermal receiver
             Fields[nameof(total_thermal_power_provided)].guiActive = IsThermalSource || isThermalReceiverSlave;
             Fields[nameof(total_thermal_power_provided_max)].guiActive = IsThermalSource || isThermalReceiverSlave;
 
@@ -846,13 +850,17 @@ namespace FNPlugin.Beamedpower
                 {
                     if (fnRadiator.isDeployable)
                     {
-                        _activateReceiverBaseEvent.guiName = Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Deploy");//"Deploy"
-                        _disableReceiverBaseEvent.guiName = Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Retract");//"Retract"
+                        _activateReceiverBaseEvent.guiName =
+                            Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Deploy"); //"Deploy"
+                        _disableReceiverBaseEvent.guiName =
+                            Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Retract"); //"Retract"
                     }
                     else
                     {
-                        _activateReceiverBaseEvent.guiName = Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Enable");//"Enable"
-                        _disableReceiverBaseEvent.guiName = Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Disable");//"Disable"
+                        _activateReceiverBaseEvent.guiName =
+                            Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Enable"); //"Enable"
+                        _disableReceiverBaseEvent.guiName =
+                            Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_Disable"); //"Disable"
                     }
 
                     fnRadiator.showControls = false;
@@ -865,82 +873,86 @@ namespace FNPlugin.Beamedpower
                 radiatorModeField.guiActiveEditor = fnRadiator != null;
             }
 
-            if (state != StartState.Editor)
+            if (state == StartState.Editor) return;
+
+            _windowPosition = new Rect(windowPositionX, windowPositionY, LabelWidth * 2 + ValueWidthWide * 1 + ValueWidthNormal * 10, 100);
+
+            // create the id for the GUI window
+            _windowId = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
+
+            localStar = GetCurrentStar();
+
+            // compensate for stock solar initialization heating bug
+            _initializationCountdown = 10;
+
+            if (forceActivateAtStartup)
             {
-                _windowPosition = new Rect(windowPositionX, windowPositionY, LabelWidth * 2 + ValueWidthWide * 1 + ValueWidthNormal * 10, 100);
-
-                // create the id for the GUI window
-                _windowId = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
-
-                localStar = GetCurrentStar();
-
-                // compensate for stock solar initialization heating bug
-                _initializationCountdown = 10;
-
-                if (forceActivateAtStartup)
-                {
-                    Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
-                    part.force_activate();
-                }
-
-                if (isThermalReceiverSlave)
-                {
-                    var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is BeamedPowerReceiver && (BeamedPowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
-
-                    if (result?.Source == null)
-                        Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
-                    else
-                        ((BeamedPowerReceiver)result.Source).RegisterAsSlave(this);
-                }
-
-                if (maintainResourceBuffers)
-                {
-                    _resourceBuffers = new ResourceBuffers();
-                    _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
-                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ThermalPowerInMegawatt, thermalPowerBufferMult));
-                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
-                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 100.0));
-                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
-                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower);
-                    _resourceBuffers.Init(part);
-                }
-
-                // look for any transmitter partModule
-                partTransmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
-                if (partTransmitter != null)
-                    _hasTransmitter = true;
-
-                deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
-                if (deployableRadiator != null)
-                {
-                    try
-                    {
-                        deployableRadiator.Events["Extend"].guiActive = false;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError("[KSPI]: Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(animTName))
-                {
-                    animT = part.FindModelAnimators(animTName).FirstOrDefault();
-                    if (animT != null)
-                    {
-                        animT[animTName].enabled = true;
-                        animT[animTName].layer = 1;
-                        animT[animTName].normalizedTime = 0;
-                        animT[animTName].speed = 0.001f;
-
-                        animT.Sample();
-                    }
-                }
-
-                genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
+                Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
+                part.force_activate();
             }
+
+            if (isThermalReceiverSlave)
+            {
+                var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part, (s) => s is BeamedPowerReceiver && (BeamedPowerReceiver) s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
+
+                if (result?.Source == null)
+                    Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
+                else
+                    ((BeamedPowerReceiver) result.Source).RegisterAsSlave(this);
+            }
+
+            if (maintainResourceBuffers)
+            {
+                _resourceBuffers = new ResourceBuffers();
+                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ThermalPowerInMegawatt, thermalPowerBufferMult));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower);
+
+                if (!Kerbalism.IsLoaded)
+                {
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 100.0));
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower);
+                }
+
+                _resourceBuffers.Init(part);
+            }
+
+            // look for any transmitter partModule
+            partTransmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
+            if (partTransmitter != null)
+                _hasTransmitter = true;
+
+            deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
+            if (deployableRadiator != null)
+            {
+                try
+                {
+                    deployableRadiator.Events["Extend"].guiActive = false;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI]: Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(animTName))
+            {
+                animT = part.FindModelAnimators(animTName).FirstOrDefault();
+                if (animT != null)
+                {
+                    animT[animTName].enabled = true;
+                    animT[animTName].layer = 1;
+                    animT[animTName].normalizedTime = 0;
+                    animT[animTName].speed = 0.001f;
+
+                    animT.Sample();
+                }
+            }
+
+            genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
         }
 
         private void HideSlavePartModules()
@@ -963,14 +975,14 @@ namespace FNPlugin.Beamedpower
                 _powerDownFraction = 1;
                 _powerState = PowerStates.PowerOnline;
 
-                if (maintainResourceBuffers)
-                {
-                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower);
+                if (!maintainResourceBuffers) return;
+
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower);
+                if (!Kerbalism.IsLoaded)
                     _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower);
-                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
-                    _resourceBuffers.UpdateBuffers();
-                }
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+                _resourceBuffers.UpdateBuffers();
             }
             catch (Exception e)
             {
@@ -988,14 +1000,15 @@ namespace FNPlugin.Beamedpower
             if (_powerDownFraction <= 0)
                 _powerState = PowerStates.PowerOffline;
 
-            if (maintainResourceBuffers)
-            {
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower * _powerDownFraction);
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower * _powerDownFraction);
+            if (!maintainResourceBuffers) return;
+
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, StableMaximumReactorPower * _powerDownFraction);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, StableMaximumReactorPower * _powerDownFraction);
+
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+            if (!Kerbalism.IsLoaded)
                 _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, StableMaximumReactorPower * _powerDownFraction);
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
-                _resourceBuffers.UpdateBuffers();
-            }
+            _resourceBuffers.UpdateBuffers();
         }
 
         /// <summary>
@@ -1305,7 +1318,7 @@ namespace FNPlugin.Beamedpower
 
         private void OnGUI()
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && showWindow && !HighLogic.LoadedSceneIsEditor)
+            if (vessel == FlightGlobals.ActiveVessel && showWindow && !HighLogic.LoadedSceneIsEditor)
                 _windowPosition = GUILayout.Window(_windowId, _windowPosition, DrawGui, Localizer.Format("#LOC_KSPIE_BeamPowerReceiver_InterfaceWindowTitle"));//"Power Receiver Interface"
         }
 

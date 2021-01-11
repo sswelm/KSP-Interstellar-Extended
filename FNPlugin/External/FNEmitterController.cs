@@ -7,39 +7,28 @@ namespace FNPlugin.External
 {
     public class FNEmitterController:  PartModule
     {
-        // Persistant input
-        [KSPField(isPersistant = true)]
-        public double reactorActivityFraction;
+        // Persistent input
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_FNEmitterContoller_FuelNeutronsFraction")]//Fuel Neutrons Fraction
         public double fuelNeutronsFraction = 0.02;
-        [KSPField(isPersistant = true)]
-        public double lithiumNeutronAbsorbtionFraction;
-        [KSPField(isPersistant = true)]
-        public double exhaustActivityFraction;
-        [KSPField(isPersistant = true)]
-        public double radioactiveFuelLeakFraction;
-        [KSPField(isPersistant = true)]
-        public bool exhaustProducesNeutronRadiation = false;
-        [KSPField(isPersistant = true)]
-        public bool exhaustProducesGammaRadiation = false;
+
+        [KSPField(isPersistant = true)] public double reactorActivityFraction;
+        [KSPField(isPersistant = true)] public double lithiumNeutronAbsorbtionFraction;
+        [KSPField(isPersistant = true)] public double exhaustActivityFraction;
+        [KSPField(isPersistant = true)] public double radioactiveFuelLeakFraction;
+        [KSPField(isPersistant = true)] public bool exhaustProducesNeutronRadiation = false;
+        [KSPField(isPersistant = true)] public bool exhaustProducesGammaRadiation = false;
 
         //Setting
         [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FNEmitterContoller_MaxGammaRadiation")]//Max Gamma Radiation
         public double maxRadiation = 0.02;
-        [KSPField]
-        public double neutronsExhaustRadiationMult = 1;
-        [KSPField]
-        public double gammaRayExhaustRadiationMult = 0.5;
-        [KSPField]
-        public double neutronScatteringRadiationMult = 20;
-        [KSPField]
-        public double diameter = 1;
-        [KSPField]
-        public double height = 0;
-        [KSPField]
-        public double habitatMassMultiplier = 20;
-        [KSPField]
-        public double reactorMassMultiplier = 10; 
+
+        [KSPField] public double neutronsExhaustRadiationMult = 1;
+        [KSPField] public double gammaRayExhaustRadiationMult = 0.5;
+        [KSPField] public double neutronScatteringRadiationMult = 20;
+        [KSPField] public double diameter = 1;
+        [KSPField] public double height;
+        [KSPField] public double habitatMassMultiplier = 20;
+        [KSPField] public double reactorMassMultiplier = 10;
 
         // Gui
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FNEmitterContoller_DistanceRadiationModifier", guiFormat = "F5")]//Distance Radiation Modifier
@@ -100,11 +89,11 @@ namespace FNPlugin.External
         {
             if (Kerbalism.versionMajor == 0)
             {
-                UnityEngine.Debug.Log("[KSPI]: Skipped Initialize FNEmitterController");
+                Debug.Log("[KSPI]: Skipped Initialize FNEmitterController");
                 return;
             }
 
-            UnityEngine.Debug.Log("[KSPI]: FNEmitterController Initialize");
+            Debug.Log("[KSPI]: FNEmitterController Initialize");
 
             shieldingPartResource = part.Resources["Shielding"];
             if (shieldingPartResource != null)
@@ -114,7 +103,7 @@ namespace FNPlugin.External
                     height = diameter;
 
                 var ratio = shieldingPartResource.amount / shieldingPartResource.maxAmount;
-                shieldingPartResource.maxAmount = (2 * Math.PI * radius * radius) + (2 * Math.PI * radius * height);    // 2 π r2 + 2 π r h 
+                shieldingPartResource.maxAmount = (2 * Math.PI * radius * radius) + (2 * Math.PI * radius * height);    // 2 π r2 + 2 π r h
                 shieldingPartResource.amount = shieldingPartResource.maxAmount * ratio;
             }
 
@@ -124,21 +113,20 @@ namespace FNPlugin.External
             bool found = false;
             foreach (PartModule module in part.Modules)
             {
-                if (module.moduleName == "Emitter")
-                {
-                    emitterModule = module;
+                if (module.moduleName != "Emitter") continue;
 
-                    emitterRadiationField = module.Fields["radiation"];
+                emitterModule = module;
 
-                    found = true;
-                    break;
-                }
+                emitterRadiationField = module.Fields["radiation"];
+
+                found = true;
+                break;
             }
 
             if (found)
-                UnityEngine.Debug.Log("[KSPI]: FNEmitterController Found Emitter");
+                Debug.Log("[KSPI]: FNEmitterController Found Emitter");
             else
-                UnityEngine.Debug.LogWarning("[KSPI]: FNEmitterController failed to find Emitter");
+                Debug.LogWarning("[KSPI]: FNEmitterController failed to find Emitter");
         }
 
         private void UpdateKerbalismEmitter()

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using FNPlugin.Extensions;
+﻿using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FNPlugin.Powermanagement
 {
@@ -41,11 +41,7 @@ namespace FNPlugin.Powermanagement
         private double timeWarpModifer;
         private double spaceTemperature;
 
-        public Part Part
-        {
-            get { return this.part; }
-        }
-
+        public Part Part => part;
 
         public override void OnStart(PartModule.StartState state)
         {

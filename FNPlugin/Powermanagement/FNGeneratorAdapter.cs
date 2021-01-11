@@ -145,6 +145,13 @@ namespace FNPlugin.Powermanagement
 
             if (_outputType == ResourceType.other) return;
 
+            if (Kerbalism.IsLoaded)
+            {
+                _mockInputResource.rate = 0;
+                _moduleOutputResource.rate = 0;
+                return;
+            }
+
             var generatorRate = _moduleOutputResource.rate;
             _mockInputResource.rate = generatorRate;
 

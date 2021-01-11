@@ -299,6 +299,11 @@ namespace FNPlugin.Powermanagement
 
             if (moduleOutputResource != null)
             {
+                if (Kerbalism.IsLoaded)
+                {
+                    moduleOutputResource.rate = 0;
+                }
+
                 generatorOutputRateInElectricCharge = maximumPowerGeneration > 0
                     ? currentMegajoulesSupply * (outputType == ResourceType.megajoule ? 1 : GameConstants.ecPerMJ)
                     : initialOutputAmount;

@@ -48,7 +48,9 @@ namespace FNPlugin.Powermanagement
         protected const int MAX_PRIORITY = 6;
         private const int POWER_HISTORY_LEN = 10;
 
+        protected readonly List<PartResource> partResources = new List<PartResource>();
         protected readonly IDictionary<IResourceSuppliable, PowerDistribution> consumptionRequests;
+
         private readonly IDictionary<IResourceSupplier, PowerGenerated> productionTemp;
         private readonly IDictionary<IResourceSupplier, PowerGenerated> productionRequests;
         private readonly List<PowerDistributionPair> powerConsumers;
@@ -378,20 +380,44 @@ namespace FNPlugin.Powermanagement
 
         public double GetResourceAvailability()
         {
-            part.GetConnectedResourceTotals(resourceDefinition.id, out double amount, out _);
-            return amount;
+            if (Kerbalism.IsLoaded)
+            {
+                GetAvailableResources(out var amount, out _);
+                return amount;
+            }
+            else
+            {
+                part.GetConnectedResourceTotals(resourceDefinition.id, out double amount, out _);
+                return amount;
+            }
         }
 
         public double GetSpareResourceCapacity()
         {
-            part.GetConnectedResourceTotals(resourceDefinition.id, out double amount, out double maxAmount);
-            return maxAmount - amount;
+            if (Kerbalism.IsLoaded)
+            {
+                GetAvailableResources(out var amount, out var maxAmount);
+                return maxAmount - amount;
+            }
+            else
+            {
+                part.GetConnectedResourceTotals(resourceDefinition.id, out double amount, out var maxAmount);
+                return maxAmount - amount;
+            }
         }
 
         public double GetTotalResourceCapacity()
         {
-            part.GetConnectedResourceTotals(resourceDefinition.id, out _, out double maxAmount);
-            return maxAmount;
+            if (Kerbalism.IsLoaded)
+            {
+                GetAvailableResources(out _, out var maxAmount);
+                return maxAmount;
+            }
+            else
+            {
+                part.GetConnectedResourceTotals(resourceDefinition.id, out _, out var maxAmount);
+                return maxAmount;
+            }
         }
 
         public double GetNeededPowerSupplyPerSecondWithMinimumRatio(double power, double ratio_min)
@@ -570,20 +596,23 @@ namespace FNPlugin.Powermanagement
             current.Demand = 0.0;
             current.DemandHighPriority = 0.0;
             current.TotalSupplied = 0.0;
+
             for (int i = 0; i < MAX_PRIORITY; i++)
             {
                 currentDistributed[i] = 0.0;
                 stableDistributed[i] = 0.0;
             }
 
-            part.GetConnectedResourceTotals(resourceDefinition.id, out double availableAmount, out double maxAmount);
+            //part.GetConnectedResourceTotals(resourceDefinition.id, out double availableAmount, out double maxAmount);
+            partResources.Clear();
+            partResources.AddRange(Vessel.parts.SelectMany(p => p.Resources.Where(r => r.info.id == resourceDefinition.id)));
+            GetAvailableResources(out var availableAmount, out var maxAmount);
+
             if (availableAmount.IsInfinityOrNaN())
                 availableAmount = 0.0;
 
-            double hpSupplyDemandRatio = last.DemandHighPriority > 0.0 ?
-                Math.Min((current.Supply - AuxiliaryResourceDemand) / last.DemandHighPriority, 1.0) : 1.0;
-            double supplyDemandRatio = last.Demand > 0.0 ?
-                Math.Min((current.Supply - AuxiliaryResourceDemand - last.DemandHighPriority) / last.Demand, 1.0) : 1.0;
+            double hpSupplyDemandRatio = last.DemandHighPriority > 0.0 ? Math.Min((current.Supply - AuxiliaryResourceDemand) / last.DemandHighPriority, 1.0) : 1.0;
+            double supplyDemandRatio = last.Demand > 0.0 ? Math.Min((current.Supply - AuxiliaryResourceDemand - last.DemandHighPriority) / last.Demand, 1.0) : 1.0;
 
             current.Supply += availableAmount;
             current.StableSupply += availableAmount;
@@ -595,7 +624,6 @@ namespace FNPlugin.Powermanagement
             // Must be resorted on each update as the production can be dynamic
             foreach (var pair in productionRequests)
             {
-                Queue<double> history;
                 var key = pair.Key;
                 var production = pair.Value;
                 double currentSupply = production.CurrentSupply;
@@ -604,14 +632,12 @@ namespace FNPlugin.Powermanagement
                 sumPowerProduced += currentSupply;
                 supplyEfficiencyRatio += production.EfficiencyRatio * currentSupply;
 
-                if (productionTemp.TryGetValue(key, out PowerGenerated old))
-                    history = old.History;
-                else
-                    history = new Queue<double>(POWER_HISTORY_LEN);
+                var history = productionTemp.TryGetValue(key, out PowerGenerated old) ? old.History : new Queue<double>(POWER_HISTORY_LEN);
+
                 if (history.Count > POWER_HISTORY_LEN)
                     history.Dequeue();
                 history.Enqueue(currentSupply);
-                production.AverageSupply = history.Average();
+                production.AverageSupply = history.Max();
                 production.History = history;
             }
             if (sumPowerProduced > 0.0 && powerProducers.Count > 0)
@@ -681,20 +707,19 @@ namespace FNPlugin.Powermanagement
                 SupplyPriority(timeWarpDT, ++prevPriority);
             }
 
-            // substract available resource amount to get delta resource change
+            // subtract available resource amount to get delta resource change
             double supply = current.Supply - Math.Max(availableAmount, 0);
             double missingAmount = maxAmount - availableAmount;
             double powerToExtract = AdjustSupplyComplete(timeWarpDT, -supply * timeWarpDT);
 
             // Update storage
-            if (powerToExtract > 0.0)
-                powerToExtract = Math.Min(powerToExtract, availableAmount);
-            else
-                powerToExtract = Math.Max(powerToExtract, -missingAmount);
+            powerToExtract = powerToExtract > 0.0 ? Math.Min(powerToExtract, availableAmount) : Math.Max(powerToExtract, -missingAmount);
 
             if (!powerToExtract.IsInfinityOrNaN())
             {
-                availableAmount += part.RequestResource(resourceDefinition.id, powerToExtract);
+                availableAmount += Kerbalism.IsLoaded
+                    ? RequestResource(partResources, powerToExtract, maxAmount, availableAmount)
+                    : part.RequestResource(resourceDefinition.id, powerToExtract);
             }
 
             // Update resource fill fraction
@@ -705,6 +730,40 @@ namespace FNPlugin.Powermanagement
 
             current.Supply = 0.0;
             current.StableSupply = 0.0;
+        }
+
+        private void GetAvailableResources(out double availableAmount, out double maxAmount)
+        {
+            maxAmount = 0;
+            availableAmount = 0;
+
+            foreach (var partResource in partResources)
+            {
+                maxAmount += partResource.maxAmount;
+                availableAmount += partResource.amount;
+                partResource.flowState = !Kerbalism.IsLoaded;
+            }
+        }
+
+        private static double RequestResource(List<PartResource> partResources, double powerToExtract, double maxAmount, double availableAmount)
+        {
+            foreach (var partResource in partResources)
+            {
+                availableAmount = RequestResource(partResource, powerToExtract, maxAmount, availableAmount);
+            }
+
+            return availableAmount;
+        }
+
+        private static double RequestResource(PartResource partResource, double powerToExtract, double maxAmount, double availableAmount)
+        {
+            var newAmount = partResource.amount;
+            var requested = powerToExtract * (partResource.maxAmount / maxAmount);
+            newAmount -= requested;
+            var shortage = newAmount < 0 ? newAmount : 0;
+            availableAmount += requested - shortage;
+            partResource.amount = Math.Max(0, newAmount);
+            return availableAmount;
         }
 
         public void UpdatePartModule(PartModule pm)

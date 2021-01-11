@@ -1,8 +1,8 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
-using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Powermanagement
@@ -16,7 +16,17 @@ namespace FNPlugin.Powermanagement
         private double lastMJConverted;
         private double mjConverted;
 
-        protected override double AuxiliaryResourceDemand => lastMJConverted;
+        private double auxiliaryElectricChargeRate;
+
+        public void AuxiliaryResourceSupplied(double rate)
+        {
+            auxiliaryElectricChargeRate = rate;
+            mjConverted = 0;
+        }
+
+        public double MjConverted => mjConverted;
+
+        protected override double AuxiliaryResourceDemand => lastMJConverted + auxiliaryElectricChargeRate;
 
         public override double CurrentSurplus => Math.Max(0.0, base.CurrentSurplus - lastMJConverted);
 
@@ -31,11 +41,13 @@ namespace FNPlugin.Powermanagement
 
         protected override void DoWindowFinal()
         {
-            if (lastMJConverted > 0.0)
+            var providedAuxiliaryPower = lastMJConverted + auxiliaryElectricChargeRate;
+
+            if (providedAuxiliaryPower > 0.0)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_DCElectricalSystem"), left_aligned_label, GUILayout.ExpandWidth(true));//"DC Electrical System"
-                GUILayout.Label(PluginHelper.GetFormattedPowerString(lastMJConverted), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(providedAuxiliaryPower), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
                 GUILayout.Label("0", right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PRIORITY_WIDTH));
                 GUILayout.EndHorizontal();
             }
@@ -56,7 +68,14 @@ namespace FNPlugin.Powermanagement
         private void SupplyEC(double timeWarpDT, double ecToSupply)
         {
             ecToSupply = Math.Min(ecToSupply, current.Supply * GameConstants.ecPerMJ * timeWarpDT);
-            double powerConverted = part.RequestResource(electricResourceDefinition.id, -ecToSupply) / -GameConstants.ecPerMJ / timeWarpDT;
+
+            double powerConverted;
+
+            if (Kerbalism.IsLoaded && timeWarpDT > 20)
+                powerConverted = ecToSupply / GameConstants.ecPerMJ / timeWarpDT;
+            else
+                powerConverted = part.RequestResource(electricResourceDefinition.id, -ecToSupply) / -GameConstants.ecPerMJ / timeWarpDT;
+
             current.Supply -= powerConverted;
             current.StableSupply -= powerConverted;
             current.TotalSupplied += powerConverted;
@@ -68,8 +87,13 @@ namespace FNPlugin.Powermanagement
         {
             part.GetConnectedResourceTotals(electricResourceDefinition.id, out double amount, out double maxAmount);
             double ecNeeded = maxAmount - amount;
+            double ratio = maxAmount > 0 ? ecNeeded / maxAmount : 0;
             if (amount.IsInfinityOrNaN() || ecNeeded <= 0.0)
+            {
+                if (priority == 0)
+                    current.Demand += auxiliaryElectricChargeRate;
                 return;
+            }
 
             if (priority == 0)
             {
@@ -78,7 +102,7 @@ namespace FNPlugin.Powermanagement
                 if (last.StableSupply > 0.0)
                 {
                     // Supply up to 1 EC/s (trickle charge)
-                    SupplyEC(timeWarpDT, timeWarpDT);
+                    SupplyEC(timeWarpDT, timeWarpDT * ratio);
                 }
                 else
                 {
@@ -92,8 +116,12 @@ namespace FNPlugin.Powermanagement
             else if (priority == 1 && last.StableSupply > 0.0)
             {
                 // Supply up to the full missing EC amount
+
                 SupplyEC(timeWarpDT, ecNeeded);
             }
+
+            if (priority == 0)
+                current.Demand += auxiliaryElectricChargeRate;
         }
     }
 }

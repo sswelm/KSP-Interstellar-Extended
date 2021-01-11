@@ -1,8 +1,8 @@
-﻿using System.Linq;
-using FNPlugin.Beamedpower;
+﻿using FNPlugin.Beamedpower;
 using FNPlugin.Powermanagement;
 using FNPlugin.Propulsion;
 using FNPlugin.Wasteheat;
+using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin
@@ -26,6 +26,11 @@ namespace FNPlugin
             GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
             GameEvents.onVesselGoOffRails.Add(OnVesselGoOnRails);
 
+            var kerbalismVersionStr = $"{Kerbalism.versionMajor}.{Kerbalism.versionMajorRevision}.{Kerbalism.versionMinor}.{Kerbalism.versionMinorRevision}";
+
+            if (Kerbalism.versionMajor > 0)
+                Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismVersionStr);
+
             Debug.Log("[KSPI]: GameEventSubscriber Initialized");
         }
         void OnDestroy()
@@ -38,12 +43,6 @@ namespace FNPlugin
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Remove(OnVesselSOIChanged);
-
-            var kerbalismVersionStr =
-                $"{Kerbalism.versionMajor}.{Kerbalism.versionMajorRevision}.{Kerbalism.versionMinor}.{Kerbalism.versionMinorRevision}";
-
-            if (Kerbalism.versionMajor > 0)
-                Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismVersionStr);
 
             Debug.Log("[KSPI]: GameEventSubscriber Deinitialised");
         }
