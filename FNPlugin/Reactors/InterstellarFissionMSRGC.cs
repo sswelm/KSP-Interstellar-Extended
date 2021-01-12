@@ -201,7 +201,7 @@ namespace FNPlugin.Reactors
         {
             get
             {
-                if (CheatOptions.IgnoreMaxTemperature || !HighLogic.LoadedSceneIsFlight || isupgraded || !(powerPcnt >= minThrottle * 100))
+                if (CheatOptions.IgnoreMaxTemperature || !HighLogic.LoadedSceneIsFlight || isupgraded || !(powerPercent >= minThrottle * 100))
                     return actinidesModifer * base.CoreTemperature;
 
                 var baseCoreTemperature = base.CoreTemperature;
@@ -213,7 +213,7 @@ namespace FNPlugin.Reactors
                 else
                     temp_scale = baseCoreTemperature / 2;
 
-                temp_diff = (baseCoreTemperature - temp_scale) * Math.Pow(powerPcnt / 100, temperatureThrottleExponent);
+                temp_diff = (baseCoreTemperature - temp_scale) * Math.Pow(powerPercent / 100, temperatureThrottleExponent);
                 return Math.Min(temp_scale + temp_diff, actinidesModifer * baseCoreTemperature);
             }
         }
@@ -223,9 +223,9 @@ namespace FNPlugin.Reactors
         public override void OnUpdate()
         {
             Events[nameof(ManualShutdown)].active = Events[nameof(ManualShutdown)].guiActiveUnfocused = IsEnabled;
-            Events[nameof(Refuel)].active = Events[nameof(Refuel)].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
+            Events[nameof(Refuel)].active = Events[nameof(Refuel)].guiActiveUnfocused = !IsEnabled && !ongoingDecay;
             Events[nameof(Refuel)].guiName = "Refuel " + (CurrentFuelMode != null ? CurrentFuelMode.ModeGUIName : "");
-            Events[nameof(SwapFuelMode)].active = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1 && !IsEnabled && !decay_ongoing;
+            Events[nameof(SwapFuelMode)].active = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1 && !IsEnabled && !ongoingDecay;
             Events[nameof(SwapFuelMode)].guiActive = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1;
 
             Events[nameof(SwitchMode)].guiActiveEditor = Events[nameof(SwitchMode)].guiActive = Events[nameof(SwitchMode)].guiActiveUnfocused = CheckFuelModes() > 1;

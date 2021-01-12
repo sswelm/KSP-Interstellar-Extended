@@ -76,7 +76,7 @@ namespace FNPlugin.Reactors
         public override void OnUpdate()
         {
             overheatPercentage = (1 - ThermalRatioEfficiency) * 100;
-            Events[nameof(ManualRestart)].active = Events[nameof(ManualRestart)].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
+            Events[nameof(ManualRestart)].active = Events[nameof(ManualRestart)].guiActiveUnfocused = !IsEnabled && !ongoingDecay;
             Events[nameof(ManualShutdown)].active = Events[nameof(ManualShutdown)].guiActiveUnfocused = IsEnabled;
             base.OnUpdate();
         }
