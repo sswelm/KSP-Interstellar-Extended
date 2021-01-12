@@ -384,6 +384,7 @@ namespace FNPlugin.Reactors
         protected List<ReactorFuelType> fuelModes;
         protected List<ReactorFuelMode> currentFuelVariantsSorted;
         protected ReactorFuelMode currentFuelVariant;
+        protected ReactorFuelMode previousFuelVariant;
         protected AnimationState[] pulseAnimation;
         protected ModuleAnimateGeneric startupAnimation;
         protected ModuleAnimateGeneric shutdownAnimation;
@@ -525,6 +526,24 @@ namespace FNPlugin.Reactors
 
         public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
         public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
+
+        public ReactorFuelMode CurrentFuelVariant
+        {
+            get => currentFuelVariant;
+            set
+            {
+                currentFuelVariant = value;
+                fuel_mode_variant = currentFuelVariant?.Name;
+
+                if (currentFuelVariant != null && previousFuelVariant != null && currentFuelVariant != previousFuelVariant)
+                {
+                    _processControlManager.Collection.TryGetValue(previousFuelVariant.Name, out var reactorFuelProcess);
+                    reactorFuelProcess?.ReliablityEvent(true, 0);
+                }
+
+                previousFuelVariant = value;
+            }
+        }
 
         // Complex Getters
         public double FusionEnergyGainFactor
@@ -669,12 +688,11 @@ namespace FNPlugin.Reactors
                 _currentFuelMode = value;
                 maxPowerToSupply = Math.Max(MaximumPower * (double)(decimal)TimeWarp.fixedDeltaTime, 0);
                 currentFuelVariantsSorted = _currentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult);
-                currentFuelVariant = currentFuelVariantsSorted.First();
+                CurrentFuelVariant = currentFuelVariantsSorted.First();
 
                 // persist
                 fuelmode_index = _currentFuelMode.Index;
                 fuel_mode_name = _currentFuelMode.ModeGUIName;
-                fuel_mode_variant = currentFuelVariant.Name;
             }
         }
 
@@ -1421,9 +1439,7 @@ namespace FNPlugin.Reactors
                     overheatModifier = 1;
 
                 currentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply * geeForceModifier * overheatModifier, fuelUsePerMJMult);
-                currentFuelVariant = currentFuelVariantsSorted.FirstOrDefault();
-
-                fuel_mode_variant = currentFuelVariant?.Name;
+                CurrentFuelVariant = currentFuelVariantsSorted.FirstOrDefault();
 
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : currentFuelVariant != null ? Math.Min(currentFuelVariant.FuelRatio, 1) : 0;
 
@@ -1526,13 +1542,14 @@ namespace FNPlugin.Reactors
                 }
 
                 // consume fuel
+                _processControlManager.Collection.TryGetValue(currentFuelVariant.Name, out var reactorFuelProcess);
                 if (!CheatOptions.InfinitePropellant)
                 {
                     _consumedFuelTotalFixed = 0;
 
                     foreach (var reactorFuel in currentFuelVariant.ReactorFuels)
                     {
-                        _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime);
+                        _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess);
                     }
 
                     // refresh production list
@@ -1541,7 +1558,7 @@ namespace FNPlugin.Reactors
                     // produce reactor products
                     foreach (var product in currentFuelVariant.ReactorProducts)
                     {
-                        var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime);
+                        var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess != null);
                         if (product.IsPropellant)
                             reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
                     }
@@ -1568,8 +1585,8 @@ namespace FNPlugin.Reactors
             else
             {
                 currentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, NormalisedMaximumPower, fuelUsePerMJMult);
-                currentFuelVariant = currentFuelVariantsSorted.FirstOrDefault();
-                fuel_mode_variant = currentFuelVariant?.Name;
+                CurrentFuelVariant = currentFuelVariantsSorted.FirstOrDefault();
+
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : currentFuelVariant != null ? Math.Min(currentFuelVariant.FuelRatio, 1) : 0;
 
                 ongoing_total_power_generated = 0;
@@ -1753,7 +1770,7 @@ namespace FNPlugin.Reactors
             ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
 
             CurrentFuelMode = alternativeFuelType;
-            stored_fuel_ratio = currentFuelVariant.FuelRatio;
+            stored_fuel_ratio = CurrentFuelVariant.FuelRatio;
         }
 
         private void StoreGeneratorRequests(double timeWarpFixedDeltaTime)
@@ -2114,16 +2131,24 @@ namespace FNPlugin.Reactors
             // determine available variants
             var persistentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, deltaTimeDiff * ongoing_total_power_generated, fuelUsePerMJMult);
 
-            // consume fuel
-            foreach (var fuel in persistentFuelVariantsSorted.First().ReactorFuels)
-            {
-                ConsumeReactorFuel(fuel, ongoing_total_power_generated, deltaTimeDiff);
-            }
+            CurrentFuelVariant = persistentFuelVariantsSorted.FirstOrDefault();
+            if (currentFuelVariant == null)
+                return;
 
-            // produce reactor products
-            foreach (var product in persistentFuelVariantsSorted.First().ReactorProducts)
+            _processControlManager.Collection.TryGetValue(currentFuelVariant.Name, out var reactorFuelProcess);
+            if (reactorFuelProcess == null)
             {
-                ProduceReactorProduct(product, ongoing_total_power_generated, deltaTimeDiff, true);
+                // consume fuel
+                foreach (var fuel in persistentFuelVariantsSorted.First().ReactorFuels)
+                {
+                    ConsumeReactorFuel(fuel, ongoing_total_power_generated, deltaTimeDiff);
+                }
+
+                // produce reactor products
+                foreach (var product in persistentFuelVariantsSorted.First().ReactorProducts)
+                {
+                    ProduceReactorProduct(product, ongoing_total_power_generated, deltaTimeDiff);
+                }
             }
 
             // breed tritium
@@ -2201,7 +2226,7 @@ namespace FNPlugin.Reactors
                 print("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
         }
 
-        protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj, double deltaTime)
+        protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj, double deltaTime, ProcessControlMetaData resourceControl = null )
         {
             if (fuel == null)
             {
@@ -2214,23 +2239,26 @@ namespace FNPlugin.Reactors
 
             var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ? powerInMj * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency : 0;
 
+            resourceControl?.ReliablityEvent(true, consumeAmountInUnitOfStorage);
+
             if (fuel.ConsumeGlobal)
             {
-                var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage * deltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage * deltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW, resourceControl != null);
                 return (fuel.Simulate ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
             }
 
             if (part.Resources.Contains(fuel.ResourceName))
             {
                 double reduction = Math.Min(deltaTime * consumeAmountInUnitOfStorage, part.Resources[fuel.ResourceName].amount);
-                part.Resources[fuel.ResourceName].amount -= reduction;
+                if (resourceControl == null)
+                    part.Resources[fuel.ResourceName].amount -= reduction;
                 return reduction * fuel.DensityInTon;
             }
             else
                 return 0;
         }
 
-        protected virtual double ProduceReactorProduct(ReactorProduct product, double powerInMj, double deltaTime, bool instantly = false)
+        protected virtual double ProduceReactorProduct(ReactorProduct product, double powerInMj, double deltaTime, bool simulate = false)
         {
             if (product == null)
             {
@@ -2249,15 +2277,12 @@ namespace FNPlugin.Reactors
                 if (part.Resources.Contains(product.ResourceName))
                 {
                     var partResource = part.Resources[product.ResourceName];
-
                     if (partResource == null)
                         return 0;
 
                     var availableStorage = partResource.maxAmount - partResource.amount;
-                    var possibleAmount = Math.Min(fixedProductSupply, availableStorage);
-
-                    partResource.amount += possibleAmount;
-                    partResource._flowState = false;
+                    if(!simulate)
+                        partResource.amount += Math.Min(fixedProductSupply, availableStorage);
 
                     return fixedProductSupply * product.DensityInTon;
                 }
@@ -2265,19 +2290,9 @@ namespace FNPlugin.Reactors
                     return 0;
             }
 
-            if (!product.Simulate)
+            if (!simulate)
             {
-                if (!instantly && Kerbalism.IsLoaded)
-                {
-                    // use Helium ProcessController
-                }
-                else if (!instantly && _heliumModuleGenerator != null && product.Definition.name == ResourceSettings.Config.Helium4Gas)
-                {
-                    _heliumModuleGenerator.resHandler.outputResources.Single().rate += productSupply;
-                    _heliumModuleGenerator.generatorIsActive = true;
-                }
-                else
-                    part.RequestResource(product.Definition.id, -fixedProductSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                part.RequestResource(product.Definition.id, -fixedProductSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW);
             }
 
             return fixedProductSupply * product.DensityInTon;

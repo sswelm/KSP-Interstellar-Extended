@@ -138,8 +138,6 @@ namespace FNPlugin.Reactors
 
         public bool IsPropellant { get { return _isPropellant; } }
 
-        public bool Simulate { get { return _simulate; } }
-
         public double DensityInTon { get { return _density; } }
 
         public double DensityInKg { get { return _densityInKg; } }

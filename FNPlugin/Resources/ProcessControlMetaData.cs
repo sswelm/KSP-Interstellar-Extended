@@ -14,6 +14,7 @@ namespace FNPlugin.Resources
             _capacityBaseField = partModule.Fields["capacity"];
             _runningBaseField = partModule.Fields["running"];
             _reliablityEventMethodInfo = type.GetMethod("ReliablityEvent");
+            Capacity = 0;
         }
 
         public string Title { get; }
