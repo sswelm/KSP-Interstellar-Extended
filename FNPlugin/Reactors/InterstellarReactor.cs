@@ -184,11 +184,6 @@ namespace FNPlugin.Reactors
         [KSPField(groupName = UpgradesGroup, groupDisplayName = UpgradesGroupDisplayName, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_powerOutputMk7", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerOutputMk7;
 
-        // Settings
-        [KSPField] public double neutronsExhaustRadiationMult = 16;
-        [KSPField] public double gammaRayExhaustRadiationMult = 4;
-        [KSPField] public double neutronScatteringRadiationMult = 20;
-
         [KSPField] public bool showEngineConnectionInfo = true;
         [KSPField] public bool showPowerGeneratorConnectionInfo = true;
         [KSPField] public bool mayExhaustInAtmosphereHomeworld = true;
@@ -405,12 +400,6 @@ namespace FNPlugin.Reactors
         private FNEmitterController emitterController;
         private ModuleGenerator _heliumModuleGenerator;
         private ProcessControlManager _processControlManager;
-
-        //private PartModule lithium6BreederProcessController;
-        //private MethodInfo _lithium6BreederReliablityEvent;
-        //private BaseField _lithium6BreederCapacity;
-        //private BaseField _lithium6BreederRunning;
-
         private ProcessControlMetaData lithiumBreeder;
 
         private readonly List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
@@ -1900,9 +1889,7 @@ namespace FNPlugin.Reactors
                     (fixedDeltaTime <= 20 && (delta > lithiumRequest * 0.01 || delta > _previousLithiumRequest * 0.01) ||
                      fixedDeltaTime >  20 && (delta > lithiumRequest * 0.1  || delta > _previousLithiumRequest * 0.1)))
                 {
-                    lithiumBreeder.Capacity = lithiumRequest;
-                    lithiumBreeder.Running = true;
-                    lithiumBreeder.ReliablityEvent();
+                    lithiumBreeder.ReliablityEvent(true, lithiumRequest);
 
                     _previousLithiumRequest = lithiumRequest;
                 }

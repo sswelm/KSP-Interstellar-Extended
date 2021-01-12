@@ -38,6 +38,13 @@ namespace FNPlugin.Resources
         {
             _reliablityEventMethodInfo?.Invoke(_partModule, new object[] { false });
         }
+
+        public void ReliablityEvent(bool running, double capacity)
+        {
+            Capacity = capacity;
+            Running = running;
+            ReliablityEvent();
+        }
     }
 
     class ProcessControlManager
