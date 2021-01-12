@@ -2113,18 +2113,18 @@ namespace FNPlugin.Reactors
             var maximumLithiumConsumptionRatio = maximumTritiumProduction > 0 ? Math.Min(maximumTritiumProduction, spareRoomTritiumAmount) / maximumTritiumProduction : 0;
             var lithiumRequest = lithiumRate * maximumLithiumConsumptionRatio;
 
-            double lithiumUsed;
             // consume the lithium
-
             if (!immediate && Kerbalism.IsLoaded)
             {
-                lithiumUsed = CheatOptions.InfinitePropellant
+                _lithiumConsumedPerSecond = CheatOptions.InfinitePropellant
                     ? lithiumRequest
                     : part.RequestResource(_lithium6Def.id, lithiumRequest * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH, true) / fixedDeltaTime;
 
                 var delta = Math.Abs(lithiumRequest - _previousLithiumRequest);
 
-                if (_counter % 10 == 0 && delta > lithiumRequest * 0.01 || delta > _previousLithiumRequest * 0.01)
+                if (_counter % 10 == 0 &&
+                    (fixedDeltaTime <= 20 && (delta > lithiumRequest * 0.01 || delta > _previousLithiumRequest * 0.01) ||
+                     fixedDeltaTime >  20 && (delta > lithiumRequest * 0.1  || delta > _previousLithiumRequest * 0.1)))
                 {
                     _lithium6BreederCapacity?.SetValue(lithiumRequest, lithium6BreederProcessController);
                     _lithium6BreederReliablityEvent?.Invoke(lithium6BreederProcessController, new object[] {false});
@@ -2135,39 +2135,27 @@ namespace FNPlugin.Reactors
             }
             else
             {
-                lithiumUsed = CheatOptions.InfinitePropellant
+                _lithiumConsumedPerSecond = CheatOptions.InfinitePropellant
                     ? lithiumRequest
                     : part.RequestResource(_lithium6Def.id, lithiumRequest * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fixedDeltaTime;
             }
 
-            // calculate effective lithium used for tritium breeding
-            _lithiumConsumedPerSecond = lithiumUsed;
-
             // calculate products
-            var tritiumProduction = lithiumUsed * _tritiumBreedingMassAdjustment;
-            var heliumProduction = lithiumUsed * _heliumBreedingMassAdjustment;
+            _tritiumProducedPerSecond = _lithiumConsumedPerSecond * _tritiumBreedingMassAdjustment;
+            _heliumProducedPerSecond = _lithiumConsumedPerSecond * _heliumBreedingMassAdjustment;
+
+            if (Kerbalism.IsLoaded && !immediate) return;
 
             // produce tritium and helium
-            _tritiumProducedPerSecond = CheatOptions.InfinitePropellant
-                ? tritiumProduction
-                : -part.RequestResource(_tritiumDef.name, -tritiumProduction * fixedDeltaTime);
+            part.RequestResource(_tritiumDef.name, -_tritiumProducedPerSecond * fixedDeltaTime);
 
-            _heliumProducedPerSecond = heliumProduction;
-
-            if (Kerbalism.IsLoaded)
+            if (_heliumModuleGenerator != null)
             {
-                // use Helium ProcessController
+                _heliumModuleGenerator.resHandler.outputResources.Single().rate += _heliumProducedPerSecond;
+                _heliumModuleGenerator.generatorIsActive = true;
             }
             else
-            {
-                if (_heliumModuleGenerator != null)
-                {
-                    _heliumModuleGenerator.resHandler.outputResources.Single().rate += _heliumProducedPerSecond;
-                    _heliumModuleGenerator.generatorIsActive = true;
-                }
-                else
-                    part.RequestResource(_heliumDef.name, -_heliumProducedPerSecond * fixedDeltaTime);
-            }
+                part.RequestResource(_heliumDef.name, -_heliumProducedPerSecond * fixedDeltaTime);
         }
 
         public virtual double GetCoreTempAtRadiatorTemp(double radTemp)
@@ -2539,10 +2527,16 @@ namespace FNPlugin.Reactors
                 if (part.Resources.Contains(product.ResourceName))
                 {
                     var partResource = part.Resources[product.ResourceName];
-                    var availableStorage = partResource.maxAmount - partResource.amount;
 
+                    if (partResource == null)
+                        return 0;
+
+                    var availableStorage = partResource.maxAmount - partResource.amount;
                     var possibleAmount = Math.Min(fixedProductSupply, availableStorage);
-                    part.Resources[product.ResourceName].amount += possibleAmount;
+
+                    partResource.amount += possibleAmount;
+                    partResource._flowState = false;
+
                     return fixedProductSupply * product.DensityInTon;
                 }
                 else
@@ -2551,17 +2545,14 @@ namespace FNPlugin.Reactors
 
             if (!product.Simulate)
             {
-                if (!instantly && product.Definition.name == ResourceSettings.Config.Helium4Gas) // && _heliumProduction != null)
+                if (!instantly && Kerbalism.IsLoaded)
                 {
-                    if (Kerbalism.IsLoaded)
-                    {
-                        // use Helium ProcessController
-                    }
-                    else
-                    {
-                        _heliumModuleGenerator.resHandler.outputResources.Single().rate += productSupply;
-                        _heliumModuleGenerator.generatorIsActive = true;
-                    }
+                    // use Helium ProcessController
+                }
+                else if (!instantly && _heliumModuleGenerator != null && product.Definition.name == ResourceSettings.Config.Helium4Gas)
+                {
+                    _heliumModuleGenerator.resHandler.outputResources.Single().rate += productSupply;
+                    _heliumModuleGenerator.generatorIsActive = true;
                 }
                 else
                     part.RequestResource(product.Definition.id, -fixedProductSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW);
