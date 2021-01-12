@@ -12,7 +12,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using TweakScale;
 using UnityEngine;
@@ -405,16 +404,21 @@ namespace FNPlugin.Reactors
         private ResourceBuffers _resourceBuffers;
         private FNEmitterController emitterController;
         private ModuleGenerator _heliumModuleGenerator;
+        private ProcessControlManager _processControlManager;
 
-        private PartModule lithium6BreederProcessController;
-        private MethodInfo _lithium6BreederReliablityEvent;
-        private BaseField _lithium6BreederCapacity;
-        private BaseField _lithium6BreederRunning;
+        //private PartModule lithium6BreederProcessController;
+        //private MethodInfo _lithium6BreederReliablityEvent;
+        //private BaseField _lithium6BreederCapacity;
+        //private BaseField _lithium6BreederRunning;
+
+        private ProcessControlMetaData lithiumBreeder;
 
         private readonly List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         private readonly List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
         private readonly Queue<double> averageGeeforce = new Queue<double>();
         private readonly Queue<double> averageOverheat = new Queue<double>();
+
+        private readonly Dictionary<string, ProcessControlMetaData> _processControlDict = new Dictionary<string, ProcessControlMetaData>();
 
         private AudioSource _initiateSound;
         private AudioSource _terminateSound;
@@ -1025,20 +1029,8 @@ namespace FNPlugin.Reactors
             powerPercentageFloatRange[0].minValue = minimumPowerPercentage;
             powerPercentageFloatRange[1].minValue = minimumPowerPercentage;
 
-            foreach (var partModule in part.Modules)
-            {
-                if (partModule.ClassName != "ProcessController") continue;
-                var tittleField = partModule.Fields["title"];
-                if (tittleField == null) continue;
-                var title = (string)tittleField.GetValue(partModule);
-                if (title != "Lithium6Breeder") continue;
-                lithium6BreederProcessController = partModule;
-                var type = lithium6BreederProcessController.GetType();
-                _lithium6BreederCapacity = lithium6BreederProcessController.Fields["capacity"];
-                _lithium6BreederRunning = lithium6BreederProcessController.Fields["running"];
-                _lithium6BreederReliablityEvent = type.GetMethod("ReliablityEvent");
-                break;
-            }
+            _processControlManager = new ProcessControlManager(part);
+            _processControlManager.Collection.TryGetValue("Lithium6Breeder", out lithiumBreeder);
 
             if (!part.Resources.Contains(ResourceSettings.Config.ThermalPowerInMegawatt))
             {
@@ -1900,7 +1892,7 @@ namespace FNPlugin.Reactors
             _heliumProducedPerSecond = _lithiumConsumedPerSecond * _heliumBreedingMassAdjustment;
 
             // consume the lithium
-            if ( Kerbalism.IsLoaded)
+            if ( Kerbalism.IsLoaded && lithiumBreeder != null)
             {
                 var delta = Math.Abs(lithiumRequest - _previousLithiumRequest);
 
@@ -1908,9 +1900,9 @@ namespace FNPlugin.Reactors
                     (fixedDeltaTime <= 20 && (delta > lithiumRequest * 0.01 || delta > _previousLithiumRequest * 0.01) ||
                      fixedDeltaTime >  20 && (delta > lithiumRequest * 0.1  || delta > _previousLithiumRequest * 0.1)))
                 {
-                    _lithium6BreederCapacity?.SetValue(lithiumRequest, lithium6BreederProcessController);
-                    _lithium6BreederRunning?.SetValue(true, lithium6BreederProcessController);
-                    _lithium6BreederReliablityEvent?.Invoke(lithium6BreederProcessController, new object[] {false});
+                    lithiumBreeder.Capacity = lithiumRequest;
+                    lithiumBreeder.Running = true;
+                    lithiumBreeder.ReliablityEvent();
 
                     _previousLithiumRequest = lithiumRequest;
                 }
