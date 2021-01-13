@@ -567,7 +567,7 @@ namespace FNPlugin.Propulsion
             maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
             // Update FuelFlow
-            maxFuelFlow = maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+            maxFuelFlow = maximumThrust / currentIsp / PhysicsGlobals.GravitationalAcceleration;
 
             curEngineT.maxFuelFlow = (float)maxFuelFlow;
             curEngineT.maxThrust = (float)maximumThrust;
@@ -644,7 +644,7 @@ namespace FNPlugin.Propulsion
                 maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
                 // Update FuelFlow
-                maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+                maxFuelFlow = fusionRatio * maximumThrust / currentIsp / PhysicsGlobals.GravitationalAcceleration;
 
                 if ((maxAtmosphereDensity >= 0 && vessel.atmDensity > maxAtmosphereDensity)
                       || (_currentActiveConfiguration.maxAtmosphereDensity >= 0 && vessel.atmDensity > _currentActiveConfiguration.maxAtmosphereDensity))
@@ -686,7 +686,7 @@ namespace FNPlugin.Propulsion
 
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
 
-                maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+                maxFuelFlow = fusionRatio * maximumThrust / currentIsp / PhysicsGlobals.GravitationalAcceleration;
 
                 if ((maxAtmosphereDensity >= 0 && vessel.atmDensity > maxAtmosphereDensity)
                     || (_currentActiveConfiguration.maxAtmosphereDensity >= 0 && vessel.atmDensity > _currentActiveConfiguration.maxAtmosphereDensity))

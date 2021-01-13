@@ -12,7 +12,7 @@ namespace FNPlugin.Extensions
         public static Vector3d CalculateDeltaVV(this Vector3d thrustDirection, double totalMass, float deltaTime, double thrust, double isp, out double demandMass)
         {
             // Mass flow rate
-            var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
+            var massFlowRate = thrust / (isp * PhysicsGlobals.GravitationalAcceleration);
             // Change in mass over time interval dT
             var dm = massFlowRate * deltaTime;
             // Resource demand from propellants with mass
@@ -21,7 +21,7 @@ namespace FNPlugin.Extensions
             var finalMass = totalMass - dm;
             // deltaV amount
             var deltaV = finalMass > 0 && totalMass > 0
-                ? isp * GameConstants.STANDARD_GRAVITY * Math.Log(totalMass / finalMass)
+                ? isp * PhysicsGlobals.GravitationalAcceleration * Math.Log(totalMass / finalMass)
                 : 0;
 
             // Return deltaV vector

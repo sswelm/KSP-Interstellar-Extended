@@ -131,8 +131,7 @@ namespace FNPlugin.Propulsion
                 {
                     if (currentThrust > 0.0f)
                     {
-                        requested = 0.5 * powerMult * currentThrust * maxIsp * GameConstants.
-                            STANDARD_GRAVITY / (efficiency * 1000.0 * CurrentPropellant.
+                        requested = 0.5 * powerMult * currentThrust * maxIsp * PhysicsGlobals.GravitationalAcceleration / (efficiency * 1000.0 * CurrentPropellant.
                             ThrustMultiplier);
                     }
                     received = consumeMegawatts(requested + Math.Min(requested, Math.Max(0.0,
@@ -265,8 +264,7 @@ namespace FNPlugin.Propulsion
             powerConsumptionStrField = Fields[nameof(powerConsumptionStr)];
             powerConsumptionStrField.guiActive = showConsumption;
 
-            maxStoredPower = bufferMult * maxThrust * powerMult * maxIsp * GameConstants.
-                STANDARD_GRAVITY / (efficiency * 1000.0);
+            maxStoredPower = bufferMult * maxThrust * powerMult * maxIsp * PhysicsGlobals.GravitationalAcceleration / (efficiency * 1000.0);
         }
 
         public override int getPowerPriority()

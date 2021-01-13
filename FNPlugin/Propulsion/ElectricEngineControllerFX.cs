@@ -853,14 +853,14 @@ namespace FNPlugin.Propulsion
             effectiveRecievedPower = effectivePowerThrustModifier * actualPowerReceived * throttleModifier;
             effectiveSimulatedPower = effectivePowerThrustModifier * simulatedPowerReceived;
 
-            _maximumThrustInSpace = effectiveMaximumPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
-            currentThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveRecievedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
-            simulatedThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveSimulatedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
+            _maximumThrustInSpace = effectiveMaximumPower / _effectiveIsp / PhysicsGlobals.GravitationalAcceleration;
+            currentThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveRecievedPower / _effectiveIsp / PhysicsGlobals.GravitationalAcceleration;
+            simulatedThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveSimulatedPower / _effectiveIsp / PhysicsGlobals.GravitationalAcceleration;
 
             _attachedEngine.maxThrust = (float)Math.Max(simulatedThrustInSpace, 0.001);
 
-            _currentSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : currentThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
-            _simulatedSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : simulatedThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
+            _currentSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : currentThrustInSpace / _maxIsp / PhysicsGlobals.GravitationalAcceleration;
+            _simulatedSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : simulatedThrustInSpace / _maxIsp / PhysicsGlobals.GravitationalAcceleration;
 
             var maxThrustWithCurrentThrottle = currentThrustInSpace * throttleModifier;
 
@@ -907,7 +907,7 @@ namespace FNPlugin.Propulsion
                     _isFullyStarted = true;
                     _ispPersistent = _attachedEngine.realIsp;
 
-                    thrust_d = _attachedEngine.requestedMassFlow * GameConstants.STANDARD_GRAVITY * _ispPersistent;
+                    thrust_d = _attachedEngine.requestedMassFlow * PhysicsGlobals.GravitationalAcceleration * _ispPersistent;
 
                     ratioHeadingVersusRequest = 0;
                 }
@@ -932,8 +932,8 @@ namespace FNPlugin.Propulsion
             if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
             {
                 var engineFuelFlow = _currentSpaceFuelFlowRate * _attachedEngine.currentThrottle;
-                var currentMaxFuelFlowRate = _attachedEngine.maxThrust / _attachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
-                var engineMaxFuelFlowRat = _maximumThrustInSpace / _attachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
+                var currentMaxFuelFlowRate = _attachedEngine.maxThrust / _attachedEngine.realIsp / PhysicsGlobals.GravitationalAcceleration;
+                var engineMaxFuelFlowRat = _maximumThrustInSpace / _attachedEngine.realIsp / PhysicsGlobals.GravitationalAcceleration;
 
                 var currentEffectPower = Math.Min(1, particleEffectMult * (engineFuelFlow / currentMaxFuelFlowRate));
                 var maximumEffectPower = Math.Min(1, particleEffectMult * (engineFuelFlow / engineMaxFuelFlowRat));
@@ -944,7 +944,7 @@ namespace FNPlugin.Propulsion
             var vacuumPlasmaResource = part.Resources[ResourceSettings.Config.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
-                var calculatedConsumptionInTon = vessel.packed ? 0 : simulatedThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
+                var calculatedConsumptionInTon = vessel.packed ? 0 : simulatedThrustInSpace / engineIsp / PhysicsGlobals.GravitationalAcceleration;
                 var vacuumPlasmaResourceAmount = calculatedConsumptionInTon * 2000 * TimeWarp.fixedDeltaTime;
                 vacuumPlasmaResource.maxAmount = vacuumPlasmaResourceAmount;
                 part.RequestResource(ResourceSettings.Config.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
@@ -1099,7 +1099,7 @@ namespace FNPlugin.Propulsion
 
             if (_modifiedCurrentPropellantIspMultiplier <= 0) return 0;
 
-            return CurrentPropellantEfficiency * GetPowerThrustModifier() * powerSupply / (_modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * GameConstants.STANDARD_GRAVITY);
+            return CurrentPropellantEfficiency * GetPowerThrustModifier() * powerSupply / (_modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * PhysicsGlobals.GravitationalAcceleration);
         }
 
         private void UpdateIsp(double ispEfficiency = 1)
@@ -1139,7 +1139,7 @@ namespace FNPlugin.Propulsion
         public static Vector3d CalculateDeltaVV(Vector3d thrustDirection, double totalMass, double deltaTime, double thrust, double isp, out double demandMass)
         {
             // Mass flow rate
-            var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
+            var massFlowRate = thrust / (isp * PhysicsGlobals.GravitationalAcceleration);
             // Change in mass over time interval dT
             var dm = massFlowRate * deltaTime;
             // Resource demand from propellants with mass
@@ -1148,7 +1148,7 @@ namespace FNPlugin.Propulsion
             var finalMass = totalMass - dm;
             // deltaV amount
             var deltaV = finalMass > 0 && totalMass > 0
-                ? isp * GameConstants.STANDARD_GRAVITY * Math.Log(totalMass / finalMass)
+                ? isp * PhysicsGlobals.GravitationalAcceleration * Math.Log(totalMass / finalMass)
                 : 0;
 
             // Return deltaV vector

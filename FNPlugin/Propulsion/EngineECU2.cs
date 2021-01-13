@@ -524,7 +524,7 @@ namespace FNPlugin.Propulsion
 
             if (curEngineT != null)
             {
-                thrustPower = curEngineT.finalThrust * curEngineT.realIsp * Constants.GameConstants.STANDARD_GRAVITY / 2e6;
+                thrustPower = curEngineT.finalThrust * curEngineT.realIsp * PhysicsGlobals.GravitationalAcceleration / 2e6;
                 UpdateEngineWarpFuels();
             }
 

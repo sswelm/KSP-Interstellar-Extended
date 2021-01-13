@@ -1688,8 +1688,8 @@ namespace FNPlugin.Reactors
                     var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
                     if (engines.Any())
                     {
-                        var totalThrust = engines.Sum(m => m.realIsp * m.requestedMassFlow * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
-                        currentGeeForce = Math.Max(currentGeeForce, totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY);
+                        var totalThrust = engines.Sum(m => m.realIsp * m.requestedMassFlow * PhysicsGlobals.GravitationalAcceleration * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
+                        currentGeeForce = Math.Max(currentGeeForce, totalThrust / vessel.totalMass / PhysicsGlobals.GravitationalAcceleration);
                     }
                 }
 
@@ -2092,7 +2092,7 @@ namespace FNPlugin.Reactors
         {
             var isp = Math.Min(Math.Sqrt(temperature) * 21, maxThermalNozzleIsp);
 
-            var exhaustVelocity = isp * GameConstants.STANDARD_GRAVITY;
+            var exhaustVelocity = isp * PhysicsGlobals.GravitationalAcceleration;
 
             var thrust = powerInMj * 2000.0 * thermalPropulsionEfficiency / (exhaustVelocity * powerOutputMultiplier);
 
@@ -2103,7 +2103,7 @@ namespace FNPlugin.Reactors
         {
             var isp = Math.Sqrt(temperature) * 21;
 
-            var exhaustVelocity = isp * GameConstants.STANDARD_GRAVITY;
+            var exhaustVelocity = isp * PhysicsGlobals.GravitationalAcceleration;
 
             var thrust = powerInMj * 2000.0 * plasmaPropulsionEfficiency / (exhaustVelocity * powerOutputMultiplier);
 
