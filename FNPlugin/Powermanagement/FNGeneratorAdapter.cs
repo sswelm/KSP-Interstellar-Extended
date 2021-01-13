@@ -71,7 +71,7 @@ namespace FNPlugin.Powermanagement
                 _outputType = ResourceType.other;
                 foreach (ModuleResource moduleResource in _moduleGenerator.resHandler.outputResources)
                 {
-                    if (moduleResource.name != ResourceSettings.Config.ElectricPowerInMegawatt && (moduleResource.name != ResourceSettings.Config.ElectricPowerInKilowatt))
+                    if (moduleResource.name != ResourceSettings.Config.ElectricPowerInMegawatt && moduleResource.name != ResourceSettings.Config.ElectricPowerInKilowatt)
                         continue;
 
                     // assuming only one of those two is present

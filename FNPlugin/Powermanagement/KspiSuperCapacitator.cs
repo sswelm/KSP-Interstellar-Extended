@@ -17,114 +17,110 @@ namespace FNPlugin.Powermanagement
     {
         [KSPField(groupName = FNBatteryGenerator.GROUP, groupDisplayName = FNBatteryGenerator.GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_MaxCapacity", guiUnits = " MJe")]//Max Capacity
         public float maxStorageCapacityMJ = 0;
-        [KSPField(groupName = FNBatteryGenerator.GROUP, groupDisplayName = FNBatteryGenerator.GROUP_TITLE, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_Mass", guiUnits = " t")]//Mass
-        public float partMass = 0;
+        //[KSPField(groupName = FNBatteryGenerator.GROUP, groupDisplayName = FNBatteryGenerator.GROUP_TITLE, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_Mass", guiUnits = " t")]//Mass
+        //public float partMass = 0;
 
         [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
         public string powerResourceName = ResourceSettings.Config.ElectricPowerInMegawatt;
-        [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
-        public string electricChargeResourceName = ResourceSettings.Config.ElectricPowerInKilowatt;
+        //[KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
+        //public string electricChargeResourceName = ResourceSettings.Config.ElectricPowerInKilowatt;
 
-        [KSPField]
-        public double powerConversionRate = 1000;
-        [KSPField]
-        public double megajoulesAfterLoad = 0;
+        //[KSPField]
+        //public double powerConversionRate = 1000;
+        //[KSPField]
+        //public double megajoulesAfterLoad = 0;
 
-        public override void OnStart(StartState state)
-        {
-            string[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resources_to_supply = resources_to_supply;
+        //public override void OnStart(StartState state)
+        //{
+        //    string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
+        //    this.resources_to_supply = resourcesToSupply;
 
-            part.force_activate();
-        }
+        //    part.force_activate();
+        //}
 
-        public override void OnSave(ConfigNode node)
-        {
-            if (HighLogic.LoadedSceneIsEditor)
-                return;
+        //public override void OnSave(ConfigNode node)
+        //{
+        //    if (HighLogic.LoadedSceneIsEditor)
+        //        return;
 
-            var powerResource = part.Resources[powerResourceName];
+        //    var powerResource = part.Resources[powerResourceName];
 
-            if (powerResource == null)
-                return;
+        //    if (powerResource == null)
+        //        return;
 
-            var electricCharge = part.Resources[electricChargeResourceName];
+        //    var electricCharge = part.Resources[electricChargeResourceName];
 
-            if (electricCharge == null)
-                return;
+        //    if (electricCharge == null)
+        //        return;
 
-            if (megajoulesAfterLoad > 0)
-            {
-                Debug.Log("[KSPI]: KspiSuperCapacitator OnSave update " + powerResourceName + " amount to " + megajoulesAfterLoad);
+        //    if (megajoulesAfterLoad > 0)
+        //    {
+        //        Debug.Log("[KSPI]: KspiSuperCapacitator OnSave update " + powerResourceName + " amount to " + megajoulesAfterLoad);
 
-                if (megajoulesAfterLoad.IsInfinityOrNaN().IsFalse())
-                    powerResource.amount = megajoulesAfterLoad;
-                megajoulesAfterLoad = 0;
-            }
+        //        if (megajoulesAfterLoad.IsInfinityOrNaN().IsFalse())
+        //            powerResource.amount = megajoulesAfterLoad;
+        //        megajoulesAfterLoad = 0;
+        //    }
 
-            var availableEmptyElectricCharge = Math.Max(0, electricCharge.maxAmount - electricCharge.amount);
+        //    var availableEmptyElectricCharge = Math.Max(0, electricCharge.maxAmount - electricCharge.amount);
 
-            if (powerResource.amount > 0)
-            {
-                var newElectricChargeMaxAmount = electricCharge.maxAmount + (powerResource.maxAmount * powerConversionRate);
-                var newElectricChargeAmount = electricCharge.amount + (powerResource.amount * powerConversionRate);
+        //    if (!(powerResource.amount > 0)) return;
 
-                if (newElectricChargeMaxAmount.IsInfinityOrNaN().IsFalse())
-                {
-                    electricCharge.maxAmount = newElectricChargeMaxAmount;
-                    electricCharge.amount = newElectricChargeAmount;
-                }
+        //    var newElectricChargeMaxAmount = electricCharge.maxAmount + (powerResource.maxAmount * powerConversionRate);
+        //    var newElectricChargeAmount = electricCharge.amount + (powerResource.amount * powerConversionRate);
 
-                var megaJouleDecreaseMax = powerConversionRate == 0 ? 0 : availableEmptyElectricCharge / powerConversionRate;
-                var megeJouleDecrease = Math.Min(powerResource.amount, megaJouleDecreaseMax);
+        //    if (newElectricChargeMaxAmount.IsInfinityOrNaN().IsFalse())
+        //    {
+        //        electricCharge.maxAmount = newElectricChargeMaxAmount;
+        //        electricCharge.amount = newElectricChargeAmount;
+        //    }
 
-                var newPowerAmount = Math.Max(0, powerResource.amount - megeJouleDecrease);
+        //    var megaJouleDecreaseMax = powerConversionRate == 0 ? 0 : availableEmptyElectricCharge / powerConversionRate;
+        //    var megeJouleDecrease = Math.Min(powerResource.amount, megaJouleDecreaseMax);
 
-                if (newPowerAmount.IsInfinityOrNaN().IsFalse())
-                    powerResource.amount = newPowerAmount;
-            }
-        }
+        //    var newPowerAmount = Math.Max(0, powerResource.amount - megeJouleDecrease);
 
-        public override void OnLoad(ConfigNode node)
-        {
-            if (HighLogic.LoadedSceneIsEditor)
-                return;
+        //    if (newPowerAmount.IsInfinityOrNaN().IsFalse())
+        //        powerResource.amount = newPowerAmount;
+        //}
 
-            var powerResource = part.Resources[powerResourceName];
+        //public override void OnLoad(ConfigNode node)
+        //{
+        //    if (HighLogic.LoadedSceneIsEditor)
+        //        return;
 
-            if (powerResource == null)
-                return;
+        //    var powerResource = part.Resources[powerResourceName];
 
-            var electricCharge = part.Resources[electricChargeResourceName];
+        //    if (powerResource == null)
+        //        return;
 
-            if (electricCharge == null)
-                return;
+        //    var electricCharge = part.Resources[electricChargeResourceName];
 
-            if (part.protoPartSnapshot == null)
-                return;
+        //    if (electricCharge == null)
+        //        return;
 
-            // detect amount of power used offline and adjust megajoules
-            var protoElectricCharge = part.protoPartSnapshot.resources.FirstOrDefault(m => m.resourceName == electricChargeResourceName);
+        //    // detect amount of power used offline and adjust megajoules
+        //    var protoElectricCharge = part.protoPartSnapshot?.resources.FirstOrDefault(m => m.resourceName == electricChargeResourceName);
 
-            if (protoElectricCharge == null)
-                return;
+        //    if (protoElectricCharge == null)
+        //        return;
 
-            var protoPowerResource = part.protoPartSnapshot.resources.FirstOrDefault(m => m.resourceName == powerResourceName);
+        //    var protoPowerResource = part.protoPartSnapshot.resources.FirstOrDefault(m => m.resourceName == powerResourceName);
 
-            if (protoPowerResource != null)
-            {
-                powerResource.maxAmount = protoPowerResource.maxAmount;
-                powerResource.amount = protoPowerResource.amount;
-            }
+        //    if (protoPowerResource != null)
+        //    {
+        //        powerResource.maxAmount = protoPowerResource.maxAmount;
+        //        powerResource.amount = protoPowerResource.amount;
+        //    }
 
-            var deltaElectricChargeMaxAmount = protoElectricCharge.maxAmount - electricCharge.maxAmount;
+        //    var deltaElectricChargeMaxAmount = protoElectricCharge.maxAmount - electricCharge.maxAmount;
 
-            megajoulesAfterLoad = deltaElectricChargeMaxAmount == 0 ? 0 : Math.Max(0, (protoElectricCharge.amount - electricCharge.maxAmount) / deltaElectricChargeMaxAmount) * powerResource.maxAmount;
-        }
+        //    megajoulesAfterLoad = deltaElectricChargeMaxAmount == 0 ? 0 : Math.Max(0, (protoElectricCharge.amount - electricCharge.maxAmount) / deltaElectricChargeMaxAmount) * powerResource.maxAmount;
+        //}
 
-        public void Update()
-        {
-            partMass = part.mass;
-        }
+        //public void Update()
+        //{
+        //    partMass = part.mass;
+        //}
     }
 }
