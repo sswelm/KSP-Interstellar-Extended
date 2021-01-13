@@ -71,7 +71,7 @@ namespace FNPlugin.Powermanagement
 
             double powerConverted;
 
-            if (Kerbalism.IsLoaded && timeWarpDT > 20)
+            if (Kerbalism.IsLoaded)
                 powerConverted = ecToSupply / GameConstants.ecPerMJ / timeWarpDT;
             else
                 powerConverted = part.RequestResource(electricResourceDefinition.id, -ecToSupply) / -GameConstants.ecPerMJ / timeWarpDT;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace FNPlugin.Resources
@@ -23,16 +24,33 @@ namespace FNPlugin.Resources
         private readonly BaseField _capacityBaseField;
         private readonly BaseField _runningBaseField;
 
+        private double _capacity;
+        private bool _running;
+
         public bool Running
         {
             get => (bool) _runningBaseField.GetValue(_partModule);
-            set => _runningBaseField.SetValue(value, _partModule);
+            set
+            {
+                if (_running != value)
+                {
+                    _running = value;
+                    _runningBaseField.SetValue(value, _partModule);
+                }
+            }
         }
 
         public double Capacity
         {
             get => (double)_capacityBaseField.GetValue(_partModule);
-            set => _capacityBaseField.SetValue(value, _partModule);
+            set
+            {
+                if (Math.Abs(_capacity - value) > float.Epsilon)
+                {
+                    _capacity = value;
+                    _capacityBaseField.SetValue(value, _partModule);
+                }
+            }
         }
 
         public void ReliablityEvent()
@@ -42,9 +60,12 @@ namespace FNPlugin.Resources
 
         public void ReliablityEvent(bool running, double capacity)
         {
-            Capacity = capacity;
-            Running = running;
-            ReliablityEvent();
+            if (_running != running || Math.Abs(_capacity - capacity) > float.Epsilon)
+            {
+                Capacity = capacity;
+                Running = running;
+                ReliablityEvent();
+            }
         }
     }
 

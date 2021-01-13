@@ -1092,27 +1092,14 @@ namespace FNPlugin.Powermanagement
                 else
                     _maxElectricPowerPerSecond = overheatingModifier * _maxChargedPowerForChargedGenerator * _totalEfficiency;
 
-                //var generatorRate = Math.Min(maximumGeneratorPowerMJ, electricdtps) * GameConstants.ecPerMJ;
+                var availableGeneratorRate = Math.Max(0, maximumGeneratorPowerMJ - _electricPowerPerSecond) * GameConstants.ecPerMJ;
+
+                attachedPowerSource.UpdateAuxiliaryPowerSource(availableGeneratorRate);
 
                 var requiredElectricCharge = (GetRequiredElectricCharge() * GameConstants.ecPerMJ);
 
                 if (_outputModuleResource != null)
                     _outputModuleResource.rate = requiredElectricCharge;
-
-                if (_powerGeneratorReliablityEvent != null &&  requiredElectricCharge > 0)
-                {
-                    var newElectricRate = Math.Min(maximumGeneratorPowerMJ * GameConstants.ecPerMJ, _previousRequiredElectricCharge + 0.2 * requiredElectricCharge + 0.01);
-
-                    _powerGeneratorRunning?.SetValue(true, powerGeneratorProcessController);
-                    _powerGeneratorCapacity?.SetValue(newElectricRate, powerGeneratorProcessController);
-
-                    _powerGeneratorReliablityEvent.Invoke(powerGeneratorProcessController, new object[] {false});
-
-                    _previousRequiredElectricCharge = newElectricRate;
-
-                    AuxiliaryResourceSupplied(newElectricRate / GameConstants.ecPerMJ);
-                }
-
 
                 _outputPower = isLimitedByMinThrottle
                     ? -supplyManagedFNResourcePerSecond(_electricPowerPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt)

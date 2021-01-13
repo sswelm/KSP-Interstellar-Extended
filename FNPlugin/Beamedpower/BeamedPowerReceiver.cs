@@ -446,6 +446,8 @@ namespace FNPlugin.Beamedpower
             restartCounter = counter;
         }
 
+        public void UpdateAuxiliaryPowerSource(double available) { }
+
         public void RemoveOtherVesselData()
         {
             var deleteList = new List<Vessel>();

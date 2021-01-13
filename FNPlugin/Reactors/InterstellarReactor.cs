@@ -441,6 +441,7 @@ namespace FNPlugin.Reactors
         private double _lithiumConsumedPerSecond;
         private double _tritiumProducedPerSecond;
         private double _heliumProducedPerSecond;
+        private double _auxiliaryPowerAvailable;
 
         private int _windowId = 90175467;
         private int _deactivateTimer;
@@ -522,6 +523,7 @@ namespace FNPlugin.Reactors
         public virtual bool IsFuelNeutronRich => false;
         public virtual double MaximumPower => MaximumThermalPower + MaximumChargedPower;
         public virtual double StableMaximumReactorPower => IsEnabled ? NormalisedMaximumPower : 0;
+
         public virtual double MaxCoreTemperature => CoreTemperature;
 
         public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
@@ -730,6 +732,11 @@ namespace FNPlugin.Reactors
             moduleCost = updateModuleCost ? (float)(maxResourceCost + dryCost - neutronEmbrittlementCost) : 0;
 
             return moduleCost;
+        }
+
+        public void UpdateAuxiliaryPowerSource(double available)
+        {
+            _auxiliaryPowerAvailable = available;
         }
 
 
@@ -1541,28 +1548,7 @@ namespace FNPlugin.Reactors
                     ongoing_wasteheat_rate = ongoing_consumption_rate;
                 }
 
-                // consume fuel
-                _processControlManager.Collection.TryGetValue(currentFuelVariant.Name, out var reactorFuelProcess);
-                if (!CheatOptions.InfinitePropellant)
-                {
-                    _consumedFuelTotalFixed = 0;
-
-                    foreach (var reactorFuel in currentFuelVariant.ReactorFuels)
-                    {
-                        _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess);
-                    }
-
-                    // refresh production list
-                    reactorProduction.Clear();
-
-                    // produce reactor products
-                    foreach (var product in currentFuelVariant.ReactorProducts)
-                    {
-                        var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess != null);
-                        if (product.IsPropellant)
-                            reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
-                    }
-                }
+                ProcessReactorFuel(timeWarpFixedDeltaTime);
 
                 BreedTritium(ongoing_thermal_power_generated, timeWarpFixedDeltaTime);
 
@@ -1605,6 +1591,41 @@ namespace FNPlugin.Reactors
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, 0);
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedParticleInMegawatt, 0);
             _resourceBuffers.UpdateBuffers();
+        }
+
+        private void ProcessReactorFuel(double timeWarpFixedDeltaTime)
+        {
+            // update Kerbalism EC power generator
+            if (Kerbalism.IsLoaded)
+            {
+                _processControlManager.Collection.TryGetValue(currentFuelVariant.Name + "-EC", out var electricPowerGenerator);
+                electricPowerGenerator?.ReliablityEvent(true, _auxiliaryPowerAvailable);
+            }
+
+            _processControlManager.Collection.TryGetValue(currentFuelVariant.Name, out var reactorFuelProcess);
+            // consume fuel
+            if (!CheatOptions.InfinitePropellant)
+            {
+                _consumedFuelTotalFixed = 0;
+
+                foreach (var reactorFuel in currentFuelVariant.ReactorFuels)
+                {
+                    _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, ongoing_total_power_generated / geeForceModifier,
+                        timeWarpFixedDeltaTime, reactorFuelProcess);
+                }
+
+                // refresh production list
+                reactorProduction.Clear();
+
+                // produce reactor products
+                foreach (var product in currentFuelVariant.ReactorProducts)
+                {
+                    var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier,
+                        timeWarpFixedDeltaTime, reactorFuelProcess != null);
+                    if (product.IsPropellant)
+                        reactorProduction.Add(new ReactorProduction() {fuelmode = product, mass = massProduced});
+                }
+            }
         }
 
         private void UpdatePlayedSound()

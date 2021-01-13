@@ -41,5 +41,7 @@ namespace FNPlugin.Powermanagement
         double RawMaximumPowerForPowerGeneration { get; }
 
         double MaxCoreTemperature { get; }
+
+        void UpdateAuxiliaryPowerSource(double available);
     }
 }
