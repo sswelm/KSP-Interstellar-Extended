@@ -1196,8 +1196,6 @@ namespace InterstellarFuelSwitch
             // First find the amounts each tank type is filled with
             var resourceList = new List<List<double>>();
             var initialResourceList = new List<List<double>>();
-            var boilOffTempList = new List<List<double>>();
-            var latendHeatVaporationList = new List<List<double>>();
 
             var resourceTankAbsoluteAmountArray = resourceAmounts.Split(';');
             var resourceTankRatioAmountArray = resourceRatios.Split(';');
@@ -1208,7 +1206,7 @@ namespace InterstellarFuelSwitch
             var tankGuiNameArray = resourceGui.Split(';');
             var tankSwitcherNameArray = tankSwitchNames.Split(';');
 
-            // if initial resource ammount is missing or not complete, use full amount
+            // if initial resource amount is missing or not complete, use full amount
             if (initialResourceAmounts.Equals(string.Empty) ||
                 initialResourceTankArray.Length != resourceTankAbsoluteAmountArray.Length)
                 initialResourceTankArray = resourceTankAbsoluteAmountArray;
@@ -1219,8 +1217,6 @@ namespace InterstellarFuelSwitch
             {
                 resourceList.Add(new List<double>());
                 initialResourceList.Add(new List<double>());
-                boilOffTempList.Add(new List<double>());
-                latendHeatVaporationList.Add(new List<double>());
 
                 var resourceAmountArray = resourceTankAbsoluteAmountArray[tankCounter].Trim().Split(',');
                 var initialResourceAmountArray = initialResourceTankArray[tankCounter].Trim().Split(',');
@@ -1492,7 +1488,7 @@ namespace InterstellarFuelSwitch
                 windowPosition = GUILayout.Window(_windowID, windowPosition, Window, part.partInfo.title);
         }
 
-        private void Window(int windowID)
+        private void Window(int windowId)
         {
             try
             {
@@ -1509,24 +1505,22 @@ namespace InterstellarFuelSwitch
 
                 foreach (var tank in _modularTankList)
                 {
-                    if (tank.hasTech)
-                    {
-                        GUILayout.BeginHorizontal();
-                        if (GUILayout.Button(tank.GuiName, GUILayout.ExpandWidth(true)))
-                        {
-                            selectedTankSetup = _modularTankList.IndexOf(tank);
-                            AssignResourcesToPart(true, true);
-                            if (_fuelTankSetupControl != null)
-                                _fuelTankSetupControl.SwitchToFuelTankSetup(tank.SwitchName);
-                            if (closeAterSwitch)
-                            {
-                                closeAterSwitch = false;
-                                render_window = false;
-                            }
-                        }
+                    if (!tank.hasTech) continue;
 
-                        GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button(tank.GuiName, GUILayout.ExpandWidth(true)))
+                    {
+                        selectedTankSetup = _modularTankList.IndexOf(tank);
+                        AssignResourcesToPart(true, true);
+                        _fuelTankSetupControl?.SwitchToFuelTankSetup(tank.SwitchName);
+                        if (closeAterSwitch)
+                        {
+                            closeAterSwitch = false;
+                            render_window = false;
+                        }
                     }
+
+                    GUILayout.EndHorizontal();
                 }
 
                 GUILayout.EndVertical();
@@ -1535,34 +1529,30 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS]: InterstellarFuelSwitch Window(" + windowID + "): " + e.Message);
+                Debug.LogError("[IFS]: InterstellarFuelSwitch Window(" + windowId + "): " + e.Message);
                 throw;
             }
         }
 
         private void InitializeKerbalismHabitat()
         {
-            bool found = false;
-
             foreach (PartModule module in part.Modules)
             {
-                if (module.moduleName == "Habitat")
-                {
-                    found = true;
-                    habitatModule = module;
-                    habitatVolumeField = module.Fields["volume"];
-                    habitatSurfaceField = module.Fields["surface"];
-                    habitatStateField = module.Fields["state"];
-                    habitatToggleField = module.Fields["toggle"];
-                    habitatOnStartMethod = module.GetType().GetMethod("OnStart");
-                    volumeField = habitatModule.Fields["Volume"];
-                    surfaceField = habitatModule.Fields["Surface"];
+                if (module.moduleName != "Habitat") continue;
 
-                    if (habitatOnStartMethod != null)
-                        Debug.Log("[IFS]: Found onStartMethod");
+                habitatModule = module;
+                habitatVolumeField = module.Fields["volume"];
+                habitatSurfaceField = module.Fields["surface"];
+                habitatStateField = module.Fields["state"];
+                habitatToggleField = module.Fields["toggle"];
+                habitatOnStartMethod = module.GetType().GetMethod("OnStart");
+                volumeField = habitatModule.Fields["Volume"];
+                surfaceField = habitatModule.Fields["Surface"];
 
-                    break;
-                }
+                if (habitatOnStartMethod != null)
+                    Debug.Log("[IFS]: Found onStartMethod");
+
+                break;
             }
 
             //if (found)
