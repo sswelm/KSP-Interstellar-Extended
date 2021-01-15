@@ -626,11 +626,11 @@ namespace FNPlugin.Wasteheat
             effectiveSize = Math.Round(effectiveSize);
         }
 
-        protected override double ExternalTemp()
+        protected override double GetExternalTemp()
         {
             if (coolTemp == 0 || hotTemp == 0)
             {
-                return base.ExternalTemp();
+                return base.GetExternalTemp();
             }
 
             // Weak approximation of the underground temp.
@@ -659,7 +659,7 @@ namespace FNPlugin.Wasteheat
                     undergroundTempField.guiActive = false;
                 }
 
-                undergroundTemp = ExternalTemp();
+                undergroundTemp = GetExternalTemp();
 
                 UpdateEffectiveSize();
                 radiatorArea = effectiveSize;
@@ -1220,10 +1220,12 @@ namespace FNPlugin.Wasteheat
             return true;
         }
 
-        protected virtual double ExternalTemp()
+        protected virtual double GetExternalTemp()
         {
             // subclass may override, if needed
-            return vessel == null ? PhysicsGlobals.SpaceTemperature : vessel.externalTemperature;
+            return vessel == null
+                ? PhysicsGlobals.SpaceTemperature
+                : vessel.mainBody.GetTemperature(vessel.altitude);  // used to be vessel.externalTemperature
         }
 
         protected void UpdateRadiatorArea()
@@ -1607,7 +1609,7 @@ namespace FNPlugin.Wasteheat
                 // ToDo replace wasteheatManager.SqrtResourceBarRatioBegin by ResourceBarRatioBegin after generators hot bath takes into account expected temperature
                 radiatorTemperatureTempVal = Math.Min(maxRadiatorTemperature * wasteheatManager.TemperatureRatio, maxCurrentRadiatorTemperature);
 
-                deltaTemp = Math.Max(radiatorTemperatureTempVal - Math.Max(ExternalTemp() * Math.Min(1, wasteheatManager.AtmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
+                deltaTemp = Math.Max(radiatorTemperatureTempVal - Math.Max(GetExternalTemp() * Math.Min(1, wasteheatManager.AtmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
@@ -1657,7 +1659,7 @@ namespace FNPlugin.Wasteheat
                         radiatorSurfaceArea : radiatorArea,
                         radiatorConvectiveBonus: convectiveBonus,
                         radiatorTemperature: CurrentRadiatorTemperature,
-                        externalTemperature: ExternalTemp(),
+                        externalTemperature: GetExternalTemp(),
                         atmosphericDensity: atmDensity,
                         grapheneRadiatorRatio: IsGraphene ? 1 : 0,
                         submergedPortion: part.submergedPortion,
@@ -1799,7 +1801,7 @@ namespace FNPlugin.Wasteheat
                 var currentExternalTemp = PhysicsGlobals.SpaceTemperature;
 
                 if (vessel != null && vessel.atmDensity > 0)
-                    currentExternalTemp = ExternalTemp() * Math.Min(1, vessel.atmDensity);
+                    currentExternalTemp = GetExternalTemp() * Math.Min(1, vessel.atmDensity);
 
                 _externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, currentExternalTemp));
                 if (_externalTempQueue.Count > 20)
