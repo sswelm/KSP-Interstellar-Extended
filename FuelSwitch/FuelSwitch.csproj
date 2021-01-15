@@ -85,6 +85,7 @@
     <Compile Include="InterstellarNodeLoader.cs" />
     <Compile Include="InterstellarTextureSwitch.cs" />
     <Compile Include="IFSRadioactiveDecay.cs" />
+    <Compile Include="Kerbalism.cs" />
     <Compile Include="ParseTools.cs" />
     <Compile Include="PartExtensions.cs" />
     <Compile Include="HideHiddenPartsFilter.cs" />

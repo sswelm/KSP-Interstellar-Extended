@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using KSP.Localization;
 
 namespace InterstellarFuelSwitch
@@ -68,7 +70,7 @@ namespace InterstellarFuelSwitch
         private BaseField boiloffStrField;
         private BaseField powerStatusStrField;
         private BaseField externalTemperatureField;
-            
+
         private double environmentBoiloff;
         private double environmentFactor;
         private double recievedPowerKW;
@@ -76,15 +78,18 @@ namespace InterstellarFuelSwitch
         private double currentPowerReq;
         private double previousPowerReq;
         private double previousPowerUsage;
-       
+
         private bool requiresPower;
         private float previousDeltaTime;
+        private List<IFSCryostat> _cryostats;
+
+        public bool IsMaster { get; private set; }
 
         public override void OnStart(PartModule.StartState state)
         {
             enabled = true;
 
-            // compensate for stock solar initialisation heating issies
+            // compensate for stock solar initialization heating issies
             part.temperature = storedTemp;
             requiresPower = powerReqKW > 0;
 
@@ -95,6 +100,8 @@ namespace InterstellarFuelSwitch
 
             if (state == StartState.Editor)
                 return;
+
+            _cryostats = part.FindModulesImplementing<IFSCryostat>();
 
             part.temperature = storedTemp;
             part.skinTemperature = storedTemp;
@@ -107,19 +114,22 @@ namespace InterstellarFuelSwitch
                 node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
                 node.AddValue("amount", powerReqKW > 0  ? powerReqKW / 50 : 1);
                 part.AddResource(node);
-            }            
+            }
         }
 
         private void UpdateElectricChargeBuffer(double currentPowerUsage)
         {
-            var _electricCharge_resource = part.Resources[STOCK_RESOURCE_ELECTRICCHARGE];
-            if (_electricCharge_resource != null && (TimeWarp.fixedDeltaTime != previousDeltaTime || previousPowerUsage != currentPowerUsage))
+            if (Kerbalism.IsLoaded)
+                return;
+
+            var electricChargeResource = part.Resources[STOCK_RESOURCE_ELECTRICCHARGE];
+            if (electricChargeResource != null && (TimeWarp.fixedDeltaTime != previousDeltaTime || previousPowerUsage != currentPowerUsage))
             {
                 var requiredCapacity = 2 * currentPowerUsage * TimeWarp.fixedDeltaTime;
-                var bufferRatio = _electricCharge_resource.maxAmount > 0 ? _electricCharge_resource.amount / _electricCharge_resource.maxAmount : 0;
+                var bufferRatio = electricChargeResource.maxAmount > 0 ? electricChargeResource.amount / electricChargeResource.maxAmount : 0;
 
-                _electricCharge_resource.maxAmount = requiredCapacity;
-                _electricCharge_resource.amount =  bufferRatio * requiredCapacity;
+                electricChargeResource.maxAmount = requiredCapacity;
+                electricChargeResource.amount =  bufferRatio * requiredCapacity;
             }
 
             previousPowerUsage = currentPowerUsage;
@@ -141,7 +151,7 @@ namespace InterstellarFuelSwitch
                     isDisabledField.guiActiveEditor = true;
                     return;
                 }
-                
+
                 isDisabledField.guiActive = powerReqKW > 0;
 
                 bool coolingIsRelevant = cryostat_resource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
@@ -187,7 +197,7 @@ namespace InterstellarFuelSwitch
                 if (HighLogic.LoadedSceneIsEditor)
                     isDisabledField.guiActiveEditor = false;
                 else
-                    isDisabledField.guiActive = false; 
+                    isDisabledField.guiActive = false;
             }
         }
 
@@ -216,17 +226,7 @@ namespace InterstellarFuelSwitch
             {
                 UpdateElectricChargeBuffer(Math.Max(currentPowerReq, 0.1 * powerReqKW));
 
-                var fixedPowerReqKW = currentPowerReq * fixedDeltaTime;
-
-                var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity ? fixedPowerReqKW : 0;
-
-                if (fixedRecievedChargeKW <= fixedPowerReqKW)
-                    fixedRecievedChargeKW += part.RequestResource(FNRESOURCE_MEGAJOULES, (fixedPowerReqKW - fixedRecievedChargeKW) / 1000) * 1000;
-
-                if (currentPowerReq < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
-                    fixedRecievedChargeKW += part.RequestResource(STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
-
-                recievedPowerKW = fixedRecievedChargeKW / fixedDeltaTime;
+                recievedPowerKW = FixedReceivedChargeKw(currentPowerReq, fixedDeltaTime);
             }
             else
                 recievedPowerKW = 0;
@@ -256,6 +256,39 @@ namespace InterstellarFuelSwitch
 
             previousPowerReq = currentPowerReq;
             previousRecievedPowerKW = recievedPowerKW;
+        }
+
+        private double FixedReceivedChargeKw( double powerReqKw, double deltaTime)
+        {
+            if (powerReqKw <= float.Epsilon)
+                return powerReqKw;
+
+            if (CheatOptions.InfiniteElectricity)
+                return powerReqKw;
+
+            if (Kerbalism.IsLoaded )
+            {
+                // first check if there is any master, if we are not master already
+                if (!IsMaster)
+                    IsMaster = !_cryostats.Any(m => m.IsMaster);
+
+                // if we are master we can control ProcessController
+                if (IsMaster)
+                {
+                    // verify we collected enough
+
+                    // set new capacity
+                }
+
+                return powerReqKw;
+            }
+
+            var receivedChargeKw = part.RequestResource(STOCK_RESOURCE_ELECTRICCHARGE, (powerReqKw) * deltaTime) / deltaTime;
+
+            if (receivedChargeKw <= powerReqKw)
+                receivedChargeKw += part.RequestResource(FNRESOURCE_MEGAJOULES, (powerReqKw - receivedChargeKw) * deltaTime / 1000) * 1000 / deltaTime;
+
+            return receivedChargeKw;
         }
 
         public override string GetInfo()
