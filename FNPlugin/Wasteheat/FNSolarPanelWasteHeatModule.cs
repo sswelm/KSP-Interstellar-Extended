@@ -224,8 +224,11 @@ namespace FNPlugin
 
             if (_outputResource != null)
             {
-                if (kerbalism_panelPower > 0)
-                    part.RequestResource(_solarPanel.resourceName, kerbalism_panelPower * fixedDeltaTime);
+                if (Kerbalism.IsLoaded)
+                {
+                    //if (kerbalism_panelPower > 0)
+                    //    part.RequestResource(_solarPanel.resourceName, kerbalism_panelPower * fixedDeltaTime);
+                }
                 else if (_outputResource != null)
                     _outputResource.rate = 0;
                 else
@@ -236,8 +239,11 @@ namespace FNPlugin
             solar_supply = _outputType == ResourceType.megajoule ? solarRate : solarRate / GameConstants.ecPerMJ;
             solarMaxSupply = _outputType == ResourceType.megajoule ? maxSupply : maxSupply / GameConstants.ecPerMJ;
 
-            mjSolarSupply = PluginHelper.GetFormattedPowerString(supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceSettings.Config.ElectricPowerInMegawatt));
-            mjMaxSupply = PluginHelper.GetFormattedPowerString(solarMaxSupply);
+            if (!Kerbalism.IsLoaded)
+            {
+                mjSolarSupply = PluginHelper.GetFormattedPowerString(supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceSettings.Config.ElectricPowerInMegawatt));
+                mjMaxSupply = PluginHelper.GetFormattedPowerString(solarMaxSupply);
+            }
         }
 
         private void CalculateSolarFlowRate(double efficiency, ref double maximumSupply, ref double solarPowerRate)
