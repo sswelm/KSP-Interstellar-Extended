@@ -540,7 +540,7 @@ namespace FNPlugin.Reactors
                 if (currentFuelVariant != null && previousFuelVariant != null && currentFuelVariant != previousFuelVariant)
                 {
                     _processControlManager.Collection.TryGetValue(previousFuelVariant.Name, out var reactorFuelProcess);
-                    reactorFuelProcess?.ReliablityEvent(true, 0);
+                    reactorFuelProcess?.ReliablityEvent(0, true);
                 }
 
                 previousFuelVariant = value;
@@ -1599,7 +1599,7 @@ namespace FNPlugin.Reactors
             if (Kerbalism.IsLoaded)
             {
                 _processControlManager.Collection.TryGetValue(currentFuelVariant.Name + "-EC", out var electricPowerGenerator);
-                electricPowerGenerator?.ReliablityEvent(true, _auxiliaryPowerAvailable);
+                electricPowerGenerator?.ReliablityEvent(_auxiliaryPowerAvailable, true);
             }
 
             _processControlManager.Collection.TryGetValue(currentFuelVariant.Name, out var reactorFuelProcess);
@@ -1927,7 +1927,7 @@ namespace FNPlugin.Reactors
                     (fixedDeltaTime <= 20 && (delta > lithiumRequest * 0.01 || delta > _previousLithiumRequest * 0.01) ||
                      fixedDeltaTime >  20 && (delta > lithiumRequest * 0.1  || delta > _previousLithiumRequest * 0.1)))
                 {
-                    lithiumBreeder.ReliablityEvent(true, lithiumRequest);
+                    lithiumBreeder.ReliablityEvent(lithiumRequest, true);
 
                     _previousLithiumRequest = lithiumRequest;
                 }
@@ -2260,7 +2260,7 @@ namespace FNPlugin.Reactors
 
             var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ? powerInMj * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency : 0;
 
-            resourceControl?.ReliablityEvent(true, consumeAmountInUnitOfStorage);
+            resourceControl?.ReliablityEvent(consumeAmountInUnitOfStorage, true);
 
             if (fuel.ConsumeGlobal)
             {

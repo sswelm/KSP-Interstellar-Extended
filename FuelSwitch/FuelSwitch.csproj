@@ -91,6 +91,7 @@
     <Compile Include="ParseTools.cs" />
     <Compile Include="PartExtensions.cs" />
     <Compile Include="HideHiddenPartsFilter.cs" />
+    <Compile Include="ProcessControlMetaData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
