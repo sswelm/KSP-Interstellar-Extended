@@ -34,13 +34,14 @@ namespace InterstellarFuelSwitch
         [KSPField] public int initializationCountdown = 10;
         [KSPField] public double kerbalismBoiloffMultiplier = 100;
 
-        [KSPField] public string cryoCoolingPostfix = "CryoCooling";
+        [KSPField] public string coolingPostfix = "Cooling";
+        [KSPField] public string heatingPostfix = "Heating";
         [KSPField] public string boiloffPostfix = "Boiloff";
         [KSPField] public string boiloffPrefix = "_";
 
         //GUI
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Power")]//Power
-        public string powerStatusStr = String.Empty;
+        public string powerStatusStr = string.Empty;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Boiloff")]//Boiloff
         public string boiloffStr;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Temperature", guiFormat = "F0", guiUnits = " K")]//Temperature
@@ -67,6 +68,8 @@ namespace InterstellarFuelSwitch
         private bool requiresPower;
         private float previousDeltaTime;
         private string boiloffResourceName;
+        private string coolingResourceName;
+        private string heatingResourceName;
 
         private ProcessControlMetaData processController;
         private PartResourceDefinition _electricChargeDefinition;
@@ -76,9 +79,11 @@ namespace InterstellarFuelSwitch
             enabled = true;
 
             boiloffResourceName = boiloffPrefix + resourceName + boiloffPostfix;
+            coolingResourceName = "_" + resourceName + coolingPostfix;
+            heatingResourceName = "_" + resourceName + heatingPostfix;
 
             _electricChargeDefinition = PartResourceLibrary.Instance.GetDefinition(StockResourceElectricCharge);
-            processController = ProcessControlManager.FindProcessControl(part, resourceName + cryoCoolingPostfix);
+            processController = ProcessControlManager.FindProcessControl(part, resourceName + coolingPostfix);
 
             // compensate for stock solar initialization heating issues
             part.temperature = storedTemp;
@@ -96,14 +101,13 @@ namespace InterstellarFuelSwitch
             part.skinTemperature = storedTemp;
 
             // if electricCharge buffer is missing, add it.
-            if (!part.Resources.Contains(StockResourceElectricCharge))
-            {
-                ConfigNode node = new ConfigNode("RESOURCE");
-                node.AddValue("name", StockResourceElectricCharge);
-                node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
-                node.AddValue("amount", powerReqKW > 0  ? powerReqKW / 50 : 1);
-                part.AddResource(node);
-            }
+            if (part.Resources.Contains(StockResourceElectricCharge)) return;
+
+            ConfigNode node = new ConfigNode("RESOURCE");
+            node.AddValue("name", StockResourceElectricCharge);
+            node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
+            node.AddValue("amount", powerReqKW > 0  ? powerReqKW / 50 : 1);
+            part.AddResource(node);
         }
 
         private void UpdateElectricChargeBuffer(double currentPowerUsage)
@@ -228,7 +232,7 @@ namespace InterstellarFuelSwitch
 
             currentBoiloff = maxBoiloff * (1 - powerRatioModifier);
 
-            if (processController != null)
+            if (Kerbalism.IsLoaded)
             {
                 var boiloffResource = part.Resources[boiloffResourceName];
                 if (boiloffResource != null)
@@ -267,9 +271,30 @@ namespace InterstellarFuelSwitch
             if (CheatOptions.InfiniteElectricity)
                 return powerReqKw;
 
-            if (processController != null)
+            if (Kerbalism.IsLoaded)
             {
-                processController.ReliablityEvent(powerReqKw, true);
+                var coolingResource = part.Resources[coolingResourceName];
+                if (coolingResource != null)
+                {
+                    coolingResource.maxAmount = powerReqKw;
+                    coolingResource.amount = powerReqKw;
+                }
+
+                var heatingResource = part.Resources[heatingResourceName];
+                if (heatingResource != null)
+                {
+                    heatingResource.maxAmount = powerReqKw ;
+                    heatingResource.amount = powerReqKw;
+                }
+
+                //var boiloffResource = part.Resources["_LqdHydrogenBoiloff"];
+                //if (boiloffResource != null)
+                //{
+                //    boiloffResource.maxAmount = powerReqKw;
+                //    boiloffResource.amount = powerReqKw;
+                //}
+
+                //processController?.ReliablityEvent(powerReqKw, true);
 
                 return part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime, true) / deltaTime;
             }

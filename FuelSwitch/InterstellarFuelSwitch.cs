@@ -1110,16 +1110,15 @@ namespace InterstellarFuelSwitch
 
             var resourceTankAbsoluteAmountArray = resourceAmounts.Split(';');
             var resourceTankRatioAmountArray = resourceRatios.Split(';');
-            var initialResourceTankArray = initialResourceAmounts.Split(';');
             var tankNameArray = resourceNames.Split(';');
             var tankTechReqArray = tankTechReq.Split(';');
             var tankGuiNameArray = resourceGui.Split(';');
             var tankSwitcherNameArray = tankSwitchNames.Split(';');
 
             // if initial resource amount is missing or not complete, use full amount
-            if (initialResourceAmounts.Equals(string.Empty) ||
-                initialResourceTankArray.Length != resourceTankAbsoluteAmountArray.Length)
-                initialResourceTankArray = resourceTankAbsoluteAmountArray;
+            string[] initialResourceTankArray = string.IsNullOrEmpty(initialResourceAmounts)
+                ? resourceTankAbsoluteAmountArray
+                : initialResourceAmounts.Split(';');
 
             var maxLengthTankArray = Math.Max(resourceTankAbsoluteAmountArray.Length, resourceTankRatioAmountArray.Length);
 
@@ -1128,21 +1127,22 @@ namespace InterstellarFuelSwitch
                 resourceList.Add(new List<double>());
                 initialResourceList.Add(new List<double>());
 
-                var resourceAmountArray = resourceTankAbsoluteAmountArray[tankCounter].Trim().Split(',');
-                var initialResourceAmountArray = initialResourceTankArray[tankCounter].Trim().Split(',');
+                var resourceMaxAmountArray = resourceTankAbsoluteAmountArray[tankCounter].Trim().Split(',');
+                var initialResourceAmountArray = tankCounter <  initialResourceTankArray.Length
+                    ? initialResourceTankArray[tankCounter].Trim().Split(',')
+                    : resourceTankAbsoluteAmountArray[tankCounter].Trim().Split(',');
 
                 // if missing or not complete, use full amount
-                if (initialResourceAmounts.Equals(string.Empty) ||
-                    initialResourceAmountArray.Length != resourceAmountArray.Length)
-                    initialResourceAmountArray = resourceAmountArray;
+                if (string.IsNullOrEmpty(initialResourceAmounts) || initialResourceAmountArray.Length != resourceMaxAmountArray.Length)
+                    initialResourceAmountArray = resourceMaxAmountArray;
 
-                for (var amountCounter = 0; amountCounter < resourceAmountArray.Length; amountCounter++)
+                for (var amountCounter = 0; amountCounter < resourceMaxAmountArray.Length; amountCounter++)
                 {
-                    if (tankCounter >= resourceList.Count || amountCounter >= resourceAmountArray.Count()) continue;
+                    if (tankCounter >= resourceList.Count || amountCounter >= resourceMaxAmountArray.Length) continue;
 
-                    resourceList[tankCounter].Add(ParseTools.ParseDouble(resourceAmountArray[amountCounter]));
+                    resourceList[tankCounter].Add(ParseTools.ParseDouble(resourceMaxAmountArray[amountCounter]));
 
-                    if (tankCounter < initialResourceList.Count && amountCounter < initialResourceAmountArray.Count())
+                    if (tankCounter < initialResourceList.Count && amountCounter < initialResourceAmountArray.Length)
                         initialResourceList[tankCounter].Add(ParseTools.ParseDouble(initialResourceAmountArray[amountCounter]));
                 }
             }
