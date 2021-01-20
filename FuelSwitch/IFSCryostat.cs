@@ -1,10 +1,11 @@
 ﻿using KSP.Localization;
 using System;
+using TweakScale;
 
 namespace InterstellarFuelSwitch
 {
     [KSPModule("Cryostat")]//#LOC_IFS_Cryostat_ModuleName
-    class IFSCryostat : PartModule
+    class IFSCryostat : PartModule, IRescalable<IFSCryostat>
     {
         public const string Group = "IFSCryostat";
         public const string GroupTitle = "#LOC_IFS_Cryostat_groupName";
@@ -32,7 +33,7 @@ namespace InterstellarFuelSwitch
         [KSPField] public bool showTemp = true;
         [KSPField] public bool warningShown;
         [KSPField] public int initializationCountdown = 10;
-        [KSPField] public double kerbalismBoiloffMultiplier = 100;
+        [KSPField] public double kerbalismBoiloffMultiplier = 1000;
 
         [KSPField] public string coolingPostfix = "Cooling";
         [KSPField] public string heatingPostfix = "Heating";
@@ -71,7 +72,7 @@ namespace InterstellarFuelSwitch
         private string coolingResourceName;
         private string heatingResourceName;
 
-        private ProcessControlMetaData processController;
+        private ScalingFactor _factor;
         private PartResourceDefinition _electricChargeDefinition;
 
         public override void OnStart(StartState state)
@@ -83,7 +84,6 @@ namespace InterstellarFuelSwitch
             heatingResourceName = "_" + resourceName + heatingPostfix;
 
             _electricChargeDefinition = PartResourceLibrary.Instance.GetDefinition(StockResourceElectricCharge);
-            processController = ProcessControlManager.FindProcessControl(part, resourceName + coolingPostfix);
 
             // compensate for stock solar initialization heating issues
             part.temperature = storedTemp;
@@ -224,7 +224,9 @@ namespace InterstellarFuelSwitch
             else
                 receivedPowerKw = 0;
 
-            maxBoiloff = boilOffRate + boilOffAddition * environmentBoiloff;
+            var sizeMultiplier = _factor.absolute.quadratic == 0 ? 1 : _factor.absolute.quadratic;
+
+            maxBoiloff = boilOffRate + boilOffAddition * environmentBoiloff * part.partInfo.partSize * sizeMultiplier;
 
             bool hasExtraBoiloff = initializationCountdown == 0 && powerReqKW > 0 && currentPowerReq > 0 && receivedPowerKw < currentPowerReq && previousReceivedPowerKw < previousPowerReq;
 
@@ -232,14 +234,11 @@ namespace InterstellarFuelSwitch
 
             currentBoiloff = maxBoiloff * (1 - powerRatioModifier);
 
-            if (Kerbalism.IsLoaded)
+            var boiloffResource = part.Resources[boiloffResourceName];
+            if (boiloffResource != null)
             {
-                var boiloffResource = part.Resources[boiloffResourceName];
-                if (boiloffResource != null)
-                {
-                    boiloffResource.maxAmount = maxBoiloff * kerbalismBoiloffMultiplier;
-                    boiloffResource.amount = currentBoiloff * kerbalismBoiloffMultiplier;
-                }
+                boiloffResource.maxAmount = maxBoiloff * kerbalismBoiloffMultiplier;
+                boiloffResource.amount = currentBoiloff * kerbalismBoiloffMultiplier;
             }
             else if (hasExtraBoiloff && currentBoiloff > 0.0000000001)
             {
@@ -271,30 +270,15 @@ namespace InterstellarFuelSwitch
             if (CheatOptions.InfiniteElectricity)
                 return powerReqKw;
 
-            if (Kerbalism.IsLoaded)
+            var coolingResource = part.Resources[coolingResourceName];
+            var heatingResource = part.Resources[heatingResourceName];
+
+            if (coolingResource != null && heatingResource != null)
             {
-                var coolingResource = part.Resources[coolingResourceName];
-                if (coolingResource != null)
-                {
-                    coolingResource.maxAmount = powerReqKw;
-                    coolingResource.amount = powerReqKw;
-                }
-
-                var heatingResource = part.Resources[heatingResourceName];
-                if (heatingResource != null)
-                {
-                    heatingResource.maxAmount = powerReqKw ;
-                    heatingResource.amount = powerReqKw;
-                }
-
-                //var boiloffResource = part.Resources["_LqdHydrogenBoiloff"];
-                //if (boiloffResource != null)
-                //{
-                //    boiloffResource.maxAmount = powerReqKw;
-                //    boiloffResource.amount = powerReqKw;
-                //}
-
-                //processController?.ReliablityEvent(powerReqKw, true);
+                coolingResource.maxAmount = powerReqKw;
+                coolingResource.amount = powerReqKw;
+                heatingResource.maxAmount = powerReqKw;
+                heatingResource.amount = powerReqKw;
 
                 return part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime, true) / deltaTime;
             }
@@ -310,10 +294,11 @@ namespace InterstellarFuelSwitch
         public override string GetInfo()
         {
             return "<size=10>" + resourceName + " @ " + boilOffTemp + " K</size>";
+        }
 
-            //return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: "
-            //	+ boilOffRate * KEBRIN_DAY_SECONDS + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * KEBRIN_DAY_SECONDS + " /day";
+        public void OnRescale(ScalingFactor factor)
+        {
+            _factor = factor;
         }
     }
 }
-
