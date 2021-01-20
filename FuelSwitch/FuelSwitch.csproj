@@ -77,7 +77,7 @@
     <Compile Include="IFSinfoPopup.cs" />
     <Compile Include="IFSModuleDecouple.cs" />
     <Compile Include="IFSModuleAnchoredDecoupler.cs" />
-    <Compile Include="IFSModuleInventoryPart.cs" />
+    <Compile Include="ModuleInventoryPartController.cs" />
     <Compile Include="InterstellarAnimate.cs" />
     <Compile Include="InterstellarDynamicResourceBuffer.cs" />
     <Compile Include="InterstellarResourceConverter.cs" />
