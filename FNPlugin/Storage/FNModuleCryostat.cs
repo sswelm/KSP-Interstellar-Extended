@@ -1,11 +1,8 @@
 ﻿using FNPlugin.Constants;
-using FNPlugin.Extensions;
-using FNPlugin.Power;
 using FNPlugin.Powermanagement;
-using FNPlugin.Resources;
 using KSP.Localization;
 using System;
-using UnityEngine;
+using TweakScale;
 
 namespace FNPlugin
 {
@@ -13,83 +10,83 @@ namespace FNPlugin
     class ModuleStorageCryostat: FNModuleCryostat {}
 
     [KSPModule("Cryostat")]
-    class FNModuleCryostat : ResourceSuppliableModule
+    class FNModuleCryostat : ResourceSuppliableModule, IRescalable<FNModuleCryostat>
     {
-        public const string GROUP = "FNModuleCryostat";
-        public const string GROUP_TITLE = "Interstellar Cryostat";
+        public const string Group = "IFSCryostat";
+        public const string GroupTitle = "#LOC_IFS_Cryostat_groupName";
+        public const string StockResourceElectricCharge = "ElectricCharge";
 
         // Persistent
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_IFS_Cryostat_Cooling"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_On", enabledText = "#LOC_IFS_Cryostat_Off")]//Cooling--On--Off
-        public bool isDisabled = false;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Cryostat_PowerBuffer"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_Off", enabledText = "#LOC_IFS_Cryostat_On")]//Cooling--On--Off
-        public bool maintainElectricChargeBuffer = true;
-
-        [KSPField(isPersistant = true)]
-        public bool autoConfigElectricChargeBuffer = true;
         [KSPField(isPersistant = true)]
         public double storedTemp = 0;
 
         // Configuration
-        [KSPField]
-        public string resourceName = "";
-        [KSPField]
-        public string resourceGUIName = "";
-        [KSPField]
-        public double boilOffRate = 0;
-        [KSPField]
-        public double powerReqKW = 0;
-        [KSPField]
-        public double powerReqMult = 1;
-        [KSPField]
-        public double boilOffMultiplier = 0;
-        [KSPField]
-        public double boilOffBase = 10000;
-        [KSPField]
-        public double boilOffAddition = 0;
-        [KSPField]
-        public double boilOffTemp = 20.271;
-        [KSPField]
-        public double convectionMod = 1;
-        [KSPField]
-        public bool showPower = true;
-        [KSPField]
-        public bool showBoiloff = true;
-        [KSPField]
-        public bool showTemp = true;
-        [KSPField]
-        public bool warningShown;
-        [KSPField]
-        public int initializationCountdown = 10;
+        [KSPField] public string resourceName = "";
+        [KSPField] public string resourceGUIName = "";
+        [KSPField] public double boilOffRate = 0;
+        [KSPField] public double powerReqKW = 0;
+        [KSPField] public double powerReqMult = 1;
+        [KSPField] public double boilOffMultiplier = 0;
+        [KSPField] public double boilOffBase = 10000;
+        [KSPField] public double boilOffAddition = 0;
+        [KSPField] public double boilOffTemp = 20.271;
+        [KSPField] public double convectionMod = 1;
+        [KSPField] public bool showPower = true;
+        [KSPField] public bool showBoiloff = true;
+        [KSPField] public bool showTemp = true;
+        [KSPField] public bool warningShown;
+        [KSPField] public int initializationCountdown = 10;
+        [KSPField] public double kerbalismBoiloffMultiplier = 1000;
+
+        [KSPField] public string coolingPostfix = "Cooling";
+        [KSPField] public string heatingPostfix = "Heating";
+        [KSPField] public string boiloffPostfix = "Boiloff";
+        [KSPField] public string boiloffPrefix = "_";
 
         //GUI
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Power")]//Power
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Power")]//Power
         public string powerStatusStr = string.Empty;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Boiloff")]//Boiloff
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Boiloff")]//Boiloff
         public string boiloffStr;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Temperature", guiFormat = "F2", guiUnits = " K")]//Temperature
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_Temperature", guiFormat = "F0", guiUnits = " K")]//Temperature
         public double externalTemperature;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Internalboiloff")]//internal boiloff
-        public double boiloff;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiName = "#LOC_IFS_Cryostat_internalboiloff")]//internal boiloff
+        public double currentBoiloff;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiName = "#LOC_IFS_Cryostat_Cooling"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_On", enabledText = "#LOC_IFS_Cryostat_Off")]//Cooling--On--Off
+        public bool isDisabled = false;
 
         private BaseField isDisabledField;
         private BaseField boiloffStrField;
         private BaseField powerStatusStrField;
         private BaseField externalTemperatureField;
-        private BaseField maintainElectricChargeBufferField;
 
         private double environmentBoiloff;
         private double environmentFactor;
-        private double _receivedPowerKw;
-        private double _previousReceivedPowerKw;
+        private double receivedPowerKw;
+        private double previousReceivedPowerKw;
         private double currentPowerReq;
         private double previousPowerReq;
-        private ResourceBuffers resourceBuffers;
+        private double previousPowerUsage;
+        private double maxBoiloff;
 
         private bool requiresPower;
+        private float previousDeltaTime;
+        private string boiloffResourceName;
+        private string coolingResourceName;
+        private string heatingResourceName;
 
-        public override void OnStart(PartModule.StartState state)
+        private ScalingFactor _factor;
+        private PartResourceDefinition _electricChargeDefinition;
+
+        public override void OnStart(StartState state)
         {
             enabled = true;
+
+            boiloffResourceName = boiloffPrefix + resourceName + boiloffPostfix;
+            coolingResourceName = "_" + resourceName + coolingPostfix;
+            heatingResourceName = "_" + resourceName + heatingPostfix;
+
+            _electricChargeDefinition = PartResourceLibrary.Instance.GetDefinition(StockResourceElectricCharge);
 
             // compensate for stock solar initialization heating issues
             part.temperature = storedTemp;
@@ -99,51 +96,40 @@ namespace FNPlugin
             boiloffStrField = Fields[nameof(boiloffStr)];
             powerStatusStrField = Fields[nameof(powerStatusStr)];
             externalTemperatureField = Fields[nameof(externalTemperature)];
-            maintainElectricChargeBufferField = Fields[nameof(maintainElectricChargeBuffer)];
 
             if (state == StartState.Editor)
-            {
-                if (!autoConfigElectricChargeBuffer) return;
-
-                var exitingElectricCharge = part.Resources[ResourceSettings.Config.ElectricPowerInKilowatt];
-
-                bool hasHigherThanDefaultBuffer = exitingElectricCharge != null && exitingElectricCharge.maxAmount > powerReqKW / 50;
-
-                //Debug.Log("[KSPI]: FNModuleCryostat: hasHigherThanDefaultBuffer: " + hasHigherThanDefaultBuffer);
-
-                maintainElectricChargeBuffer = hasHigherThanDefaultBuffer.IsFalse();
-                autoConfigElectricChargeBuffer = false;
                 return;
-            }
 
             part.temperature = storedTemp;
             part.skinTemperature = storedTemp;
 
             // if electricCharge buffer is missing, add it.
-            if (!part.Resources.Contains(ResourceSettings.Config.ElectricPowerInKilowatt))
-            {
-                var node = new ConfigNode("RESOURCE");
-                node.AddValue("name", ResourceSettings.Config.ElectricPowerInKilowatt);
-                node.AddValue("maxAmount", requiresPower ? powerReqKW / 50 : 1);
-                node.AddValue("amount", requiresPower ? powerReqKW / 50 : 1);
-                part.AddResource(node);
-            }
+            if (part.Resources.Contains(StockResourceElectricCharge)) return;
 
-            if (!maintainElectricChargeBuffer) return;
-            if (Kerbalism.IsLoaded) return;
-
-            resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 2));
-            resourceBuffers.Init(part);
+            ConfigNode node = new ConfigNode("RESOURCE");
+            node.AddValue("name", StockResourceElectricCharge);
+            node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
+            node.AddValue("amount", powerReqKW > 0 ? powerReqKW / 50 : 1);
+            part.AddResource(node);
         }
 
         private void UpdateElectricChargeBuffer(double currentPowerUsage)
         {
-            if (resourceBuffers == null)
+            if (Kerbalism.IsLoaded)
                 return;
 
-            resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, currentPowerUsage);
-            resourceBuffers.UpdateBuffers();
+            var electricChargeResource = part.Resources[StockResourceElectricCharge];
+            if (electricChargeResource != null && (TimeWarp.fixedDeltaTime != previousDeltaTime || previousPowerUsage != currentPowerUsage))
+            {
+                var requiredCapacity = 2 * currentPowerUsage * TimeWarp.fixedDeltaTime;
+                var bufferRatio = electricChargeResource.maxAmount > 0 ? electricChargeResource.amount / electricChargeResource.maxAmount : 0;
+
+                electricChargeResource.maxAmount = requiredCapacity;
+                electricChargeResource.amount = bufferRatio * requiredCapacity;
+            }
+
+            previousPowerUsage = currentPowerUsage;
+            previousDeltaTime = TimeWarp.fixedDeltaTime;
         }
 
         public void Update()
@@ -152,24 +138,22 @@ namespace FNPlugin
             if (initializationCountdown > 0)
                 initializationCountdown--;
 
-            var cryostat_resource = part.Resources[resourceName];
+            var cryostatResource = part.Resources[resourceName];
 
-            if (cryostat_resource != null)
+            if (cryostatResource != null)
             {
                 if (HighLogic.LoadedSceneIsEditor)
                 {
                     isDisabledField.guiActiveEditor = true;
-                    maintainElectricChargeBufferField.guiActiveEditor = true;
                     return;
                 }
 
-                isDisabledField.guiActive = requiresPower;
-                maintainElectricChargeBufferField.guiActive = requiresPower;
+                isDisabledField.guiActive = powerReqKW > 0;
 
-                bool coolingIsRelevant = cryostat_resource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
+                bool coolingIsRelevant = cryostatResource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
 
                 powerStatusStrField.guiActive = showPower && requiresPower && coolingIsRelevant;
-                boiloffStrField.guiActive = showBoiloff && boiloff > 0.00001;
+                boiloffStrField.guiActive = showBoiloff && currentBoiloff > 0.0000001;
                 externalTemperatureField.guiActive = showTemp && coolingIsRelevant;
 
                 if (!coolingIsRelevant)
@@ -178,23 +162,23 @@ namespace FNPlugin
                     return;
                 }
 
-                double atmosphereModifier = convectionMod == -1 ? 0 : convectionMod + part.atmDensity / (convectionMod + 1);
+                var atmosphereModifier = convectionMod == -1 ? 0 : convectionMod + part.atmDensity / (convectionMod + 1);
 
                 externalTemperature = part.temperature;
-                if (Double.IsNaN(externalTemperature) || Double.IsInfinity(externalTemperature))
+                if (double.IsNaN(externalTemperature) || double.IsInfinity(externalTemperature))
                 {
                     part.temperature = part.skinTemperature;
                     externalTemperature = part.skinTemperature;
                 }
 
-                var temperatureModifier = Math.Max(0, externalTemperature - boilOffTemp) / 300;
+                var temperatureModifier = Math.Max(0, externalTemperature - boilOffTemp) / 300; //273.15;
 
                 environmentFactor = atmosphereModifier * temperatureModifier;
 
                 if (powerReqKW > 0)
                 {
                     currentPowerReq = powerReqKW * 0.2 * environmentFactor * powerReqMult;
-                    UpdatePowerStatusString();
+                    UpdatePowerStatusSting();
                 }
                 else
                     currentPowerReq = 0;
@@ -207,76 +191,111 @@ namespace FNPlugin
                 powerStatusStrField.guiActive = false;
 
                 if (HighLogic.LoadedSceneIsEditor)
-                {
                     isDisabledField.guiActiveEditor = false;
-                    maintainElectricChargeBufferField.guiActiveEditor = false;
-                }
                 else
-                {
                     isDisabledField.guiActive = false;
-                    maintainElectricChargeBufferField.guiActive = false;
-                }
             }
         }
 
-        private void UpdatePowerStatusString()
+        private void UpdatePowerStatusSting()
         {
-            powerStatusStr = PluginHelper.GetFormattedPowerString(_receivedPowerKw / GameConstants.ecPerMJ) +
-                " / " + PluginHelper.GetFormattedPowerString(currentPowerReq / GameConstants.ecPerMJ);
+            powerStatusStr = currentPowerReq < 1.0e+3
+                ? receivedPowerKw.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
+                : currentPowerReq < 1.0e+6
+                    ? (receivedPowerKw / 1.0e+3).ToString("0.000") + " MW / " + (currentPowerReq / 1.0e+3).ToString("0.000") + " MW"
+                    : (receivedPowerKw / 1.0e+6).ToString("0.000") + " GW / " + (currentPowerReq / 1.0e+6).ToString("0.000") + " GW";
         }
 
         // FixedUpdate is also called while not staged
         public void FixedUpdate()
         {
             var cryostatResource = part.Resources[resourceName];
-            if (cryostatResource == null || double.IsPositiveInfinity(currentPowerReq))
+            if (cryostatResource == null || double.IsPositiveInfinity(currentPowerReq) || double.IsNaN(currentPowerReq))
             {
-                boiloff = 0;
+                maxBoiloff = 0;
                 return;
             }
 
-            double fixedDeltaTime = TimeWarp.fixedDeltaTime;
+            var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
-            if (!isDisabled && currentPowerReq > 0.0)
+            if (!isDisabled && currentPowerReq > 0)
             {
                 UpdateElectricChargeBuffer(Math.Max(currentPowerReq, 0.1 * powerReqKW));
 
-                _receivedPowerKw = consumeMegawatts(currentPowerReq /
-                    GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ;
+                receivedPowerKw = FixedReceivedChargeKw(currentPowerReq, fixedDeltaTime);
             }
             else
-                _receivedPowerKw = 0;
+                receivedPowerKw = 0;
 
-            bool hasExtraBoiloff = initializationCountdown == 0 && powerReqKW > 0 && currentPowerReq > 0 && _receivedPowerKw < currentPowerReq && _previousReceivedPowerKw < previousPowerReq;
+            var sizeMultiplier = _factor.absolute.quadratic == 0 ? 1 : _factor.absolute.quadratic;
 
-            var boiloffReduction = !hasExtraBoiloff ? boilOffRate : boilOffRate + (boilOffAddition * (1 - _receivedPowerKw / currentPowerReq));
+            maxBoiloff = boilOffRate + boilOffAddition * environmentBoiloff * part.partInfo.partSize * sizeMultiplier;
 
-            boiloff = CheatOptions.IgnoreMaxTemperature ||  boiloffReduction <= 0 ? 0 : boiloffReduction * environmentBoiloff;
+            bool hasExtraBoiloff = initializationCountdown == 0 && powerReqKW > 0 && currentPowerReq > 0 && receivedPowerKw < currentPowerReq && previousReceivedPowerKw < previousPowerReq;
 
-            if (boiloff > 1e-10)
+            var powerRatioModifier = currentPowerReq > 0 ? Math.Min(1, Math.Max(0, receivedPowerKw / currentPowerReq)) : 0;
+
+            currentBoiloff = maxBoiloff * (1 - powerRatioModifier);
+
+            var boiloffResource = part.Resources[boiloffResourceName];
+            if (boiloffResource != null)
             {
-                var boilOffAmount = boiloff * fixedDeltaTime;
-
-                cryostatResource.amount = Math.Max(0, cryostatResource.amount - boilOffAmount);
-
-                boiloffStr = boiloff.ToString("0.0000000") + " L/s " + cryostatResource.resourceName;
-
-                if (hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
-                {
-                    warningShown = true;
-                    var message = Localizer.Format("#LOC_KSPIE_ModuleCryostat_Postmsg", boiloffStr);//"Warning: " +  + " Boiloff"
-                    Debug.LogWarning("[KSPI]: FNModuleCryostat: " + message);
-                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                }
+                boiloffResource.maxAmount = maxBoiloff * kerbalismBoiloffMultiplier;
+                boiloffResource.amount = currentBoiloff * kerbalismBoiloffMultiplier;
+            }
+            else if (hasExtraBoiloff && currentBoiloff > 0.0000000001)
+            {
+                cryostatResource.amount = Math.Max(0, cryostatResource.amount - currentBoiloff * fixedDeltaTime);
             }
             else
             {
                 warningShown = false;
-                boiloffStr = "0.0000000 L/s " + cryostatResource.resourceName;
+                currentBoiloff = 0;
+            }
+
+            boiloffStr = currentBoiloff.ToString("0.000000") + " U/s " + cryostatResource.resourceName;
+
+            if (currentBoiloff > 0 && hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
+            {
+                warningShown = true;
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_IFS_Cryostat_boiloffMsg", boiloffStr), 5, ScreenMessageStyle.UPPER_CENTER);//"Warning: <<1>> Boiloff"
             }
 
             previousPowerReq = currentPowerReq;
-            _previousReceivedPowerKw = _receivedPowerKw;
+            previousReceivedPowerKw = receivedPowerKw;
+        }
+
+        private double FixedReceivedChargeKw(double powerReqKw, double deltaTime)
+        {
+            if (powerReqKw <= float.Epsilon)
+                return powerReqKw;
+
+            if (CheatOptions.InfiniteElectricity)
+                return powerReqKw;
+
+            var coolingResource = part.Resources[coolingResourceName];
+            var heatingResource = part.Resources[heatingResourceName];
+
+            if (coolingResource != null && heatingResource != null)
+            {
+                coolingResource.maxAmount = powerReqKw;
+                coolingResource.amount = powerReqKw;
+                heatingResource.maxAmount = powerReqKw;
+                heatingResource.amount = powerReqKw;
+
+                return part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime, true) / deltaTime;
+            }
+
+            var receivedChargeKw = consumeMegawatts(powerReqKw / GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ;
+            if (receivedChargeKw <= powerReqKw)
+                receivedChargeKw += part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime) / deltaTime;
+
+            return receivedChargeKw;
+        }
+
+        public void OnRescale(ScalingFactor factor)
+        {
+            _factor = factor;
         }
 
         public override string getResourceManagerDisplayName()
@@ -291,10 +310,8 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            double envMod = ((convectionMod <= -1.0) ? 0.0 : convectionMod + 1.0 /
-                (convectionMod + 1.0)) * Math.Max(0.0, 300.0 - boilOffTemp) / 300.0;
-            return string.Format("{0} @ {1:F1} K\nPower Requirements: {2:F1} KW", resourceName,
-                boilOffTemp, powerReqKW * 0.2 * powerReqMult * envMod);
+            double envMod = ((convectionMod <= -1.0) ? 0.0 : convectionMod + 1.0 / (convectionMod + 1.0)) * Math.Max(0.0, 300.0 - boilOffTemp) / 300.0;
+            return $"{resourceName} @ {boilOffTemp:F1} K\nPower Requirements: {powerReqKW * 0.2 * powerReqMult * envMod:F1} KW";
         }
     }
 }
