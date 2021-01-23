@@ -86,7 +86,8 @@ namespace FNPlugin.Powermanagement
         protected override void SupplyPriority(double timeWarpDT, int priority)
         {
             part.GetConnectedResourceTotals(electricResourceDefinition.id, out double amount, out double maxAmount);
-            double ecNeeded = maxAmount - amount;
+
+            double ecNeeded = Kerbalism.IsLoaded ? 0 : maxAmount - amount;
             double ratio = maxAmount > 0 ? ecNeeded / maxAmount : 0;
             if (amount.IsInfinityOrNaN() || ecNeeded <= 0.0)
             {

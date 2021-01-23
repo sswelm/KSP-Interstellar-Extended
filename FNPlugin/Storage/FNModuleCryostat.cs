@@ -12,7 +12,7 @@ namespace FNPlugin
     [KSPModule("Cryostat")]
     class FNModuleCryostat : ResourceSuppliableModule, IRescalable<FNModuleCryostat>
     {
-        public const string Group = "IFSCryostat";
+        public const string Group = "FNModuleCryostat";
         public const string GroupTitle = "#LOC_IFS_Cryostat_groupName";
         public const string StockResourceElectricCharge = "ElectricCharge";
 
@@ -37,6 +37,7 @@ namespace FNPlugin
         [KSPField] public bool warningShown;
         [KSPField] public int initializationCountdown = 10;
         [KSPField] public double kerbalismBoiloffMultiplier = 1000;
+        [KSPField] public double minimumBoiloff = 0.0000000001;
 
         [KSPField] public string coolingPostfix = "Cooling";
         [KSPField] public string heatingPostfix = "Heating";
@@ -235,15 +236,15 @@ namespace FNPlugin
 
             var powerRatioModifier = currentPowerReq > 0 ? Math.Min(1, Math.Max(0, receivedPowerKw / currentPowerReq)) : 0;
 
-            currentBoiloff = maxBoiloff * (1 - powerRatioModifier);
+            currentBoiloff = powerRatioModifier < 1 ? maxBoiloff * (1 - powerRatioModifier) : 0;
 
-            var boiloffResource = part.Resources[boiloffResourceName];
+            var boiloffResource = Kerbalism.IsLoaded ? part.Resources[boiloffResourceName] : null;
             if (boiloffResource != null)
             {
                 boiloffResource.maxAmount = maxBoiloff * kerbalismBoiloffMultiplier;
                 boiloffResource.amount = currentBoiloff * kerbalismBoiloffMultiplier;
             }
-            else if (hasExtraBoiloff && currentBoiloff > 0.0000000001)
+            else if (hasExtraBoiloff && currentBoiloff > minimumBoiloff)
             {
                 cryostatResource.amount = Math.Max(0, cryostatResource.amount - currentBoiloff * fixedDeltaTime);
             }
@@ -255,7 +256,7 @@ namespace FNPlugin
 
             boiloffStr = currentBoiloff.ToString("0.000000") + " U/s " + cryostatResource.resourceName;
 
-            if (currentBoiloff > 0 && hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
+            if (currentBoiloff > minimumBoiloff && hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
             {
                 warningShown = true;
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_IFS_Cryostat_boiloffMsg", boiloffStr), 5, ScreenMessageStyle.UPPER_CENTER);//"Warning: <<1>> Boiloff"
@@ -273,14 +274,14 @@ namespace FNPlugin
             if (CheatOptions.InfiniteElectricity)
                 return powerReqKw;
 
-            var coolingResource = part.Resources[coolingResourceName];
-            var heatingResource = part.Resources[heatingResourceName];
+            var coolingResource = Kerbalism.IsLoaded ? part.Resources[coolingResourceName] : null;
+            var heatingResource = Kerbalism.IsLoaded ? part.Resources[heatingResourceName] : null;
 
             if (coolingResource != null && heatingResource != null)
             {
                 coolingResource.maxAmount = powerReqKw;
-                coolingResource.amount = powerReqKw;
                 heatingResource.maxAmount = powerReqKw;
+                coolingResource.amount = powerReqKw;
                 heatingResource.amount = powerReqKw;
 
                 return part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime, true) / deltaTime;

@@ -37,6 +37,12 @@ namespace FNPlugin.Propulsion
         [KSPField] public double higherScaleIspExponent = 0.25;
         [KSPField] public double lowerScaleIspExponent = 1;
         [KSPField] public double GThreshold = 15;
+        [KSPField] public string mhdPowerProductionResourceName = "_MhdEcPowerProduction";
+
+        // Non Persistent fields
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "MHD Power %")
+         , UI_FloatRange(stepIncrement = 1f, maxValue = 200, minValue = 0, affectSymCounterparts = UI_Scene.All)]
+        public float mhdPowerGenerationPercentage = 101;
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
         public float speedLimit = 1;
@@ -754,6 +760,8 @@ namespace FNPlugin.Propulsion
             }
             else
             {
+                ProcessPowerAndWasteHeat(0);
+
                 ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSioCountdown > 0, ratioHeadingVersusRequest == 1);
 
                 if (!string.IsNullOrEmpty(effectName))
@@ -873,6 +881,14 @@ namespace FNPlugin.Propulsion
             return receivedRatio;
         }
 
+        private double CalculateElectricalPowerCurrentlyNeeded(double maximumElectricPower)
+        {
+            var currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
+            var spareResourceCapacity = getSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var powerRequestRatio = mhdPowerGenerationPercentage * 0.01;
+            return Math.Min(maximumElectricPower, currentUnfilledResourceDemand * Math.Min(1, powerRequestRatio) + spareResourceCapacity * Math.Max(0, powerRequestRatio - 1));
+        }
+
         private double ProcessPowerAndWasteHeat(float requestedThrottle)
         {
             // Calculate Fusion Ratio
@@ -884,7 +900,7 @@ namespace FNPlugin.Propulsion
 
             var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10;
 
-            var requestedPower = requestedThrottle * effectiveMaxPowerRequirement * wasteheatModifier;
+            var requestedPower = requestedThrottle * effectiveMaxPowerRequirement;
 
             finalRequestedPower = requestedPower * wasteheatModifier;
 
@@ -898,11 +914,26 @@ namespace FNPlugin.Propulsion
 
             // The Absorbed wasteheat from Fusion production and reaction
             wasteHeat = requestedThrottle * plasmaRatio * effectiveMaxFusionWasteHeat;
-            if (!CheatOptions.IgnoreMaxTemperature && effectiveMaxFusionWasteHeat > 0)
+            if (!CheatOptions.IgnoreMaxTemperature && requestedThrottle > 0)
+            {
                 supplyFNResourcePerSecondWithMax(wasteHeat, effectiveMaxFusionWasteHeat, ResourceSettings.Config.WasteHeatInMegawatt);
+            }
 
-            if (!CheatOptions.InfiniteElectricity && effectiveMaxPowerProduction > 0)
-                supplyFNResourcePerSecondWithMax(requestedThrottle * plasmaRatio * effectiveMaxPowerProduction, effectiveMaxPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);
+            var availablePower = requestedThrottle * plasmaRatio * effectiveMaxPowerProduction;
+
+            var powerNeeded = CalculateElectricalPowerCurrentlyNeeded(effectiveMaxPowerProduction);
+            var mhdPowerProductionResource = Kerbalism.IsLoaded ? part.Resources[mhdPowerProductionResourceName] : null;
+            if (mhdPowerProductionResource != null)
+            {
+                var availableElectricCharge = GameConstants.ecPerMJ * Math.Max(0, availablePower - powerNeeded);
+                mhdPowerProductionResource.maxAmount = availableElectricCharge;
+                mhdPowerProductionResource.amount = availableElectricCharge;
+            }
+
+            if (!CheatOptions.InfiniteElectricity && effectiveMaxPowerProduction > 0 && requestedThrottle > 0)
+            {
+                supplyFNResourcePerSecondWithMax(availablePower, effectiveMaxPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);
+            }
 
             return plasmaRatio;
         }

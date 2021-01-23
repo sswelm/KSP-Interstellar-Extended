@@ -34,6 +34,7 @@ namespace InterstellarFuelSwitch
         [KSPField] public bool warningShown;
         [KSPField] public int initializationCountdown = 10;
         [KSPField] public double kerbalismBoiloffMultiplier = 1000;
+        [KSPField] public double minimumBoiloff = 0.0000000001;
 
         [KSPField] public string coolingPostfix = "Cooling";
         [KSPField] public string heatingPostfix = "Heating";
@@ -232,15 +233,15 @@ namespace InterstellarFuelSwitch
 
             var powerRatioModifier = currentPowerReq > 0 ? Math.Min(1, Math.Max(0, receivedPowerKw / currentPowerReq)) : 0;
 
-            currentBoiloff = maxBoiloff * (1 - powerRatioModifier);
+            currentBoiloff = powerRatioModifier < 1 ? maxBoiloff * (1 - powerRatioModifier) : 0;
 
-            var boiloffResource = part.Resources[boiloffResourceName];
+            var boiloffResource = Kerbalism.IsLoaded ? part.Resources[boiloffResourceName] : null;
             if (boiloffResource != null)
             {
                 boiloffResource.maxAmount = maxBoiloff * kerbalismBoiloffMultiplier;
                 boiloffResource.amount = currentBoiloff * kerbalismBoiloffMultiplier;
             }
-            else if (hasExtraBoiloff && currentBoiloff > 0.0000000001)
+            else if (hasExtraBoiloff && currentBoiloff > minimumBoiloff)
             {
                 cryostatResource.amount = Math.Max(0, cryostatResource.amount - currentBoiloff * fixedDeltaTime);
             }
@@ -252,7 +253,7 @@ namespace InterstellarFuelSwitch
 
             boiloffStr = currentBoiloff.ToString("0.000000") + " U/s " + cryostatResource.resourceName;
 
-            if (currentBoiloff > 0 && hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
+            if (currentBoiloff > minimumBoiloff && hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
             {
                 warningShown = true;
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_IFS_Cryostat_boiloffMsg", boiloffStr), 5, ScreenMessageStyle.UPPER_CENTER);//"Warning: <<1>> Boiloff"

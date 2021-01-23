@@ -24,42 +24,25 @@ namespace FNPlugin
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Cryostat_PowerBuffer"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_Off", enabledText = "#LOC_IFS_Cryostat_On")]//Cooling--On--Off
         public bool maintainElectricChargeBuffer = true;
 
-        [KSPField(isPersistant = true)]
-        public bool autoConfigElectricChargeBuffer = true;
-        [KSPField(isPersistant = true)]
-        public double storedTemp = 0;
+        [KSPField(isPersistant = true)] public bool autoConfigElectricChargeBuffer = true;
+        [KSPField(isPersistant = true)] public double storedTemp = 0;
 
         // Configuration
-        [KSPField]
-        public string resourceName = "";
-        [KSPField]
-        public string resourceGUIName = "";
-        [KSPField]
-        public double boilOffRate = 0;
-        [KSPField]
-        public double powerReqKW = 0;
-        [KSPField]
-        public double powerReqMult = 1;
-        [KSPField]
-        public double boilOffMultiplier = 0;
-        [KSPField]
-        public double boilOffBase = 10000;
-        [KSPField]
-        public double boilOffAddition = 0;
-        [KSPField]
-        public double boilOffTemp = 20.271;
-        [KSPField]
-        public double convectionMod = 1;
-        [KSPField]
-        public bool showPower = true;
-        [KSPField]
-        public bool showBoiloff = true;
-        [KSPField]
-        public bool showTemp = true;
-        [KSPField]
-        public bool warningShown;
-        [KSPField]
-        public int initializationCountdown = 10;
+        [KSPField] public string resourceName = "";
+        [KSPField] public string resourceGUIName = "";
+        [KSPField] public double boilOffRate = 0;
+        [KSPField] public double powerReqKW = 0;
+        [KSPField] public double powerReqMult = 1;
+        [KSPField] public double boilOffMultiplier = 0;
+        [KSPField] public double boilOffBase = 10000;
+        [KSPField] public double boilOffAddition = 0;
+        [KSPField] public double boilOffTemp = 20.271;
+        [KSPField] public double convectionMod = 1;
+        [KSPField] public bool showPower = true;
+        [KSPField] public bool showBoiloff = true;
+        [KSPField] public bool showTemp = true;
+        [KSPField] public bool warningShown;
+        [KSPField] public int initializationCountdown = 10;
 
         //GUI
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ModuleCryostat_Power")]//Power
@@ -152,9 +135,9 @@ namespace FNPlugin
             if (initializationCountdown > 0)
                 initializationCountdown--;
 
-            var cryostat_resource = part.Resources[resourceName];
+            var cryostatResource = part.Resources[resourceName];
 
-            if (cryostat_resource != null)
+            if (cryostatResource != null)
             {
                 if (HighLogic.LoadedSceneIsEditor)
                 {
@@ -166,7 +149,7 @@ namespace FNPlugin
                 isDisabledField.guiActive = requiresPower;
                 maintainElectricChargeBufferField.guiActive = requiresPower;
 
-                bool coolingIsRelevant = cryostat_resource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
+                bool coolingIsRelevant = cryostatResource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
 
                 powerStatusStrField.guiActive = showPower && requiresPower && coolingIsRelevant;
                 boiloffStrField.guiActive = showBoiloff && boiloff > 0.00001;
