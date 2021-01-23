@@ -37,7 +37,7 @@ namespace FNPlugin.Propulsion
         [KSPField] public double higherScaleIspExponent = 0.25;
         [KSPField] public double lowerScaleIspExponent = 1;
         [KSPField] public double GThreshold = 15;
-        [KSPField] public string mhdPowerProductionResourceName = "_MhdEcPowerProduction";
+        [KSPField] public string mhdPowerProductionResourceName = "_FusionPelletsMhdEcPower";
 
         // Non Persistent fields
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "MHD Power %")
