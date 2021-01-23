@@ -1595,36 +1595,38 @@ namespace FNPlugin.Reactors
 
         private void ProcessReactorFuel(double timeWarpFixedDeltaTime)
         {
-            // update Kerbalism EC power generator
             if (Kerbalism.IsLoaded)
             {
+                // update Kerbalism EC power generator
                 _processControlManager.Collection.TryGetValue(currentFuelVariant.Name + "-EC", out var electricPowerGenerator);
                 electricPowerGenerator?.ReliablityEvent(_auxiliaryPowerAvailable, true);
             }
 
             _processControlManager.Collection.TryGetValue(currentFuelVariant.Name, out var reactorFuelProcess);
-            // consume fuel
-            if (!CheatOptions.InfinitePropellant)
+
+            // disable fuel consumption when InfinitePropellant active
+            if (CheatOptions.InfinitePropellant && reactorFuelProcess != null)
             {
-                _consumedFuelTotalFixed = 0;
+                reactorFuelProcess.ReliablityEvent(0);
+                return;
+            }
 
-                foreach (var reactorFuel in currentFuelVariant.ReactorFuels)
-                {
-                    _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, ongoing_total_power_generated / geeForceModifier,
-                        timeWarpFixedDeltaTime, reactorFuelProcess);
-                }
+            // consume fuel
+            _consumedFuelTotalFixed = 0;
+            foreach (var reactorFuel in currentFuelVariant.ReactorFuels)
+            {
+                _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess);
+            }
 
-                // refresh production list
-                reactorProduction.Clear();
+            // refresh production list
+            reactorProduction.Clear();
 
-                // produce reactor products
-                foreach (var product in currentFuelVariant.ReactorProducts)
-                {
-                    var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier,
-                        timeWarpFixedDeltaTime, reactorFuelProcess != null);
-                    if (product.IsPropellant)
-                        reactorProduction.Add(new ReactorProduction() {fuelmode = product, mass = massProduced});
-                }
+            // produce reactor products
+            foreach (var product in currentFuelVariant.ReactorProducts)
+            {
+                var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess != null);
+                if (product.IsPropellant)
+                    reactorProduction.Add(new ReactorProduction() {fuelmode = product, mass = massProduced});
             }
         }
 
@@ -2261,6 +2263,9 @@ namespace FNPlugin.Reactors
             var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ? powerInMj * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency : 0;
 
             resourceControl?.ReliablityEvent(consumeAmountInUnitOfStorage, true);
+
+            if (CheatOptions.InfinitePropellant)
+                return 0;
 
             if (fuel.ConsumeGlobal)
             {

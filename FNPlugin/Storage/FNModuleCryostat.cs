@@ -2,6 +2,7 @@
 using FNPlugin.Powermanagement;
 using KSP.Localization;
 using System;
+using FNPlugin.Extensions;
 using TweakScale;
 
 namespace FNPlugin
@@ -284,12 +285,12 @@ namespace FNPlugin
                 coolingResource.amount = powerReqKw;
                 heatingResource.amount = powerReqKw;
 
-                return part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime, true) / deltaTime;
+                part.GetConnectedResourceTotals(_electricChargeDefinition.id, out double amount, out _);
+                //return part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime, true) / deltaTime;
+                return amount;
             }
 
-            var receivedChargeKw = consumeMegawatts(powerReqKw / GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ;
-            if (receivedChargeKw <= powerReqKw)
-                receivedChargeKw += part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime) / deltaTime;
+            var receivedChargeKw = ConsumeMegawatts(powerReqKw / GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ;
 
             return receivedChargeKw;
         }

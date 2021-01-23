@@ -10,12 +10,12 @@ namespace FNPlugin.Powermanagement
 
         public static ResourceOvermanager getResourceOvermanagerForResource(string resource_name)
         {
-            if (!resourceOverManagers.TryGetValue(resource_name, out ResourceOvermanager fnro))
-            {
-                fnro = new ResourceOvermanager(resource_name);
-                Debug.Log("[KSPI]: Created new ResourceOvermanager for resource " + resource_name + " with ID " + fnro.Id);
-                resourceOverManagers.Add(resource_name, fnro);
-            }
+            if (resourceOverManagers.TryGetValue(resource_name, out ResourceOvermanager fnro))
+                return fnro;
+
+            fnro = new ResourceOvermanager(resource_name);
+            Debug.Log("[KSPI]: Created new ResourceOvermanager for resource " + resource_name + " with ID " + fnro.Id);
+            resourceOverManagers.Add(resource_name, fnro);
 
             return fnro;
         }
@@ -45,9 +45,9 @@ namespace FNPlugin.Powermanagement
 
         public ResourceManager CreateManagerForVessel(PartModule pm)
         {
-            var resourcemanager = ResourceManagerFactory.Create(Id, pm, resourceName);
-            managers.Add(pm.vessel, resourcemanager);
-            return resourcemanager;
+            var resourceManager = ResourceManagerFactory.Create(Id, pm, resourceName);
+            managers.Add(pm.vessel, resourceManager);
+            return resourceManager;
         }
 
         public void deleteManagerForVessel(Vessel vess)

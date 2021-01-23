@@ -13,48 +13,29 @@ namespace FNPlugin.Propulsion
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ModuleEnginesWarp_MassFlow")]//Mass Flow
         public double requestedFlow;
 
-        [KSPField]
-        public double GThreshold = 9;
-        [KSPField]
-        public string propellant1 = "LqdHydrogen";
-        [KSPField]
-        public string propellant2;
-        [KSPField]
-        public string propellant3;
-        [KSPField]
-        public string propellant4;
+        [KSPField] public double GThreshold = 9;
+        [KSPField] public string propellant1 = "LqdHydrogen";
+        [KSPField] public string propellant2;
+        [KSPField] public string propellant3;
+        [KSPField] public string propellant4;
 
-        [KSPField]
-        public double ratio1 = 1;
-        [KSPField]
-        public double ratio2;
-        [KSPField]
-        public double ratio3;
-        [KSPField]
-        public double ratio4;
+        [KSPField] public double ratio1 = 1;
+        [KSPField] public double ratio2;
+        [KSPField] public double ratio3;
+        [KSPField] public double ratio4;
 
-        [KSPField]
-        public double demandMass;
-        [KSPField]
-        public double remainingMass;
+        [KSPField] public double demandMass;
+        [KSPField] public double remainingMass;
 
 
-        [KSPField]
-        public double fuelRatio;
-        [KSPField]
-        private double averageDensityInTonPerLiter;
-        [KSPField]
-        private double massPropellantRatio;
-        [KSPField]
-        private double ratioSumWithoutMass;
-        [KSPField]
-        private double ratioHeadingVersusRequest;
-        [KSPField]
-        public double totalmassVessel;
-        [KSPField]
-        public double massDelta;
-        [KSPField]
-        public double deltaV;
+        [KSPField] public double fuelRatio;
+        [KSPField] private double averageDensityInTonPerLiter;
+        [KSPField] private double massPropellantRatio;
+        [KSPField] private double ratioSumWithoutMass;
+        [KSPField] private double ratioHeadingVersusRequest;
+        [KSPField] public double totalmassVessel;
+        [KSPField] public double massDelta;
+        [KSPField] public double deltaV;
 
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
@@ -66,14 +47,10 @@ namespace FNPlugin.Propulsion
         protected double throttle_d;
 
 
-        [KSPField]
-        public double _realIsp;
-        [KSPField]
-        public double _thrustPersistent;
-        [KSPField]
-        public bool _getIgnitionState;
-        [KSPField]
-        public float _currentThrottle;
+        [KSPField] public double _realIsp;
+        [KSPField] public double _thrustPersistent;
+        [KSPField] public bool _getIgnitionState;
+        [KSPField] public float _currentThrottle;
 
         // Persistent values to use during timewarp
         double _throttlePersistent;
@@ -105,8 +82,8 @@ namespace FNPlugin.Propulsion
         PartResourceDefinition propellantResourceDefinition3;
         PartResourceDefinition propellantResourceDefinition4;
 
-        // Are we transitioning from timewarp to reatime?
-        bool _warpToReal = false;
+        // Are we transitioning from timewarp to realtime?
+        bool _warpToReal;
 
 
         public void VesselChangedSOI()
@@ -140,7 +117,7 @@ namespace FNPlugin.Propulsion
             if (IsForceActivated || !isEnabled || !isOperational) return;
 
             IsForceActivated = true;
-            UnityEngine.Debug.Log("[KSPI]: ModuleEngineWarp on " + part.name + " was Force Activated");
+            Debug.Log("[KSPI]: ModuleEngineWarp on " + part.name + " was Force Activated");
             part.force_activate();
         }
 

@@ -11,37 +11,37 @@ namespace FNPlugin.Powermanagement
     {
         private readonly PartResourceDefinition electricResourceDefinition;
 
-        private double lastECNeeded;
+        private double _lastEcNeeded;
         // MJ requested for conversion into EC
-        private double lastMJConverted;
-        private double mjConverted;
+        private double _lastMjConverted;
+        private double _mjConverted;
 
         private double auxiliaryElectricChargeRate;
 
         public void AuxiliaryResourceSupplied(double rate)
         {
             auxiliaryElectricChargeRate = rate;
-            mjConverted = 0;
+            _mjConverted = 0;
         }
 
-        public double MjConverted => mjConverted;
+        public double MjConverted => _mjConverted;
 
-        protected override double AuxiliaryResourceDemand => lastMJConverted + auxiliaryElectricChargeRate;
+        protected override double AuxiliaryResourceDemand => _lastMjConverted + auxiliaryElectricChargeRate;
 
-        public override double CurrentSurplus => Math.Max(0.0, base.CurrentSurplus - lastMJConverted);
+        public override double CurrentSurplus => Math.Max(0.0, base.CurrentSurplus - _lastMjConverted);
 
         public MegajoulesResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ElectricPowerInMegawatt, FNRESOURCE_FLOWTYPE_SMALLEST_FIRST)
         {
             WindowPosition = new Rect(50, 50, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
             electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.ElectricPowerInKilowatt);
-            lastECNeeded = 0.0;
-            lastMJConverted = 0.0;
-            mjConverted = 0.0;
+            _lastEcNeeded = 0.0;
+            _lastMjConverted = 0.0;
+            _mjConverted = 0.0;
         }
 
         protected override void DoWindowFinal()
         {
-            var providedAuxiliaryPower = lastMJConverted + auxiliaryElectricChargeRate;
+            var providedAuxiliaryPower = _lastMjConverted + auxiliaryElectricChargeRate;
 
             if (providedAuxiliaryPower > 0.0)
             {
@@ -80,7 +80,7 @@ namespace FNPlugin.Powermanagement
             current.StableSupply -= powerConverted;
             current.TotalSupplied += powerConverted;
             current.Demand += ecToSupply / GameConstants.ecPerMJ / timeWarpDT;
-            mjConverted += powerConverted;
+            _mjConverted += powerConverted;
         }
 
         protected override void SupplyPriority(double timeWarpDT, int priority)
@@ -98,8 +98,8 @@ namespace FNPlugin.Powermanagement
 
             if (priority == 0)
             {
-                lastMJConverted = mjConverted;
-                mjConverted = 0.0;
+                _lastMjConverted = _mjConverted;
+                _mjConverted = 0.0;
                 if (last.StableSupply > 0.0)
                 {
                     // Supply up to 1 EC/s (trickle charge)
@@ -108,11 +108,11 @@ namespace FNPlugin.Powermanagement
                 else
                 {
                     // Add a demand for the difference in EC only
-                    double demand = (ecNeeded - lastECNeeded) / GameConstants.ecPerMJ / timeWarpDT;
+                    double demand = (ecNeeded - _lastEcNeeded) / GameConstants.ecPerMJ / timeWarpDT;
                     current.Demand += demand;
-                    mjConverted += demand;
+                    _mjConverted += demand;
                 }
-                lastECNeeded = ecNeeded;
+                _lastEcNeeded = ecNeeded;
             }
             else if (priority == 1 && last.StableSupply > 0.0)
             {

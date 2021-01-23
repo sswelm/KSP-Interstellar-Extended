@@ -1,5 +1,4 @@
-﻿using FNPlugin.Constants;
-using FNPlugin.Extensions;
+﻿using FNPlugin.Extensions;
 using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using System;
@@ -14,37 +13,22 @@ namespace FNPlugin.Propulsion
         public const string GROUP = "InterstellarRCSModule";
         public const string GROUP_TITLE = "#LOC_KSPIE_RCSModule_groupName";
 
-        [KSPField(isPersistant = true)]
-        public int fuel_mode;
-        [KSPField(isPersistant = true)]
-        public string fuel_mode_name;
-        [KSPField(isPersistant = false)]
-        public string AnimationName = "";
-        [KSPField(isPersistant = false)]
-        public double efficiency = 0.8;
-        [KSPField(isPersistant = false)]
-        public int type = 16;
-        [KSPField(isPersistant = false)]
-        public float maxThrust = 1;
-        [KSPField(isPersistant = false)]
-        public float maxIsp = 2000;
-        [KSPField(isPersistant = false)]
-        public float minIsp = 250;
-        [KSPField(isPersistant = false)]
-        public string displayName = "";
-        [KSPField(isPersistant = false)]
-        public bool showConsumption = true;
-        [KSPField(isPersistant = false)]
-        public double powerMult = 1;
-        [KSPField(isPersistant = false)]
-        public double bufferMult = 8;
-        [KSPField(isPersistant = false)]
-        public int rcsIndex = 0;
+        [KSPField(isPersistant = true)] public int fuel_mode;
+        [KSPField(isPersistant = true)] public string fuel_mode_name;
+        [KSPField(isPersistant = false)] public string AnimationName = "";
+        [KSPField(isPersistant = true)] public double storedPower = 0;
+        [KSPField(isPersistant = true)] public double maxStoredPower = 0;
 
-        [KSPField(isPersistant = true, guiActive = false)]
-        public double storedPower = 0;
-        [KSPField(isPersistant = true, guiActive = false)]
-        public double maxStoredPower = 0;
+        [KSPField] public double efficiency = 0.8;
+        [KSPField] public int type = 16;
+        [KSPField] public float maxThrust = 1;
+        [KSPField] public float maxIsp = 2000;
+        [KSPField] public float minIsp = 250;
+        [KSPField] public string displayName = "";
+        [KSPField] public bool showConsumption = true;
+        [KSPField] public double powerMult = 1;
+        [KSPField] public double bufferMult = 8;
+        [KSPField] public int rcsIndex = 0;
 
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_ElectricRCSController_HasSufficientPower")]//Is Powered
         public bool hasSufficientPower;
@@ -134,7 +118,7 @@ namespace FNPlugin.Propulsion
                         requested = 0.5 * powerMult * currentThrust * maxIsp * PhysicsGlobals.GravitationalAcceleration / (efficiency * 1000.0 * CurrentPropellant.
                             ThrustMultiplier);
                     }
-                    received = consumeMegawatts(requested + Math.Min(requested, Math.Max(0.0,
+                    received = ConsumeMegawatts(requested + Math.Min(requested, Math.Max(0.0,
                         maxStoredPower - storedPower) / dt), true, false, false);
                     supplyFNResourcePerSecond(received * (1.0 - efficiency), ResourceSettings.Config.WasteHeatInMegawatt);
 

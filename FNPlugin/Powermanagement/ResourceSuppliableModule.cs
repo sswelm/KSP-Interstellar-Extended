@@ -174,39 +174,41 @@ namespace FNPlugin.Powermanagement
             return power_taken_per_second;
         }
 
-        protected double consumeMegawatts(double requestedMW, bool allowCapacitor = true, bool allowKilowattHour = false, bool allowEC = false, double fixedDeltaTime = 0)
+        protected double ConsumeMegawatts(double requestedPower, bool allowCapacitor = true, bool allowKilowattHour = false, bool allowEC = false, double fixedDeltaTime = 0)
         {
-            const double KILOWATT_RATIO = GameConstants.ecPerMJ / GameConstants.SECONDS_IN_HOUR;
+            if (requestedPower.IsInfinityOrNaN())
+                return 0;
+
+            const double kilowattRatio = GameConstants.ecPerMJ / GameConstants.SECONDS_IN_HOUR;
             double dt = fixedDeltaTime > 0
                 ? Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, fixedDeltaTime)
                 : Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
 
             // First try to consume MJ from ResourceManager
-            double add, result = CheatOptions.InfiniteElectricity ? requestedMW :
-                consumeFNResourcePerSecond(requestedMW, ResourceSettings.Config.ElectricPowerInMegawatt);
-            requestedMW -= result;
+            double add, result = CheatOptions.InfiniteElectricity ? requestedPower : consumeFNResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+            requestedPower -= result;
 
             // Use MJ from storage such as super capacitors
-            if (requestedMW > 0.0 && allowCapacitor)
+            if (requestedPower > 0.0 && allowCapacitor)
             {
-                add = part.RequestResource(ResourceSettings.Config.ElectricPowerInMegawatt, requestedMW * dt) / dt;
+                add = part.RequestResource(ResourceSettings.Config.ElectricPowerInMegawatt, requestedPower * dt) / dt;
                 result += add;
-                requestedMW -= add;
+                requestedPower -= add;
             }
 
             // Use KWH resource from batteries
-            if (requestedMW > 0.0 && allowKilowattHour)
+            if (requestedPower > 0.0 && allowKilowattHour)
             {
-                add = part.RequestResource("KilowattHour", requestedMW * KILOWATT_RATIO * dt) /
-                    (KILOWATT_RATIO * dt);
+                add = part.RequestResource("KilowattHour", requestedPower * kilowattRatio * dt) /
+                    (kilowattRatio * dt);
                 result += add;
-                requestedMW -= add;
+                requestedPower -= add;
             }
 
             // If still no power, use any electric charge available
-            if (requestedMW > 0.0 && allowEC)
+            if (requestedPower > 0.0 && allowEC)
             {
-                add = part.RequestResource(ResourceSettings.Config.ElectricPowerInKilowatt, requestedMW * GameConstants.ecPerMJ * dt) / (GameConstants.ecPerMJ * dt);
+                add = part.RequestResource(ResourceSettings.Config.ElectricPowerInKilowatt, requestedPower * GameConstants.ecPerMJ * dt) / (GameConstants.ecPerMJ * dt);
                 result += add;
             }
 

@@ -187,6 +187,7 @@
     <Compile Include="Propulsion\ElectricEnginePropellant.cs" />
     <Compile Include="Propulsion\ElectricRCSController.cs" />
     <Compile Include="External\FNHabitat.cs" />
+    <Compile Include="Science\FNModuleReactionWheelController.cs" />
     <Compile Include="Storage\FNModuleAnimater.cs" />
     <Compile Include="Storage\FNModuleCryostatOld.cs" />
     <Compile Include="Storage\FNRadioActiveStorage.cs" />

@@ -81,7 +81,7 @@ namespace FNPlugin.Extensions
             else
             {
                 var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
-                var message = "Persistant Thrust stopped - vessel is not facing " + directionName;
+                var message = "Persistent Thrust stopped - vessel is not facing " + directionName;
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
