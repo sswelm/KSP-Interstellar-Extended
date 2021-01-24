@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Powermanagement;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -16,23 +17,28 @@ namespace FNPlugin.Science
         [KSPField] public double maxPowerCost = 1;
         [KSPField] public double maxBufferCapacity = 0.01;
 
+        [KSPField] public double saturationMinAngVel = 1 * (Math.PI / 180);
+        [KSPField] public double saturationMaxAngVel = 15 * (Math.PI / 180);
+        [KSPField] public double saturationMinTorqueFactor = 5 * 0.01;
+
         // Gui
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true)] public float maxRollTorque;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true)] public float maxPitchTorque;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true)] public float maxYawTorque;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true)] public float torqueRoll;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true)] public float torquePitch;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true)] public float torqueYaw;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false)] public float torqueRoll;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false)] public float torquePitch;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false)] public float torqueYaw;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true)] public float totalRol;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true)] public float totalPitch;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true)] public float totalYaw;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false)] public float totalRol;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false)] public float totalPitch;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false)] public float totalYaw;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true)] public float magnitude;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true)] public double powerRatio;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false)] public float magnitude;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false)] public double powerFactor;
 
-        private ModuleReactionWheel _reactionWheel;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiFormat = "F4")] public double headingSpinDelta;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiFormat = "F2")] public double rotationSpinDelta;
 
         private readonly Queue<double> _torqueRatioQueue = new Queue<double>();
 
@@ -40,15 +46,26 @@ namespace FNPlugin.Science
         private double _bufferPower;
         private double _bufferOvercapacity;
 
+        private ModuleReactionWheel _reactionWheel;
         private Vector3d previousPartHeading;
         private Vector3d previousPartRotation;
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             _reactionWheel = part.FindModuleImplementing<ModuleReactionWheel>();
 
             if (_reactionWheel == null)
                 return;
+
+            var actuatorModeCycleField = _reactionWheel.Fields[nameof(_reactionWheel.actuatorModeCycle)];
+            var authorityLimiterField = _reactionWheel.Fields[nameof(_reactionWheel.authorityLimiter)];
+            var stateStringField = _reactionWheel.Fields[nameof(_reactionWheel.stateString)];
+            var onToggleEvent = _reactionWheel.Events[nameof(_reactionWheel.OnToggle)];
+
+            actuatorModeCycleField.group = new BasePAWGroup(Group, GroupTitle, false);
+            authorityLimiterField.group = new BasePAWGroup(Group, GroupTitle, false);
+            stateStringField.group = new BasePAWGroup(Group, GroupTitle, false);
+            onToggleEvent.group = new BasePAWGroup(Group, GroupTitle, false);
 
             maxRollTorque = _reactionWheel.RollTorque;
             maxPitchTorque = _reactionWheel.PitchTorque;
@@ -66,7 +83,6 @@ namespace FNPlugin.Science
             if (vessel.packed) return;
 
             vessel.GoOnRails();
-            //vessel.SetRotation(vessel.transform.rotation);
             vessel.GoOffRails();
         }
 
@@ -76,8 +92,36 @@ namespace FNPlugin.Science
 
             if (_reactionWheel == null) return;
 
+            // detect if vessel is heading
+            headingSpinDelta = (previousPartHeading - part.transform.up).magnitude;
+            rotationSpinDelta = (previousPartRotation - part.transform.rotation.eulerAngles).magnitude;
+            previousPartRotation = part.transform.rotation.eulerAngles;
+            previousPartHeading = part.transform.up;
+
             StabilizeWhenPossible(1e-5f, 0.01f,  1f, 1f);
 
+            var torqueRatio = GetTorqueRatio();
+
+            _torqueRatioQueue.Enqueue(torqueRatio);
+            if (_torqueRatioQueue.Count > 4)
+                _torqueRatioQueue.Dequeue();
+
+            maxPowerCostMj = maxPowerCost / GameConstants.ecPerMJ;
+            var requiredPower = torqueRatio * maxPowerCostMj;
+            var requestedPower = Math.Max(1e-8, _torqueRatioQueue.Max() * maxPowerCostMj - _bufferOvercapacity);
+            var receivedPower = ConsumeMegawatts(requestedPower, true, true, true);
+
+            _bufferPower += receivedPower - requiredPower;
+            _bufferOvercapacity = Math.Min(maxBufferCapacity,  Math.Max(0, _bufferPower - maxBufferCapacity));
+            _bufferPower = Math.Min(_bufferPower, maxBufferCapacity);
+
+            powerFactor = requiredPower > 0 ? Math.Min(1, (receivedPower + _bufferPower) / requiredPower) : 1;
+
+            UpdateReactionWheelTorque();
+        }
+
+        private float GetTorqueRatio()
+        {
             var torque = _reactionWheel.GetAppliedTorque();
 
             torqueRoll = torque.y;
@@ -93,43 +137,29 @@ namespace FNPlugin.Science
             var pitchRatio = maxPitchTorque > 0 ? Mathf.Abs(torquePitch) / maxPitchTorque : 0;
             var yawRatio = maxYawTorque > 0 ? Mathf.Abs(torqueYaw) / maxYawTorque : 0;
             var torqueRatio = rollRatio + pitchRatio + yawRatio;
+            return torqueRatio;
+        }
 
-            _torqueRatioQueue.Enqueue(torqueRatio);
-            if (_torqueRatioQueue.Count > 4)
-                _torqueRatioQueue.Dequeue();
+        private void UpdateReactionWheelTorque()
+        {
+            if (powerFactor.IsInfinityOrNaN()) return;
 
-            maxPowerCostMj = maxPowerCost / GameConstants.ecPerMJ;
+            var velSaturationTorqueFactor =
+                Math.Max(
+                    1.0 - Math.Min(
+                        Math.Max(vessel.angularVelocityD.magnitude - saturationMinAngVel, 0.0) / saturationMaxAngVel,
+                        1.0),
+                    saturationMinTorqueFactor);
 
-            var requiredPower = (torqueRatio * maxPowerCostMj);
-
-            var requestedPower = System.Math.Max(1e-8, (_torqueRatioQueue.Max() * maxPowerCostMj) - _bufferOvercapacity);
-
-            var receivedPower = ConsumeMegawatts(requestedPower, true, true, true);
-
-            _bufferPower += receivedPower - requiredPower;
-            _bufferOvercapacity = System.Math.Min(maxBufferCapacity,  System.Math.Max(0, _bufferPower - maxBufferCapacity));
-            _bufferPower = System.Math.Min(_bufferPower, maxBufferCapacity);
-
-            powerRatio = requiredPower > 0 ? System.Math.Min(1, (receivedPower + _bufferPower) / requiredPower) : 1;
-
-            if (!powerRatio.IsInfinityOrNaN())
-            {
-                _reactionWheel.RollTorque = (float) (powerRatio * maxRollTorque);
-                _reactionWheel.PitchTorque = (float) (powerRatio * maxPitchTorque);
-                _reactionWheel.YawTorque = (float) (powerRatio * maxYawTorque);
-            }
+            _reactionWheel.RollTorque = (float) (velSaturationTorqueFactor * powerFactor * maxRollTorque);
+            _reactionWheel.PitchTorque = (float) (velSaturationTorqueFactor * powerFactor * maxPitchTorque);
+            _reactionWheel.YawTorque = (float) (velSaturationTorqueFactor * powerFactor * maxYawTorque);
         }
 
         private bool StabilizeWhenPossible(float headingThreshold, float rotationThreshold, float pitchThreshold, float yawThreshold)
         {
-            bool isStabilized = false;
-
-            // detect if vessel is heading
-            var headingMagnitudeDiff = (previousPartHeading - part.transform.up).magnitude;
-            var rotationMagnitudeDiff = (previousPartRotation - part.transform.rotation.eulerAngles).magnitude;
-
-            if (headingMagnitudeDiff < headingThreshold
-                && rotationMagnitudeDiff <= rotationThreshold
+            if (headingSpinDelta < headingThreshold
+                && rotationSpinDelta <= rotationThreshold
                 && vessel.ctrlState.mainThrottle <= 0
                 && !GameSettings.ROLL_LEFT.GetKey(true)
                 && !GameSettings.ROLL_RIGHT.GetKey(true)
@@ -146,13 +176,10 @@ namespace FNPlugin.Science
                 )
             {
                 StabilizeRotation();
-                isStabilized = true;
+                return true;
             }
 
-            previousPartRotation = part.transform.rotation.eulerAngles;
-            previousPartHeading = part.transform.up;
-
-            return isStabilized;
+            return false;
         }
     }
 }
