@@ -400,8 +400,8 @@ namespace FNPlugin.Reactors
         private ResourceBuffers _resourceBuffers;
         private FNEmitterController emitterController;
         private ModuleGenerator _heliumModuleGenerator;
-        private ProcessControlManager _processControlManager;
-        private ProcessControlMetaData lithiumBreeder;
+        //private ProcessControlManager _processControlManager;
+        //private ProcessControlMetaData lithiumBreeder;
 
         private readonly List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         private readonly List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
@@ -446,9 +446,6 @@ namespace FNPlugin.Reactors
         private int _windowId = 90175467;
         private int _deactivateTimer;
         private int _chargedParticleUtilisationLevel = 1;
-        private long _counter;
-
-        private double _previousLithiumRequest;
 
         private bool hasSpecificFuelModeTechs;
         private bool isFixedUpdatedCalled;
@@ -539,8 +536,14 @@ namespace FNPlugin.Reactors
 
                 if (currentFuelVariant != null && previousFuelVariant != null && currentFuelVariant != previousFuelVariant)
                 {
-                    _processControlManager.Collection.TryGetValue(previousFuelVariant.Name, out var reactorFuelProcess);
-                    reactorFuelProcess?.ReliablityEvent(0, true);
+                    PartResource previousReactorFuelProcess = part.Resources["_" + previousFuelVariant.Name];
+
+                    if (previousReactorFuelProcess != null)
+                    {
+                        previousReactorFuelProcess.maxAmount = 0;
+                        previousReactorFuelProcess.amount = 0;
+                    }
+
                 }
 
                 previousFuelVariant = value;
@@ -1033,7 +1036,6 @@ namespace FNPlugin.Reactors
 
             hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenLqd);
 
-            _counter = part.persistentId % 10;
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
             _staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
 
@@ -1043,8 +1045,9 @@ namespace FNPlugin.Reactors
             powerPercentageFloatRange[0].minValue = minimumPowerPercentage;
             powerPercentageFloatRange[1].minValue = minimumPowerPercentage;
 
-            _processControlManager = new ProcessControlManager(part);
-            _processControlManager.Collection.TryGetValue("Lithium6Breeder", out lithiumBreeder);
+            //_processControlManager = new ProcessControlManager(part);
+            //_processControlManager.Collection.TryGetValue("Lithium6Breeder", out lithiumBreeder);
+
 
             if (!part.Resources.Contains(ResourceSettings.Config.ThermalPowerInMegawatt))
             {
@@ -1595,20 +1598,29 @@ namespace FNPlugin.Reactors
 
         private void ProcessReactorFuel(double timeWarpFixedDeltaTime)
         {
+            var reactorFuelProcess = Kerbalism.IsLoaded ? part.Resources["_" + currentFuelVariant.Name] : null;
+            var electricPowerGenerator = Kerbalism.IsLoaded ? part.Resources["_" + currentFuelVariant.Name + "_EC"] : null;
+
             if (Kerbalism.IsLoaded)
             {
                 // update Kerbalism EC power generator
-                _processControlManager.Collection.TryGetValue(currentFuelVariant.Name + "-EC", out var electricPowerGenerator);
-                electricPowerGenerator?.ReliablityEvent(_auxiliaryPowerAvailable, true);
-            }
+                if (electricPowerGenerator != null)
+                {
+                    electricPowerGenerator.maxAmount = _auxiliaryPowerAvailable;
+                    electricPowerGenerator.amount = _auxiliaryPowerAvailable;
+                }
 
-            _processControlManager.Collection.TryGetValue(currentFuelVariant.Name, out var reactorFuelProcess);
-
-            // disable fuel consumption when InfinitePropellant active
-            if (CheatOptions.InfinitePropellant && reactorFuelProcess != null)
-            {
-                reactorFuelProcess.ReliablityEvent(0);
-                return;
+                if (reactorFuelProcess != null)
+                {
+                    // disable fuel consumption when InfinitePropellant active
+                    if (CheatOptions.InfinitePropellant)
+                    {
+                        //reactorFuelProcess.ReliablityEvent(0);
+                        reactorFuelProcess.maxAmount = 0;
+                        reactorFuelProcess.amount = 0;
+                        return;
+                    }
+                }
             }
 
             // consume fuel
@@ -1920,23 +1932,17 @@ namespace FNPlugin.Reactors
             _tritiumProducedPerSecond = _lithiumConsumedPerSecond * _tritiumBreedingMassAdjustment;
             _heliumProducedPerSecond = _lithiumConsumedPerSecond * _heliumBreedingMassAdjustment;
 
-            // consume the lithium
-            if ( Kerbalism.IsLoaded && lithiumBreeder != null)
+            PartResource lithiumBreedControlResource = Kerbalism.IsLoaded ? part.Resources["_Lithium6Breeder"] : null;
+
+            if (Kerbalism.IsLoaded && lithiumBreedControlResource != null)
             {
-                var delta = Math.Abs(lithiumRequest - _previousLithiumRequest);
-
-                if (_counter % 10 == 0 &&
-                    (fixedDeltaTime <= 20 && (delta > lithiumRequest * 0.01 || delta > _previousLithiumRequest * 0.01) ||
-                     fixedDeltaTime >  20 && (delta > lithiumRequest * 0.1  || delta > _previousLithiumRequest * 0.1)))
-                {
-                    lithiumBreeder.ReliablityEvent(lithiumRequest, true);
-
-                    _previousLithiumRequest = lithiumRequest;
-                }
-                _counter++;
+                // configure Kerbalism to consume lithium and produce helium and tritium gas
+                lithiumBreedControlResource.maxAmount = lithiumRequest;
+                lithiumBreedControlResource.amount = lithiumRequest;
             }
             else if (!CheatOptions.InfinitePropellant && _lithiumConsumedPerSecond > 0)
             {
+                // consume the lithium
                 part.RequestResource(_lithium6Def.id, _lithiumConsumedPerSecond * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 part.RequestResource(_tritiumDef.id, -_tritiumProducedPerSecond * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH);
 
@@ -2158,7 +2164,8 @@ namespace FNPlugin.Reactors
             if (currentFuelVariant == null)
                 return;
 
-            _processControlManager.Collection.TryGetValue(currentFuelVariant.Name, out var reactorFuelProcess);
+            // skip consumption when Kerbalism is loaded and process control resource is found
+            var reactorFuelProcess = Kerbalism.IsLoaded ? part.Resources["_" + currentFuelVariant.Name] : null;
             if (reactorFuelProcess == null)
             {
                 // consume fuel
@@ -2249,7 +2256,7 @@ namespace FNPlugin.Reactors
                 print("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
         }
 
-        protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj, double deltaTime, ProcessControlMetaData resourceControl = null )
+        protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj, double deltaTime, PartResource resourceControl = null )
         {
             if (fuel == null)
             {
@@ -2262,7 +2269,12 @@ namespace FNPlugin.Reactors
 
             var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ? powerInMj * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency : 0;
 
-            resourceControl?.ReliablityEvent(consumeAmountInUnitOfStorage, true);
+            //resourceControl?.ReliablityEvent(consumeAmountInUnitOfStorage, true);
+            if (resourceControl != null)
+            {
+                resourceControl.maxAmount = consumeAmountInUnitOfStorage;
+                resourceControl.amount = consumeAmountInUnitOfStorage;
+            }
 
             if (CheatOptions.InfinitePropellant)
                 return 0;
