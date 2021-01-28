@@ -28,6 +28,9 @@ namespace FNPlugin.Powermanagement
         {
             base.update(counter);
 
+            if (Vessel == null)
+                return;
+
             AtmosphericMultiplier = Vessel.atmDensity > 0 ? Math.Sqrt(Vessel.atmDensity) : 0;
 
             _resourceFillFractionQueueLong.Enqueue(ResourceFillFraction);

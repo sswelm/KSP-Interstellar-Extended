@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Science
 {
     public class AIHome : PartModule
     {
@@ -219,6 +219,9 @@ namespace FNPlugin
         {
             base.OnFixedUpdate();
 
+            if (part == null || vessel == null)
+                return;
+
             if (isupgraded && IsEnabled)
             {
                 var powerReturned = CheatOptions.InfiniteElectricity
@@ -232,7 +235,7 @@ namespace FNPlugin
                 {
                     part.isControlSource = Vessel.ControlLevel.FULL;
 
-                    if (vessel != null && vessel.connection != null)
+                    if (vessel.connection != null)
                     {
                         vessel.connection.RegisterCommandSource(this);
 

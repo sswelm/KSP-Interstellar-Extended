@@ -102,12 +102,12 @@ namespace FNPlugin.Powermanagement
 
             power_requested_per_second = Math.Max(power_requested_per_second, 0);
 
-            double power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, availablePower), 0);
-            fnresource_supplied[resourceName] -= power_taken_per_second;
+            double powerTakenPerSecond = Math.Max(Math.Min(power_requested_per_second, availablePower), 0);
+            fnresource_supplied[resourceName] -= powerTakenPerSecond;
 
-            manager.powerDrawPerSecond(this, power_requested_per_second, power_taken_per_second);
+            manager.powerDrawPerSecond(this, power_requested_per_second, powerTakenPerSecond);
 
-            return power_taken_per_second;
+            return powerTakenPerSecond;
         }
 
         public double consumeFNResourcePerSecond(double power_requested_per_second, double maximum_power_requested_per_second, string resourceName, ResourceManager manager = null)

@@ -23,19 +23,19 @@ namespace FNPlugin.Reactors
         [KSPField] public double minimumChargdIspMult = 1;
         [KSPField] public double maintenancePowerWasteheatRatio = 0.1;
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_Maintance")]//Maintance
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_Maintance")]//Maintance
         public string electricPowerMaintenance;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaRatio")]//Plasma Ratio
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaRatio")]//Plasma Ratio
         public double plasma_ratio = 1;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaModifier", guiFormat = "F6")]//Plasma Modifier
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaModifier", guiFormat = "F6")]//Plasma Modifier
         public double plasma_modifier = 1;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_IsSwappingFuelMode")]//Is Swapping Fuel Mode
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_IsSwappingFuelMode")]//Is Swapping Fuel Mode
         public bool isSwappingFuelMode;
 
         [KSPField] public double reactorRatioThreshold = 0.000005;
         [KSPField] public double minReactorRatio = 0;
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_RequiredRatio", guiFormat = "F3")]//Required Ratio
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_RequiredRatio", guiFormat = "F3")]//Required Ratio
         public double required_reactor_ratio;
 
         // Properties
@@ -112,13 +112,13 @@ namespace FNPlugin.Reactors
             Fields["lithium_modifier"].guiActive = powerIsAffectedByLithium;
         }
 
-        [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_NextFusionMode", active = true)]//Next Fusion Mode
+        [KSPEvent(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_NextFusionMode", active = true)]//Next Fusion Mode
         public void NextFusionModeEvent()
         {
             SwitchToNextFuelMode(fuel_mode);
         }
 
-        [KSPEvent(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_PreviousFusionMode", active = true)]//Previous Fusion Mode
+        [KSPEvent(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_PreviousFusionMode", active = true)]//Previous Fusion Mode
         public void PreviousFusionModeEvent()
         {
             SwitchToPreviousFuelMode(fuel_mode);

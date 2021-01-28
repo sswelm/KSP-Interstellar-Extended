@@ -32,11 +32,6 @@ namespace FNPlugin.Powermanagement
 
     public abstract class ResourceManager
     {
-        //public const string FNRESOURCE_MEGAJOULES = "Megajoules";
-        //public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
-        //public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
-        //public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
-
         public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
         public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
 
