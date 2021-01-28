@@ -328,12 +328,12 @@ namespace FNPlugin.Reactors
             Part.RequestResource(fluorineGasDefinition.id, -depletedFuelsProduced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
             var reactorFuels = CurrentFuelMode.Variants.First().ReactorFuels;
-            var sumUsagePerMw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMJ * fuelUsePerMJMult);
+            var sumUsagePerMw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMj * fuelUsePerMJMult);
 
             foreach (ReactorFuel fuel in reactorFuels)
             {
                 var fuelResource = part.Resources[fuel.ResourceName];
-                var powerFraction = sumUsagePerMw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sumUsagePerMw : 1;
+                var powerFraction = sumUsagePerMw > 0.0 ? fuel.AmountFuelUsePerMj * fuelUsePerMJMult / sumUsagePerMw : 1;
                 var newFuelAmount = Math.Min(fuelResource.amount + ((depletedFuelsProduced * 4) + (depletedFuelsProduced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultiplier, fuelResource.maxAmount);
                 fuelResource.amount = newFuelAmount;
             }

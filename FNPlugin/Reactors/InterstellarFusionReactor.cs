@@ -179,7 +179,7 @@ namespace FNPlugin.Reactors
 
         private bool FullFuelRequirements()
         {
-            return HasAllFuels() && FuelRequiresLab(CurrentFuelMode.RequiresLab);
+            return !CurrentFuelMode.Hidden && HasAllFuels() && FuelRequiresLab(CurrentFuelMode.RequiresLab);
         }
 
         private bool HasAllFuels()

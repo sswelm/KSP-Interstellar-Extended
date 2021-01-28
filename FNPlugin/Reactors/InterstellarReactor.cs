@@ -2059,7 +2059,7 @@ namespace FNPlugin.Reactors
                     && FusionEnergyGainFactor >= fm.MinimumFusionGainFactor
                     && (fm.Aneutronic || canUseNeutronicFuels)
                     && maxGammaRayPower >= fm.GammaRayEnergy)
-                .GroupBy(mode => mode.ModeGUIName).Select(group => new ReactorFuelType(group)).OrderBy(m => m.TechLevel).ToList();
+                .GroupBy(mode => mode.ModeGuiName).Select(group => new ReactorFuelType(group)).OrderBy(m => m.TechLevel).ToList();
             return groups;
         }
 
@@ -2183,7 +2183,7 @@ namespace FNPlugin.Reactors
 
             Debug.Log("[KSPI]: found " + filteredFuelModes.Count + " valid fuel types");
 
-            var groups = filteredFuelModes.GroupBy(mode => mode.ModeGUIName).Select(group => new ReactorFuelType(group)).ToList();
+            var groups = filteredFuelModes.GroupBy(mode => mode.ModeGuiName).Select(group => new ReactorFuelType(group)).ToList();
 
             Debug.Log("[KSPI]: grouped them into " + groups.Count + " valid fuel modes");
 
@@ -2226,7 +2226,7 @@ namespace FNPlugin.Reactors
             if (powerInMj.IsInfinityOrNaNorZero())
                 return 0;
 
-            var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ? powerInMj * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency : 0;
+            var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ? powerInMj * fuel.AmountFuelUsePerMj * fuelUsePerMJMult / FuelEfficiency : 0;
             if (resourceControl != null)
             {
                 resourceControl.maxAmount = consumeAmountInUnitOfStorage;
@@ -2264,7 +2264,7 @@ namespace FNPlugin.Reactors
             if (powerInMj.IsInfinityOrNaNorZero())
                 return 0;
 
-            var productSupply = powerInMj * product.AmountProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
+            var productSupply = powerInMj * product.AmountProductUsePerMj * fuelUsePerMJMult / FuelEfficiency;
             var fixedProductSupply = productSupply * deltaTime;
 
             if (!product.ProduceGlobal)
@@ -2564,7 +2564,7 @@ namespace FNPlugin.Reactors
                     var variantText = availableResources.Count > 1 ? " (" + availableResources.Count + " variants)" : "";
                     PrintToGuiLayout(fuel.FuelName + " "+ Localizer.Format("#LOC_KSPIE_Reactor_Reserves"), PluginHelper.FormatMassStr(availabilityInTon) + variantText, boldStyle, textStyle);//Reserves
 
-                    var tonFuelUsePerHour = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginSettings.Config.SecondsInHour;
+                    var tonFuelUsePerHour = ongoing_total_power_generated * fuel.TonsFuelUsePerMj * fuelUsePerMJMult / FuelEfficiency * PluginSettings.Config.SecondsInHour;
                     var kgFuelUsePerHour = tonFuelUsePerHour * 1000;
                     var kgFuelUsePerDay = kgFuelUsePerHour * PluginSettings.Config.HoursInDay;
 
@@ -2626,7 +2626,7 @@ namespace FNPlugin.Reactors
                         GUILayout.Label(PluginHelper.FormatMassStr(availabilityInTon, "0.00000") + " / " + PluginHelper.FormatMassStr(maxAvailabilityInTon, "0.00000"), textStyle, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
 
-                        var hourProductionInTon = ongoing_total_power_generated * product.TonsProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginSettings.Config.SecondsInHour;
+                        var hourProductionInTon = ongoing_total_power_generated * product.TonsProductUsePerMj * fuelUsePerMJMult / FuelEfficiency * PluginSettings.Config.SecondsInHour;
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(product.FuelName + " " + Localizer.Format("#LOC_KSPIE_Reactor_Production"), boldStyle, GUILayout.Width(150));//Production
                         GUILayout.Label(PluginHelper.FormatMassStr(hourProductionInTon) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_hour"), textStyle, GUILayout.Width(150));//hour
