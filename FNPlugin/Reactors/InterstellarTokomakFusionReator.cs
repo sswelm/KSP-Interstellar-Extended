@@ -35,7 +35,7 @@ namespace FNPlugin.Reactors
             {
                 heatingPowerRequirements = CurrentFuelMode == null
                     ? PowerRequirement
-                    : PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements;
+                    : PowerRequirement * CurrentFuelMode.NormalizedPowerRequirements;
 
                 heatingPowerRequirements = Math.Max(heatingPowerRequirements * Math.Pow(required_reactor_ratio, heatingRequestExponent), heatingPowerRequirements * minimumHeatingRequirements);
 

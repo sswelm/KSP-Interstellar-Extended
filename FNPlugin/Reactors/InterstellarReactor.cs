@@ -477,7 +477,7 @@ namespace FNPlugin.Reactors
         public virtual string TypeName => part.partInfo.title;
         public virtual double ChargedPowerRatio => CurrentFuelMode?.ChargedPowerRatio ?? 0;
         public virtual double ReactorEmbrittlementConditionRatio => Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
-        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode?.NormalisedReactionRate ?? 1);
+        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode?.NormalizedReactionRate ?? 1);
         public virtual double MinimumPower => MaximumPower * MinimumThrottle;
         public virtual double MaximumThermalPower => PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier;
         public virtual double MaximumChargedPower => PowerRatio * NormalisedMaximumPower * ChargedPowerRatio * geeForceModifier * overheatModifier;
@@ -574,7 +574,7 @@ namespace FNPlugin.Reactors
                     default: baseEfficiency = fuelEfficencyMk1; break;
                 }
 
-                return baseEfficiency * CurrentFuelMode.FuelEfficencyMultiplier;
+                return baseEfficiency * CurrentFuelMode.FuelEfficiencyMultiplier;
             }
         }
 
@@ -732,10 +732,10 @@ namespace FNPlugin.Reactors
                 var effectiveMass = ratio * product.mass;
 
                 // remove product from store
-                var fuelAmount = product.fuelmode.DensityInTon > 0 ? (effectiveMass / product.fuelmode.DensityInTon) : 0;
+                var fuelAmount = product.fuelMode.DensityInTon > 0 ? (effectiveMass / product.fuelMode.DensityInTon) : 0;
                 if (fuelAmount == 0) continue;
 
-                part.RequestResource(product.fuelmode.ResourceName, fuelAmount);
+                part.RequestResource(product.fuelMode.ResourceName, fuelAmount);
             }
 
             part.RequestResource(resource.name, -propellantMassPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime / resource.density, ResourceFlowMode.ALL_VESSEL);
@@ -1597,7 +1597,7 @@ namespace FNPlugin.Reactors
             {
                 var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess != null);
                 if (product.IsPropellant)
-                    _reactorProduction.Add(new ReactorProduction() {fuelmode = product, mass = massProduced});
+                    _reactorProduction.Add(new ReactorProduction() {fuelMode = product, mass = massProduced});
             }
         }
 

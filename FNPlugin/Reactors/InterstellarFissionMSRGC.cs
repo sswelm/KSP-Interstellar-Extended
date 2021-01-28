@@ -186,7 +186,7 @@ namespace FNPlugin.Reactors
 
                 var fuelActinideMassRatio = 1 - actinidesResource.amount / actinidesResource.maxAmount;
 
-                actinidesModifer = Math.Pow(fuelActinideMassRatio * fuelActinideMassRatio, CurrentFuelMode.NormalisedReactionRate);
+                actinidesModifer = Math.Pow(fuelActinideMassRatio * fuelActinideMassRatio, CurrentFuelMode.NormalizedReactionRate);
 
                 return base.MaximumThermalPower * actinidesModifer;
             }

@@ -54,7 +54,7 @@ namespace FNPlugin.Reactors
 
         public double PowerRequirement => RawPowerOutput / FusionEnergyGainFactor;
 
-        public double NormalizedPowerRequirement => PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements;
+        public double NormalizedPowerRequirement => PowerRequirement * CurrentFuelMode.NormalizedPowerRequirements;
 
         public override double StableMaximumReactorPower
         {
