@@ -267,7 +267,7 @@ namespace FNPlugin.Reactors
 
         [KSPField] public double minGeeForceModifier = 0.01;
         [KSPField] public double geeForceMultiplier = 0.1;
-        [KSPField] public double geeForceTreshHold = 9;
+        [KSPField] public double geeForceThreshHold = 9;
         [KSPField] public double geeForceExponent = 2;
 
         [KSPField] public double maxChargedParticleUtilisationRatio = 1;
@@ -1689,7 +1689,7 @@ namespace FNPlugin.Reactors
 
                 var geeforce = double.IsNaN(currentGeeForce) || double.IsInfinity(currentGeeForce) ? 0 : currentGeeForce;
 
-                var scaledGeeforce = Math.Pow(Math.Max(geeforce - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
+                var scaledGeeforce = Math.Pow(Math.Max(geeforce - geeForceThreshHold, 0) * geeForceMultiplier, geeForceExponent);
 
                 geeForceModifier = Math.Min(Math.Max(1 - scaledGeeforce, minGeeForceModifier), 1);
             }
