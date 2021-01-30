@@ -261,7 +261,7 @@ namespace FNPlugin.Reactors
         [KSPField] public double massCostExponent = 2.5;
 
         [KSPField] public double overheatMultiplier = 10;
-        [KSPField] public double overheatTreshHold = 0.95;
+        [KSPField] public double overheatThreshHold = 0.95;
         [KSPField] public double overheatExponent = 2;
         [KSPField] public double minOverheatModifier = 0.01;
 
@@ -1403,7 +1403,7 @@ namespace FNPlugin.Reactors
                     if (_averageOverheat.Count > 10)
                         _averageOverheat.Dequeue();
 
-                    var scaledOverheating = Math.Pow(Math.Max(getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt) - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
+                    var scaledOverheating = Math.Pow(Math.Max(getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt) - overheatThreshHold, 0) * overheatMultiplier, overheatExponent);
 
                     overheatModifier = Math.Min(Math.Max(1 - scaledOverheating, minOverheatModifier), 1);
                 }
