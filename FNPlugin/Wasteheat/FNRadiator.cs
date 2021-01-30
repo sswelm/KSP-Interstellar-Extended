@@ -922,13 +922,16 @@ namespace FNPlugin.Wasteheat
 
         private static List<FNRadiator> GetRadiatorsForVessel(Vessel vessel)
         {
-            if (RadiatorsByVessel.TryGetValue(vessel, out var vesselRadiator))
-                return vesselRadiator;
+            if (vessel == null)
+                return new List<FNRadiator>();
 
-            vesselRadiator = vessel.FindPartModulesImplementing<FNRadiator>().ToList();
-            RadiatorsByVessel.Add(vessel, vesselRadiator);
+            if (RadiatorsByVessel.TryGetValue(vessel, out var vesselRadiators))
+                return vesselRadiators;
 
-            return vesselRadiator;
+            vesselRadiators = vessel.FindPartModulesImplementing<FNRadiator>().ToList();
+            RadiatorsByVessel.Add(vessel, vesselRadiators);
+
+            return vesselRadiators;
         }
 
         private double GetMaximumTemperatureForGen(GenerationType generationType)
