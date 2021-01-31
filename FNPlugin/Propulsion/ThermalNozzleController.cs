@@ -66,7 +66,6 @@ namespace FNPlugin.Propulsion
         [KSPField] public double fuelflowThrottleMaxValue = 100;
         [KSPField] public double effectiveFuelflowThrottle;
         [KSPField] public double ispFlowMultiplier;
-        [KSPField] public double requestedElectricPowerMegajoules;
         [KSPField] public double requiredElectricalPowerFromMhd;
         [KSPField] public double requiredMhdEnergyRatio;
         [KSPField] public double exhaustModifier;
@@ -1558,7 +1557,7 @@ namespace FNPlugin.Propulsion
 
             UpdateAnimation();
 
-            isOpenCycleCooler = (!isPlasmaNozzle || UseThermalAndChargedPower) && !CheatOptions.IgnoreMaxTemperature;
+            isOpenCycleCooler = !isPlasmaNozzle && UseThermalAndChargedPower && !CheatOptions.IgnoreMaxTemperature;
 
             // when in jet mode apply extra cooling from intake air
             if (isOpenCycleCooler && isJet && part.atmDensity > 0)
@@ -1780,19 +1779,16 @@ namespace FNPlugin.Propulsion
             if (requiredMegajouleRatio > 0)
             {
                 var availablePower = availableThermalPower + availableChargedPower;
-
-                requestedElectricPowerMegajoules = availablePower * requiredMegajouleRatio * AttachedReactor.MagneticNozzlePowerMult;
-                var receivedMegajoules = consumeFNResourcePerSecond(requestedElectricPowerMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
+                var requestedElectricPowerMegajoules = availablePower * requiredMegajouleRatio * AttachedReactor.MagneticNozzlePowerMult;
+                var receivedElectricMegajoules = consumeFNResourcePerSecond(requestedElectricPowerMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
+                supplyFNResourcePerSecond(receivedElectricMegajoules, ResourceSettings.Config.WasteHeatInMegawatt);
                 requiredElectricalPowerFromMhd = CalculateElectricalPowerCurrentlyNeeded(Math.Min(availablePower, availablePower * requiredMegajouleRatio * 2));
                 var electricalPowerCurrentlyNeedRatio = requestedElectricPowerMegajoules > 0 ? Math.Min(1, requiredElectricalPowerFromMhd / requestedElectricPowerMegajoules) : 0;
-                receivedMegajoulesRatio = Math.Min(1, Math.Max(electricalPowerCurrentlyNeedRatio,  requestedElectricPowerMegajoules > 0 ? receivedMegajoules / requestedElectricPowerMegajoules : 0));
+                receivedMegajoulesRatio = Math.Min(1, Math.Max(electricalPowerCurrentlyNeedRatio,  requestedElectricPowerMegajoules > 0 ? receivedElectricMegajoules / requestedElectricPowerMegajoules : 0));
                 received_megajoules_percentage = receivedMegajoulesRatio * 100;
             }
             else
-            {
-                requestedElectricPowerMegajoules = 0;
                 receivedMegajoulesRatio = 1;
-            }
 
             requested_thermal_power = receivedMegajoulesRatio * availableThermalPower;
 
