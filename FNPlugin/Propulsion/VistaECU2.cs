@@ -4,6 +4,8 @@
 
 	class ZPinchFusionEngine : VistaECU2 { }
 
+    class ZPinchFissionEngine : VistaECU2 { }
+
     class ChemicalEngine : VistaECU2 { }
 
     class InertialFusionEngine : VistaECU2 { }
