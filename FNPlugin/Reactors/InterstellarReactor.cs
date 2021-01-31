@@ -246,6 +246,7 @@ namespace FNPlugin.Reactors
         [KSPField] public double fuelEfficiency = 1;
         [KSPField] public double fuelUsePerMJMult = 1;
         [KSPField] public double wasteHeatMultiplier = 1;
+        [KSPField] public double wasteHeatBufferMult = 1;
         [KSPField] public double wasteHeatBufferMassMult = 2.0e+6;
         [KSPField] public double hotBathTemperature;
         [KSPField] public double emergencyPowerShutdownFraction = 0.99;
@@ -386,7 +387,7 @@ namespace FNPlugin.Reactors
         private double _helium4Density;
         private double _lithium6Density;
 
-        private double _propulsionRequestRatioSum;
+        private double _currentPropulsionRequestRatioSum;
         private double _consumedFuelTotalFixed;
         private double _connectedReceiversSum;
         private double _previousReactorPowerRatio;
@@ -1032,7 +1033,7 @@ namespace FNPlugin.Reactors
             this.resources_to_supply = resourcesToSupply;
 
             _resourceBuffers = new ResourceBuffers();
-            _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult, true));
+            _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatBufferMult, wasteHeatBufferMassMult, true));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ThermalPowerInMegawatt, thermalPowerBufferMult));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ChargedParticleInMegawatt, chargedPowerBufferMult));
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
@@ -1439,18 +1440,36 @@ namespace FNPlugin.Reactors
                 var plasmaThrottleRatio = _connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.CurrentThrottle)) : 0;
                 var chargedThrottleRatio = _connectedEngines.Any(m => m.RequiresChargedPower) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle)) : 0;
 
-                var thermalPropulsionRatio = ThermalPropulsionEfficiency * thermalThrottleRatio;
-                var plasmaPropulsionRatio = PlasmaPropulsionEfficiency * plasmaThrottleRatio;
-                var chargedPropulsionRatio = ChargedParticlePropulsionEfficiency * chargedThrottleRatio;
+                var currentThermalPropulsionRatio = ThermalPropulsionEfficiency * thermalThrottleRatio;
+                var currentPlasmaPropulsionRatio = PlasmaPropulsionEfficiency * plasmaThrottleRatio;
+                var currentChargedPropulsionRatio = ChargedParticlePropulsionEfficiency * chargedThrottleRatio;
 
-                var thermalGeneratorRatio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
-                var plasmaGeneratorRatio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
-                var chargedGeneratorRatio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
+                var maximumThermalPropulsionRatio = ThermalPropulsionEfficiency * (thermalThrottleRatio > 0 ? 1 : 0);
+                var maximumPlasmaPropulsionRatio = PlasmaPropulsionEfficiency * (plasmaThrottleRatio > 0 ? 1 : 0);
+                var maximumChargedPropulsionRatio = ChargedParticlePropulsionEfficiency * (chargedThrottleRatio > 0 ? 1 : 0);
 
-                _propulsionRequestRatioSum = Math.Min(1, thermalPropulsionRatio + plasmaPropulsionRatio + chargedPropulsionRatio);
+                var currentThermalGeneratorRatio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
+                var currentPlasmaGeneratorRatio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
+                var currentChargedGeneratorRatio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
-                var maximumThermalRequestRatio = Math.Min(thermalPropulsionRatio + plasmaPropulsionRatio + thermalGeneratorRatio + plasmaGeneratorRatio, 1);
-                var maximumChargedRequestRatio = Math.Min(chargedPropulsionRatio + chargedGeneratorRatio, 1);
+                var maximumThermalGeneratorRatio = thermalEnergyEfficiency * (storedGeneratorThermalEnergyRequestRatio > 0 ? 1 : 0);
+                var maximumPlasmaGeneratorRatio = plasmaEnergyEfficiency * (storedGeneratorPlasmaEnergyRequestRatio > 0 ? 1 : 0);
+                var maximumChargedGeneratorRatio = chargedParticleEnergyEfficiency * (storedGeneratorChargedEnergyRequestRatio > 0 ? 1 : 0);
+
+                _currentPropulsionRequestRatioSum = Math.Min(1, currentThermalPropulsionRatio + currentPlasmaPropulsionRatio + currentChargedPropulsionRatio);
+
+                var currentThermalRequestRatio = Math.Min(currentThermalPropulsionRatio + currentPlasmaPropulsionRatio + currentThermalGeneratorRatio + currentPlasmaGeneratorRatio, 1);
+                var currentChargedRequestRatio = Math.Min(currentChargedPropulsionRatio + currentChargedGeneratorRatio, 1);
+
+                var maximumThermalRequestRatio = Math.Min(maximumThermalPropulsionRatio + maximumPlasmaPropulsionRatio + maximumThermalGeneratorRatio + maximumPlasmaGeneratorRatio, 1);
+                var maximumChargedRequestRatio = Math.Min(maximumChargedPropulsionRatio + maximumChargedGeneratorRatio, 1);
+
+                var finalCurrentThermalRequestRatio = Math.Max(currentThermalRequestRatio,
+                    (1 - getResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt)) * 0.01 * ThermalPowerRatio);
+                var finalCurrentChargedRequestRatio = Math.Max(currentChargedRequestRatio,
+                    (1 - getResourceBarFraction(ResourceSettings.Config.ChargedParticleInMegawatt)) * 0.01 * ChargedPowerRatio);
+
+                var finalReactorRequestRatio = Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio);
                 var maximumReactorRequestRatio = Math.Max(maximumThermalRequestRatio, maximumChargedRequestRatio);
 
                 var powerAccessModifier = Math.Max(
@@ -1471,23 +1490,25 @@ namespace FNPlugin.Reactors
                 power_request_ratio = Math.Max(maxThrottleRatio, maxStoredGeneratorEnergyRequestedRatio);
 
                 var maxChargedToSupplyPerSecond = maximumChargedPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
-                var requestedChargedToSupplyPerSecond = maxChargedToSupplyPerSecond * power_request_ratio * maximumChargedRequestRatio;
+                var requestedChargedToSupplyPerSecond = maxChargedToSupplyPerSecond * power_request_ratio * currentChargedRequestRatio;
 
                 var chargedParticlesManager = getManagerForVessel(ResourceSettings.Config.ChargedParticleInMegawatt);
                 var thermalHeatManager = getManagerForVessel(ResourceSettings.Config.ThermalPowerInMegawatt);
 
                 minThrottle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
                 var neededChargedPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(maxChargedToSupplyPerSecond, minThrottle, ResourceSettings.Config.ChargedParticleInMegawatt, chargedParticlesManager);
-                charged_power_ratio = Math.Min(maximumChargedRequestRatio, maximumChargedPower > 0 ? neededChargedPowerPerSecond / maximumChargedPower : 0);
+                charged_power_ratio = Math.Min(currentChargedRequestRatio, maximumChargedPower > 0 ? neededChargedPowerPerSecond / maximumChargedPower : 0);
 
                 var maxThermalToSupplyPerSecond = maximumThermalPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
-                var requestedThermalToSupplyPerSecond = maxThermalToSupplyPerSecond * power_request_ratio * maximumThermalRequestRatio;
+                var requestedThermalToSupplyPerSecond = maxThermalToSupplyPerSecond * power_request_ratio * currentThermalRequestRatio;
 
                 var neededThermalPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(maxThermalToSupplyPerSecond, minThrottle, ResourceSettings.Config.ThermalPowerInMegawatt, thermalHeatManager);
                 requested_thermal_power_ratio =  maximumThermalPower > 0 ? neededThermalPowerPerSecond / maximumThermalPower : 0;
-                thermal_power_ratio = Math.Min(maximumThermalRequestRatio, requested_thermal_power_ratio);
+                thermal_power_ratio = Math.Min(currentThermalRequestRatio, requested_thermal_power_ratio);
 
-                reactor_power_ratio = Math.Min(overheatModifier * maximumReactorRequestRatio, PowerRatio);
+                reactor_power_ratio = Math.Min(overheatModifier * finalReactorRequestRatio, PowerRatio);
+
+                var maximumGeneratedPower = maximumReactorRequestRatio * (maxChargedToSupplyPerSecond + maxThermalToSupplyPerSecond);
 
                 ongoing_charged_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requestedChargedToSupplyPerSecond, maxChargedToSupplyPerSecond, reactor_power_ratio, ResourceSettings.Config.ChargedParticleInMegawatt, chargedParticlesManager);
                 ongoing_thermal_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requestedThermalToSupplyPerSecond, maxThermalToSupplyPerSecond, reactor_power_ratio, ResourceSettings.Config.ThermalPowerInMegawatt, thermalHeatManager);
@@ -1505,7 +1526,7 @@ namespace FNPlugin.Reactors
                     // skip first frame of wasteheat production
                     var delayedWasteheatRate = ongoing_consumption_rate > ongoing_wasteheat_rate ? Math.Min(ongoing_wasteheat_rate, ongoing_consumption_rate) : ongoing_consumption_rate;
 
-                    supplyFNResourcePerSecondWithMax(delayedWasteheatRate * maximumPower, StableMaximumReactorPower, ResourceSettings.Config.WasteHeatInMegawatt);
+                    supplyFNResourcePerSecondWithMax(delayedWasteheatRate * maximumPower, maximumGeneratedPower, ResourceSettings.Config.WasteHeatInMegawatt);
 
                     ongoing_wasteheat_rate = ongoing_consumption_rate;
                 }
@@ -2416,7 +2437,7 @@ namespace FNPlugin.Reactors
             _emitterController.reactorActivityFraction = ongoing_consumption_rate;
             _emitterController.fuelNeutronsFraction = CurrentFuelMode.NeutronsRatio;
             _emitterController.lithiumNeutronAbsorbtionFraction = lithiumNeutronAbsorbtion;
-            _emitterController.exhaustActivityFraction = _propulsionRequestRatioSum;
+            _emitterController.exhaustActivityFraction = _currentPropulsionRequestRatioSum;
             _emitterController.radioactiveFuelLeakFraction = Math.Max(0, 1 - geeForceModifier);
 
             _emitterController.reactorShadowShieldMassProtection = isConnectedToThermalGenerator || isConnectedToChargedGenerator

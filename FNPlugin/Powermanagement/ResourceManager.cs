@@ -712,14 +712,16 @@ namespace FNPlugin.Powermanagement
 
             if (!powerToExtract.IsInfinityOrNaN())
             {
-                availableAmount += Kerbalism.IsLoaded
-                    ? RequestResource(partResources, powerToExtract, maxAmount, availableAmount)
-                    : part.RequestResource(resourceDefinition.id, powerToExtract);
+                if (Kerbalism.IsLoaded)
+                    RequestResource(partResources, powerToExtract, maxAmount, availableAmount);
+                else
+                    part.RequestResource(resourceDefinition.id, powerToExtract);
             }
 
             // Update resource fill fraction
-            if (!maxAmount.IsInfinityOrNaNorZero() && !availableAmount.IsInfinityOrNaN())
-                ResourceFillFraction = Math.Max(0.0, Math.Min(1.0, availableAmount / maxAmount));
+            GetAvailableResources(out var finalAvailableAmount, out var finalMaxAmount);
+            if (!maxAmount.IsInfinityOrNaNorZero() && !finalAvailableAmount.IsInfinityOrNaN())
+                ResourceFillFraction = Math.Max(0.0, Math.Min(1.0, finalAvailableAmount / finalMaxAmount));
             else
                 ResourceFillFraction = 0.0;
 
@@ -747,7 +749,7 @@ namespace FNPlugin.Powermanagement
                 availableAmount = RequestResource(partResource, powerToExtract, maxAmount, availableAmount);
             }
 
-            return availableAmount;
+            return powerToExtract;
         }
 
         private static double RequestResource(PartResource partResource, double powerToExtract, double maxAmount, double availableAmount)

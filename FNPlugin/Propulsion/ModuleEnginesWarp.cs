@@ -13,7 +13,7 @@ namespace FNPlugin.Propulsion
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ModuleEnginesWarp_MassFlow")]//Mass Flow
         public double requestedFlow;
 
-        [KSPField] public double GThreshold = 9;
+        [KSPField] public double GThreshold = 15;
         [KSPField] public string propellant1 = "LqdHydrogen";
         [KSPField] public string propellant2;
         [KSPField] public string propellant3;
