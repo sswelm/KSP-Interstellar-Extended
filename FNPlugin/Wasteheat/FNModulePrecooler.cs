@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class FNModulePreecooler : PartModule
+    class FNModulePrecooler : PartModule
     {
         [KSPField(isPersistant = true)]
         public bool functional;
@@ -55,7 +55,7 @@ namespace FNPlugin
                     var attachedPart = attachNode.attachedPart;
 
                     // skip any parts that contain a precooler
-                    if (attachedPart.FindModulesImplementing<FNModulePreecooler>().Any())
+                    if (attachedPart.FindModulesImplementing<FNModulePrecooler>().Any())
                     {
                         Debug.Log("[KSPI]: FNModulePreecooler - skipping Module Implementing FNModulePreecooler");
                         continue;
@@ -87,7 +87,7 @@ namespace FNPlugin
                             break;
                         }
 
-                        if (attachNode.attachedPart.FindModulesImplementing<FNModulePreecooler>().Any()) continue;
+                        if (attachNode.attachedPart.FindModulesImplementing<FNModulePrecooler>().Any()) continue;
 
                         foreach (var subAttachNode in attachNode.attachedPart.attachNodes.Where(a => a.attachedPart != null))
                         {
