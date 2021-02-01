@@ -391,7 +391,7 @@ namespace FNPlugin.Propulsion
         private ConfigNode[] fuelConfigNodes;
 
         private readonly List<Propellant> _listOfPropellants = new List<Propellant>();
-        private List<FNModulePreecooler> _vesselPreCoolers;
+        private List<FNModulePrecooler> _vesselPreCoolers;
         private List<AtmosphericIntake> _vesselResourceIntakes;
         private List<ThermalEngineFuel> _allThermalEngineFuels;
         private List<ThermalEngineFuel> _compatibleThermalEngineFuels;
@@ -705,7 +705,7 @@ namespace FNPlugin.Propulsion
             UpdateIspEngineParams();
 
             // research all available pre-coolers, intakes and nozzles on the vessel
-            _vesselPreCoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
+            _vesselPreCoolers = vessel.FindPartModulesImplementing<FNModulePrecooler>();
             _vesselResourceIntakes = vessel.FindPartModulesImplementing<AtmosphericIntake>();
 
             // if we can upgrade, let's do so
