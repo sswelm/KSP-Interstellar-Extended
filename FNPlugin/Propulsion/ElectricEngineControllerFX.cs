@@ -22,105 +22,58 @@ namespace FNPlugin.Propulsion
         public const string GROUP = "ElectricEngineControllerFX";
         public const string GROUP_TITLE = "#LOC_KSPIE_ElectricEngine_groupName";
 
-        [KSPField(isPersistant = true)]
-        public double storedAbsoluteFactor = 1;
+        [KSPField(isPersistant = true)] public double storedAbsoluteFactor = 1;
 
         // Persistent True
-        [KSPField(isPersistant = true)]
-        public bool isupgraded;
-        [KSPField(isPersistant = true)]
-        public string propellantName;
-        [KSPField(isPersistant = true)]
-        public string propellantGUIName;
-        [KSPField(isPersistant = true)]
-        public bool propellantIsSaved;
+        [KSPField(isPersistant = true)] public bool isupgraded;
+        [KSPField(isPersistant = true)] public string propellantName;
+        [KSPField(isPersistant = true)] public string propellantGUIName;
+        [KSPField(isPersistant = true)] public bool propellantIsSaved;
 
-        [KSPField(isPersistant = true)]
-        public int fuel_mode;
-        [KSPField(isPersistant = true)]
-        public bool vacplasmaadded;
+        [KSPField(isPersistant = true)] public int fuel_mode;
+        [KSPField(isPersistant = true)] public bool vacplasmaadded;
 
         //Persistent False
-        [KSPField]
-        public string upgradeTechReq = "";
-        [KSPField]
-        public string gearsTechReq = "";
-        [KSPField]
-        public double powerReqMultWithoutReactor = 0;
-        [KSPField]
-        public double powerReqMult = 1;
-        [KSPField]
-        public int type;
-        [KSPField]
-        public int upgradedtype = 0;
-        [KSPField]
-        public double baseISP = 1000;
-        [KSPField]
-        public double ispGears = 1;
-        [KSPField]
-        public double exitArea = 0;
-        [KSPField]
-        public double powerThrustMultiplier = 1;
+        [KSPField] public string upgradeTechReq = "";
+        [KSPField] public string gearsTechReq = "";
+        [KSPField] public double powerReqMultWithoutReactor = 0;
+        [KSPField] public double powerReqMult = 1;
+        [KSPField] public int type;
+        [KSPField] public int upgradedtype = 0;
+        [KSPField] public double baseISP = 1000;
+        [KSPField] public double ispGears = 1;
+        [KSPField] public double exitArea = 0;
+        [KSPField] public double powerThrustMultiplier = 1;
+        [KSPField] public double powerThrustMultiplierWithoutReactors = 0;
+        [KSPField] public float upgradeCost;
+        [KSPField] public string originalName = "";
+        [KSPField] public string upgradedName = "";
+        [KSPField] public double wasteHeatMultiplier = 1;
+        [KSPField] public double baseIspIonisationDivider = 3000;
+        [KSPField] public double minimumIonisationRatio = 0.05;
+        [KSPField] public double ionisationMultiplier = 0.5;
+        [KSPField] public double baseEfficency = 1;
+        [KSPField] public double variableEfficency = 0;
 
-        [KSPField]
-        public double powerThrustMultiplierWithoutReactors = 0;
+        [KSPField] public double particleEffectMult = 1;
+        [KSPField] public bool ignoreWasteheat = false;
+        [KSPField] public double GThreshold = 9;
+        [KSPField] public double maxEffectPowerRatio = 0.75;
 
-        [KSPField]
-        public float upgradeCost = 0;
-        [KSPField]
-        public string originalName = "";
-        [KSPField]
-        public string upgradedName = "";
-        [KSPField]
-        public double wasteHeatMultiplier = 1;
-        [KSPField]
-        public double baseIspIonisationDivider = 3000;
-        [KSPField]
-        public double minimumIonisationRatio = 0.05;
-        [KSPField]
-        public double ionisationMultiplier = 0.5;
-        [KSPField]
-        public double baseEfficency = 1;
-        [KSPField]
-        public double variableEfficency = 0;
-        [KSPField]
-        public float storedThrotle;
-        [KSPField]
-        public double particleEffectMult = 1;
-        [KSPField]
-        public bool ignoreWasteheat = false;
-        [KSPField]
-        public double GThreshold = 9;
-        [KSPField]
-        public double maxEffectPowerRatio = 0.75;
+        [KSPField] public double Mk1Power = 1;
+        [KSPField] public double Mk2Power = 1;
+        [KSPField] public double Mk3Power = 1;
+        [KSPField] public double Mk4Power = 1;
+        [KSPField] public double Mk5Power = 1;
+        [KSPField] public double Mk6Power = 1;
+        [KSPField] public double Mk7Power = 1;
 
-        [KSPField]
-        public double Mk1Power = 1;
-        [KSPField]
-        public double Mk2Power = 1;
-        [KSPField]
-        public double Mk3Power = 1;
-        [KSPField]
-        public double Mk4Power = 1;
-        [KSPField]
-        public double Mk5Power = 1;
-        [KSPField]
-        public double Mk6Power = 1;
-        [KSPField]
-        public double Mk7Power = 1;
-
-        [KSPField]
-        public string Mk2Tech = "";
-        [KSPField]
-        public string Mk3Tech = "";
-        [KSPField]
-        public string Mk4Tech = "";
-        [KSPField]
-        public string Mk5Tech = "";
-        [KSPField]
-        public string Mk6Tech = "";
-        [KSPField]
-        public string Mk7Tech = "";
+        [KSPField] public string Mk2Tech = "";
+        [KSPField] public string Mk3Tech = "";
+        [KSPField] public string Mk4Tech = "";
+        [KSPField] public string Mk5Tech = "";
+        [KSPField] public string Mk6Tech = "";
+        [KSPField] public string Mk7Tech = "";
 
         // GUI
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineType")]
@@ -178,47 +131,29 @@ namespace FNPlugin.Propulsion
         [KSPField(guiActive = false)]
         public double simulated_max_thrust;
 
-        [KSPField(guiActive = false)]
-        public double currentPropellantEfficiency;
+        [KSPField(guiActive = false)] public double currentPropellantEfficiency;
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiFormat = "F3", guiUnits = " t")]
-        public float partMass = 0;
+        public float partMass;
 
-        [KSPField]
-        public double prefabMass;
-        [KSPField]
-        public double expectedMass = 0;
-        [KSPField]
-        public double desiredMass = 0;
+        [KSPField] public double prefabMass;
+        [KSPField] public double expectedMass;
+        [KSPField] public double desiredMass;
 
-        [KSPField(guiActive = false)]
-        protected double modifiedMaximumPowerForEngine;
-        [KSPField(guiActive = false)]
-        protected double modifiedCurrentPowerForEngine;
+        [KSPField(guiActive = false)] public double modifiedMaximumPowerForEngine;
+        [KSPField(guiActive = false)] public double modifiedCurrentPowerForEngine;
+        [KSPField(guiActive = false)] public double effectiveMaximumAvailablePowerForEngine;
+        [KSPField(guiActive = false)] public double effectiveCurrentAvailablePowerForEngine;
 
-        [KSPField(guiActive = false)]
-        protected double effectiveMaximumAvailablePowerForEngine;
-        [KSPField(guiActive = false)]
-        protected double effectiveCurrentAvailablePowerForEngine;
+        [KSPField(guiActive = false)] public double effectiveMaximumPower;
+        [KSPField(guiActive = false)] public double effectiveRecievedPower;
+        [KSPField(guiActive = false)] public double effectiveSimulatedPower;
+        [KSPField(guiActive = false)] public double modifiedThrotte;
+        [KSPField(guiActive = false)] public double effectivePowerThrustModifier;
+        [KSPField(guiActive = false)] public double actualPowerReceived;
+        [KSPField(guiActive = false)] public double simulatedPowerReceived;
 
-        [KSPField(guiActive = false)]
-        protected double effectiveMaximumPower;
-        [KSPField(guiActive = false)]
-        protected double effectiveRecievedPower;
-        [KSPField(guiActive = false)]
-        protected double effectiveSimulatedPower;
-        [KSPField(guiActive = false)]
-        protected double modifiedThrotte;
-        [KSPField(guiActive = false)]
-        protected double effectivePowerThrustModifier;
-        [KSPField(guiActive = false)]
-        public double actualPowerReceived;
-        [KSPField(guiActive = false)]
-        public double simulatedPowerReceived;
-
-        [KSPField]
-        protected double maximumAvailablePowerForEngine;
-        [KSPField]
-        protected double currentAvailablePowerForEngine;
+        [KSPField] protected double maximumAvailablePowerForEngine;
+        [KSPField] protected double currentAvailablePowerForEngine;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_TotalPowerSupplied")]//Total Power Supplied
         protected double totalPowerSupplied;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_MaximumAvailablePower")]//Maximum Available Power
@@ -226,30 +161,15 @@ namespace FNPlugin.Propulsion
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngineController_CurrentAvailablePower")]//Current Available Power
         protected double availableCurrentPower;
 
-        [KSPField]
-        protected double maximumThrustFromPower = 0.001;
-        [KSPField]
-        protected double currentThrustFromPower = 0.001;
 
-        [KSPField]
-        protected double megaJoulesBarRatio;
-        [KSPField]
-        protected double effectPower = 0;
-        [KSPField]
-        public string EffectName = string.Empty;
+        [KSPField] public string EffectName = string.Empty;
 
-        [KSPField]
-        public double massTweakscaleExponent = 3;
-        [KSPField]
-        public double powerExponent = 3;
-        [KSPField]
-        public double massExponent = 3;
-        [KSPField]
-        public double maxPower = 1000;
-        [KSPField]
-        public double effectiveResourceThrotling;
-        [KSPField]
-        public double ratioHeadingVersusRequest;
+        [KSPField] public double massTweakscaleExponent = 3;
+        [KSPField] public double powerExponent = 3;
+        [KSPField] public double massExponent = 3;
+        [KSPField] public double maxPower = 1000;
+        [KSPField] public double effectiveResourceThrotling;
+        [KSPField] public double ratioHeadingVersusRequest;
 
         int _rep;
         int _initializationCountdown;
@@ -261,15 +181,18 @@ namespace FNPlugin.Propulsion
         bool _warpToReal;
         bool _isFullyStarted;
 
+        float storedThrottle;
+
         double _maximumThrustInSpace;
         double _modifiedEngineBaseIsp;
         double _electricalShareF;
-        double _electricalConsumptionF;
         double _heatProductionF;
         double _modifiedCurrentPropellantIspMultiplier;
         double _maxIsp;
         double _effectiveIsp;
         double _ispPersistent;
+        double effectPower;
+        double _maximumThrustFromPower = 0.001;
 
         ResourceBuffers _resourceBuffers;
         FloatCurve _ispFloatCurve;
@@ -277,6 +200,7 @@ namespace FNPlugin.Propulsion
 
         List<ElectricEnginePropellant> _vesselPropellants;
         List<string> _allPropellantsFx;
+
 
         // Properties
         public string UpgradeTechnology => upgradeTechReq;
@@ -532,7 +456,7 @@ namespace FNPlugin.Propulsion
 
             UpdateIsp();
 
-            _attachedEngine.maxThrust = (float)maximumThrustFromPower;
+            _attachedEngine.maxThrust = (float)_maximumThrustFromPower;
         }
 
         private void InitializePropellantMode()
@@ -653,19 +577,19 @@ namespace FNPlugin.Propulsion
             base.OnUpdate();
 
             // stop engines and drop out of timewarp when X pressed
-            if (vessel.packed && storedThrotle > 0 && Input.GetKeyDown(KeyCode.X))
+            if (vessel.packed && storedThrottle > 0 && Input.GetKeyDown(KeyCode.X))
             {
                 // Return to realtime
                 TimeWarp.SetRate(0, true);
 
-                storedThrotle = 0;
-                vessel.ctrlState.mainThrottle = storedThrotle;
+                storedThrottle = 0;
+                vessel.ctrlState.mainThrottle = storedThrottle;
             }
 
             // When transitioning from timewarp to real update throttle
             if (_warpToReal)
             {
-                vessel.ctrlState.mainThrottle = storedThrotle;
+                vessel.ctrlState.mainThrottle = storedThrottle;
                 _warpToReal = false;
             }
 
@@ -740,7 +664,6 @@ namespace FNPlugin.Propulsion
         // ReSharper disable once UnusedMember.Global
         public void FixedUpdate()
         {
-            // disable exhaust effects
             if (!string.IsNullOrEmpty(EffectName))
                 part.Effect(EffectName, (float)effectPower, -1);
 
@@ -770,7 +693,7 @@ namespace FNPlugin.Propulsion
             if (_vesselChangedSioCountdown > 0)
                 _vesselChangedSioCountdown--;
 
-            CalculateTimeDialation();
+            CalculateTimeDilation();
 
             if (CurrentPropellant == null) return;
 
@@ -778,7 +701,7 @@ namespace FNPlugin.Propulsion
             _resourceBuffers.UpdateBuffers();
 
             if (!vessel.packed && !_warpToReal)
-                storedThrotle = vessel.ctrlState.mainThrottle;
+                storedThrottle = vessel.ctrlState.mainThrottle;
 
             maxEffectivePower = MaxEffectivePower;
             currentPropellantEfficiency = CurrentPropellantEfficiency;
@@ -790,7 +713,7 @@ namespace FNPlugin.Propulsion
             modifiedMaxThrottlePower = maxEffectivePower * modifiedThrotte;
 
             totalPowerSupplied = getTotalPowerSupplied(ResourceSettings.Config.ElectricPowerInMegawatt);
-            megaJoulesBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var megaJoulesBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
@@ -802,8 +725,7 @@ namespace FNPlugin.Propulsion
             maximumAvailablePowerForEngine = availableMaximumPower * _electricalShareF;
             currentAvailablePowerForEngine = availableCurrentPower * _electricalShareF;
 
-            maximumThrustFromPower = EvaluateMaxThrust(maximumAvailablePowerForEngine);
-            currentThrustFromPower = EvaluateMaxThrust(currentAvailablePowerForEngine);
+            _maximumThrustFromPower = EvaluateMaxThrust(maximumAvailablePowerForEngine);
 
             effectiveMaximumAvailablePowerForEngine = maximumAvailablePowerForEngine * effectiveResourceThrotling;
             effectiveCurrentAvailablePowerForEngine = currentAvailablePowerForEngine * effectiveResourceThrotling;
@@ -840,8 +762,6 @@ namespace FNPlugin.Propulsion
                 : supplyFNResourcePerSecondWithMax(heatToProduce, maxHeatToProduce, ResourceSettings.Config.WasteHeatInMegawatt);
 
             // update GUI Values
-            _electricalConsumptionF = actualPowerReceived;
-
             _effectiveIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * ThrottleModifiedIsp();
             _maxIsp = _effectiveIsp * CurrentPropellantThrustMultiplier;
 
@@ -866,7 +786,7 @@ namespace FNPlugin.Propulsion
 
             calculated_thrust = CurrentPropellant.SupportedEngines == 8
                 ? maxThrustWithCurrentThrottle
-                : Math.Max(maxThrustWithCurrentThrottle - (exitArea * vessel.staticPressurekPa), 0);
+                : Math.Max(maxThrustWithCurrentThrottle - exitArea * vessel.staticPressurekPa, 0);
 
             simulated_max_thrust = CurrentPropellant.SupportedEngines == 8
                 ? simulatedThrustInSpace
@@ -929,7 +849,7 @@ namespace FNPlugin.Propulsion
             else
                 IdleEngine();
 
-            if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
+            if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0 && _attachedEngine.realIsp > 0 && _maximumThrustInSpace > 0)
             {
                 var engineFuelFlow = _currentSpaceFuelFlowRate * _attachedEngine.currentThrottle;
                 var currentMaxFuelFlowRate = _attachedEngine.maxThrust / _attachedEngine.realIsp / PhysicsGlobals.GravitationalAcceleration;
@@ -940,6 +860,8 @@ namespace FNPlugin.Propulsion
 
                 effectPower = currentEffectPower * (1 - maxEffectPowerRatio) + maximumEffectPower * maxEffectPowerRatio;
             }
+            else
+                effectPower = 0;
 
             var vacuumPlasmaResource = part.Resources[ResourceSettings.Config.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
@@ -963,7 +885,7 @@ namespace FNPlugin.Propulsion
             }
             else
             {
-                UpdateIsp(1);
+                UpdateIsp();
                 _maxFuelFlowRate = 0;
                 _attachedEngine.maxFuelFlow = _maxFuelFlowRate;
             }
@@ -972,7 +894,7 @@ namespace FNPlugin.Propulsion
                 part.Effect(CurrentPropellant.ParticleFXName, 0, -1);
         }
 
-        private void CalculateTimeDialation()
+        private void CalculateTimeDilation()
         {
             var worldSpaceVelocity = vessel.orbit.GetFrameVel().magnitude;
 
