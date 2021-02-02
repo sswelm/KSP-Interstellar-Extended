@@ -215,9 +215,6 @@ namespace FNPlugin.Reactors
         [KSPField] public string shutdownAnimationName = "";
         [KSPField] public string upgradedName = "";
         [KSPField] public string originalName = "";
-        [KSPField] public string soundTerminateFilePath = "";
-        [KSPField] public string soundInitiateFilePath = "";
-        [KSPField] public string soundRunningFilePath = "";
         [KSPField] public string powerUpgradeTechReq = "";
         [KSPField] public string upgradeTechReq = "";
 
@@ -278,10 +275,15 @@ namespace FNPlugin.Reactors
         [KSPField] public double maxChargedParticleUtilisationRatioMk4 = 1;
         [KSPField] public double maxChargedParticleUtilisationRatioMk5 = 1;
 
+        [KSPField] public string soundTerminateFilePath = "";
+        [KSPField] public string soundInitiateFilePath = "";
+        [KSPField] public string soundRunningFilePath = "";
         [KSPField] public double soundRunningPitchMin = 0.4;
         [KSPField] public double soundRunningPitchExp = 0;
-        [KSPField] public double soundRunningVolumeExp = 0;
+        [KSPField] public double soundRunningPitchMult = 1;
+        [KSPField] public double soundRunningVolumeExp = 1;
         [KSPField] public double soundRunningVolumeMin = 0;
+        [KSPField] public double soundRunningVolumeMult = 1;
 
         [KSPField] public double neutronEmbrittlementLifepointsMax = 100;
         [KSPField] public double neutronEmbrittlementDivider = 1e+9;
@@ -1142,8 +1144,10 @@ namespace FNPlugin.Reactors
                 _runningSound = gameObject.AddComponent<AudioSource>();
                 _runningSound.clip = GameDatabase.Instance.GetAudioClip(soundRunningFilePath);
                 _runningSound.volume = 0;
-                _runningSound.panStereo = 0;
-                _runningSound.rolloffMode = AudioRolloffMode.Linear;
+                _runningSound.dopplerLevel = 0;
+                _runningSound.spatialBlend = 1f;
+                _runningSound.maxDistance = 100f;
+                _runningSound.rolloffMode = AudioRolloffMode.Logarithmic;
                 _runningSound.loop = true;
                 _runningSound.Stop();
             }
@@ -1154,8 +1158,10 @@ namespace FNPlugin.Reactors
                 _terminateSound = gameObject.AddComponent<AudioSource>();
                 _terminateSound.clip = GameDatabase.Instance.GetAudioClip(soundTerminateFilePath);
                 _terminateSound.volume = 0;
-                _terminateSound.panStereo = 0;
-                _terminateSound.rolloffMode = AudioRolloffMode.Linear;
+                _terminateSound.dopplerLevel = 0;
+                _terminateSound.spatialBlend = 1f;
+                _terminateSound.maxDistance = 100f;
+                _terminateSound.rolloffMode = AudioRolloffMode.Logarithmic;
                 _terminateSound.loop = false;
                 _terminateSound.Stop();
             }
@@ -1165,8 +1171,10 @@ namespace FNPlugin.Reactors
                 _initiateSound = gameObject.AddComponent<AudioSource>();
                 _initiateSound.clip = GameDatabase.Instance.GetAudioClip(soundInitiateFilePath);
                 _initiateSound.volume = 0;
-                _initiateSound.panStereo = 0;
-                _initiateSound.rolloffMode = AudioRolloffMode.Linear;
+                _initiateSound.dopplerLevel = 0;
+                _initiateSound.spatialBlend = 1f;
+                _initiateSound.maxDistance = 100f;
+                _initiateSound.rolloffMode = AudioRolloffMode.Logarithmic;
                 _initiateSound.loop = false;
                 _initiateSound.Stop();
             }
@@ -1624,8 +1632,8 @@ namespace FNPlugin.Reactors
 
         private void UpdatePlayedSound()
         {
-            var scaledPitchRatio = Math.Pow(reactor_power_ratio, soundRunningPitchExp);
-            var scaledVolumeRatio = Math.Pow(reactor_power_ratio, soundRunningVolumeExp);
+            var scaledPitchRatio = Math.Pow(reactor_power_ratio, soundRunningPitchExp * soundRunningPitchMult);
+            var scaledVolumeRatio = Math.Pow(reactor_power_ratio, soundRunningVolumeExp) * soundRunningVolumeMult;
 
             var pitch = soundRunningPitchMin * (1 - scaledPitchRatio) + scaledPitchRatio;
             var volume = reactor_power_ratio <= 0 ? 0 : GameSettings.SHIP_VOLUME * ( soundRunningVolumeMin * (1 - scaledVolumeRatio) + scaledVolumeRatio);

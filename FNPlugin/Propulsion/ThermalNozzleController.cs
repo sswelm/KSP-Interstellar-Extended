@@ -387,10 +387,11 @@ namespace FNPlugin.Propulsion
         private ResourceBuffers resourceBuffers;
         private ModuleEnginesWarp timewarpEngine;
         private ModuleEngines myAttachedEngine;
-        private Guid id = Guid.NewGuid();
         private ConfigNode[] fuelConfigNodes;
 
+        private readonly Guid id = Guid.NewGuid();
         private readonly List<Propellant> _listOfPropellants = new List<Propellant>();
+
         private List<FNModulePrecooler> _vesselPreCoolers;
         private List<AtmosphericIntake> _vesselResourceIntakes;
         private List<ThermalEngineFuel> _allThermalEngineFuels;
