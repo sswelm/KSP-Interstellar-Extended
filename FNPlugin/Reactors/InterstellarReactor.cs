@@ -452,8 +452,7 @@ namespace FNPlugin.Reactors
         public double RawMaximumPower => RawPowerOutput;
         public double ReactorSpeedMult => reactorSpeedMult;
         public double ThermalPowerRatio => 1 - ChargedPowerRatio;
-        public double PowerRatio => ((double)(decimal)powerPercentage) / 100;
-
+        public double PowerRatio => (double)(decimal)powerPercentage / 100;
         public bool MayExhaustInAtmosphereHomeworld => mayExhaustInAtmosphereHomeworld;
         public bool MayExhaustInLowSpaceHomeworld => mayExhaustInLowSpaceHomeworld;
         public bool UsePropellantBaseIsp => usePropellantBaseIsp;
