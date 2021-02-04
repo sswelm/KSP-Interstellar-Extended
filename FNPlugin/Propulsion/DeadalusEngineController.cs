@@ -166,7 +166,7 @@ namespace FNPlugin.Propulsion
         [KSPField] public double thrustIspMk8 = 400000;
         [KSPField] public double thrustIspMk9 = 500000;
 
-        [KSPField] public int powerPriority = 4;
+        [KSPField] public int powerPriority = 3;
         [KSPField] public int numberOfAvailableUpgradeTechs;
 
         [KSPField] public float throttle;

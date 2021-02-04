@@ -625,7 +625,7 @@ namespace FNPlugin.Powermanagement
 
                 powerProducers.Add(new PowerGeneratedPair(pair.Key, production));
                 sumPowerProduced += currentSupply;
-                supplyEfficiencyRatio += production.EfficiencyRatio * currentSupply;
+                supplyEfficiencyRatio += production.EfficiencyRatio * (currentSupply > 0 ? currentSupply : 1.0 / productionRequests.Count);
 
                 var history = productionTemp.TryGetValue(key, out PowerGenerated old) ? old.History : new Queue<double>(POWER_HISTORY_LEN);
 
