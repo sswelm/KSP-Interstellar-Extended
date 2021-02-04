@@ -79,7 +79,7 @@ namespace FNPlugin.Powermanagement
             double power_taken_fixed = Math.Max(Math.Min(power_fixed, availablePower * fixedDeltaTime), 0);
 
             fnresource_supplied[resourcename] -= power_taken_fixed / fixedDeltaTime;
-            manager.powerDrawFixed(this, power_fixed, power_taken_fixed);
+            manager.PowerDrawFixed(this, power_fixed, power_taken_fixed);
 
             return power_taken_fixed;
         }
@@ -105,7 +105,7 @@ namespace FNPlugin.Powermanagement
             double powerTakenPerSecond = Math.Max(Math.Min(power_requested_per_second, availablePower), 0);
             fnresource_supplied[resourceName] -= powerTakenPerSecond;
 
-            manager.powerDrawPerSecond(this, power_requested_per_second, powerTakenPerSecond);
+            manager.PowerDrawPerSecond(this, power_requested_per_second, powerTakenPerSecond);
 
             return powerTakenPerSecond;
         }
@@ -129,7 +129,7 @@ namespace FNPlugin.Powermanagement
             var power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, availablePower), 0);
             fnresource_supplied[resourceName] -= power_taken_per_second;
 
-            manager.powerDrawPerSecond(this, power_requested_per_second, Math.Max(maximum_power_requested_per_second, 0), power_taken_per_second);
+            manager.PowerDrawPerSecond(this, power_requested_per_second, Math.Max(maximum_power_requested_per_second, 0), power_taken_per_second);
 
             return power_taken_per_second;
         }
@@ -169,7 +169,7 @@ namespace FNPlugin.Powermanagement
                     power_taken_per_second += (part.RequestResource(resourceName, fixedPowerShortage) / timeWarpFixedDeltaTime);
             }
 
-            manager.powerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
+            manager.PowerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
 
             return power_taken_per_second;
         }
@@ -227,7 +227,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            return manager.powerSupplyFixed(this, Math.Max(supply, 0));
+            return manager.PowerSupplyFixed(this, Math.Max(supply, 0));
         }
 
         public double GetRequiredElectricCharge()
@@ -258,7 +258,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            return manager.powerSupplyPerSecond(this, Math.Max(supply, 0));
+            return manager.PowerSupplyPerSecond(this, Math.Max(supply, 0));
         }
 
         public double supplyFNResourceFixedWithMax(double supply, double maxSupply, string resourceName)
@@ -273,7 +273,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            return manager.powerSupplyFixedWithMax(this, Math.Max(supply, 0), Math.Max(maxSupply, 0));
+            return manager.PowerSupplyFixedWithMax(this, Math.Max(supply, 0), Math.Max(maxSupply, 0));
         }
 
         public double supplyFNResourcePerSecondWithMaxAndEfficiency(double supply, double maxsupply, double efficiencyRatio, string resourceName)
@@ -288,7 +288,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            return manager.powerSupplyPerSecondWithMaxAndEfficiency(this, Math.Max(supply, 0), Math.Max(maxsupply, 0), efficiencyRatio);
+            return manager.PowerSupplyPerSecondWithMaxAndEfficiency(this, Math.Max(supply, 0), Math.Max(maxsupply, 0), efficiencyRatio);
         }
 
         public double supplyFNResourcePerSecondWithMax(double supply, double maxsupply, string resourceName)
@@ -303,7 +303,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            return manager.powerSupplyPerSecondWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
+            return manager.PowerSupplyPerSecondWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
         }
 
         public double supplyManagedFNResourcePerSecond(double supply, string resourceName)
@@ -318,7 +318,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            return manager.managedPowerSupplyPerSecond(this, Math.Max(supply, 0));
+            return manager.ManagedPowerSupplyPerSecond(this, Math.Max(supply, 0));
         }
 
         public double getNeededPowerSupplyPerSecondWithMinimumRatio(double supply, double ratio_min, string resourceName, ResourceManager manager = null)
@@ -350,7 +350,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
+            return manager.ManagedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
         public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, string resourceName, ResourceManager manager = null)
@@ -366,7 +366,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
+            var result = manager.ManagedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
 
             return result.CurrentSupply;
         }
@@ -382,7 +382,7 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 manager = getManagerForVessel(resourceName);
 
-            return manager?.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
+            return manager?.ManagedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
         }
 
         public double getTotalPowerSupplied(string resourcename)
@@ -792,7 +792,7 @@ namespace FNPlugin.Powermanagement
                         resource_manager.UpdatePartModule(this);
 
                     if (resource_manager.PartModule == this)
-                        resource_manager.update(updateCounter);
+                        resource_manager.Update(updateCounter);
                 }
             }
 

@@ -17,16 +17,16 @@ namespace FNPlugin.Powermanagement
 
         public double AtmosphericMultiplier { get; private set; }
 
-        public WasteHeatResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.WasteHeatInMegawatt, FNRESOURCE_FLOWTYPE_EVEN)
+        public WasteHeatResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.WasteHeatInMegawatt, FnResourceFlowTypeEven)
         {
-            WindowPosition = new Rect(600, 600, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
+            WindowPosition = new Rect(600, 600, LabelWidth + ValueWidth + PriorityWidth, 50);
             TemperatureRatio = 0.0;
             RadiatorEfficiency = 0.0;
         }
 
-        public override void update(long counter)
+        public override void Update(long counter)
         {
-            base.update(counter);
+            base.Update(counter);
 
             if (Vessel == null)
                 return;

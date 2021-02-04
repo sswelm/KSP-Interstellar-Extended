@@ -6,9 +6,9 @@ namespace FNPlugin.Powermanagement
 {
     internal class TPResourceManager : ResourceManager
     {
-        public TPResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ThermalPowerInMegawatt, FNRESOURCE_FLOWTYPE_EVEN)
+        public TPResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ThermalPowerInMegawatt, FnResourceFlowTypeEven)
         {
-            WindowPosition = new Rect(600, 50, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
+            WindowPosition = new Rect(600, 50, LabelWidth + ValueWidth + PriorityWidth, 50);
         }
     }
 }

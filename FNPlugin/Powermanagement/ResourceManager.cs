@@ -32,16 +32,15 @@ namespace FNPlugin.Powermanagement
 
     public abstract class ResourceManager
     {
-        public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
-        public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
+        public const int FnResourceFlowTypeSmallestFirst = 0;
+        public const int FnResourceFlowTypeEven = 1;
 
-        protected const int LABEL_WIDTH = 240;
-        protected const int VALUE_WIDTH = 55;
-        protected const int PRIORITY_WIDTH = 30;
-        protected const int OVERVIEW_WIDTH = 65;
-
-        protected const int MAX_PRIORITY = 6;
-        private const int POWER_HISTORY_LEN = 10;
+        protected const int LabelWidth = 240;
+        protected const int ValueWidth = 55;
+        protected const int PriorityWidth = 30;
+        protected const int OverviewWidth = 65;
+        protected const int MaxPriority = 6;
+        private const int PowerHistoryLen = 10;
 
         protected readonly List<PartResource> partResources = new List<PartResource>();
         protected readonly IDictionary<IResourceSuppliable, PowerDistribution> consumptionRequests;
@@ -52,21 +51,22 @@ namespace FNPlugin.Powermanagement
         private readonly List<PowerGeneratedPair> powerProducers;
         private readonly double[] currentDistributed;
         private readonly double[] stableDistributed;
-        protected readonly PowerStats current, last;
 
+        protected Part part;
+        protected readonly PowerStats current, last;
         protected readonly string resourceName;
         protected readonly int flowType;
-        protected Part part;
         protected readonly PartResourceDefinition resourceDefinition;
 
+        private readonly int _windowId;
         private bool renderWindow;
-        protected GUIStyle left_bold_label;
-        protected GUIStyle right_bold_label;
-        protected GUIStyle green_label;
-        protected GUIStyle red_label;
-        protected GUIStyle left_aligned_label;
-        protected GUIStyle right_aligned_label;
-        private readonly int windowID;
+
+        protected GUIStyle leftBoldLabel;
+        protected GUIStyle rightBoldLabel;
+        protected GUIStyle greenLabel;
+        protected GUIStyle redLabel;
+        protected GUIStyle leftAlignedLabel;
+        protected GUIStyle rightAlignedLabel;
 
         protected virtual double AuxiliaryResourceDemand => 0.0;
 
@@ -115,23 +115,23 @@ namespace FNPlugin.Powermanagement
 
         public Rect WindowPosition { get; protected set; }
 
-        protected ResourceManager(Guid overmanagerId, PartModule pm, string resource_name, int flow_type)
+        protected ResourceManager(Guid overmanagerId, PartModule pm, string resourceName, int flowType)
         {
             OverManagerId = overmanagerId;
             Id = Guid.NewGuid();
 
-            flowType = flow_type;
-            resourceName = resource_name;
+            this.flowType = flowType;
+            this.resourceName = resourceName;
             Vessel = pm.vessel;
             part = pm.part;
             PartModule = pm;
             renderWindow = false;
 
-            windowID = new System.Random(resource_name.GetHashCode()).Next(int.MinValue, int.MaxValue);
-            WindowPosition = new Rect(0, 0, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
+            _windowId = new System.Random(resourceName.GetHashCode()).Next(int.MinValue, int.MaxValue);
+            WindowPosition = new Rect(0, 0, LabelWidth + ValueWidth + PriorityWidth, 50);
 
-            currentDistributed = new double[MAX_PRIORITY];
-            stableDistributed = new double[MAX_PRIORITY];
+            currentDistributed = new double[MaxPriority];
+            stableDistributed = new double[MaxPriority];
             // Cannot use SortedDictionary as the priority for some items is dynamic
             consumptionRequests = new Dictionary<IResourceSuppliable, PowerDistribution>(64);
             // Must be kept separately as the producer list gets rebuilt every update
@@ -140,34 +140,34 @@ namespace FNPlugin.Powermanagement
             powerConsumers = new List<PowerDistributionPair>(64);
             powerProducers = new List<PowerGeneratedPair>(64);
 
-            resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
+            resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
             last = new PowerStats();
             current = new PowerStats();
             ResourceFillFraction = 0.0;
         }
 
-        protected virtual double AdjustSupplyComplete(double timeWarpDT, double powerToExtract)
+        protected virtual double AdjustSupplyComplete(double timeWarpDt, double powerToExtract)
         {
             return powerToExtract;
         }
 
-        protected void DoWindow(int windowID)
+        protected void DoWindow(int windowId)
         {
             double netChange = ResourceNetChange;
             double netUtilization = DemandStableSupply;
 
-            if (left_bold_label == null)
+            if (leftBoldLabel == null)
             {
-                left_bold_label = new GUIStyle(GUI.skin.label)
+                leftBoldLabel = new GUIStyle(GUI.skin.label)
                 {
                     fontStyle = FontStyle.Bold,
                     font = PluginHelper.MainFont
                 };
             }
 
-            if (right_bold_label == null)
+            if (rightBoldLabel == null)
             {
-                right_bold_label = new GUIStyle(GUI.skin.label)
+                rightBoldLabel = new GUIStyle(GUI.skin.label)
                 {
                     fontStyle = FontStyle.Bold,
                     font = PluginHelper.MainFont,
@@ -175,9 +175,9 @@ namespace FNPlugin.Powermanagement
                 };
             }
 
-            if (green_label == null)
+            if (greenLabel == null)
             {
-                green_label = new GUIStyle(GUI.skin.label)
+                greenLabel = new GUIStyle(GUI.skin.label)
                 {
                     normal = { textColor = resourceName == ResourceSettings.Config.WasteHeatInMegawatt ? Color.red : Color.green },
                     font = PluginHelper.MainFont,
@@ -185,9 +185,9 @@ namespace FNPlugin.Powermanagement
                 };
             }
 
-            if (red_label == null)
+            if (redLabel == null)
             {
-                red_label = new GUIStyle(GUI.skin.label)
+                redLabel = new GUIStyle(GUI.skin.label)
                 {
                     normal = { textColor = resourceName == ResourceSettings.Config.WasteHeatInMegawatt ? Color.green : Color.red },
                     font = PluginHelper.MainFont,
@@ -195,18 +195,18 @@ namespace FNPlugin.Powermanagement
                 };
             }
 
-            if (left_aligned_label == null)
+            if (leftAlignedLabel == null)
             {
-                left_aligned_label = new GUIStyle(GUI.skin.label)
+                leftAlignedLabel = new GUIStyle(GUI.skin.label)
                 {
                     fontStyle = FontStyle.Normal,
                     font = PluginHelper.MainFont
                 };
             }
 
-            if (right_aligned_label == null)
+            if (rightAlignedLabel == null)
             {
-                right_aligned_label = new GUIStyle(GUI.skin.label)
+                rightAlignedLabel = new GUIStyle(GUI.skin.label)
                 {
                     fontStyle = FontStyle.Normal,
                     font = PluginHelper.MainFont,
@@ -221,39 +221,39 @@ namespace FNPlugin.Powermanagement
             GUILayout.BeginVertical();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_TheoreticalSupply"), left_bold_label, GUILayout.ExpandWidth(true));//"Theoretical Supply"
-            GUILayout.Label(PluginHelper.GetFormattedPowerString(StableResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_TheoreticalSupply"), leftBoldLabel, GUILayout.ExpandWidth(true));//"Theoretical Supply"
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(StableResourceSupply), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OverviewWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentSupply"), left_bold_label, GUILayout.ExpandWidth(true));//"Current Supply"
-            GUILayout.Label(PluginHelper.GetFormattedPowerString(ResourceSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentSupply"), leftBoldLabel, GUILayout.ExpandWidth(true));//"Current Supply"
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(ResourceSupply), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OverviewWidth));
             GUILayout.EndHorizontal();
 
             DoWindowInitial();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_PowerDemand"), left_bold_label, GUILayout.ExpandWidth(true));//"Power Demand"
-            GUILayout.Label(PluginHelper.GetFormattedPowerString(ResourceDemand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_PowerDemand"), leftBoldLabel, GUILayout.ExpandWidth(true));//"Power Demand"
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(ResourceDemand), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OverviewWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            string new_power_label = (resourceName == ResourceSettings.Config.WasteHeatInMegawatt) ? Localizer.Format("#LOC_KSPIE_ResourceManager_NetChange") : Localizer.Format("#LOC_KSPIE_ResourceManager_NetPower");//"Net Change""Net Power"
-            GUILayout.Label(new_power_label, left_bold_label, GUILayout.ExpandWidth(true));
+            string newPowerLabel = (resourceName == ResourceSettings.Config.WasteHeatInMegawatt) ? Localizer.Format("#LOC_KSPIE_ResourceManager_NetChange") : Localizer.Format("#LOC_KSPIE_ResourceManager_NetPower");//"Net Change""Net Power"
+            GUILayout.Label(newPowerLabel, leftBoldLabel, GUILayout.ExpandWidth(true));
 
-            GUIStyle net_poer_style = netChange < -0.001 ? red_label : green_label;
+            GUIStyle netPowerStyle = netChange < -0.001 ? redLabel : greenLabel;
 
-            GUILayout.Label(PluginHelper.GetFormattedPowerString(netChange), net_poer_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+            GUILayout.Label(PluginHelper.GetFormattedPowerString(netChange), netPowerStyle, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OverviewWidth));
             GUILayout.EndHorizontal();
 
             if (!netUtilization.IsInfinityOrNaN() && (resourceName != ResourceSettings.Config.ElectricPowerInMegawatt || netUtilization < 2.0 || ResourceSupply >= last.Demand))
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Utilisation"), left_bold_label, GUILayout.ExpandWidth(true));//"Utilisation"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Utilisation"), leftBoldLabel, GUILayout.ExpandWidth(true));//"Utilisation"
 
-                GUIStyle utilisation_style = netUtilization > 1.001 ? red_label : green_label;
+                GUIStyle utilisationStyle = netUtilization > 1.001 ? redLabel : greenLabel;
 
-                GUILayout.Label(netUtilization.ToString("P2"), utilisation_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+                GUILayout.Label(netUtilization.ToString("P2"), utilisationStyle, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OverviewWidth));
                 GUILayout.EndHorizontal();
             }
 
@@ -262,9 +262,9 @@ namespace FNPlugin.Powermanagement
                 var summaryList = new List<PowerProduction>(16);
                 GUILayout.Space(5);
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_ProducerComponent"), left_bold_label, GUILayout.ExpandWidth(true));//"Producer Component"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Supply"), right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));//"Supply"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Max"), right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));//"Max"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_ProducerComponent"), leftBoldLabel, GUILayout.ExpandWidth(true));//"Producer Component"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Supply"), rightBoldLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(ValueWidth));//"Supply"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Max"), rightBoldLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(ValueWidth));//"Max"
                 GUILayout.EndHorizontal();
 
                 foreach (var group in powerProducers.GroupBy(m => m.Key.getResourceManagerDisplayName()))
@@ -292,9 +292,9 @@ namespace FNPlugin.Powermanagement
                 foreach (var production in summaryList)
                 {
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(production.Component, left_aligned_label, GUILayout.ExpandWidth(true));
-                    GUILayout.Label(PluginHelper.GetFormattedPowerString(production.AverageSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
-                    GUILayout.Label(PluginHelper.GetFormattedPowerString(production.MaximumSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
+                    GUILayout.Label(production.Component, leftAlignedLabel, GUILayout.ExpandWidth(true));
+                    GUILayout.Label(PluginHelper.GetFormattedPowerString(production.AverageSupply), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(ValueWidth));
+                    GUILayout.Label(PluginHelper.GetFormattedPowerString(production.MaximumSupply), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(ValueWidth));
                     GUILayout.EndHorizontal();
                 }
             }
@@ -304,9 +304,9 @@ namespace FNPlugin.Powermanagement
                 var summaryList = new List<PowerConsumption>(16);
                 GUILayout.Space(5);
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_ConsumerComponent"), left_bold_label, GUILayout.ExpandWidth(true));//"Consumer Component"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Demand"), right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));//"Demand"
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Rank"), right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PRIORITY_WIDTH));//"Rank"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_ConsumerComponent"), leftBoldLabel, GUILayout.ExpandWidth(true));//"Consumer Component"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Demand"), rightBoldLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(ValueWidth));//"Demand"
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_Rank"), rightBoldLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PriorityWidth));//"Rank"
                 GUILayout.EndHorizontal();
 
                 foreach (var group in powerConsumers.GroupBy(m => m.Key.getResourceManagerDisplayName()))
@@ -336,9 +336,9 @@ namespace FNPlugin.Powermanagement
                 foreach (var consumption in summaryList)
                 {
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(consumption.Component, left_aligned_label, GUILayout.ExpandWidth(true));
-                    GUILayout.Label(PluginHelper.GetFormattedPowerString(consumption.Sum), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
-                    GUILayout.Label(consumption.Priority.ToString(), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PRIORITY_WIDTH));
+                    GUILayout.Label(consumption.Component, leftAlignedLabel, GUILayout.ExpandWidth(true));
+                    GUILayout.Label(PluginHelper.GetFormattedPowerString(consumption.Sum), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(ValueWidth));
+                    GUILayout.Label(consumption.Priority.ToString(), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PriorityWidth));
                     GUILayout.EndHorizontal();
                 }
             }
@@ -353,12 +353,12 @@ namespace FNPlugin.Powermanagement
 
         protected virtual void DoWindowFinal() { }
 
-        private PowerGenerated GetProductionRequest(IResourceSupplier pm, double maximum_power, double requiredDemand, double minPower)
+        private PowerGenerated GetProductionRequest(IResourceSupplier pm, double maximumPower, double requiredDemand, double minPower)
         {
-            double managedSupply = Math.Min(maximum_power, Math.Max(minPower, requiredDemand));
+            double managedSupply = Math.Min(maximumPower, Math.Max(minPower, requiredDemand));
 
             current.Supply += managedSupply;
-            current.StableSupply += maximum_power;
+            current.StableSupply += maximumPower;
 
             if (!productionRequests.TryGetValue(pm, out PowerGenerated powerGenerated))
             {
@@ -367,7 +367,7 @@ namespace FNPlugin.Powermanagement
 
             powerGenerated.CurrentProvided = managedSupply;
             powerGenerated.CurrentSupply += managedSupply;
-            powerGenerated.MaximumSupply += maximum_power;
+            powerGenerated.MaximumSupply += maximumPower;
             powerGenerated.MinimumSupply += minPower;
 
             return powerGenerated;
@@ -415,15 +415,15 @@ namespace FNPlugin.Powermanagement
             }
         }
 
-        public double GetNeededPowerSupplyPerSecondWithMinimumRatio(double power, double ratio_min)
+        public double GetNeededPowerSupplyPerSecondWithMinimumRatio(double power, double ratioMin)
         {
-            return Math.Min(power, Math.Max(CurrentUnfilledResourceDemand, power * ratio_min));
+            return Math.Min(power, Math.Max(CurrentUnfilledResourceDemand, power * ratioMin));
         }
 
         public double GetCurrentPriorityResourceSupply(int priority)
         {
             double total = AuxiliaryResourceDemand;
-            int maxPriority = Math.Min(priority, MAX_PRIORITY);
+            int maxPriority = Math.Min(priority, MaxPriority);
 
             for (int i = 0; i < maxPriority; i++)
             {
@@ -436,7 +436,7 @@ namespace FNPlugin.Powermanagement
         public double GetStablePriorityResourceSupply(int priority)
         {
             double total = AuxiliaryResourceDemand;
-            int maxPriority = Math.Min(priority, MAX_PRIORITY);
+            int maxPriority = Math.Min(priority, MaxPriority);
 
             for (int i = 0; i < maxPriority; i++)
             {
@@ -446,38 +446,33 @@ namespace FNPlugin.Powermanagement
             return total;
         }
 
-        public void HideWindow()
+        public double ManagedPowerSupplyPerSecond(IResourceSupplier pm, double power)
         {
-            renderWindow = false;
+            return ManagedPowerSupplyPerSecondWithMinimumRatio(pm, power, 0.0);
         }
 
-        public double managedPowerSupplyPerSecond(IResourceSupplier pm, double power)
+        public double ManagedPowerSupplyPerSecondWithMinimumRatio(IResourceSupplier pm, double maximumPower, double ratioMin)
         {
-            return managedPowerSupplyPerSecondWithMinimumRatio(pm, power, 0.0);
-        }
-
-        public double managedPowerSupplyPerSecondWithMinimumRatio(IResourceSupplier pm, double maximum_power, double ratio_min)
-        {
-            if (maximum_power.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN())
+            if (maximumPower.IsInfinityOrNaN() || ratioMin.IsInfinityOrNaN())
                 return 0.0;
 
-            double minPower = maximum_power * ratio_min;
-            double providedPower = Math.Min(maximum_power, Math.Max(minPower, CurrentUnfilledResourceDemand));
+            double minPower = maximumPower * ratioMin;
+            double providedPower = Math.Min(maximumPower, Math.Max(minPower, CurrentUnfilledResourceDemand));
 
-            GetProductionRequest(pm, maximum_power, RequiredResourceDemand, minPower).CurrentProvided += providedPower;
+            GetProductionRequest(pm, maximumPower, RequiredResourceDemand, minPower).CurrentProvided += providedPower;
 
             return providedPower;
         }
 
-        public PowerGenerated managedRequestedPowerSupplyPerSecondMinimumRatio(IResourceSupplier pm, double available_power, double maximum_power, double ratio_min)
+        public PowerGenerated ManagedRequestedPowerSupplyPerSecondMinimumRatio(IResourceSupplier pm, double availablePower, double maximumPower, double ratioMin)
         {
-            if (available_power.IsInfinityOrNaN() || maximum_power.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN())
+            if (availablePower.IsInfinityOrNaN() || maximumPower.IsInfinityOrNaN() || ratioMin.IsInfinityOrNaN())
                 return new PowerGenerated();
 
-            double minPower = maximum_power * ratio_min;
-            double providedPower = Math.Min(maximum_power, Math.Max(minPower, Math.Max(available_power, CurrentUnfilledResourceDemand)));
+            double minPower = maximumPower * ratioMin;
+            double providedPower = Math.Min(maximumPower, Math.Max(minPower, Math.Max(availablePower, CurrentUnfilledResourceDemand)));
 
-            var request = GetProductionRequest(pm, maximum_power, Math.Min(available_power, RequiredResourceDemand), minPower);
+            var request = GetProductionRequest(pm, maximumPower, Math.Min(availablePower, RequiredResourceDemand), minPower);
             request.CurrentProvided = Math.Min(providedPower, request.CurrentProvided);
 
             return request;
@@ -488,66 +483,66 @@ namespace FNPlugin.Powermanagement
             if (Vessel == FlightGlobals.ActiveVessel && renderWindow)
             {
                 string title = resourceName + " " + Localizer.Format("#LOC_KSPIE_ResourceManager_title");//Management Display
-                WindowPosition = GUILayout.Window(windowID, WindowPosition, DoWindow, title);
+                WindowPosition = GUILayout.Window(_windowId, WindowPosition, DoWindow, title);
             }
         }
 
-        public void powerDrawFixed(IResourceSuppliable pm, double power_draw, double power_consumption)
+        public void PowerDrawFixed(IResourceSuppliable pm, double powerDraw, double powerConsumption)
         {
-            if (power_draw.IsInfinityOrNaN() || power_consumption.IsInfinityOrNaN())
+            if (powerDraw.IsInfinityOrNaN() || powerConsumption.IsInfinityOrNaN())
                 return;
 
-            double timeWarpDT = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
-            double powerPerSecond = power_draw / timeWarpDT;
-            powerDrawPerSecond(pm, powerPerSecond, powerPerSecond, power_consumption / timeWarpDT);
+            double timeWarpDt = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
+            double powerPerSecond = powerDraw / timeWarpDt;
+            PowerDrawPerSecond(pm, powerPerSecond, powerPerSecond, powerConsumption / timeWarpDt);
         }
 
-        public void powerDrawPerSecond(IResourceSuppliable pm, double power_requested, double power_consumed)
+        public void PowerDrawPerSecond(IResourceSuppliable pm, double powerRequested, double powerConsumed)
         {
-            powerDrawPerSecond(pm, power_requested, power_requested, power_consumed);
+            PowerDrawPerSecond(pm, powerRequested, powerRequested, powerConsumed);
         }
 
-        public void powerDrawPerSecond(IResourceSuppliable pm, double power_current_requested, double power_maximum_requested, double power_consumed)
+        public void PowerDrawPerSecond(IResourceSuppliable pm, double powerCurrentRequested, double powerMaximumRequested, double powerConsumed)
         {
-            if (power_current_requested.IsInfinityOrNaN() || power_maximum_requested.IsInfinityOrNaN() || power_consumed.IsInfinityOrNaN())
+            if (powerCurrentRequested.IsInfinityOrNaN() || powerMaximumRequested.IsInfinityOrNaN() || powerConsumed.IsInfinityOrNaN())
                 return;
 
-            CurrentConsumption += power_consumed;
+            CurrentConsumption += powerConsumed;
 
             if (!consumptionRequests.TryGetValue(pm, out PowerDistribution powerDistribution))
             {
                 consumptionRequests.Add(pm, powerDistribution = new PowerDistribution());
             }
 
-            powerDistribution.PowerCurrentRequest += power_current_requested;
-            powerDistribution.PowerMaximumRequest += power_maximum_requested;
-            powerDistribution.PowerConsumed += power_consumed;
+            powerDistribution.PowerCurrentRequest += powerCurrentRequested;
+            powerDistribution.PowerMaximumRequest += powerMaximumRequested;
+            powerDistribution.PowerConsumed += powerConsumed;
         }
 
-        public double powerSupplyFixed(IResourceSupplier pm, double power)
+        public double PowerSupplyFixed(IResourceSupplier pm, double power)
         {
             double powerFixed = power / Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
-            return powerSupplyPerSecondWithMaxAndEfficiency(pm, powerFixed, powerFixed, 1.0);
+            return PowerSupplyPerSecondWithMaxAndEfficiency(pm, powerFixed, powerFixed, 1.0);
         }
 
-        public double powerSupplyPerSecond(IResourceSupplier pm, double power)
+        public double PowerSupplyPerSecond(IResourceSupplier pm, double power)
         {
-            return powerSupplyPerSecondWithMaxAndEfficiency(pm, power, power, 1.0);
+            return PowerSupplyPerSecondWithMaxAndEfficiency(pm, power, power, 1.0);
         }
 
-        public double powerSupplyFixedWithMax(IResourceSupplier pm, double power, double maxpower)
+        public double PowerSupplyFixedWithMax(IResourceSupplier pm, double power, double maxPower)
         {
-            double timeWarpDT = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
-            return powerSupplyPerSecondWithMaxAndEfficiency(pm, power / timeWarpDT, maxpower / timeWarpDT, 1.0);
+            double timeWarpDt = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
+            return PowerSupplyPerSecondWithMaxAndEfficiency(pm, power / timeWarpDt, maxPower / timeWarpDt, 1.0);
         }
 
-        public double powerSupplyPerSecondWithMaxAndEfficiency(IResourceSupplier pm, double power, double maxpower, double efficiencyRatio)
+        public double PowerSupplyPerSecondWithMaxAndEfficiency(IResourceSupplier pm, double power, double maxPower, double efficiencyRatio)
         {
-            if (power.IsInfinityOrNaN() || maxpower.IsInfinityOrNaN() || efficiencyRatio.IsInfinityOrNaN())
+            if (power.IsInfinityOrNaN() || maxPower.IsInfinityOrNaN() || efficiencyRatio.IsInfinityOrNaN())
                 return 0.0;
 
             current.Supply += power;
-            current.StableSupply += maxpower;
+            current.StableSupply += maxPower;
 
             if (!productionRequests.TryGetValue(pm, out PowerGenerated powerGenerated))
             {
@@ -555,15 +550,15 @@ namespace FNPlugin.Powermanagement
             }
             powerGenerated.CurrentSupply += power;
             powerGenerated.CurrentProvided += power;
-            powerGenerated.MaximumSupply += maxpower;
+            powerGenerated.MaximumSupply += maxPower;
             powerGenerated.EfficiencyRatio = efficiencyRatio;
 
             return power;
         }
 
-        public double powerSupplyPerSecondWithMax(IResourceSupplier pm, double power, double maxpower)
+        public double PowerSupplyPerSecondWithMax(IResourceSupplier pm, double power, double maxPower)
         {
-            return powerSupplyPerSecondWithMaxAndEfficiency(pm, power, maxpower, 1.0);
+            return PowerSupplyPerSecondWithMaxAndEfficiency(pm, power, maxPower, 1.0);
         }
 
         public void ShowWindow()
@@ -571,11 +566,11 @@ namespace FNPlugin.Powermanagement
             renderWindow = true;
         }
 
-        protected virtual void SupplyPriority(double timeWarpDT, int priority) { }
+        protected virtual void SupplyPriority(double timeWarpDt, int priority) { }
 
-        public virtual void update(long counter)
+        public virtual void Update(long counter)
         {
-            double timeWarpDT = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
+            double timeWarpDt = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
             double sumPowerProduced = 0.0, supplyEfficiencyRatio = 0.0;
             int prevPriority = -1;
 
@@ -592,7 +587,7 @@ namespace FNPlugin.Powermanagement
             current.DemandHighPriority = 0.0;
             current.TotalSupplied = 0.0;
 
-            for (int i = 0; i < MAX_PRIORITY; i++)
+            for (int i = 0; i < MaxPriority; i++)
             {
                 currentDistributed[i] = 0.0;
                 stableDistributed[i] = 0.0;
@@ -621,22 +616,22 @@ namespace FNPlugin.Powermanagement
             {
                 var key = pair.Key;
                 var production = pair.Value;
-                double currentSupply = production.CurrentSupply;
 
                 powerProducers.Add(new PowerGeneratedPair(pair.Key, production));
-                sumPowerProduced += currentSupply;
-                supplyEfficiencyRatio += production.EfficiencyRatio * (currentSupply > 0 ? currentSupply : 1.0 / productionRequests.Count);
+                sumPowerProduced += production.MaximumSupply;
+                supplyEfficiencyRatio += production.EfficiencyRatio * production.MaximumSupply;
 
-                var history = productionTemp.TryGetValue(key, out PowerGenerated old) ? old.History : new Queue<double>(POWER_HISTORY_LEN);
+                var history = productionTemp.TryGetValue(key, out PowerGenerated old) ? old.History : new Queue<double>(PowerHistoryLen);
 
-                if (history.Count > POWER_HISTORY_LEN)
+                if (history.Count > PowerHistoryLen)
                     history.Dequeue();
-                history.Enqueue(currentSupply);
+                history.Enqueue(production.CurrentSupply);
                 production.AverageSupply = history.Max();
                 production.History = history;
             }
             if (sumPowerProduced > 0.0 && powerProducers.Count > 0)
                 supplyEfficiencyRatio /= sumPowerProduced;
+
             powerProducers.Sort();
             productionTemp.Clear();
 
@@ -653,14 +648,14 @@ namespace FNPlugin.Powermanagement
             {
                 var resourceSuppliable = pair.Key;
                 var demand = pair.Value;
-                int priority = Math.Min(resourceSuppliable.getPowerPriority(), MAX_PRIORITY - 1);
+                int priority = Math.Min(resourceSuppliable.getPowerPriority(), MaxPriority - 1);
                 double minRatio = 0.10 + 0.02 * priority;
                 double maxRequest = demand.PowerMaximumRequest, curRequest = demand.PowerCurrentRequest;
 
                 // Process any in-between priority requests across all the available priorities
                 while (priority > prevPriority)
                 {
-                    SupplyPriority(timeWarpDT, ++prevPriority);
+                    SupplyPriority(timeWarpDt, ++prevPriority);
                 }
 
                 // Efficiency throttling - prefer starving low priority consumers if supply efficiency is very low
@@ -674,7 +669,7 @@ namespace FNPlugin.Powermanagement
                         current.DemandHighPriority += maxRequest;
                 }
 
-                if (flowType == FNRESOURCE_FLOWTYPE_EVEN)
+                if (flowType == FnResourceFlowTypeEven)
                     maxRequest *= (priority == 0 || priority == 1) ? hpSupplyDemandRatio : supplyDemandRatio;
 
                 double powerSupplied = Math.Max(Math.Min(current.Supply, curRequest), 0.0);
@@ -697,15 +692,15 @@ namespace FNPlugin.Powermanagement
             }
 
             // Process any priority requests not run due to low priority items not existing
-            while (MAX_PRIORITY - 1 > prevPriority)
+            while (MaxPriority - 1 > prevPriority)
             {
-                SupplyPriority(timeWarpDT, ++prevPriority);
+                SupplyPriority(timeWarpDt, ++prevPriority);
             }
 
             // subtract available resource amount to get delta resource change
             double supply = current.Supply - Math.Max(availableAmount, 0);
             double missingAmount = maxAmount - availableAmount;
-            double powerToExtract = AdjustSupplyComplete(timeWarpDT, -supply * timeWarpDT);
+            double powerToExtract = AdjustSupplyComplete(timeWarpDt, -supply * timeWarpDt);
 
             // Update storage
             powerToExtract = powerToExtract > 0.0 ? Math.Min(powerToExtract, availableAmount) : Math.Max(powerToExtract, -missingAmount);
@@ -742,14 +737,12 @@ namespace FNPlugin.Powermanagement
             }
         }
 
-        private static double RequestResource(List<PartResource> partResources, double powerToExtract, double maxAmount, double availableAmount)
+        private static void RequestResource(List<PartResource> partResources, double powerToExtract, double maxAmount, double availableAmount)
         {
             foreach (var partResource in partResources)
             {
                 availableAmount = RequestResource(partResource, powerToExtract, maxAmount, availableAmount);
             }
-
-            return powerToExtract;
         }
 
         private static double RequestResource(PartResource partResource, double powerToExtract, double maxAmount, double availableAmount)

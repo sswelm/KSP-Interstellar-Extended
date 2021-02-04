@@ -6,9 +6,9 @@ namespace FNPlugin.Powermanagement
 {
     internal class CPResourceManager : ResourceManager
     {
-        public CPResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ChargedParticleInMegawatt, FNRESOURCE_FLOWTYPE_EVEN)
+        public CPResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ChargedParticleInMegawatt, FnResourceFlowTypeEven)
         {
-            WindowPosition = new Rect(50, 600, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
+            WindowPosition = new Rect(50, 600, LabelWidth + ValueWidth + PriorityWidth, 50);
         }
     }
 }

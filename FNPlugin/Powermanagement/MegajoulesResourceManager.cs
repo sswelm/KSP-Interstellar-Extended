@@ -30,9 +30,9 @@ namespace FNPlugin.Powermanagement
 
         public override double CurrentSurplus => Math.Max(0.0, base.CurrentSurplus - _lastMjConverted);
 
-        public MegajoulesResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ElectricPowerInMegawatt, FNRESOURCE_FLOWTYPE_SMALLEST_FIRST)
+        public MegajoulesResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ElectricPowerInMegawatt, FnResourceFlowTypeSmallestFirst)
         {
-            WindowPosition = new Rect(50, 50, LABEL_WIDTH + VALUE_WIDTH + PRIORITY_WIDTH, 50);
+            WindowPosition = new Rect(50, 50, LabelWidth + ValueWidth + PriorityWidth, 50);
             electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.ElectricPowerInKilowatt);
             _lastEcNeeded = 0.0;
             _lastMjConverted = 0.0;
@@ -46,9 +46,9 @@ namespace FNPlugin.Powermanagement
             if (providedAuxiliaryPower > 0.0)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_DCElectricalSystem"), left_aligned_label, GUILayout.ExpandWidth(true));//"DC Electrical System"
-                GUILayout.Label(PluginHelper.GetFormattedPowerString(providedAuxiliaryPower), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(VALUE_WIDTH));
-                GUILayout.Label("0", right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PRIORITY_WIDTH));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_DCElectricalSystem"), leftAlignedLabel, GUILayout.ExpandWidth(true));//"DC Electrical System"
+                GUILayout.Label(PluginHelper.GetFormattedPowerString(providedAuxiliaryPower), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(ValueWidth));
+                GUILayout.Label("0", rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(PriorityWidth));
                 GUILayout.EndHorizontal();
             }
         }
@@ -59,8 +59,8 @@ namespace FNPlugin.Powermanagement
             {
                 double storedSupplyRatio = ResourceSupply != 0.0 ? Math.Min(1.0, Math.Max(0.0, TotalPowerSupplied / ResourceSupply)) : 0.0;
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentDistribution"), left_bold_label, GUILayout.ExpandWidth(true));//"Current Distribution"
-                GUILayout.Label(storedSupplyRatio.ToString("P2"), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OVERVIEW_WIDTH));
+                GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentDistribution"), leftBoldLabel, GUILayout.ExpandWidth(true));//"Current Distribution"
+                GUILayout.Label(storedSupplyRatio.ToString("P2"), rightAlignedLabel, GUILayout.ExpandWidth(false), GUILayout.MinWidth(OverviewWidth));
                 GUILayout.EndHorizontal();
             }
         }
