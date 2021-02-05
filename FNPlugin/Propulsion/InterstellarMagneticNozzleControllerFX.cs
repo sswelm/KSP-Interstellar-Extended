@@ -98,8 +98,6 @@ namespace FNPlugin.Propulsion
         double _effectiveThrustRatio;
         double _maxTheoreticalThrust;
 
-        private bool _previousFlameout;
-
         public IFNChargedParticleSource AttachedReactor
         {
             get => _attachedReactor;
@@ -110,25 +108,12 @@ namespace FNPlugin.Propulsion
             }
         }
 
-        public double GetNozzleFlowRate()
-        {
-            return _attachedEngine.maxFuelFlow;
-        }
+        public double GetNozzleFlowRate() { return _attachedEngine.maxFuelFlow; }
 
         public bool PropellantAbsorbsNeutrons => false;
-
         public bool RequiresPlasmaHeat => false;
-
         public bool RequiresThermalHeat => false;
-
-        public float CurrentThrottle
-        {
-            get
-            {
-                var currentThrottle = !_attachedEngine.flameout && _attachedEngine.currentThrottle > 0 ? (maximum_isp == minimum_isp ? _attachedEngine.currentThrottle : 1) : 0;
-                return currentThrottle;
-            }
-        }
+        public float CurrentThrottle => !_attachedEngine.flameout && _attachedEngine.currentThrottle > 0 ? (maximum_isp == minimum_isp ? _attachedEngine.currentThrottle : 1) : 0;
 
         public bool RequiresChargedPower => true;
 
@@ -154,10 +139,7 @@ namespace FNPlugin.Propulsion
             if (_attachedEngine != null)
             {
                 _attachedEngine.Fields[nameof(ModuleEnginesWarp.finalThrust)].guiFormat = "F5";
-            }
 
-            if (_attachedEngine != null && _attachedEngine is ModuleEnginesFX)
-            {
                 if (!string.IsNullOrEmpty(runningEffectName))
                     part.Effect(runningEffectName, 0, -1);
                 if (!string.IsNullOrEmpty(powerEffectName))
@@ -370,7 +352,9 @@ namespace FNPlugin.Propulsion
             if (_attachedEngine == null)
                 return;
 
+            _attachedEngine.CalculateThrust();
 
+            _attachedEngine.enabled = _attachedEngine.propellantReqMet > 0;
 
             if (_attachedEngine.currentThrottle > 0 && !exhaustAllowed)
             {
