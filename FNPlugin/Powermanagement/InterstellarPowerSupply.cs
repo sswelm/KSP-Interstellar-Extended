@@ -34,7 +34,7 @@ namespace FNPlugin.Powermanagement
         {
             displayName = part.partInfo.title;
             string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resources_to_supply = resourcesToSupply;
+            this.resourcesToSupply = resourcesToSupply;
 
             if (state == StartState.Editor) return;
 
@@ -55,14 +55,14 @@ namespace FNPlugin.Powermanagement
 
         public double ConsumeMegajoulesPerSecond(double powerRequest)
         {
-            return consumeFNResourcePerSecond(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt);
+            return ConsumeFnResourcePerSecond(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         public void SupplyMegajoulesPerSecondWithMax(double supply, double maxsupply)
         {
             currentPowerSupply += supply;
 
-            supplyFNResourcePerSecondWithMax(supply, maxsupply, ResourceSettings.Config.ElectricPowerInMegawatt);
+            SupplyFnResourcePerSecondWithMax(supply, maxsupply, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         public override string getResourceManagerDisplayName()
@@ -85,7 +85,7 @@ namespace FNPlugin.Powermanagement
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            totalPowerSupply = getCurrentResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+            totalPowerSupply = GetCurrentResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         public override void OnFixedUpdate()

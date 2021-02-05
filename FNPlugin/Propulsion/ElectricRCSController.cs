@@ -120,7 +120,7 @@ namespace FNPlugin.Propulsion
                     }
                     received = ConsumeMegawatts(requested + Math.Min(requested, Math.Max(0.0,
                         maxStoredPower - storedPower) / dt), true, false, false);
-                    supplyFNResourcePerSecond(received * (1.0 - efficiency), ResourceSettings.Config.WasteHeatInMegawatt);
+                    SupplyFnResourcePerSecond(received * (1.0 - efficiency), ResourceSettings.Config.WasteHeatInMegawatt);
 
                     double totalPower = storedPower + received * dt, energyNeed = requested *
                         dt;
@@ -197,7 +197,7 @@ namespace FNPlugin.Propulsion
             if (partMass == 0)
                 partMass = part.mass;
 
-            resources_to_supply = new string[] { ResourceSettings.Config.WasteHeatInMegawatt };
+            resourcesToSupply = new string[] { ResourceSettings.Config.WasteHeatInMegawatt };
 
             oldPowerEnabled = powerEnabled;
             efficiencyStr = efficiency.ToString("P1");

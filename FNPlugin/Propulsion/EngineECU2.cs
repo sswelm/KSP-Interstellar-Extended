@@ -545,7 +545,7 @@ namespace FNPlugin.Propulsion
         public override void OnStart(StartState state)
         {
             String[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
-            this.resources_to_supply = resources_to_supply;
+            this.resourcesToSupply = resources_to_supply;
 
             Debug.Log("[KSPI]: Start Current State: " + (int)state + " " + state.ToString());
             Debug.Log("[KSPI]: OnStart Already Launched: " + Launched);

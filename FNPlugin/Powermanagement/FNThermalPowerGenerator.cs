@@ -46,7 +46,7 @@ namespace FNPlugin.Powermanagement
         public override void OnStart(PartModule.StartState state)
         {
             String[] resources = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
-            this.resources_to_supply = resources;
+            this.resourcesToSupply = resources;
             base.OnStart(state);
 
             if (state == StartState.Editor)
@@ -103,14 +103,14 @@ namespace FNPlugin.Powermanagement
             var wasteheatInMegaJoules = (1 - thermalConversionEfficiency) * currentPowerSupplyInMegaWatt;
 
             if (hasRadiators)
-                supplyFNResourcePerSecondWithMax(maximumPowerSupplyInMegaWatt, wasteheatInMegaJoules, ResourceSettings.Config.WasteHeatInMegawatt);
+                SupplyFnResourcePerSecondWithMax(maximumPowerSupplyInMegaWatt, wasteheatInMegaJoules, ResourceSettings.Config.WasteHeatInMegawatt);
             else // dump heat in attached part
                 DumpWasteheatInAttachedParts(fixedDeltaTime, wasteheatInMegaJoules);
 
             ExtractSystemHeat(fixedDeltaTime);
 
             // generate thermal power
-            supplyFNResourcePerSecondWithMax(currentPowerSupplyInMegaWatt, maximumPowerSupplyInMegaWatt, ResourceSettings.Config.ElectricPowerInMegawatt);
+            SupplyFnResourcePerSecondWithMax(currentPowerSupplyInMegaWatt, maximumPowerSupplyInMegaWatt, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         private void ExtractSystemHeat(double fixedDeltaTime)
@@ -144,7 +144,7 @@ namespace FNPlugin.Powermanagement
             }
         }
 
-        public override int getSupplyPriority()
+        public override int GetSupplyPriority()
         {
             return 1;
         }

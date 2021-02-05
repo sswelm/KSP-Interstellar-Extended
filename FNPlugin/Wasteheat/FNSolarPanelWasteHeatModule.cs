@@ -110,7 +110,7 @@ namespace FNPlugin
             }
 
             string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resources_to_supply = resourcesToSupply;
+            this.resourcesToSupply = resourcesToSupply;
             base.OnStart(state);
 
             _outputResource = _solarPanel.resHandler.outputResources.FirstOrDefault();
@@ -241,7 +241,7 @@ namespace FNPlugin
 
             if (!Kerbalism.IsLoaded)
             {
-                mjSolarSupply = PluginHelper.GetFormattedPowerString(supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceSettings.Config.ElectricPowerInMegawatt));
+                mjSolarSupply = PluginHelper.GetFormattedPowerString(SupplyFnResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceSettings.Config.ElectricPowerInMegawatt));
                 mjMaxSupply = PluginHelper.GetFormattedPowerString(solarMaxSupply);
             }
         }

@@ -570,7 +570,7 @@ namespace FNPlugin.Propulsion
 
             ShowIspThrottle = hasIspThrottling;
 
-            availablePower = Math.Max(getResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt), getAvailablePrioritisedStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt));
+            availablePower = Math.Max(GetResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt), GetAvailablePrioritizedStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt));
 
             currentMaximumPowerProduction = GetCurrentMaximumPowerProduction();
             currentMaximumPowerRequirement = GetCurrentMaximumPowerRequirement();
@@ -584,7 +584,7 @@ namespace FNPlugin.Propulsion
                 recievedPowerPerSecond = requestedPowerPerSecond <= 0 ? 0
                     : CheatOptions.InfiniteElectricity
                         ? requiredPowerPerSecond
-                        : consumeFNResourcePerSecond(requestedPowerPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
+                        : ConsumeFnResourcePerSecond(requestedPowerPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 fusionRatio = requiredPowerPerSecond > 0 ? Math.Min(1, recievedPowerPerSecond / requiredPowerPerSecond) : 1;
 
@@ -594,17 +594,17 @@ namespace FNPlugin.Propulsion
                 producedPowerPerSecond = fusionRatio * currentMaximumPowerProduction;
 
                 if (!CheatOptions.InfiniteElectricity && currentMaximumPowerProduction > 0)
-                    supplyFNResourcePerSecondWithMax(producedPowerPerSecond, currentMaximumPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    SupplyFnResourcePerSecondWithMax(producedPowerPerSecond, currentMaximumPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature && laserWasteheat > 0)
-                    supplyFNResourcePerSecondWithMax(laserWasteheat, currentMaximumPowerRequirement * inefficiency, ResourceSettings.Config.WasteHeatInMegawatt);
+                    SupplyFnResourcePerSecondWithMax(laserWasteheat, currentMaximumPowerRequirement * inefficiency, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 // The Absorbed wasteheat from Fusion
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
                 neutronbsorbionBonus = hasIspThrottling ? 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp))) : 0.5;
                 absorbedWasteheat = FusionWasteHeat * fusionRatio * curEngineT.currentThrottle * neutronbsorbionBonus;
-                supplyFNResourcePerSecond(absorbedWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
+                SupplyFnResourcePerSecond(absorbedWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 SetRatios();
 
@@ -762,7 +762,7 @@ namespace FNPlugin.Propulsion
             return PowerProductionMaximum > PowerRequirementMaximum ? 1 : powerPriority;
         }
 
-        public override int getSupplyPriority()
+        public override int GetSupplyPriority()
         {
             return 1;
         }

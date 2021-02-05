@@ -426,7 +426,7 @@ namespace FNPlugin.Propulsion
             ScaleParameters();
 
             // initialise resources
-            resources_to_supply = new [] { ResourceSettings.Config.WasteHeatInMegawatt };
+            resourcesToSupply = new [] { ResourceSettings.Config.WasteHeatInMegawatt };
             base.OnStart(state);
 
             AttachToEngine();
@@ -712,15 +712,15 @@ namespace FNPlugin.Propulsion
             modifiedThrotte = ModifiedThrottle;
             modifiedMaxThrottlePower = maxEffectivePower * modifiedThrotte;
 
-            totalPowerSupplied = getTotalPowerSupplied(ResourceSettings.Config.ElectricPowerInMegawatt);
-            var megaJoulesBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
+            totalPowerSupplied = GetTotalPowerSupplied(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var megaJoulesBarRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
-            availableMaximumPower = getAvailablePrioritisedStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+            availableMaximumPower = GetAvailablePrioritizedStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
             availableCurrentPower = CheatOptions.InfiniteElectricity
                 ? availableMaximumPower
-                : getAvailablePrioritisedCurrentSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+                : GetAvailablePrioritizedCurrentSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             maximumAvailablePowerForEngine = availableMaximumPower * _electricalShareF;
             currentAvailablePowerForEngine = availableCurrentPower * _electricalShareF;
@@ -748,7 +748,7 @@ namespace FNPlugin.Propulsion
             // request electric power
             actualPowerReceived = CheatOptions.InfiniteElectricity
                 ? current_power_request
-                : consumeFNResourcePerSecond(current_power_request, maximum_power_request, ResourceSettings.Config.ElectricPowerInMegawatt);
+                : ConsumeFnResourcePerSecond(current_power_request, maximum_power_request, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             simulatedPowerReceived = Math.Min(effectiveMaximumAvailablePowerForEngine, maxEffectivePower);
 
@@ -759,7 +759,7 @@ namespace FNPlugin.Propulsion
 
             _heatProductionF = CheatOptions.IgnoreMaxTemperature
                 ? heatToProduce
-                : supplyFNResourcePerSecondWithMax(heatToProduce, maxHeatToProduce, ResourceSettings.Config.WasteHeatInMegawatt);
+                : SupplyFnResourcePerSecondWithMax(heatToProduce, maxHeatToProduce, ResourceSettings.Config.WasteHeatInMegawatt);
 
             // update GUI Values
             _effectiveIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * ThrottleModifiedIsp();

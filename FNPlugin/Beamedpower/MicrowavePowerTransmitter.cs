@@ -537,7 +537,7 @@ namespace FNPlugin.Beamedpower
                 double transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100d;
                 double transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100d;
 
-                availablePower = getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+                availablePower = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 if (CheatOptions.InfiniteElectricity)
                 {
@@ -545,8 +545,8 @@ namespace FNPlugin.Beamedpower
                 }
                 else
                 {
-                    var megajoulesRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
-                    var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+                    var megajoulesRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
+                    var wasteheatRatio = GetResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 
                     var effectiveResourceThrottling = Math.Min(megajoulesRatio > 0.5 ? 1 : megajoulesRatio * 2, wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10);
 
@@ -554,7 +554,7 @@ namespace FNPlugin.Beamedpower
                 }
 
                 double receivedPower = CheatOptions.InfiniteElectricity ? requestedPower :
-                    consumeFNResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    ConsumeFnResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 nuclear_power += GameConstants.ecPerMJ * transmissionEfficiencyRatio * receivedPower;
 
@@ -562,7 +562,7 @@ namespace FNPlugin.Beamedpower
 
                 // generate wasteheat for converting electric power to beamed power
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecond(receivedPower * transmissionWasteRatio, ResourceSettings.Config.WasteHeatInMegawatt);
+                    SupplyFnResourcePerSecond(receivedPower * transmissionWasteRatio, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
             // extract solar power from stable power

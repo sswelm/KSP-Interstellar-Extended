@@ -92,15 +92,15 @@ namespace FNPlugin.Refinery
             if (!isActive)
                 return;
 
-            var availablePower = getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
-            var resourceBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var availablePower = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var resourceBarRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
             var effectiveResourceThrottling = resourceBarRatio > ONE_THIRD ? 1 : resourceBarRatio * 3;
 
             var energyRequestedInMegajoulesPerSecond = Math.Min(powerCapacity, effectiveResourceThrottling * availablePower * (double)(decimal)powerPercentage * 0.01);
 
             var energyProvidedInMegajoulesPerSecond = CheatOptions.InfiniteElectricity
                 ? energyRequestedInMegajoulesPerSecond
-                : consumeFNResourcePerSecond(energyRequestedInMegajoulesPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
+                : ConsumeFnResourcePerSecond(energyRequestedInMegajoulesPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             electricalPowerRatio = energyRequestedInMegajoulesPerSecond > 0 ? energyProvidedInMegajoulesPerSecond / energyRequestedInMegajoulesPerSecond : 0;
 

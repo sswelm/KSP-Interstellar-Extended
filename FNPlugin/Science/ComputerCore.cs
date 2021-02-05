@@ -142,7 +142,7 @@ namespace FNPlugin.Science
         public override void OnStart(StartState state)
         {
             string[] resourcesToSupply = { ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
-            this.resources_to_supply = resourcesToSupply;
+            this.resourcesToSupply = resourcesToSupply;
 
             _isEnabledField = Fields[nameof(IsEnabled)];
             _isPoweredField = Fields[nameof(IsPowered)];
@@ -226,7 +226,7 @@ namespace FNPlugin.Science
             {
                 var powerReturned = CheatOptions.InfiniteElectricity
                     ? _effectivePowerRequirement
-                    : consumeFNResourcePerSecond(_effectivePowerRequirement, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    : ConsumeFnResourcePerSecond(_effectivePowerRequirement, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 electrical_power_ratio = powerReturned / _effectivePowerRequirement;
                 IsPowered = electrical_power_ratio > 0.99;
@@ -334,7 +334,7 @@ namespace FNPlugin.Science
             return 2;
         }
 
-        public override int getSupplyPriority()
+        public override int GetSupplyPriority()
         {
             return 1;
         }

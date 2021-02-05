@@ -407,7 +407,7 @@ namespace FNPlugin.Beamedpower
                 if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || isThermalReceiver)
                     return 1;
 
-                return 1 - wasteheatRatio * getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+                return 1 - wasteheatRatio * GetResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
             }
         }
 
@@ -766,7 +766,7 @@ namespace FNPlugin.Beamedpower
                 ResourceSettings.Config.ThermalPowerInMegawatt
             };
 
-            this.resources_to_supply = resourcesToSupply;
+            this.resourcesToSupply = resourcesToSupply;
             base.OnStart(state);
 
             DetermineTechLevel();
@@ -1458,7 +1458,7 @@ namespace FNPlugin.Beamedpower
 
             StoreGeneratorRequests();
 
-            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : GetResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 
             CalculateThermalSolarPower();
 
@@ -1540,14 +1540,14 @@ namespace FNPlugin.Beamedpower
                             var thermalEngineThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
                             var minimumRatio =  Math.Max(minimumConsumptionPercentage / 100d, Math.Max(storedGeneratorThermalEnergyRequestRatio, thermalEngineThrottleRatio));
 
-                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided_max, minimumRatio, ResourceSettings.Config.ThermalPowerInMegawatt);
+                            var powerGeneratedResult = ManagedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided_max, minimumRatio, ResourceSettings.Config.ThermalPowerInMegawatt);
 
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
                                 var supplyRatio = powerGeneratedResult.CurrentSupply / total_thermal_power_provided;
                                 var finalThermalWasteheat = powerGeneratedResult.CurrentSupply + supplyRatio * _totalConversionWasteHeatProduction;
 
-                                supplyFNResourcePerSecondWithMax(finalThermalWasteheat, total_thermal_power_provided_max, ResourceSettings.Config.WasteHeatInMegawatt);
+                                SupplyFnResourcePerSecondWithMax(finalThermalWasteheat, total_thermal_power_provided_max, ResourceSettings.Config.WasteHeatInMegawatt);
                             }
 
                             var thermalPowerRatio = total_thermal_power_available > 0 ? powerGeneratedResult.CurrentSupply / total_thermal_power_available : 0;
@@ -1590,14 +1590,14 @@ namespace FNPlugin.Beamedpower
                         var minimumRequestedPower = MaximumReceiverPowerCapacity * (minimumConsumptionPercentage / 100d);
                         var calculatedMinimumRatio = Math.Min(1, minimumRequestedPower / totalBeamedElectricPowerProvided);
 
-                        var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(totalBeamedElectricPowerProvided, totalBeamedElectricPowerProvided, calculatedMinimumRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
+                        var powerGeneratedResult = ManagedPowerSupplyPerSecondMinimumRatio(totalBeamedElectricPowerProvided, totalBeamedElectricPowerProvided, calculatedMinimumRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
                         var supplyRatio = powerGeneratedResult.CurrentProvided / totalBeamedElectricPowerProvided;
 
                         // only generate wasteheat from beamed power when actually using the energy
                         if (!CheatOptions.IgnoreMaxTemperature)
                         {
                             var solarWasteheat = thermalSolarInputMegajoules * (1 - effectiveSolarThermalElectricEfficiency);
-                            supplyFNResourcePerSecond(supplyRatio * _totalConversionWasteHeatProduction + supplyRatio * solarWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
+                            SupplyFnResourcePerSecond(supplyRatio * _totalConversionWasteHeatProduction + supplyRatio * solarWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
                         }
 
                         foreach (var item in _receivedPower)
@@ -1879,8 +1879,8 @@ namespace FNPlugin.Beamedpower
 
             var alternatorWasteheat = Math.Min(alternatorPower * AverageEfficiencyFraction, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt) * AverageEfficiencyFraction);
 
-            supplyFNResourcePerSecond(alternatorPower, ResourceSettings.Config.ElectricPowerInMegawatt);
-            supplyFNResourcePerSecond(alternatorWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
+            SupplyFnResourcePerSecond(alternatorPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+            SupplyFnResourcePerSecond(alternatorWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
 
             if (stockModuleGenerator != null)
                 stockModuleGenerator.generatorIsActive = alternatorPower > 0;

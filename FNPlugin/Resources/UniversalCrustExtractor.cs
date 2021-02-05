@@ -193,7 +193,7 @@ namespace FNPlugin.Resources
         public override void OnStart(PartModule.StartState state)
         {
             // initialise resources
-            resources_to_supply = new[] { ResourceSettings.Config.WasteHeatInMegawatt };
+            resourcesToSupply = new[] { ResourceSettings.Config.WasteHeatInMegawatt };
             base.OnStart(state);
 
             _moduleScienceExperiment = part.FindModuleImplementing<ModuleScienceExperiment>();

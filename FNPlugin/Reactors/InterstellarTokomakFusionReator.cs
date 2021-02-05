@@ -46,8 +46,8 @@ namespace FNPlugin.Reactors
         public override void OnUpdate()
         {
             base.OnUpdate();
-            if (!isSwappingFuelMode && (!CheatOptions.InfiniteElectricity && getDemandStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt) > 1.01
-                                                                          && getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt) < 0.25) && IsEnabled && !fusion_alert)
+            if (!isSwappingFuelMode && (!CheatOptions.InfiniteElectricity && GetDemandStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt) > 1.01
+                                                                          && GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt) < 0.25) && IsEnabled && !fusion_alert)
                 fusionAlertFrames++;
             else
             {
@@ -92,7 +92,7 @@ namespace FNPlugin.Reactors
 
             var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
 
-            var availablePower = getResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var availablePower = GetResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             var fusionPowerRequirement = PowerRequirement;
 
@@ -137,10 +137,10 @@ namespace FNPlugin.Reactors
                 // consume power from managed power source
                 power_consumed = CheatOptions.InfiniteElectricity
                     ? requestedPower
-                    : consumeFNResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    : ConsumeFnResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 if (maintenancePowerWasteheatRatio > 0)
-                    supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed, ResourceSettings.Config.WasteHeatInMegawatt);
+                    SupplyFnResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 if (isSwappingFuelMode)
                 {

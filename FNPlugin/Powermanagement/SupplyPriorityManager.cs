@@ -7,17 +7,17 @@ namespace FNPlugin.Powermanagement
 {
     class SupplyPriorityManager
     {
-        private static Dictionary<Vessel, SupplyPriorityManager> supply_priority_managers = new Dictionary<Vessel, SupplyPriorityManager>();
+        private static readonly Dictionary<Vessel, SupplyPriorityManager> SupplyPriorityManagers = new Dictionary<Vessel, SupplyPriorityManager>();
 
         public Guid Id { get; }
         public Vessel Vessel { get; private set; }
         public PartModule ProcessingPart { get; private set; }
 
-		private List<ResourceSuppliableModule> suppliable_modules = new List<ResourceSuppliableModule>();
+		private readonly List<ResourceSuppliableModule> _suppliableModules = new List<ResourceSuppliableModule>();
 
         public static void Reset()
         {
-            supply_priority_managers.Clear();
+            SupplyPriorityManagers.Clear();
         }
 
         public static SupplyPriorityManager GetSupplyPriorityManagerForVessel(Vessel vessel)
@@ -25,13 +25,13 @@ namespace FNPlugin.Powermanagement
             if (vessel == null)
                 return null;
 
-            if (supply_priority_managers.TryGetValue(vessel, out var manager))
+            if (SupplyPriorityManagers.TryGetValue(vessel, out var manager))
                 return manager;
 
             Debug.Log("[KSPI]: Creating new supply priority manager for " + vessel.GetName());
             manager = new SupplyPriorityManager(vessel);
 
-            supply_priority_managers.Add(vessel, manager);
+            SupplyPriorityManagers.Add(vessel, manager);
             return manager;
         }
 
@@ -49,17 +49,17 @@ namespace FNPlugin.Powermanagement
 
         public void Register(ResourceSuppliableModule suppliable)
         {
-            if (!suppliable_modules.Contains(suppliable))
+            if (!_suppliableModules.Contains(suppliable))
             {
-                suppliable_modules.Add(suppliable);
+                _suppliableModules.Add(suppliable);
             }
         }
 
         public void Unregister(ResourceSuppliableModule suppliable)
         {
-            if (!suppliable_modules.Contains(suppliable))
+            if (!_suppliableModules.Contains(suppliable))
             {
-                suppliable_modules.Remove(suppliable);
+                _suppliableModules.Remove(suppliable);
             }
         }
 
@@ -71,11 +71,11 @@ namespace FNPlugin.Powermanagement
             {
                 Counter = updateCounter;
 
-                var suppliable_modules_prioritized = suppliable_modules.Where(m => m != null).OrderBy(m => m.getSupplyPriority()).ToList();
+                var suppliableModulesPrioritized = _suppliableModules.Where(m => m != null).OrderBy(m => m.GetSupplyPriority()).ToList();
 
-                suppliable_modules_prioritized.ForEach(s => s.OnFixedUpdateResourceSuppliable(fixedDeltaTime));
+                suppliableModulesPrioritized.ForEach(s => s.OnFixedUpdateResourceSuppliable(fixedDeltaTime));
 
-                suppliable_modules_prioritized.ForEach(s => s.OnPostResourceSuppliable(fixedDeltaTime));
+                suppliableModulesPrioritized.ForEach(s => s.OnPostResourceSuppliable(fixedDeltaTime));
             }
             catch (Exception e)
             {
@@ -83,7 +83,5 @@ namespace FNPlugin.Powermanagement
                 throw;
             }
         }
-
     }
-
 }

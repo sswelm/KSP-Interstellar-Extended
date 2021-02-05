@@ -98,6 +98,8 @@ namespace FNPlugin.Propulsion
         double _effectiveThrustRatio;
         double _maxTheoreticalThrust;
 
+        private bool _previousFlameout;
+
         public IFNChargedParticleSource AttachedReactor
         {
             get => _attachedReactor;
@@ -119,7 +121,14 @@ namespace FNPlugin.Propulsion
 
         public bool RequiresThermalHeat => false;
 
-        public float CurrentThrottle => _attachedEngine.currentThrottle > 0 ? (maximum_isp == minimum_isp ? _attachedEngine.currentThrottle : 1) : 0;
+        public float CurrentThrottle
+        {
+            get
+            {
+                var currentThrottle = !_attachedEngine.flameout && _attachedEngine.currentThrottle > 0 ? (maximum_isp == minimum_isp ? _attachedEngine.currentThrottle : 1) : 0;
+                return currentThrottle;
+            }
+        }
 
         public bool RequiresChargedPower => true;
 
@@ -143,7 +152,9 @@ namespace FNPlugin.Propulsion
             _attachedEngine = _attachedPersistentEngine;
 
             if (_attachedEngine != null)
+            {
                 _attachedEngine.Fields[nameof(ModuleEnginesWarp.finalThrust)].guiFormat = "F5";
+            }
 
             if (_attachedEngine != null && _attachedEngine is ModuleEnginesFX)
             {
@@ -199,7 +210,7 @@ namespace FNPlugin.Propulsion
         private double CalculateElectricalPowerCurrentlyNeeded(double maximumElectricPower)
         {
             var currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
-            var spareResourceCapacity = getSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var spareResourceCapacity = GetSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
             var powerRequestRatio = mhdPowerGenerationPercentage * 0.01;
             return Math.Min(maximumElectricPower, currentUnfilledResourceDemand * Math.Min(1, powerRequestRatio) + spareResourceCapacity * Math.Max(0, powerRequestRatio - 1));
         }
@@ -359,6 +370,8 @@ namespace FNPlugin.Propulsion
             if (_attachedEngine == null)
                 return;
 
+
+
             if (_attachedEngine.currentThrottle > 0 && !exhaustAllowed)
             {
                 string message = AttachedReactor.MayExhaustInLowSpaceHomeworld
@@ -389,7 +402,7 @@ namespace FNPlugin.Propulsion
                 _max_charged_particles_power = currentMaximumChargedPower * _exchangerThrustDivisor * _attachedReactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = exhaustAllowed && _attachedEngine.isOperational && _attachedEngine.currentThrottle > 0 ? _max_charged_particles_power : 0;
 
-                _charged_particles_received = _charged_particles_requested > 0 ? consumeFNResourcePerSecond(_charged_particles_requested, ResourceSettings.Config.ChargedParticleInMegawatt) : 0;
+                _charged_particles_received = _charged_particles_requested > 0 ? ConsumeFnResourcePerSecond(_charged_particles_requested, ResourceSettings.Config.ChargedParticleInMegawatt) : 0;
 
                 // update Isp
                 currentIsp = !_attachedEngine.isOperational || _attachedEngine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attachedEngine.currentThrottle, throtleExponent));
@@ -424,7 +437,7 @@ namespace FNPlugin.Propulsion
                         _previousChargedParticlesReceived = 0;
                     }
 
-                    consumeFNResourcePerSecond(wasteheatConsumption, ResourceSettings.Config.WasteHeatInMegawatt);
+                    ConsumeFnResourcePerSecond(wasteheatConsumption, ResourceSettings.Config.WasteHeatInMegawatt);
                 }
 
                 if (_charged_particles_received == 0)
@@ -440,12 +453,12 @@ namespace FNPlugin.Propulsion
                 var minimumElectricEnginePower = _attachedReactor.MagneticNozzlePowerMult * _charged_particles_received * ispPowerCostMultiplier * 0.005 * Math.Max(_attachedReactorDistance, 1);
 
 
-                var neededBufferPower = Math.Min(getResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt) ,  Math.Min(Math.Max(powerBufferMax - powerBufferStore, 0), minimumElectricEnginePower));
+                var neededBufferPower = Math.Min(GetResourceAvailability(ResourceSettings.Config.ElectricPowerInMegawatt) ,  Math.Min(Math.Max(powerBufferMax - powerBufferStore, 0), minimumElectricEnginePower));
                 _requestedElectricPower = minimumElectricEnginePower + neededBufferPower;
 
                 _recievedElectricPower = CheatOptions.InfiniteElectricity || _requestedElectricPower == 0
                     ? _requestedElectricPower
-                    : consumeFNResourcePerSecond(_requestedElectricPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    : ConsumeFnResourcePerSecond(_requestedElectricPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 // adjust power buffer
                 var powerSurplus = _recievedElectricPower - minimumElectricEnginePower;
@@ -469,7 +482,7 @@ namespace FNPlugin.Propulsion
                 if (scaledPowerFactor > 0 && requiredElectricalPowerFromMhd > 0 && _charged_particles_received > 0)
                 {
                     var availableElectricPower = Math.Min(scaledPowerFactor * _charged_particles_received, requiredElectricalPowerFromMhd);
-                    var suppliedElectricPower = supplyFNResourcePerSecond(availableElectricPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    var suppliedElectricPower = SupplyFnResourcePerSecond(availableElectricPower, ResourceSettings.Config.ElectricPowerInMegawatt);
                     _mhdTrustIspModifier = 1 - suppliedElectricPower / _charged_particles_received;
                 }
                 else
@@ -587,6 +600,11 @@ namespace FNPlugin.Propulsion
         public override string getResourceManagerDisplayName()
         {
             return part.partInfo.title;
+        }
+
+        public override int GetSupplyPriority()
+        {
+            return 0;
         }
 
         private bool AllowedExhaust()

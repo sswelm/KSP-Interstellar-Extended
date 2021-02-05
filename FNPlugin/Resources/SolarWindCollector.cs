@@ -701,11 +701,11 @@ namespace FNPlugin.Resources
                 var heliumRatio = Math.Min(1,  requiredHeliumMass > 0 ? (receivedHeliumGasMass + receiverLqdHeliumMass) / requiredHeliumMass : 0);
 
                 // calculate available power
-                var receivedPowerMw = consumeFNResourcePerSecond(dPowerRequirementsMw * heliumRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
+                var receivedPowerMw = ConsumeFnResourcePerSecond(dPowerRequirementsMw * heliumRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 dLastPowerRatio = offlineCollecting ? dLastPowerRatio : (dPowerRequirementsMw > 0 ? receivedPowerMw / dPowerRequirementsMw : 0);
 
-                supplyManagedFNResourcePerSecond(dWasteheatProductionMw * dLastPowerRatio, ResourceSettings.Config.WasteHeatInMegawatt);
+                SupplyManagedFnResourcePerSecond(dWasteheatProductionMw * dLastPowerRatio, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 // show in GUI
                 strCollectingStatus = Localizer.Format("#LOC_KSPIE_SolarwindCollector_Collecting");//"Collecting solar wind"

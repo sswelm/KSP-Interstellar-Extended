@@ -44,7 +44,7 @@ namespace FNPlugin.Powermanagement
 
                 if (_moduleGenerator == null) return;
 
-                resources_to_supply = new string[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
+                resourcesToSupply = new string[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
                 base.OnStart(state);
 
                 _resourceBuffers = new ResourceBuffers();
@@ -109,13 +109,13 @@ namespace FNPlugin.Powermanagement
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             _resourceBuffers.UpdateBuffers();
 
-            megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceSettings.Config.ElectricPowerInMegawatt);
+            megaJouleGeneratorPowerSupply = SupplyFnResourcePerSecondWithMax(megajoulesRate, maxMegajoulesRate, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             if (CheatOptions.IgnoreMaxTemperature) return;
 
             double maxWasteheat = generatorEfficiency > 0.0 ? maxMegajoulesRate * (1.0 / generatorEfficiency - 1.0) : maxMegajoulesRate;
             double throttledWasteheat = generatorEfficiency > 0.0 ? megajoulesRate * (1.0 / generatorEfficiency - 1.0) : megajoulesRate;
-            supplyFNResourcePerSecondWithMax(throttledWasteheat, maxWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
+            SupplyFnResourcePerSecondWithMax(throttledWasteheat, maxWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
         }
     }
 }

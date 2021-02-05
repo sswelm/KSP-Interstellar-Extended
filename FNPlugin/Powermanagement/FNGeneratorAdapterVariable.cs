@@ -93,7 +93,7 @@ namespace FNPlugin.Powermanagement
                 if (moduleGenerator == null) return;
 
                 string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-                this.resources_to_supply = resourcesToSupply;
+                this.resourcesToSupply = resourcesToSupply;
                 base.OnStart(state);
 
                 if (maintainsBuffer)
@@ -268,7 +268,7 @@ namespace FNPlugin.Powermanagement
             if (!moduleGenerator.generatorIsActive && !moduleGenerator.isAlwaysActive)
             {
                 mockInputResource.rate = 0;
-                supplyFNResourcePerSecondWithMax(0, 0, ResourceSettings.Config.ElectricPowerInMegawatt);
+                SupplyFnResourcePerSecondWithMax(0, 0, ResourceSettings.Config.ElectricPowerInMegawatt);
                 return;
             }
 
@@ -318,7 +318,7 @@ namespace FNPlugin.Powermanagement
                 double generatorSupplyInMegajoules = outputType == ResourceType.megajoule ?
                     generatorOutputRateInElectricCharge : generatorOutputRateInElectricCharge / GameConstants.ecPerMJ;
 
-                powerGeneratorPowerOutput = supplyFNResourcePerSecondWithMax(generatorSupplyInMegajoules, generatorSupplyInMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
+                powerGeneratorPowerOutput = SupplyFnResourcePerSecondWithMax(generatorSupplyInMegajoules, generatorSupplyInMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
             }
         }
     }

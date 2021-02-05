@@ -315,7 +315,7 @@ namespace FNPlugin.Propulsion
             if (_maximumWarpSpeedFactor < selected_factor)
                 selected_factor = _minimumPowerAllowedFactor;
 
-            if (!CheatOptions.InfiniteElectricity && GetPowerRequirementForWarp(_engineThrottle[selected_factor]) > getStableResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt))
+            if (!CheatOptions.InfiniteElectricity && GetPowerRequirementForWarp(_engineThrottle[selected_factor]) > GetStableResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt))
             {
                 var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpPowerReqIsHigherThanMaxPowerSupply");
                 Debug.Log("[KSPI]: " + message);
@@ -371,7 +371,7 @@ namespace FNPlugin.Propulsion
 
             var powerReturned = CheatOptions.InfiniteElectricity
                 ? currentPowerRequirementForWarp
-                : consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceSettings.Config.ElectricPowerInMegawatt);
+                : ConsumeFnResourcePerSecond(currentPowerRequirementForWarp, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             if (powerReturned < 0.99 * currentPowerRequirementForWarp)
             {
@@ -1357,13 +1357,13 @@ namespace FNPlugin.Propulsion
 
             requiredExoticMaintenancePower = _exoticMatterRatio * _exoticMatterRatio * maximumExoticMaintenancePower;
 
-            var overheatingRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
+            var overheatingRatio = GetResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
 
             var overheatModifier = overheatingRatio < 0.9 ? 1 : (1 - overheatingRatio) * 10;
 
             receivedExoticMaintenancePower = CheatOptions.InfiniteElectricity
                    ? requiredExoticMaintenancePower
-                   : consumeFNResourcePerSecond(overheatModifier * requiredExoticMaintenancePower, ResourceSettings.Config.ElectricPowerInMegawatt);
+                   : ConsumeFnResourcePerSecond(overheatModifier * requiredExoticMaintenancePower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             minimumExoticMatterMaintenanceRatio = minimumExoticMaintenancePower > 0 ? receivedExoticMaintenancePower / minimumExoticMaintenancePower : 0;
 
@@ -1388,18 +1388,18 @@ namespace FNPlugin.Propulsion
                 }
                 else
                 {
-                    _stablePowerSupply = getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+                    _stablePowerSupply = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
                     chargePowerDraw = CheatOptions.InfiniteElectricity
                         ? maxChargePowerRequired
                         : Math.Min(maxChargePowerRequired / TimeWarp.fixedDeltaTime, Math.Max(minPowerRequirementForLightSpeed, _stablePowerSupply));
 
-                    var resourceBarRatio = getResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
+                    var resourceBarRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
                     var effectiveResourceThrottling = resourceBarRatio > 0.5 ? 1 : resourceBarRatio * 2;
 
                     exoticMatterProduced = CheatOptions.InfiniteElectricity
                         ? chargePowerDraw
-                        : consumeFNResourcePerSecond(overheatModifier * chargePowerDraw * effectiveResourceThrottling, ResourceSettings.Config.ElectricPowerInMegawatt);
+                        : ConsumeFnResourcePerSecond(overheatModifier * chargePowerDraw * effectiveResourceThrottling, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                     if (!CheatOptions.InfinitePropellant && _stablePowerSupply < minPowerRequirementForLightSpeed)
                         _insufficientPowerTimeout--;
@@ -1450,7 +1450,7 @@ namespace FNPlugin.Propulsion
 
             verticalSpeed = vessel.verticalSpeed;
 
-            _stablePowerSupply = getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+            _stablePowerSupply = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             if (!holdAltitude) return;
 
@@ -1462,7 +1462,7 @@ namespace FNPlugin.Propulsion
         private void ProduceWasteheat(double powerReturned)
         {
             if (!CheatOptions.IgnoreMaxTemperature)
-                supplyFNResourcePerSecond(powerReturned *
+                SupplyFnResourcePerSecond(powerReturned *
                     (isupgraded
                         ? wasteheatRatioUpgraded
                         : wasteheatRatio), ResourceSettings.Config.WasteHeatInMegawatt);
@@ -1489,7 +1489,7 @@ namespace FNPlugin.Propulsion
 
             availablePower = CheatOptions.InfiniteElectricity
                 ? currentPowerRequirementForWarp
-                : getAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+                : GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             double powerReturned;
 
@@ -1497,7 +1497,7 @@ namespace FNPlugin.Propulsion
                 powerReturned = currentPowerRequirementForWarp;
             else
             {
-                powerReturned = consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceSettings.Config.ElectricPowerInMegawatt) ;
+                powerReturned = ConsumeFnResourcePerSecond(currentPowerRequirementForWarp, ResourceSettings.Config.ElectricPowerInMegawatt) ;
                 ProduceWasteheat(powerReturned);
             }
 

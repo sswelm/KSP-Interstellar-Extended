@@ -336,7 +336,7 @@ namespace FNPlugin.Wasteheat
             // what does electricity look like, anyways?
 
             var powerNeeded = powerDrawInJoules;
-            var powerAvail = consumeFNResourcePerSecond(powerNeeded, ResourceSettings.Config.ElectricPowerInMegawatt);
+            var powerAvail = ConsumeFnResourcePerSecond(powerNeeded, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             return Math.Round(powerAvail / powerNeeded, 2);
         }
@@ -359,7 +359,7 @@ namespace FNPlugin.Wasteheat
             var efficiency = DrawPower();
             if (efficiency == 0) return;
 
-            var wasteheatManager = getManagerForVessel(ResourceSettings.Config.WasteHeatInMegawatt);
+            var wasteheatManager = GetManagerForVessel(ResourceSettings.Config.WasteHeatInMegawatt);
 
             maxSupplyOfHeat = wasteheatManager.CurrentSurplus + wasteheatManager.GetResourceAvailability();
             if (maxSupplyOfHeat == 0) return;
@@ -511,7 +511,7 @@ namespace FNPlugin.Wasteheat
                  */
             }
 
-            var heatTransferred = consumeFNResourcePerSecond(actuallyReduced, ResourceSettings.Config.WasteHeatInMegawatt);
+            var heatTransferred = ConsumeFnResourcePerSecond(actuallyReduced, ResourceSettings.Config.WasteHeatInMegawatt);
 
             if (heatTransferred == 0) return;
 
@@ -1240,7 +1240,7 @@ namespace FNPlugin.Wasteheat
         public override void OnStart(StartState state)
         {
             string[] resourcesToSupply = { ResourceSettings.Config.WasteHeatInMegawatt };
-            this.resources_to_supply = resourcesToSupply;
+            this.resourcesToSupply = resourcesToSupply;
 
             base.OnStart(state);
 
@@ -1597,7 +1597,7 @@ namespace FNPlugin.Wasteheat
                 }
 
                 // get resource bar ratio at start of frame
-                if (!(getManagerForVessel(ResourceSettings.Config.WasteHeatInMegawatt) is WasteHeatResourceManager wasteheatManager))
+                if (!(GetManagerForVessel(ResourceSettings.Config.WasteHeatInMegawatt) is WasteHeatResourceManager wasteheatManager))
                 {
                     Debug.LogError("[KSPI]: FNRadiator: Failed to find WasteHeatResourceManager");
                     return;
@@ -1678,7 +1678,7 @@ namespace FNPlugin.Wasteheat
                     _convectedThermalPower = canRadiateHeat
                         ? convPowerDissipation > 0
                             ? ConsumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager)
-                            : supplyManagedFNResourcePerSecond(-convPowerDissipation, ResourceSettings.Config.WasteHeatInMegawatt)
+                            : SupplyManagedFnResourcePerSecond(-convPowerDissipation, ResourceSettings.Config.WasteHeatInMegawatt)
                         : 0;
 
                     if (_radiatorDeployDelay >= DEPLOYMENT_DELAY)
@@ -1783,7 +1783,7 @@ namespace FNPlugin.Wasteheat
 
             var consumedWasteheat = CheatOptions.IgnoreMaxTemperature || wasteheatToConsume == 0
                 ? wasteheatToConsume
-                : consumeFNResourcePerSecond(wasteheatToConsume, ResourceSettings.Config.WasteHeatInMegawatt, wasteheatManager);
+                : ConsumeFnResourcePerSecond(wasteheatToConsume, ResourceSettings.Config.WasteHeatInMegawatt, wasteheatManager);
 
             return consumedWasteheat.IsInfinityOrNaN() ? 0 : consumedWasteheat;
         }

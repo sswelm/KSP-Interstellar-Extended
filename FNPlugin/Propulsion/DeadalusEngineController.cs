@@ -367,7 +367,7 @@ namespace FNPlugin.Propulsion
         public override void OnStart(StartState state)
         {
             string[] resourcesToSupply = { ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resources_to_supply = resourcesToSupply;
+            this.resourcesToSupply = resourcesToSupply;
             base.OnStart(state);
 
             engineSpeedOfLight = PluginSettings.Config.SpeedOfLight;
@@ -884,7 +884,7 @@ namespace FNPlugin.Propulsion
         private double CalculateElectricalPowerCurrentlyNeeded(double maximumElectricPower)
         {
             var currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceSettings.Config.ElectricPowerInMegawatt));
-            var spareResourceCapacity = getSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var spareResourceCapacity = GetSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
             var powerRequestRatio = mhdPowerGenerationPercentage * 0.01;
             return Math.Min(maximumElectricPower, currentUnfilledResourceDemand * Math.Min(1, powerRequestRatio) + spareResourceCapacity * Math.Max(0, powerRequestRatio - 1));
         }
@@ -896,7 +896,7 @@ namespace FNPlugin.Propulsion
             var effectiveMaxPowerProduction = EffectiveMaxPowerProduction;
             var effectiveMaxFusionWasteHeat = EffectiveMaxFusionWasteHeat;
 
-            var wasteheatRatio = getResourceBarFraction(ResourceSettings.Config.WasteHeatInMegawatt);
+            var wasteheatRatio = GetResourceBarFraction(ResourceSettings.Config.WasteHeatInMegawatt);
 
             var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10;
 
@@ -906,7 +906,7 @@ namespace FNPlugin.Propulsion
 
             var receivedPower = CheatOptions.InfiniteElectricity || requestedPower <= 0
                 ? finalRequestedPower
-                : consumeFNResourcePerSecond(finalRequestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+                : ConsumeFnResourcePerSecond(finalRequestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
             var plasmaRatio = !requestedPower.IsInfinityOrNaNorZero() && !receivedPower.IsInfinityOrNaNorZero() ? Math.Min(1, receivedPower / requestedPower) : 0;
 
@@ -916,7 +916,7 @@ namespace FNPlugin.Propulsion
             wasteHeat = requestedThrottle * plasmaRatio * effectiveMaxFusionWasteHeat;
             if (!CheatOptions.IgnoreMaxTemperature && requestedThrottle > 0)
             {
-                supplyFNResourcePerSecondWithMax(wasteHeat, effectiveMaxFusionWasteHeat, ResourceSettings.Config.WasteHeatInMegawatt);
+                SupplyFnResourcePerSecondWithMax(wasteHeat, effectiveMaxFusionWasteHeat, ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
             var availablePower = requestedThrottle * plasmaRatio * effectiveMaxPowerProduction;
@@ -932,7 +932,7 @@ namespace FNPlugin.Propulsion
 
             if (!CheatOptions.InfiniteElectricity && effectiveMaxPowerProduction > 0 && requestedThrottle > 0)
             {
-                supplyFNResourcePerSecondWithMax(availablePower, effectiveMaxPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);
+                SupplyFnResourcePerSecondWithMax(availablePower, effectiveMaxPowerProduction, ResourceSettings.Config.ElectricPowerInMegawatt);
             }
 
             return plasmaRatio;
@@ -991,7 +991,7 @@ namespace FNPlugin.Propulsion
             return PowerProduction > PowerRequirement ? 1 : powerPriority;
         }
 
-        public override int getSupplyPriority()
+        public override int GetSupplyPriority()
         {
             return 1;
         }

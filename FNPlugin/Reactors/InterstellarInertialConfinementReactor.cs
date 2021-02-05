@@ -253,14 +253,14 @@ namespace FNPlugin.Reactors
             if (!CheatOptions.InfiniteElectricity && powerRequested > 0)
             {
                 primaryPowerReceived = usePowerManagerForPrimaryInputPower
-                    ? consumeFNResourcePerSecondBuffered(powerRequested, primaryInputResource, 0.1)
+                    ? ConsumeFnResourcePerSecondBuffered(powerRequested, primaryInputResource, 0.1)
                     : part.RequestResource(primaryInputResourceDefinition.id, powerRequested * timeWarpFixedDeltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW) / timeWarpFixedDeltaTime;
             }
             else
                 primaryPowerReceived = powerRequested;
 
             if (maintenancePowerWasteheatRatio > 0)
-                supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * primaryPowerReceived, ResourceSettings.Config.WasteHeatInMegawatt);
+                SupplyFnResourcePerSecond(maintenancePowerWasteheatRatio * primaryPowerReceived, ResourceSettings.Config.WasteHeatInMegawatt);
 
             // calculate effective primary power ratio
             var powerReceived = primaryPowerReceived;
@@ -275,8 +275,8 @@ namespace FNPlugin.Reactors
 
                 if (usePowerManagerForSecondaryInputPower)
                 {
-                    currentSecondaryRatio = getResourceBarRatio(secondaryInputResource);
-                    currentSecondaryCapacity = getTotalResourceCapacity(secondaryInputResource);
+                    currentSecondaryRatio = GetResourceBarRatio(secondaryInputResource);
+                    currentSecondaryCapacity = GetTotalResourceCapacity(secondaryInputResource);
                     currentSecondaryAmount = currentSecondaryCapacity * currentSecondaryRatio;
                 }
                 else
@@ -398,7 +398,7 @@ namespace FNPlugin.Reactors
             if (neededPower <= 0)
                 return;
 
-            var availableStablePower = getStableResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+            var availableStablePower = GetStableResourceSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             var minimumChargingPower = startupMinimumChargePercentage * RawPowerOutput;
             if (startupCostGravityMultiplier > 0)
@@ -417,7 +417,7 @@ namespace FNPlugin.Reactors
             else
             {
                 var megaJouleRatio = usePowerManagerForPrimaryInputPower
-                    ? getResourceBarRatio(primaryInputResource)
+                    ? GetResourceBarRatio(primaryInputResource)
                     : part.GetResourceRatio(primaryInputResource);
 
                 var primaryPowerRequest = Math.Min(neededPower, availableStablePower * megaJouleRatio);
@@ -426,13 +426,13 @@ namespace FNPlugin.Reactors
                 var returnedPrimaryPower = CheatOptions.InfiniteElectricity
                     ? neededPower
                     : usePowerManagerForPrimaryInputPower
-                        ? consumeFNResourcePerSecond(primaryPowerRequest, primaryInputResource)
+                        ? ConsumeFnResourcePerSecond(primaryPowerRequest, primaryInputResource)
                         : part.RequestResource(primaryInputResource, primaryPowerRequest * timeWarpFixedDeltaTime);
 
                 var powerPerSecond = usePowerManagerForPrimaryInputPower ? returnedPrimaryPower : returnedPrimaryPower / timeWarpFixedDeltaTime;
 
                 if (!CheatOptions.IgnoreMaxTemperature && maintenancePowerWasteheatRatio > 0)
-                    supplyFNResourcePerSecond(0.05 * powerPerSecond, ResourceSettings.Config.WasteHeatInMegawatt);
+                    SupplyFnResourcePerSecond(0.05 * powerPerSecond, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 if (powerPerSecond >= minimumChargingPower)
                     accumulatedElectricChargeInMW += returnedPrimaryPower * timeWarpFixedDeltaTime;

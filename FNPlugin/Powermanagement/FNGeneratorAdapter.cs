@@ -62,7 +62,7 @@ namespace FNPlugin.Powermanagement
                 }
 
                 string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-                this.resources_to_supply = resourcesToSupply;
+                this.resourcesToSupply = resourcesToSupply;
                 base.OnStart(state);
 
                 if (maintainsBuffer)
@@ -161,7 +161,7 @@ namespace FNPlugin.Powermanagement
             if (maintainsBuffer)
                 _resourceBuffers.UpdateBuffers();
 
-            megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceSettings.Config.ElectricPowerInMegawatt);
+            megaJouleGeneratorPowerSupply = SupplyFnResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
     }
 }

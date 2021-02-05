@@ -35,7 +35,7 @@ namespace FNPlugin.Powermanagement
         public const int FnResourceFlowTypeSmallestFirst = 0;
         public const int FnResourceFlowTypeEven = 1;
 
-        protected const int LabelWidth = 240;
+        protected const int LabelWidth = 305;
         protected const int ValueWidth = 55;
         protected const int PriorityWidth = 30;
         protected const int OverviewWidth = 65;
@@ -47,8 +47,10 @@ namespace FNPlugin.Powermanagement
 
         private readonly IDictionary<IResourceSupplier, PowerGenerated> productionTemp;
         private readonly IDictionary<IResourceSupplier, PowerGenerated> productionRequests;
+
         private readonly List<PowerDistributionPair> powerConsumers;
         private readonly List<PowerGeneratedPair> powerProducers;
+
         private readonly double[] currentDistributed;
         private readonly double[] stableDistributed;
 
@@ -326,7 +328,9 @@ namespace FNPlugin.Powermanagement
                     int count = group.Count();
                     if (count > 1)
                         name = count + " * " + name;
-                    if (sumRequest > 0.0 && resourceName == ResourceSettings.Config.ElectricPowerInMegawatt && utilization < 0.995)
+
+                    var utilizationTolerance = sumRequest > 0.1 ? 0.995 : 0.9;
+                    if (sumRequest > 0.0000015 && resourceName == ResourceSettings.Config.ElectricPowerInMegawatt && utilization < utilizationTolerance)
                         name = name + " " + utilization.ToString("P0");
 
                     summaryList.Add(new PowerConsumption(name, priority, sumRequest));
