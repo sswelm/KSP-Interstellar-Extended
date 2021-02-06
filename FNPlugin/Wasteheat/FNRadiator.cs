@@ -695,7 +695,7 @@ namespace FNPlugin.Wasteheat
         // persistent
         [KSPField(isPersistant = true)] public bool radiatorInit;
         [KSPField(isPersistant = true)] public bool showRetractButton = false;
-        [KSPField(isPersistant = true)] public bool showControls = true;
+        [KSPField(isPersistant = true)] public bool showControls = false;
         [KSPField(isPersistant = true)] public double currentRadTemp;
         [KSPField(isPersistant = true)] public bool clarifyFunction;
 
@@ -729,7 +729,7 @@ namespace FNPlugin.Wasteheat
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_EffectiveArea", guiFormat = "F2", guiUnits = " m\xB2")]//Effective Area
         public double effectiveRadiatorArea;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE,  guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
-        public double radiatorArea = 1;
+        public double radiatorArea;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive  =  true, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
         public double baseRadiatorArea;
 

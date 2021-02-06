@@ -2520,8 +2520,10 @@ namespace FNPlugin.Reactors
                 {
                     PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelNeutronBreedRate"), 100 * CurrentFuelMode.NeutronsRatio + "% ", boldStyle, textStyle);//"Fuel Neutron Breed Rate"
 
-                    var tritiumKgDay = _tritiumProducedPerSecond * _tritiumDensity * 1000 * PluginSettings.Config.SecondsInDay;
-                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), tritiumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Tritium Breed Rate"kg/day
+                    //var tritiumKgDay = _tritiumProducedPerSecond * _tritiumDensity * 1000 * PluginSettings.Config.SecondsInDay;
+                    //PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), tritiumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Tritium Breed Rate"kg/day
+                    var tritiumTonPerHour = _tritiumProducedPerSecond * _tritiumDensity  * 3600;
+                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), PluginHelper.FormatMassStr(tritiumTonPerHour) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_min"), boldStyle, textStyle);//Consumption-min
 
                     var heliumKgDay = _heliumProducedPerSecond * _helium4Density * 1000 * PluginSettings.Config.SecondsInDay;
                     PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_HeliumBreedRate"), heliumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Helium Breed Rate"kg/day
