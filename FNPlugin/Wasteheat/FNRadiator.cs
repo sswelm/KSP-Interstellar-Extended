@@ -1399,8 +1399,8 @@ namespace FNPlugin.Wasteheat
             {
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+6));
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
-                _resourceBuffers.Init(this.part);
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+                _resourceBuffers.Init(part);
             }
 
             Fields[nameof(dynamicPressureStress)].guiActive = isDeployable;

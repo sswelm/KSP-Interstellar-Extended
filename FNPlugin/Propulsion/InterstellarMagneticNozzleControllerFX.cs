@@ -77,7 +77,9 @@ namespace FNPlugin.Propulsion
         [KSPField] public double chargedParticleRatio;
         [KSPField] public double currentIsp;
         [KSPField] public float currentThrust;
-        [KSPField] public double wasteheatConsumption;
+
+        [KSPField] public double chargedParticleRatioThreshold = 0.0002;
+        [KSPField] public double megajoulesRatioThreshold = 0.02;
 
         //Internal
         private UI_FloatRange simulatedThrottleFloatRange;
@@ -90,6 +92,7 @@ namespace FNPlugin.Propulsion
         private IFNChargedParticleSource _attachedReactor;
 
         int _attachedReactorDistance;
+         double _wasteheatConsumption;
         double _exchangerThrustDivisor;
         double _previousChargedParticlesReceived;
         double _maxPowerMultiplier;
@@ -119,13 +122,18 @@ namespace FNPlugin.Propulsion
 
         public override void OnStart(PartModule.StartState state)
         {
+            resourcesToSupply = new[]{ ResourceSettings.Config.ElectricPowerInMegawatt };
+
             if (maintainsPropellantBuffer)
                 propellantBufferResourceDefinition = PartResourceLibrary.Instance.GetDefinition(propellantBufferResourceName);
 
-            resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult, true));
-            resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
-            resourceBuffers.Init(part);
+            if (part.FindModuleImplementing<IFNPowerSource>() == null)
+            {
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBufferMassMult, true));
+                resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+                resourceBuffers.Init(part);
+            }
 
             if (state == StartState.Editor)
             {
@@ -344,17 +352,10 @@ namespace FNPlugin.Propulsion
             UpdatePowerEffect();
         }
 
-
-        public override void OnFixedUpdate()
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            base.OnFixedUpdate();
-
             if (_attachedEngine == null)
                 return;
-
-            _attachedEngine.CalculateThrust();
-
-            _attachedEngine.enabled = _attachedEngine.propellantReqMet > 0;
 
             if (_attachedEngine.currentThrottle > 0 && !exhaustAllowed)
             {
@@ -374,22 +375,24 @@ namespace FNPlugin.Propulsion
 
             if (_attachedReactor != null && _chargedParticleMaximumPercentageUsage > 0)
             {
-                if (_attachedReactor.Part != part)
+                if (_attachedReactor.Part != part && resourceBuffers != null)
                 {
                     resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
                     resourceBuffers.UpdateBuffers();
                 }
 
+                var currentThrottle = Math.Max(vessel.ctrlState.mainThrottle * 0.001, _attachedEngine.currentThrottle);
+
                 maximumChargedPower =  _attachedReactor.MaximumChargedPower;
-                var currentMaximumChargedPower = maximum_isp == minimum_isp ? maximumChargedPower * _attachedEngine.currentThrottle : maximumChargedPower;
+                var currentMaximumChargedPower = maximum_isp == minimum_isp ? maximumChargedPower * currentThrottle : maximumChargedPower;
 
                 _max_charged_particles_power = currentMaximumChargedPower * _exchangerThrustDivisor * _attachedReactor.ChargedParticlePropulsionEfficiency;
-                _charged_particles_requested = exhaustAllowed && _attachedEngine.isOperational && _attachedEngine.currentThrottle > 0 ? _max_charged_particles_power : 0;
+                _charged_particles_requested = exhaustAllowed && currentThrottle > 0 ? _max_charged_particles_power : 0;
 
                 _charged_particles_received = _charged_particles_requested > 0 ? ConsumeFnResourcePerSecond(_charged_particles_requested, ResourceSettings.Config.ChargedParticleInMegawatt) : 0;
 
                 // update Isp
-                currentIsp = !_attachedEngine.isOperational || _attachedEngine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attachedEngine.currentThrottle, throtleExponent));
+                currentIsp = currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(currentThrottle, throtleExponent));
 
                 var thrustModifier = GameConstants.BaseThrustPowerMultiplier * powerThrustMultiplier;
                 var maxEngineThrustAtMaxIsp = thrustModifier * _charged_particles_received / maximum_isp / PhysicsGlobals.GravitationalAcceleration;
@@ -406,22 +409,22 @@ namespace FNPlugin.Propulsion
 
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
-                    if (_attachedEngine.isOperational && _attachedEngine.currentThrottle > 0)
+                    if (currentThrottle > 0)
                     {
-                        wasteheatConsumption = _charged_particles_received > _previousChargedParticlesReceived
-                            ? _charged_particles_received + (_charged_particles_received - _previousChargedParticlesReceived)
-                            : _charged_particles_received - (_previousChargedParticlesReceived - _charged_particles_received);
+                        _wasteheatConsumption = _charged_particles_received;
+                        if (_charged_particles_received > _previousChargedParticlesReceived)
+                            _wasteheatConsumption = _charged_particles_received + (_charged_particles_received - _previousChargedParticlesReceived);
 
                         _previousChargedParticlesReceived = _charged_particles_received;
                     }
                     else
                     {
-                        wasteheatConsumption = 0;
+                        _wasteheatConsumption = 0;
                         _charged_particles_received = 0;
                         _previousChargedParticlesReceived = 0;
                     }
 
-                    ConsumeFnResourcePerSecond(wasteheatConsumption, ResourceSettings.Config.WasteHeatInMegawatt);
+                    ConsumeFnResourcePerSecond(_wasteheatConsumption, ResourceSettings.Config.WasteHeatInMegawatt);
                 }
 
                 if (_charged_particles_received == 0)
@@ -460,6 +463,18 @@ namespace FNPlugin.Propulsion
                 megajoulesRatio = megajoulesRatio.IsInfinityOrNaN() ? 0 : megajoulesRatio;
                 var scaledPowerFactor = Math.Pow(megajoulesRatio, 0.5);
 
+                if (currentThrottle > 0)
+                {
+                    // enable/disable engine
+                    _attachedEngine.enabled = chargedParticleRatio > chargedParticleRatioThreshold &&
+                                              megajoulesRatio > megajoulesRatioThreshold &&
+                                              AttachedReactor.ConsumedFuelFixed > 0 &&
+                                              part.RequestResource(ResourceSettings.Config.HydrogenLqd, 0.001, true) > 0;
+                }
+
+                if (_attachedEngine.enabled == false)
+                    _attachedEngine.currentThrottle = 0;
+
                 var requiredElectricalPowerFromMhd = CalculateElectricalPowerCurrentlyNeeded(Math.Min(scaledPowerFactor * _charged_particles_received, minimumElectricEnginePower * 2));
 
                 // convert part of the exhaust energy directly into electric power
@@ -478,7 +493,7 @@ namespace FNPlugin.Propulsion
                     var effectiveThrust = Math.Max(maxThrust - (radius * radius * vessel.atmDensity * 100), 0);
 
                     _effectiveThrustRatio = maxThrust > 0 ? effectiveThrust / maxThrust : 0;
-                    _engineMaxThrust = _attachedEngine.currentThrottle > 0 ? Math.Max(effectiveThrust, 1e-9) : Math.Max(maxThrust, 1e-9);
+                    _engineMaxThrust = currentThrottle > 0 ? Math.Max(effectiveThrust, 1e-9) : Math.Max(maxThrust, 1e-9);
                 }
                 else
                 {
@@ -488,19 +503,19 @@ namespace FNPlugin.Propulsion
 
                 // set isp
                 FloatCurve newAtmosphereCurve = new FloatCurve();
-                engineIsp = _attachedEngine.currentThrottle > 0 ? _mhdTrustIspModifier * currentIsp * scaledPowerFactor * _effectiveThrustRatio : currentIsp;
+                engineIsp = currentThrottle > 0 ? _mhdTrustIspModifier * currentIsp * scaledPowerFactor * _effectiveThrustRatio : currentIsp;
                 newAtmosphereCurve.Add(0, (float)engineIsp, 0, 0);
                 _attachedEngine.atmosphereCurve = newAtmosphereCurve;
 
                 var maxEffectiveFuelFlowRate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && currentIsp > 0
-                    ? _engineMaxThrust / currentIsp / PhysicsGlobals.GravitationalAcceleration / (_attachedEngine.currentThrottle > 0 ? _attachedEngine.currentThrottle : 1)
+                    ? _engineMaxThrust / currentIsp / PhysicsGlobals.GravitationalAcceleration / (currentThrottle > 0 ? currentThrottle : 1)
                     : 0;
 
                 _maxTheoreticalThrust = thrustModifier * maximumChargedPower * _chargedParticleMaximumPercentageUsage / currentIsp / PhysicsGlobals.GravitationalAcceleration;
                 var maxTheoreticalFuelFlowRate = _maxTheoreticalThrust / currentIsp / PhysicsGlobals.GravitationalAcceleration;
 
                 // set maximum flow
-                engineFuelFlow = _attachedEngine.currentThrottle > 0 ? Mathf.Max((float)maxEffectiveFuelFlowRate, minimumFlowRate) : (float)maxTheoreticalFuelFlowRate;
+                engineFuelFlow = currentThrottle > 0 ? Mathf.Max((float)maxEffectiveFuelFlowRate, minimumFlowRate) : (float)maxTheoreticalFuelFlowRate;
 
                 _attachedEngine.maxFuelFlow = engineFuelFlow;
                 _attachedEngine.useThrustCurve = false;

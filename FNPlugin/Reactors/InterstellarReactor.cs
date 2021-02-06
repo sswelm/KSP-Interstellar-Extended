@@ -1438,6 +1438,7 @@ namespace FNPlugin.Reactors
                         var message = Localizer.Format("#LOC_KSPIE_Reactor_ranOutOfFuelFor") + " " + CurrentFuelMode.ModeGUIName;
                         Debug.Log("[KSPI]: " + message);
                         ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+                        TimeWarp.SetRate(0, true);
                     }
                 }
                 else
@@ -1476,7 +1477,7 @@ namespace FNPlugin.Reactors
                 var finalCurrentChargedRequestRatio = Math.Max(currentChargedRequestRatio,
                     (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedParticleInMegawatt)) * 0.01 * ChargedPowerRatio);
 
-                var finalReactorRequestRatio = Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio);
+                var finalReactorRequestRatio = Math.Max(vessel.ctrlState.mainThrottle * 0.001, Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio)) ;
                 var maximumReactorRequestRatio = Math.Max(maximumThermalRequestRatio, maximumChargedRequestRatio);
 
                 var powerAccessModifier = Math.Max(
@@ -2261,13 +2262,10 @@ namespace FNPlugin.Reactors
                 resourceControl.amount = consumeAmountInUnitOfStorage;
             }
 
-            if (CheatOptions.InfinitePropellant)
-                return 0;
-
             if (fuel.ConsumeGlobal)
             {
                 var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage * deltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW, resourceControl != null);
-                return (fuel.Simulate ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
+                return (fuel.Simulate || CheatOptions.InfinitePropellant ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
             }
 
             if (part.Resources.Contains(fuel.ResourceName))
