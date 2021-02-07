@@ -264,6 +264,9 @@ namespace FNPlugin
             if (id == "false" || id == "none")
                 return false;
 
+            if (CheatOptions.IgnoreAgencyMindsetOnContracts)
+                return true;
+
             if (PartUpgradeByName.TryGetValue(id, out var partUpgrade))
                 id = partUpgrade.techRequired;
 

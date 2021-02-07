@@ -72,14 +72,9 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)] public double storedPowerMultiplier = 1;
         [KSPField(isPersistant = true)] public double stored_fuel_ratio = 1;
         [KSPField(isPersistant = true)] public double fuel_ratio = 1;
-        [KSPField(isPersistant = true)] public double requested_thermal_power_ratio = 1;
         [KSPField(isPersistant = true)] public double maximumThermalPower;
         [KSPField(isPersistant = true)] public double maximumChargedPower;
-
-        [KSPField(isPersistant = true)] public double thermal_power_ratio = 1;
-        [KSPField(isPersistant = true)] public double charged_power_ratio = 1;
         [KSPField(isPersistant = true)] public double reactor_power_ratio = 1;
-        [KSPField(isPersistant = true)] public double power_request_ratio = 1;
 
         [KSPField(isPersistant = true)] public double storedIsThermalEnergyGeneratorEfficiency;
         [KSPField(isPersistant = true)] public double storedIsPlasmaEnergyGeneratorEfficiency;
@@ -1500,24 +1495,18 @@ namespace FNPlugin.Reactors
                 var maxStoredGeneratorEnergyRequestedRatio = Math.Max(Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorPlasmaEnergyRequestRatio), storedGeneratorChargedEnergyRequestRatio);
                 var maxThrottleRatio = Math.Max(Math.Max(thermalThrottleRatio, plasmaThrottleRatio), chargedThrottleRatio);
 
-                power_request_ratio = Math.Max(maxThrottleRatio, maxStoredGeneratorEnergyRequestedRatio);
+                var powerRequestRatio = Math.Max(maxThrottleRatio, maxStoredGeneratorEnergyRequestedRatio);
 
                 var maxChargedToSupplyPerSecond = maximumChargedPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
-                var requestedChargedToSupplyPerSecond = maxChargedToSupplyPerSecond * power_request_ratio * currentChargedRequestRatio;
+                var requestedChargedToSupplyPerSecond = maxChargedToSupplyPerSecond * powerRequestRatio * currentChargedRequestRatio;
 
                 var chargedParticlesManager = GetManagerForVessel(ResourceSettings.Config.ChargedParticleInMegawatt);
                 var thermalHeatManager = GetManagerForVessel(ResourceSettings.Config.ThermalPowerInMegawatt);
 
                 minThrottle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
-                var neededChargedPowerPerSecond = GetNeededPowerSupplyPerSecondWithMinimumRatio(maxChargedToSupplyPerSecond, minThrottle, ResourceSettings.Config.ChargedParticleInMegawatt, chargedParticlesManager);
-                charged_power_ratio = Math.Min(currentChargedRequestRatio, maximumChargedPower > 0 ? neededChargedPowerPerSecond / maximumChargedPower : 0);
 
                 var maxThermalToSupplyPerSecond = maximumThermalPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
-                var requestedThermalToSupplyPerSecond = maxThermalToSupplyPerSecond * power_request_ratio * currentThermalRequestRatio;
-
-                var neededThermalPowerPerSecond = GetNeededPowerSupplyPerSecondWithMinimumRatio(maxThermalToSupplyPerSecond, minThrottle, ResourceSettings.Config.ThermalPowerInMegawatt, thermalHeatManager);
-                requested_thermal_power_ratio =  maximumThermalPower > 0 ? neededThermalPowerPerSecond / maximumThermalPower : 0;
-                thermal_power_ratio = Math.Min(currentThermalRequestRatio, requested_thermal_power_ratio);
+                var requestedThermalToSupplyPerSecond = maxThermalToSupplyPerSecond * powerRequestRatio * currentThermalRequestRatio;
 
                 reactor_power_ratio = Math.Min(overheatModifier * finalReactorRequestRatio, PowerRatio);
 
