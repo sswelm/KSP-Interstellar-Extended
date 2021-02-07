@@ -1030,14 +1030,19 @@ namespace FNPlugin.Reactors
                 part.OnEditorDetach += OnEditorDetach;
             }
 
-            string[] resourcesToSupply = { ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resourcesToSupply = resourcesToSupply;
+            resourcesToSupply = new[]
+            {
+                ResourceSettings.Config.ThermalPowerInMegawatt,
+                ResourceSettings.Config.WasteHeatInMegawatt,
+                ResourceSettings.Config.ChargedParticleInMegawatt,
+                ResourceSettings.Config.ElectricPowerInMegawatt
+            };
 
             _resourceBuffers = new ResourceBuffers();
             _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatBufferMult, wasteHeatBufferMassMult, true));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ThermalPowerInMegawatt, thermalPowerBufferMult));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ChargedParticleInMegawatt, chargedPowerBufferMult));
-            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             _resourceBuffers.Init(part);
 
             _windowId = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
@@ -2221,9 +2226,9 @@ namespace FNPlugin.Reactors
 
         protected bool FuelRequiresLab(bool requiresLab)
         {
-            var isConnectedToLab = part.IsConnectedToModule("ScienceModule", 10);
+            var isConnectedToLab = part.IsConnectedToModule("NuclearRefineryController", 10);
 
-            return !requiresLab || isConnectedToLab && canBeCombinedWithLab;
+            return !requiresLab || (isConnectedToLab && canBeCombinedWithLab);
         }
 
         public virtual void SetDefaultFuelMode()

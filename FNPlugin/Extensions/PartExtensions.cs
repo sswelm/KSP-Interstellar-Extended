@@ -13,7 +13,7 @@ namespace FNPlugin.Extensions
             return part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == resourceName));
         }
 
-        public static void GetResourceMass(this Part part, PartResourceDefinition definition,  out double spareRoomMass, out double maximumMass) 
+        public static void GetResourceMass(this Part part, PartResourceDefinition definition,  out double spareRoomMass, out double maximumMass)
         {
             part.GetConnectedResourceTotals(definition.id, out var currentAmount, out var maxAmount);
 
@@ -146,7 +146,7 @@ namespace FNPlugin.Extensions
             if (part == null)
                 return null;
 
-            // We need to do quite a bit of piss-farting about with reflection to 
+            // We need to do quite a bit of piss-farting about with reflection to
             // dig the thing out. We could just use Object.Find, but that requires hitting a heap more objects.
             UIPartActionController controller = UIPartActionController.Instance;
             if (controller == null)
@@ -175,15 +175,15 @@ namespace FNPlugin.Extensions
             return uiPartActionWindows.FirstOrDefault(window => window != null && window.part == part);
         }
 
-        public static bool IsConnectedToModule(this Part currentPart, String partmodule, int maxChildDepth, Part previousPart = null)
+        public static bool IsConnectedToModule(this Part currentPart, string partModule, int maxChildDepth, Part previousPart = null)
         {
-            bool found = currentPart.Modules.Contains(partmodule);
+            bool found = currentPart.Modules.Contains(partModule);
             if (found)
                 return true;
 
             if (currentPart.parent != null && currentPart.parent != previousPart)
             {
-                bool foundPart = IsConnectedToModule(currentPart.parent, partmodule, maxChildDepth, currentPart);
+                bool foundPart = IsConnectedToModule(currentPart.parent, partModule, maxChildDepth, currentPart);
                 if (foundPart)
                     return true;
             }
@@ -192,7 +192,7 @@ namespace FNPlugin.Extensions
             {
                 foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
                 {
-                    bool foundPart = IsConnectedToModule(child, partmodule, (maxChildDepth - 1), currentPart);
+                    bool foundPart = IsConnectedToModule(child, partModule, (maxChildDepth - 1), currentPart);
                     if (foundPart)
                         return true;
                 }

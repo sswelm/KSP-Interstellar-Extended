@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
+    [KSPModule("Nuclear ISRU Refinery")]
+    class NuclearRefineryController : InterstellarRefineryController { }
+
     [KSPModule("ISRU Refinery")]
     class InterstellarRefineryController : PartModule
     {
