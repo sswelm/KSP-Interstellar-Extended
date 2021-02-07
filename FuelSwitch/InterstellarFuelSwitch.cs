@@ -85,7 +85,32 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)] public float windowPositionY = 150;
 
         // Config properties
+        [KSPField] public bool displayTankCost = false;
+        [KSPField] public bool displayWetDryMass = true;
+        [KSPField] public bool hasSwitchChooseOption = true;
+        [KSPField] public bool hasGUI = true;
+        [KSPField] public bool availableInFlight;
+        [KSPField] public bool availableInEditor = true;
+        [KSPField] public bool returnDryMass = false;
+        [KSPField] public bool canSwitchWithFullTanks = false;
+        [KSPField] public bool allowedToSwitch;
+        [KSPField] public bool updateModuleCost = true;
+        [KSPField] public bool controlCrewCapacity = false;
+        [KSPField] public bool useTextureSwitchModule;
+        [KSPField] public bool showTankName = true;
+        [KSPField] public bool showInfo = true;    // if false, does not feed info to the part list pop up info menu
+        [KSPField] public bool ignoreInitialCost = false;
+        [KSPField] public bool adaptiveTankSelection = false;
+        [KSPField] public bool overrideMassWithTankDividers = false;
+        [KSPField] public bool orderBySwitchName = false;
+
         [KSPField] public float windowWidth = 200;
+        [KSPField] public float basePartMass = 0;
+
+        [KSPField] public double baseResourceMassDivider = 0;
+
+        [KSPField] public string tankResourceMassDivider = string.Empty;
+        [KSPField] public string tankResourceMassDividerAddition = string.Empty;
         [KSPField] public string moduleID = "0";
         [KSPField] public string tankId = string.Empty;
         [KSPField] public string resourceGui = string.Empty;
@@ -99,47 +124,33 @@ namespace InterstellarFuelSwitch
         [KSPField] public string resourceAmounts = string.Empty;
         [KSPField] public string resourceRatios = string.Empty;
         [KSPField] public string initialResourceAmounts = string.Empty;
-        [KSPField] public bool ignoreInitialCost = false;
-        [KSPField] public bool adaptiveTankSelection = false;
-        [KSPField] public float basePartMass = 0;
-        [KSPField] public double baseResourceMassDivider = 0;
-        [KSPField] public string tankResourceMassDivider = string.Empty;
-        [KSPField] public string tankResourceMassDividerAddition = string.Empty;
-        [KSPField] public bool overrideMassWithTankDividers = false;
-        [KSPField] public bool orderBySwitchName = false;
         [KSPField] public string tankMass = "";
         [KSPField] public string tankTechReq = "";
         [KSPField] public string tankCost = "";
-        [KSPField] public bool displayTankCost = false;
-        [KSPField] public bool displayWetDryMass = true;
-        [KSPField] public bool hasSwitchChooseOption = true;
-        [KSPField] public bool hasGUI = true;
-        [KSPField] public bool availableInFlight;
-        [KSPField] public bool availableInEditor = true;
-        [KSPField] public bool returnDryMass = false;
         [KSPField] public string inEditorSwitchingTechReq;
         [KSPField] public string inFlightSwitchingTechReq;
-        [KSPField] public bool useTextureSwitchModule;
-        [KSPField] public bool showTankName = true;
-        [KSPField] public bool showInfo = true;    // if false, does not feed info to the part list pop up info menu
         [KSPField] public string moduleInfoTemplate;
         [KSPField] public string moduleInfoParams;
         [KSPField] public string resourcesFormatCompact = "0.000";
         [KSPField] public string resourcesFormat = "0.000000";
-        [KSPField] public bool canSwitchWithFullTanks = false;
-        [KSPField] public bool allowedToSwitch;
-        [KSPField] public bool updateModuleCost = true;
-        [KSPField] public bool controlCrewCapacity = false;
 
         // Gui
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_tankGuiName")] // Tank name
         public string tankGuiName = "";
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_maxWetDryMass")] // Dry/Wet Mass
         public string maxWetDryMass = "";
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_massRatioStr")] // Mass Ratio
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_massRatioStr")] // Mass Ratio
         public string massRatioStr = "";
-        [KSPField(groupName = Group, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_crewCapacityStr")] // Crew Capacity
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_crewCapacityStr")] // Crew Capacity
         public string crewCapacityStr = "";
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F6")]			// Total mass
+        public double totalMass;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_resourceCost")]      // Resource cost
+        public string resourceCostStr;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiUnits = " V", guiFormat = "F0")]         // Total Tank cost
+        public double totalCost;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"), UI_Toggle(disabledText = "#LOC_IFS_FuelSwitch_WindowHidden", enabledText = "#LOC_IFS_FuelSwitch_WindowShown", affectSymCounterparts = UI_Scene.None)] // Mass Ratio  Hidden  Shown
+        public bool renderWindow;
 
         [KSPField(groupName = Group)] public string resourceAmountStr0 = "";
         [KSPField(groupName = Group)] public string resourceAmountStr1 = "";
@@ -160,23 +171,17 @@ namespace InterstellarFuelSwitch
         [KSPField] public double baseMassExponent = 0;
         [KSPField] public double tweakscaleMassExponent = 3;
 
-        [KSPField(groupName = Group, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F6")]			// Total mass
-        public double totalMass;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_resourceCost")]      // Resource cost
-        public string resourceCostStr;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiUnits = " V", guiFormat = "F0")]         // Total Tank cost
-        public double totalCost;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"), UI_Toggle(disabledText = "#LOC_IFS_FuelSwitch_WindowHidden", enabledText = "#LOC_IFS_FuelSwitch_WindowShown", affectSymCounterparts = UI_Scene.None)] // Mass Ratio  Hidden  Shown
-        public bool renderWindow;
-
         private List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
-        private InterstellarTextureSwitch2 textureSwitch;
-        private IFSmodularTank _selectedTank;
         private readonly HashSet<string> _activeResourceList = new HashSet<string>();
+        private static HashSet<string> _researchedTechs;
+        private InterstellarTextureSwitch2 _textureSwitch;
+        private IFSmodularTank _selectedTank;
+        private MethodInfo _habitatOnStartMethod;
+        private IHaveFuelTankSetup _fuelTankSetupControl;
         private Rect _windowPosition;
 
         private bool _initialized;
-        private bool closeAfterSwitch;
+        private bool _closeAfterSwitch;
 
         private int _numberOfAvailableTanks;
         private int _windowId;
@@ -217,10 +222,6 @@ namespace InterstellarFuelSwitch
         private BaseField _habitatToggleField;
         private BaseField _volumeField;
         private BaseField _surfaceField;
-
-        private MethodInfo _habitatOnStartMethod;
-        private IHaveFuelTankSetup _fuelTankSetupControl;
-        private static HashSet<string> _researchedTechs;
 
         [KSPAction("Show Switch Tank Window")]
         public void ToggleSwitchWindowAction(KSPActionParam param)
@@ -286,12 +287,9 @@ namespace InterstellarFuelSwitch
                 else
                 {
                     // check if all tank resources are present
-                    foreach (var resource in modularTank.resources)
+                    if (modularTank.resources.Any(resource => !part.Resources.Contains(resource.name)))
                     {
-                        if (part.Resources.Contains(resource.name)) continue;
-
                         isSimilar = false;
-                        break;
                     }
                 }
 
@@ -519,8 +517,8 @@ namespace InterstellarFuelSwitch
 
                 if (useTextureSwitchModule)
                 {
-                    textureSwitch = part.GetComponent<InterstellarTextureSwitch2>(); // only looking for first, not supporting multiple fuel switchers
-                    if (textureSwitch == null)
+                    _textureSwitch = part.GetComponent<InterstellarTextureSwitch2>(); // only looking for first, not supporting multiple fuel switchers
+                    if (_textureSwitch == null)
                         useTextureSwitchModule = false;
                 }
 
@@ -540,7 +538,7 @@ namespace InterstellarFuelSwitch
         [KSPEvent(groupName = Group, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchTank")]//Switch Tank
         public void SwitchTankEvent()
         {
-            closeAfterSwitch = true;
+            _closeAfterSwitch = true;
             renderWindow = true;
         }
 
@@ -632,8 +630,8 @@ namespace InterstellarFuelSwitch
 
         public void UpdateTexture(bool calledByPlayer)
         {
-            if (textureSwitch != null)
-                textureSwitch.SelectTankSetup(selectedTankSetup, calledByPlayer);
+            if (_textureSwitch != null)
+                _textureSwitch.SelectTankSetup(selectedTankSetup, calledByPlayer);
         }
 
         public void UpdateTankName()
@@ -1411,7 +1409,7 @@ namespace InterstellarFuelSwitch
 
                 if (GUI.Button(new Rect(_windowPosition.width - 20, 2, 18, 18), "x"))
                 {
-                    closeAfterSwitch = false;
+                    _closeAfterSwitch = false;
                     renderWindow = false;
                 }
 
@@ -1427,9 +1425,9 @@ namespace InterstellarFuelSwitch
                         selectedTankSetup = _modularTankList.IndexOf(tank);
                         AssignResourcesToPart(true, true);
                         _fuelTankSetupControl?.SwitchToFuelTankSetup(tank.SwitchName);
-                        if (closeAfterSwitch)
+                        if (_closeAfterSwitch)
                         {
-                            closeAfterSwitch = false;
+                            _closeAfterSwitch = false;
                             renderWindow = false;
                         }
                     }
