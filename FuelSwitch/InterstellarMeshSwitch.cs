@@ -68,7 +68,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true, guiActiveEditor = true)]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.Editor, suppressEditorShipModified = true)]
         public int selectedObject;
-        
+
         private List<List<Transform>> objectTransforms = new List<List<Transform>>();
         private List<meshConfiguration> meshConfigurationList = new List<meshConfiguration>();
         private InterstellarFuelSwitch fuelSwitch;
@@ -80,7 +80,7 @@ namespace InterstellarFuelSwitch
             if (selectedObject >= meshConfigurationList.Count)
                 selectedObject = 0;
 
-            SwitchToObject(selectedObject, true);            
+            SwitchToObject(selectedObject, true);
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "#LOC_IFS_MeshSwitch_previousetup")]
@@ -90,7 +90,7 @@ namespace InterstellarFuelSwitch
             if (selectedObject < 0)
                 selectedObject = meshConfigurationList.Count - 1;
 
-            SwitchToObject(selectedObject, true);        
+            SwitchToObject(selectedObject, true);
         }
 
         private List<List<Transform>> ParseObjectNames()
@@ -116,7 +116,7 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            return objectTransforms; 
+            return objectTransforms;
         }
 
         private void SwitchToObject(int objectNumber, bool calledByPlayer)
@@ -219,18 +219,17 @@ namespace InterstellarFuelSwitch
             chooseField.guiName = Localizer.Format(switcherDescription);
             chooseField.guiActiveEditor = hasSwitchChooseOption;
 
-            var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;
-            if (chooseOption != null)
+            if (chooseField.uiControlEditor is UI_ChooseOption chooseOption)
             {
                 chooseOption.options = meshConfigurationList.Select(m => m.tankSwitchName).ToArray();
-                chooseOption.onFieldChanged = UpdateFromGUI;
+                chooseOption.onFieldChanged = UpdateFromGui;
             }
 
-            if (!showPreviousButton) 
+            if (!showPreviousButton)
                 Events["previousObjectEvent"].guiActiveEditor = false;
         }
 
-        private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
+        private void UpdateFromGui(BaseField field, object oldFieldValueObj)
         {
             SwitchToObject(selectedObject, true);
         }
@@ -238,7 +237,7 @@ namespace InterstellarFuelSwitch
         public void SwitchToFuelTankSetup(string fuelTankSetup)
         {
             var configuration = meshConfigurationList.FirstOrDefault(m => m.fuelTankSetup == fuelTankSetup);
-            
+
             if (configuration != null)
                 Debug.Log("[IFS]: SwitchToFuelTankSetup fuelTankSetup matches " + fuelTankSetup);
 
@@ -327,7 +326,7 @@ namespace InterstellarFuelSwitch
 
                 if (fuelSwitch == null)
                     useFuelSwitchModule = false;
-                else 
+                else
                 {
                     var matchingObject = fuelSwitch.FindMatchingConfig(this);
 
@@ -360,5 +359,5 @@ namespace InterstellarFuelSwitch
             else
                 return string.Empty;
         }
-    }    
+    }
 }
