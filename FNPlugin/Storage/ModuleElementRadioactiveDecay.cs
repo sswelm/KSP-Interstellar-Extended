@@ -12,7 +12,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double halfLifeInDays = 0;
         [KSPField(isPersistant = false)]
-        public double decayConstant = 0;
+        public double decayConstant;
         [KSPField(isPersistant = false)]
         public string resourceName = "";
         [KSPField(isPersistant = false)]
