@@ -388,10 +388,10 @@ namespace InterstellarFuelSwitch
 
         private void UpdateFromGui(BaseField field, object oldFieldValueObj)
         {
-            SwitchOrAssign((int)oldFieldValueObj);
+            SwitchOrAssign((int)oldFieldValueObj, true);
         }
 
-        private void SwitchOrAssign(int oldFieldValueObj)
+        private void SwitchOrAssign(int oldFieldValueObj, bool calledByPlayer)
         {
             try
             {
@@ -405,7 +405,7 @@ namespace InterstellarFuelSwitch
                         PreviousTankSetupEvent();
                 }
                 else
-                    AssignResourcesToPart(true, true);
+                    AssignResourcesToPart(calledByPlayer, true);
             }
             catch (Exception e)
             {
@@ -445,7 +445,7 @@ namespace InterstellarFuelSwitch
                 selectedTankSetupTxt = desiredTank.GuiName;
 
                 // check if we are allowed to select this tank
-                SwitchOrAssign(oldSelectedTankSetup);
+                SwitchOrAssign(oldSelectedTankSetup, calledByPlayer);
 
                 return selectedTankSetup;
             }
@@ -716,9 +716,9 @@ namespace InterstellarFuelSwitch
                 var existingResource = currentPart.Resources[selectedTankResource.name];
 
                 double resourceNodeAmount;
-
-                if (existingResource != null)
-                    resourceNodeAmount = Math.Min(existingResource.amount * maxAmount / existingResource.maxAmount, maxAmount);
+                if (HighLogic.LoadedSceneIsFlight && existingResource != null)
+                    resourceNodeAmount = Math.Min(existingResource.amount * maxAmount / existingResource.maxAmount,
+                        maxAmount);
                 else if (HighLogic.LoadedSceneIsFlight && resourceId < parsedConfigAmount.Count)
                     resourceNodeAmount = parsedConfigAmount[resourceId];
                 else if (HighLogic.LoadedSceneIsFlight && calledByPlayer && !CheatOptions.InfinitePropellant)
@@ -750,14 +750,18 @@ namespace InterstellarFuelSwitch
                 newResourceNodes.Add(newResourceNode);
             }
 
-            currentPart.Resources.Clear();
-            currentPart.SetupSimulationResources();
-            GameEvents.onPartResourceListChange.Fire(currentPart);
-
-            // add new or existing resources
-            foreach (var resourceNode in newResourceNodes)
+            if (HighLogic.LoadedSceneIsEditor || calledByPlayer)
             {
-                currentPart.AddResource(resourceNode);
+                currentPart.Resources.Clear();
+
+                currentPart.SetupSimulationResources();
+                GameEvents.onPartResourceListChange.Fire(currentPart);
+
+                // add new or existing resources
+                foreach (var resourceNode in newResourceNodes)
+                {
+                    currentPart.AddResource(resourceNode);
+                }
             }
 
             UpdateCost();
