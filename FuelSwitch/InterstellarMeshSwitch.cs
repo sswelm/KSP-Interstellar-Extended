@@ -330,11 +330,25 @@ namespace InterstellarFuelSwitch
                 {
                     var matchingObject = fuelSwitch.FindMatchingConfig(this);
 
-                    if (HighLogic.LoadedSceneIsFlight || matchingObject >= 0)
+                    var matchingArray = matchingObject.Split(',');
+
+                    var matchingIndexName = matchingArray[0];
+
+                    var matchingMesh =  meshConfigurationList.FirstOrDefault(m => m.indexName == matchingIndexName);
+
+                    if (matchingMesh != null)
+                        selectedObject = meshConfigurationList.IndexOf(matchingMesh);
+                    else
                     {
-                        if (debugMode)
-                            Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " sets selectedObject to matching object " + matchingObject);
-                        selectedObject = matchingObject;
+                        var matchingIndex = int.Parse(matchingObject.Split(',')[1]);
+
+                        if (HighLogic.LoadedSceneIsFlight || matchingIndex >= 0)
+                        {
+                            if (debugMode)
+                                Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() +
+                                          " sets selectedObject to matching object " + matchingObject);
+                            selectedObject = matchingIndex;
+                        }
                     }
                 }
             }

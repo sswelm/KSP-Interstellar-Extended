@@ -252,7 +252,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        public int FindMatchingConfig(IHaveFuelTankSetup control = null)
+        public string FindMatchingConfig(IHaveFuelTankSetup control = null)
         {
             if (control != null)
                 _fuelTankSetupControl = control;
@@ -268,12 +268,12 @@ namespace InterstellarFuelSwitch
                 _modularTankList.FirstOrDefault(t => t.Composition == selectedTankSetupTxt);
 
             if (matchingGuiTank != null)
-                return _modularTankList.IndexOf(matchingGuiTank);
+                return matchingGuiTank.SwitchName + "," +  _modularTankList.IndexOf(matchingGuiTank);
 
             var numberOfResources = part.Resources.Count(r => _activeResourceList.Contains(r.resourceName));
 
             if (numberOfResources == 0)
-                return -1;
+                return ",-1";
 
             for (var i = 0; i < _modularTankList.Count; i++)
             {
@@ -294,10 +294,10 @@ namespace InterstellarFuelSwitch
                 }
 
                 if (isSimilar)
-                    return i;
+                    return modularTank.SwitchName + "," + i;
             }
 
-            return -1;
+            return ",-1";
         }
 
         public override void OnStart(StartState state)
@@ -336,7 +336,9 @@ namespace InterstellarFuelSwitch
                     if (selectedTankSetup == -1)
                         initialTankSetup = string.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
 
-                    var matchingIndex = FindMatchingConfig();
+                    var matchingObject = FindMatchingConfig();
+                    var matchingIndex = int.Parse(matchingObject.Split(',')[1]);
+
                     if (matchingIndex != -1)
                     {
                         _selectedTank = _modularTankList[matchingIndex];
@@ -786,7 +788,8 @@ namespace InterstellarFuelSwitch
             // find based on GuiName, SwitchName or contents
             if (_selectedTank == null)
             {
-                var matchingIndex = FindMatchingConfig();
+                var matchingObject = FindMatchingConfig();
+                var matchingIndex = int.Parse(matchingObject.Split(',')[1]);
                 if (matchingIndex >= 0)
                     _selectedTank = _modularTankList[matchingIndex];
             }

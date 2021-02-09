@@ -441,8 +441,10 @@ namespace InterstellarFuelSwitch
                 else
                 {
                     var matchingObject = fuelSwitch.FindMatchingConfig(this);
-                    if (matchingObject >= 0)
-                        selectedTexture = matchingObject;
+                    var matchingIndex = int.Parse( matchingObject.Split(',')[1]);
+
+                    if (matchingIndex >= 0)
+                        selectedTexture = matchingIndex;
                 }
             }
             initialized = true;
