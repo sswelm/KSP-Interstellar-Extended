@@ -1,12 +1,16 @@
-﻿using System;
-using KSP.Localization;
+﻿using KSP.Localization;
+using System;
 
-namespace FNPlugin
+namespace FNPlugin.Storage
 {
     [KSPModule("Radioactive Decay")]
     class ModuleElementRadioactiveDecay : PartModule
     {
-        // Persistent False
+        // isPersistent
+        [KSPField(isPersistant = true)]
+        public double lastActiveTime = 1;
+
+        // Settings
         [KSPField(isPersistant = false)]
         public double halfLifeInYears = 0;
         [KSPField(isPersistant = false)]
@@ -17,8 +21,8 @@ namespace FNPlugin
         public string resourceName = "";
         [KSPField(isPersistant = false)]
         public string decayProduct = "";
-        [KSPField(isPersistant = true)]
-        public double lastActiveTime = 1;
+        [KSPField(isPersistant = false)]
+        public bool convertVolume = true;
 
 
         private double _densityRat = 1;
@@ -82,7 +86,7 @@ namespace FNPlugin
 
             var decayProductResource = part.Resources[decayProduct];
 
-            if (decayProductResource != null)
+            if (convertVolume && decayProductResource != null)
             {
                 decayProductResource.amount += decayProductAmount;
 

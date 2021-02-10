@@ -1,12 +1,16 @@
-﻿using System;
-using KSP.Localization;
+﻿using KSP.Localization;
+using System;
 
 namespace InterstellarFuelSwitch
 {
     [KSPModule("Radioactive Decay")]
     class IFSRadioactiveDecay : PartModule
     {
-        // Persistent False
+        // isPersistent
+        [KSPField(isPersistant = true)]
+        public double lastActiveTime = 1;
+
+        // Settings
         [KSPField(isPersistant = false)]
         public double halfLifeInYears = 0;
         [KSPField(isPersistant = false)]
@@ -17,8 +21,8 @@ namespace InterstellarFuelSwitch
         public string resourceName = "";
         [KSPField(isPersistant = false)]
         public string decayProduct = "";
-        [KSPField(isPersistant = true)]
-        public double lastActiveTime = 1;
+        [KSPField(isPersistant = false)]
+        public bool convertVolume = true;
 
 
         private double _densityRat = 1;
@@ -78,8 +82,25 @@ namespace InterstellarFuelSwitch
 
             if (_decayDefinition == null || !(decayAmount > 0)) return;
 
-            var requestAmount = decayAmount * _densityRat;
-            part.RequestResource(decayProduct, -requestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+            var decayProductAmount = decayAmount * _densityRat;
+
+            var decayProductResource = part.Resources[decayProduct];
+
+            if (convertVolume && decayProductResource != null)
+            {
+                decayProductResource.amount += decayProductAmount;
+
+                var productOverflow = Math.Max(0, decayProductResource.amount - decayProductResource.maxAmount);
+                if (productOverflow > 0)
+                    decayProductResource.maxAmount = decayProductResource.amount;
+
+                decayResource.maxAmount -= productOverflow / _densityRat;
+                decayResource.amount = Math.Min(decayResource.amount, decayResource.maxAmount);
+
+                return;
+            }
+
+            part.RequestResource(decayProduct, -decayProductAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
         }
 
         public override string GetInfo()
