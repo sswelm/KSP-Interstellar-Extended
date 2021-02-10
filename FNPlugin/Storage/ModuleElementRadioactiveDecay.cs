@@ -22,7 +22,7 @@ namespace FNPlugin.Storage
         [KSPField(isPersistant = false)]
         public string decayProduct = "";
         [KSPField(isPersistant = false)]
-        public bool convertVolume = true;
+        public bool canConvertVolume = true;
 
 
         private double _densityRat = 1;
@@ -86,7 +86,7 @@ namespace FNPlugin.Storage
 
             var decayProductResource = part.Resources[decayProduct];
 
-            if (convertVolume && decayProductResource != null)
+            if (canConvertVolume && decayProductResource != null)
             {
                 decayProductResource.amount += decayProductAmount;
 
