@@ -106,13 +106,53 @@ namespace FNPlugin
             part.skinTemperature = storedTemp;
 
             // if electricCharge buffer is missing, add it.
-            if (part.Resources.Contains(StockResourceElectricCharge)) return;
+            if (!part.Resources.Contains(StockResourceElectricCharge))
+            {
+                ConfigNode node = new ConfigNode("RESOURCE");
+                node.AddValue("name", StockResourceElectricCharge);
+                node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
+                node.AddValue("amount", powerReqKW > 0 ? powerReqKW / 50 : 1);
+                part.AddResource(node);
+            }
 
-            ConfigNode node = new ConfigNode("RESOURCE");
-            node.AddValue("name", StockResourceElectricCharge);
-            node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
-            node.AddValue("amount", powerReqKW > 0 ? powerReqKW / 50 : 1);
-            part.AddResource(node);
+            var cryostatResource = part.Resources[resourceName];
+            if (cryostatResource != null && Kerbalism.IsLoaded)
+            {
+                AddKerbalismVariables();
+            }
+        }
+
+        private void AddKerbalismVariables()
+        {
+            if (!part.Resources.Contains(boiloffResourceName))
+            {
+                var newResourceNode = new ConfigNode("RESOURCE");
+                newResourceNode.AddValue("name", boiloffResourceName);
+                newResourceNode.AddValue("maxAmount", 1);
+                newResourceNode.AddValue("amount", 0);
+
+                part.AddResource(newResourceNode);
+            }
+
+            if (!part.Resources.Contains(coolingResourceName))
+            {
+                var newResourceNode = new ConfigNode("RESOURCE");
+                newResourceNode.AddValue("name", coolingResourceName);
+                newResourceNode.AddValue("maxAmount", 1);
+                newResourceNode.AddValue("amount", 0);
+
+                part.AddResource(newResourceNode);
+            }
+
+            if (!part.Resources.Contains(heatingResourceName))
+            {
+                var newResourceNode = new ConfigNode("RESOURCE");
+                newResourceNode.AddValue("name", heatingResourceName);
+                newResourceNode.AddValue("maxAmount", 1);
+                newResourceNode.AddValue("amount", 0);
+
+                part.AddResource(newResourceNode);
+            }
         }
 
         private void UpdateElectricChargeBuffer(double currentPowerUsage)
