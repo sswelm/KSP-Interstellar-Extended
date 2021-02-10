@@ -24,9 +24,8 @@ namespace FNPlugin.Storage
         [KSPField(isPersistant = false)]
         public bool canConvertVolume = true;
 
-
         private double _densityRat = 1;
-        private PartResourceDefinition _decayDefinition;
+        private PartResourceDefinition _decayProductDefinition;
 
         public override void OnStart(StartState state)
         {
@@ -40,12 +39,12 @@ namespace FNPlugin.Storage
             if (halfLifeInDays > 0)
                 decayConstant = Math.Log(2) / (halfLifeInDays * 24 * 60 * 60);
 
-            _decayDefinition = PartResourceLibrary.Instance.GetDefinition(decayProduct);
-            if (_decayDefinition != null)
+            _decayProductDefinition = PartResourceLibrary.Instance.GetDefinition(decayProduct);
+            if (_decayProductDefinition != null)
             {
-                var decayDensity = _decayDefinition.density;
+                var decayDensity = _decayProductDefinition.density;
                 if (decayDensity > 0 && decayResource.info.density > 0)
-                    _densityRat = (double)(decimal)decayResource.info.density / (double)(decimal)_decayDefinition.density;
+                    _densityRat = (double)(decimal)decayResource.info.density / (double)(decimal)_decayProductDefinition.density;
             }
 
             if (state == StartState.Editor || CheatOptions.UnbreakableJoints)
@@ -57,10 +56,34 @@ namespace FNPlugin.Storage
 
             double resourceAmount = decayResource.amount;
             decayResource.amount = resourceAmount * Math.Exp(-decayConstant * timeDiffInSeconds);
+
+            if (_decayProductDefinition == null)
+                return;
+
             double nChange = resourceAmount - decayResource.amount;
 
-            if (_decayDefinition != null && nChange > 0)
-                part.RequestResource(decayProduct, -nChange * _densityRat);
+            if (nChange <= 0)
+                return;
+
+            var decayProductAmount = nChange * _densityRat;
+
+            var decayProductResource = part.Resources[decayProduct];
+
+            if (canConvertVolume && decayProductResource != null)
+            {
+                decayProductResource.amount += decayProductAmount;
+
+                var productOverflow = Math.Max(0, decayProductResource.amount - decayProductResource.maxAmount);
+                if (productOverflow > 0)
+                    decayProductResource.maxAmount = decayProductResource.amount;
+
+                decayResource.maxAmount -= productOverflow / _densityRat;
+                decayResource.amount = Math.Min(decayResource.amount, decayResource.maxAmount);
+
+                return;
+            }
+
+            part.RequestResource(decayProduct, -decayProductAmount);
         }
 
         public void FixedUpdate()
@@ -80,7 +103,7 @@ namespace FNPlugin.Storage
             double decayAmount = decayConstant * decayResource.amount * TimeWarp.fixedDeltaTime;
             decayResource.amount -= decayAmount;
 
-            if (_decayDefinition == null || !(decayAmount > 0)) return;
+            if (_decayProductDefinition == null || !(decayAmount > 0)) return;
 
             var decayProductAmount = decayAmount * _densityRat;
 
