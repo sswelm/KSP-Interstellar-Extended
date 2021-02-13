@@ -141,6 +141,9 @@ namespace FNPlugin.Storage
 
         private double GetPowerRatio(double fixedPowerRequest)
         {
+            if (CheatOptions.InfiniteElectricity)
+                return 1;
+
             var availablePower = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
 
             double powerRatio;

@@ -134,6 +134,9 @@ namespace InterstellarFuelSwitch
 
         private double GetPowerRatio(double fixedPowerRequest)
         {
+            if (CheatOptions.InfiniteElectricity)
+                return 1;
+
             var receivedPower = part.RequestResource(_powerDefinition.id, fixedPowerRequest, true);
             var powerRatio = fixedPowerRequest > 0 ? receivedPower / fixedPowerRequest : 0;
             return powerRatio;
