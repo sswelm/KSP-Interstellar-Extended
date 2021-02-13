@@ -315,18 +315,18 @@ namespace FNPlugin.Reactors
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public float massDifference;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_CalibratedMass", guiUnits = " t")]//calibrated mass
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_CalibratedMass", guiUnits = " t")]//calibrated mass
         public float partMass = 0;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiFormat = "F3", guiUnits = " t")]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiFormat = "F3", guiUnits = " t")]
         public float currentMass;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_EmbrittlementFraction", guiFormat = "F4")]//Embrittlement Fraction
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_EmbrittlementFraction", guiFormat = "F4")]//Embrittlement Fraction
         public double embrittlementModifier;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_BuoyancyFraction", guiFormat = "F4")]//Buoyancy Fraction
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_BuoyancyFraction", guiFormat = "F4")]//Buoyancy Fraction
         public double geeForceModifier = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_OverheatFraction", guiFormat = "F4")]//Overheat Fraction
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_OverheatFraction", guiFormat = "F4")]//Overheat Fraction
         public double overheatModifier = 1;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorControlWindow", guiActiveUnfocused = true), UI_Toggle(disabledText = "#LOC_KSPIE_Reactor_reactorControlWindow_Hidden", enabledText = "#LOC_KSPIE_Reactor_reactorControlWindow_Shown", affectSymCounterparts = UI_Scene.None)]//Hidden-Shown
-        public bool render_window;
+        public bool renderWindow;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_startEnabled", guiActiveUnfocused = true), UI_Toggle(disabledText = "#LOC_KSPIE_Reactor_startEnabled_True", enabledText = "#LOC_KSPIE_Reactor_startEnabled_False")]//True-False
         public bool startDisabled;
 
@@ -345,7 +345,7 @@ namespace FNPlugin.Reactors
         protected double totalAmountLithium;
         protected double totalMaxAmountLithium;
         protected double maximumThermalPowerEffective;
-        protected double lithiumNeutronAbsorbtion = 1;
+        protected double lithiumNeutronAbsorption = 1;
 
         protected Rect windowPosition;
         protected GUIStyle boldStyle;
@@ -1891,10 +1891,10 @@ namespace FNPlugin.Reactors
             if (breedtritium == false || fixedDeltaTime <= 0 || totalAmountLithium.IsInfinityOrNaNorZero() || totalMaxAmountLithium.IsInfinityOrNaNorZero())
                 return;
 
-            lithiumNeutronAbsorbtion = CheatOptions.UnbreakableJoints ? 1 : Math.Max(0.01, Math.Sqrt(totalAmountLithium / totalMaxAmountLithium) - 0.0001);
+            lithiumNeutronAbsorption = CheatOptions.UnbreakableJoints ? 1 : Math.Max(0.01, Math.Sqrt(totalAmountLithium / totalMaxAmountLithium) - 0.0001);
 
             // calculate current maximum lithium consumption
-            var breedRate = CurrentFuelMode.TritiumBreedModifier * CurrentFuelMode.NeutronsRatio * _staticBreedRate * neutronPowerReceivedEachSecond * lithiumNeutronAbsorbtion;
+            var breedRate = CurrentFuelMode.TritiumBreedModifier * CurrentFuelMode.NeutronsRatio * _staticBreedRate * neutronPowerReceivedEachSecond * lithiumNeutronAbsorption;
             var lithiumRate = breedRate / _lithium6Density;
 
             // get spare room tritium
@@ -2435,7 +2435,7 @@ namespace FNPlugin.Reactors
 
             _emitterController.reactorActivityFraction = ongoing_consumption_rate;
             _emitterController.fuelNeutronsFraction = CurrentFuelMode.NeutronsRatio;
-            _emitterController.lithiumNeutronAbsorbtionFraction = lithiumNeutronAbsorbtion;
+            _emitterController.lithiumNeutronAbsorbtionFraction = lithiumNeutronAbsorption;
             _emitterController.exhaustActivityFraction = _currentPropulsionRequestRatioSum;
             _emitterController.radioactiveFuelLeakFraction = Math.Max(0, 1 - geeForceModifier);
 
@@ -2446,7 +2446,7 @@ namespace FNPlugin.Reactors
 
         public void OnGUI()
         {
-            if (vessel == FlightGlobals.ActiveVessel && render_window)
+            if (vessel == FlightGlobals.ActiveVessel && renderWindow)
                 windowPosition = GUILayout.Window(_windowId, windowPosition, Window, Localizer.Format("#LOC_KSPIE_Reactor_reactorControlWindow"));
         }
 
@@ -2474,7 +2474,7 @@ namespace FNPlugin.Reactors
                 textStyle = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Normal,font = PluginHelper.MainFont};
 
             if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
-                render_window = false;
+                renderWindow = false;
 
             GUILayout.BeginVertical();
 
@@ -2517,7 +2517,11 @@ namespace FNPlugin.Reactors
                     //var tritiumKgDay = _tritiumProducedPerSecond * _tritiumDensity * 1000 * PluginSettings.Config.SecondsInDay;
                     //PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), tritiumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Tritium Breed Rate"kg/day
                     var tritiumTonPerHour = _tritiumProducedPerSecond * _tritiumDensity  * 3600;
-                    PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), PluginHelper.FormatMassStr(tritiumTonPerHour) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_min"), boldStyle, textStyle);//Consumption-min
+
+                    if (tritiumTonPerHour > 120)
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), PluginHelper.FormatMassStr(tritiumTonPerHour / 60) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_min"), boldStyle, textStyle);//Consumption-min
+                    else
+                        PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), PluginHelper.FormatMassStr(tritiumTonPerHour) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_hour"), boldStyle, textStyle);//Consumption-min
 
                     var heliumKgDay = _heliumProducedPerSecond * _helium4Density * 1000 * PluginSettings.Config.SecondsInDay;
                     PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_HeliumBreedRate"), heliumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Helium Breed Rate"kg/day
