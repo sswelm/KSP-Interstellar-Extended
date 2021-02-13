@@ -52,7 +52,7 @@ namespace FNPlugin.Storage
 
             var compatibleTanks =
                 part.vessel.FindPartModulesImplementing<FNResourceTransfer>()
-                    .Where(m => m.resourceName == resourceName);
+                    .Where(m => m.resourceName == _resourceDefinition.displayName);
 
             _managedTransferableResources.AddRange(compatibleTanks);
         }

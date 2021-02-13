@@ -50,7 +50,7 @@ namespace InterstellarFuelSwitch
 
             var compatibleTanks =
                 part.vessel.FindPartModulesImplementing<IFSResourceTransfer>()
-                    .Where(m => m.resourceName == resourceName);
+                    .Where(m => m.resourceName == _resourceDefinition.displayName);
 
             _managedTransferableResources.AddRange(compatibleTanks);
         }
