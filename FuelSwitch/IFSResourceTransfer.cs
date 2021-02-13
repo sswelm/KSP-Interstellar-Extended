@@ -7,7 +7,7 @@ namespace InterstellarFuelSwitch
     public class IFSResourceTransfer : PartModule
     {
         public const string Group = "Transfer";
-        public const string GroupTitle = "Transfer Priority";
+        public const string GroupTitle = "#LOC_IFS_ResourceTransfer_GroupTitle";
 
         [KSPField] public string resourceName = "";
         [KSPField] public double maxAmount = 1;

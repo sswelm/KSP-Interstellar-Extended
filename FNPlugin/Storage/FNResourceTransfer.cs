@@ -9,7 +9,7 @@ namespace FNPlugin.Storage
     class FNResourceTransfer : ResourceSuppliableModule
     {
         public const string Group = "Transfer";
-        public const string GroupTitle = "Transfer Priority";
+        public const string GroupTitle = "#LOC_KSPIE_ResourceTransfer_GroupTitle";
 
         [KSPField] public string resourceName = "";
         [KSPField] public double maxAmount = 1;
