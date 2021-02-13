@@ -14,12 +14,10 @@ namespace InterstellarFuelSwitch
         public const string FnResourceMegajoules = "Megajoules";
 
         // Persistent
-        [KSPField(isPersistant = true)]
-        public double storedTemp = 0;
+        [KSPField(isPersistant = true)] public double storedTemp;
 
         // Configuration
         [KSPField] public string resourceName = "";
-        [KSPField] public string resourceGUIName = "";
         [KSPField] public double boilOffRate = 0;
         [KSPField] public double powerReqKW = 0;
         [KSPField] public double powerReqMult = 1;

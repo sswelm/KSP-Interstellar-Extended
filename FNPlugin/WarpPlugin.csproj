@@ -191,6 +191,7 @@
     <Compile Include="Storage\FNModuleAnimater.cs" />
     <Compile Include="Storage\FNModuleCryostatOld.cs" />
     <Compile Include="Storage\FNRadioActiveStorage.cs" />
+    <Compile Include="Storage\FNResourceTransfer.cs" />
     <Compile Include="Storage\KerbalismHabitatController.cs" />
     <Compile Include="Powermanagement\FlightUIStarter.cs" />
     <Compile Include="Science\FNImpactorModule.cs" />
@@ -214,7 +215,7 @@
     <Compile Include="Beamedpower\MicrowavePowerTransmitter.cs" />
     <Compile Include="Science\ModableExperimentResultDialogPage.cs" />
     <Compile Include="Science\ModuleModableScienceGenerator.cs" />
-    <Compile Include="Storage\ModuleElementRadioactiveDecay.cs" />
+    <Compile Include="Storage\FNRadioactiveDecay.cs" />
     <Compile Include="Propulsion\ModuleSabreHeating.cs" />
     <Compile Include="PluginHelper.cs" />
     <Compile Include="Reactors\ReactorFuel.cs" />

@@ -3,9 +3,16 @@ using System;
 
 namespace FNPlugin.Storage
 {
+    class ModuleElementRadioactiveDecay : FNRadioactiveDecay {}
+
     [KSPModule("Radioactive Decay")]
-    class ModuleElementRadioactiveDecay : PartModule
+    class FNRadioactiveDecay : PartModule
     {
+        private const double LengthYear = 365.25;
+        private const double HourDay = 24;
+        private const double MinutesInHour = 60;
+        private const double SecondsInMinute = 60;
+
         // isPersistent
         [KSPField(isPersistant = true)]
         public double lastActiveTime = 1;
@@ -25,21 +32,30 @@ namespace FNPlugin.Storage
         public bool canConvertVolume = true;
 
         private double _densityRat = 1;
+        private PartResourceDefinition _decaySourceDefinition;
         private PartResourceDefinition _decayProductDefinition;
 
         public override void OnStart(StartState state)
         {
+            _decaySourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
+            _decayProductDefinition = PartResourceLibrary.Instance.GetDefinition(decayProduct);
+
+            if (_decaySourceDefinition == null)
+                return;
+
+            if (CheatOptions.UnbreakableJoints)
+                return;
+
             var decayResource = part.Resources[resourceName];
             if (decayResource == null)
                 return;
 
             if (halfLifeInYears > 0)
-                decayConstant = Math.Log(2) / (halfLifeInYears * 365.25 * 24 * 60 * 60);
+                decayConstant = Math.Log(2) / (halfLifeInYears * LengthYear * HourDay * MinutesInHour * SecondsInMinute);
 
             if (halfLifeInDays > 0)
-                decayConstant = Math.Log(2) / (halfLifeInDays * 24 * 60 * 60);
+                decayConstant = Math.Log(2) / (halfLifeInDays * HourDay * MinutesInHour * SecondsInMinute);
 
-            _decayProductDefinition = PartResourceLibrary.Instance.GetDefinition(decayProduct);
             if (_decayProductDefinition != null)
             {
                 var decayDensity = _decayProductDefinition.density;
@@ -60,12 +76,11 @@ namespace FNPlugin.Storage
             if (_decayProductDefinition == null)
                 return;
 
-            double nChange = resourceAmount - decayResource.amount;
-
-            if (nChange <= 0)
+            double resourceChange = resourceAmount - decayResource.amount;
+            if (resourceChange <= 0)
                 return;
 
-            var decayProductAmount = nChange * _densityRat;
+            var decayProductAmount = resourceChange * _densityRat;
 
             var decayProductResource = part.Resources[decayProduct];
 
@@ -77,7 +92,9 @@ namespace FNPlugin.Storage
                 if (productOverflow > 0)
                     decayProductResource.maxAmount = decayProductResource.amount;
 
-                decayResource.maxAmount -= productOverflow / _densityRat;
+                var appliedDecayAmount = productOverflow / _densityRat;
+                decayResource.maxAmount -= appliedDecayAmount;
+
                 decayResource.amount = Math.Min(decayResource.amount, decayResource.maxAmount);
 
                 return;
@@ -88,7 +105,11 @@ namespace FNPlugin.Storage
 
         public void FixedUpdate()
         {
+            if (CheatOptions.UnbreakableJoints) return;
+
             if (HighLogic.LoadedSceneIsEditor) return;
+
+            if (_decaySourceDefinition == null) return;
 
             var decayResource = part.Resources[resourceName];
             if (decayResource == null) return;
@@ -96,9 +117,6 @@ namespace FNPlugin.Storage
             var currentActiveTime = Planetarium.GetUniversalTime();
 
             lastActiveTime = currentActiveTime;
-
-            if (CheatOptions.UnbreakableJoints)
-                return;
 
             double decayAmount = decayConstant * decayResource.amount * TimeWarp.fixedDeltaTime;
             decayResource.amount -= decayAmount;
@@ -117,7 +135,12 @@ namespace FNPlugin.Storage
                 if (productOverflow > 0)
                     decayProductResource.maxAmount = decayProductResource.amount;
 
-                decayResource.maxAmount -= productOverflow / _densityRat;
+                var previousAmount = decayResource.maxAmount;
+                var appliedDecayAmount = productOverflow / _densityRat;
+                decayResource.maxAmount -= appliedDecayAmount;
+                var effectiveDecayAmount = previousAmount - decayResource.maxAmount;
+                var decayDifference = appliedDecayAmount - effectiveDecayAmount;
+
                 decayResource.amount = Math.Min(decayResource.amount, decayResource.maxAmount);
 
                 return;
