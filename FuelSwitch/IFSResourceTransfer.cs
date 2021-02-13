@@ -37,6 +37,8 @@ namespace InterstellarFuelSwitch
 
             _transferPriorityField.guiName = resourceName;
 
+            _transferPriorityField.Attribute.groupStartCollapsed = !showPriority;
+
             _powerDefinition = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
             _resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
@@ -66,8 +68,6 @@ namespace InterstellarFuelSwitch
                 _transferPriorityField.guiActive = false;
                 return;
             }
-
-            _transferPriorityField.guiActive = showPriority;
 
             TransferPriority = (int)Math.Round(transferPriority);
 

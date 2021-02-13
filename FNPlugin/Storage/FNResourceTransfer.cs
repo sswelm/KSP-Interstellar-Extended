@@ -38,6 +38,7 @@ namespace FNPlugin.Storage
             if (_transferPriorityField == null) return;
 
             _transferPriorityField.guiName = resourceName;
+            _transferPriorityField.Attribute.groupStartCollapsed = !showPriority;
 
             _powerDefinition = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
@@ -68,8 +69,6 @@ namespace FNPlugin.Storage
                 _transferPriorityField.guiActive = false;
                 return;
             }
-
-            _transferPriorityField.guiActive = showPriority;
 
             TransferPriority = (int)Math.Round(transferPriority);
 

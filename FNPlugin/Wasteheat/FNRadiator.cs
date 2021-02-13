@@ -695,7 +695,7 @@ namespace FNPlugin.Wasteheat
         // persistent
         [KSPField(isPersistant = true)] public bool radiatorInit;
         [KSPField(isPersistant = true)] public bool showRetractButton = false;
-        [KSPField(isPersistant = true)] public bool showControls = false;
+        [KSPField(isPersistant = true)] public bool showControls = true;
         [KSPField(isPersistant = true)] public double currentRadTemp;
         [KSPField(isPersistant = true)] public bool clarifyFunction;
 
@@ -744,7 +744,7 @@ namespace FNPlugin.Wasteheat
         [KSPField] public bool showColorHeat = true;
         [KSPField] public string surfaceAreaUpgradeTechReq = null;
         [KSPField] public double surfaceAreaUpgradeMult = 1.6;
-        [KSPField] public bool isDeployable = false;
+        [KSPField] public bool isDeployable = true;
         [KSPField] public bool isPassive = false;
         [KSPField] public string animName = "";
         [KSPField] public string thermalAnim = "";
@@ -1418,6 +1418,8 @@ namespace FNPlugin.Wasteheat
             if (radiatorArea != 0) return;
 
             colorRatioExponent = 0;
+            showControls = false;
+            isDeployable = false;
             maintainResourceBuffers = false;
             clarifyFunction = true;
             radiatorArea = Math.PI * part.partInfo.partSize;
