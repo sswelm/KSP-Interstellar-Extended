@@ -141,7 +141,7 @@ namespace FNPlugin.Beamedpower
 
         }
 
-        void Update()                  
+        void Update()
         {
             if (HighLogic.LoadedSceneIsFlight)
                 calculateTransmitters();

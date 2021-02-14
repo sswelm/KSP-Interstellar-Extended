@@ -326,8 +326,7 @@ namespace FNPlugin.Powermanagement
         {
             ConnectToModuleGenerator();
 
-            string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt };
-            this.resourcesToSupply = resourcesToSupply;
+            this.resourcesToSupply = new[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt };
 
             // adjust power percentage to for recharging to buffer
             if (!hasAdjustPowerPercentage)
@@ -369,8 +368,7 @@ namespace FNPlugin.Powermanagement
             var powerCapacityField = Fields["powerCapacity"];
             powerCapacityField.guiActiveEditor = !isLimitedByMinThrottle;
 
-            var powerCapacityFloatRange = powerCapacityField.uiControlEditor as UI_FloatRange;
-            if (powerCapacityFloatRange != null)
+            if (powerCapacityField.uiControlEditor is UI_FloatRange powerCapacityFloatRange)
             {
                 powerCapacityFloatRange.maxValue = powerCapacityMaxValue;
                 powerCapacityFloatRange.minValue = powerCapacityMinValue;
