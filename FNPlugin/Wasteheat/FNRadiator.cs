@@ -1668,6 +1668,7 @@ namespace FNPlugin.Wasteheat
                         atmosphericDensity: atmDensity,
                         grapheneRadiatorRatio: IsGraphene ? 1 : 0,
                         submergedPortion: part.submergedPortion,
+                        convectionMultiplier: wasteHeatMultiplier,
                         effectiveVesselSpeed:  vessel.speed.Sqrt(),
                         rotationModifier: PartRotationDistance().Sqrt()
                         );
@@ -1708,9 +1709,10 @@ namespace FNPlugin.Wasteheat
             double atmosphericDensity = 0,
             double grapheneRadiatorRatio = 0,
             double submergedPortion = 0,
+            double convectionMultiplier = 1,
             double effectiveVesselSpeed = 0,
             double rotationModifier = 0
-            )
+         )
          {
              if (radiatorTemperature.IsInfinityOrNaN())
                  return 0;
@@ -1724,7 +1726,7 @@ namespace FNPlugin.Wasteheat
             var temperatureDifference = radiatorTemperature - externalTemperature;
 
             // q = h * A * deltaT
-            return heatTransferModifier * radiatorSurfaceArea *  temperatureDifference * PluginSettings.Config.ConvectionMultiplier * grapheneModifier * totalHeatTransferModifier;
+            return heatTransferModifier * radiatorSurfaceArea *  temperatureDifference * convectionMultiplier * grapheneModifier * totalHeatTransferModifier;
         }
 
         protected virtual bool CanConvect()

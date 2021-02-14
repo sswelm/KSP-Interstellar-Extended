@@ -560,6 +560,9 @@ namespace FNPlugin.Wasteheat
             _totalConvectiveBonusArea = 0;
             _vesselConvectiveRadiatorArea = 0;
 
+            double wasteHeatMultiplierSum = 0;
+            double grapheneAreaSum = 0;
+
             double totalConvectiveTempArea = 0;
             double totalConvectiveBonusArea = 0;
             double submergedRatio = (double)(decimal)_submergedPercentage * 0.01;
@@ -570,6 +573,9 @@ namespace FNPlugin.Wasteheat
                 _vesselBaseRadiatorArea += baseRadiatorArea;
                 _vesselConvectiveRadiatorArea += radiator.radiatorArea;
 
+                wasteHeatMultiplierSum += radiator.wasteHeatMultiplier * radiator.radiatorArea;
+                grapheneAreaSum += (radiator.IsGraphene ? 1 : 0) * radiator.radiatorArea;
+
                 var maxRadTemperature = Math.Min(radiator.MaxRadiatorTemperature, _averageSourceCoreTempAt100Pc);
 
                 var maxRadiatorConvection = FNRadiator.CalculateConvPowerDissipation(
@@ -579,7 +585,11 @@ namespace FNPlugin.Wasteheat
                     externalTemperature: ExternalTemperatureInKelvin,
                     atmosphericDensity: _atmosphereDensity,
                     grapheneRadiatorRatio: radiator.IsGraphene ? 1 : 0,
-                    submergedPortion: submergedRatio);
+                    submergedPortion: submergedRatio,
+                    convectionMultiplier: radiator.wasteHeatMultiplier,
+                    effectiveVesselSpeed: 0,
+                    rotationModifier: 0
+                    );
 
                 _vesselMaxRadConvection += maxRadiatorConvection;
 
@@ -588,6 +598,10 @@ namespace FNPlugin.Wasteheat
                 totalConvectiveTempArea += maxRadTemperature * baseRadiatorArea;
                 _totalConvectiveBonusArea += radiator.radiatorArea * radiator.convectiveBonus;
             }
+
+
+            var grapheneRatio = _vesselConvectiveRadiatorArea > 0 ? grapheneAreaSum / _vesselConvectiveRadiatorArea: 1;
+            var wasteHeatMultiplier = _vesselConvectiveRadiatorArea > 0 ? wasteHeatMultiplierSum / _vesselConvectiveRadiatorArea : 1;
 
             _vesselMaxRadConvectionAndDissipation = _vesselMaxRadConvection + _vesselMaxRadDissipation;
 
@@ -636,25 +650,25 @@ namespace FNPlugin.Wasteheat
             var restingConvectionTempAt4Percent = ExternalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection4Pc;
             var restingConvectionTempAt2Percent = ExternalTemperatureInKelvin + maxRadTempAboveExternalTemp * radRatioConvection2Pc;
 
-            var convectedPowerAtCustomPct = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAtCustomPct, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt100Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt100Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt90Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt90Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt80Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt80Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt70Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt70Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt60Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt60Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt50Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt50Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt45Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt45Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt40Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt40Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt35Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt35Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt30Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt30Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt25Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt25Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt20Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt20Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt15Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt15Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt10Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt10Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt8Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt8Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt6Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt6Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt4Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt4Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
-            var convectedPowerAt2Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt2Percent, ExternalTemperatureInKelvin, _atmosphereDensity, submergedRatio);
+            var convectedPowerAtCustomPct = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAtCustomPct, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio,  submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt100Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt100Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt90Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt90Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt80Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt80Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt70Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt70Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt60Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt60Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt50Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt50Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt45Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt45Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt40Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt40Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt35Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt35Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt30Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt30Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt25Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt25Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt20Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt20Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt15Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt15Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt10Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt10Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt8Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt8Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt6Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt6Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt4Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt4Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
+            var convectedPowerAt2Percent = FNRadiator.CalculateConvPowerDissipation(totalConvectiveBonusArea, _averageConvectiveBonus, restingConvectionTempAt2Percent, ExternalTemperatureInKelvin, _atmosphereDensity, grapheneRatio, submergedRatio, wasteHeatMultiplier);
 
             var convectionRestingTempAboveExternalAtCustomPct = Math.Max(0, restingConvectionTempAtCustomPct - ExternalTemperatureInKelvin);
             var convectionRestingTempAboveExternalAt100Percent = Math.Max(0, restingConvectionTempAt100Percent - ExternalTemperatureInKelvin);

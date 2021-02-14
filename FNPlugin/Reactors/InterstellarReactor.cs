@@ -1486,7 +1486,7 @@ namespace FNPlugin.Reactors
                         _connectedEngines.Any(m => m.RequiresChargedPower) ? 1 : 0),
                    Math.Max(
                         Math.Max(storedIsThermalEnergyGeneratorEfficiency > 0 ? 1 : 0, storedIsPlasmaEnergyGeneratorEfficiency > 0 ? 1 : 0),
-                        storedIsChargedEnergyGeneratorEfficiency > 0 ? 1 : 0
+                        Math.Max(storedIsChargedEnergyGeneratorEfficiency > 0 ? 1 : 0, minimumThrottle)
                    ));
 
                 maximumChargedPower = MaximumChargedPower;
