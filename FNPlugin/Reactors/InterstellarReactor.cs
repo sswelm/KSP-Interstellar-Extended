@@ -1580,11 +1580,36 @@ namespace FNPlugin.Reactors
 
         private void ProcessReactorFuel(double timeWarpFixedDeltaTime)
         {
+            var reactorFuelProcess = Kerbalism.IsLoaded ? part.Resources["_" + currentFuelVariant.Name] : null;
+            var electricPowerGenerator = Kerbalism.IsLoaded ? part.Resources["_" + currentFuelVariant.Name + "_EC"] : null;
+
+            if (Kerbalism.IsLoaded)
+            {
+                // update Kerbalism EC power generator
+                if (electricPowerGenerator != null)
+                {
+                    electricPowerGenerator.maxAmount = _auxiliaryPowerAvailable;
+                    electricPowerGenerator.amount = _auxiliaryPowerAvailable;
+                }
+
+                if (reactorFuelProcess != null)
+                {
+                    // disable fuel consumption when InfinitePropellant active
+                    if (CheatOptions.InfinitePropellant)
+                    {
+                        //reactorFuelProcess.ReliablityEvent(0);
+                        reactorFuelProcess.maxAmount = 0;
+                        reactorFuelProcess.amount = 0;
+                        return;
+                    }
+                }
+            }
+
             // consume fuel
             _consumedFuelTotalFixed = 0;
             foreach (var reactorFuel in currentFuelVariant.ReactorFuels)
             {
-                _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime);
+                _consumedFuelTotalFixed += ConsumeReactorFuel(reactorFuel, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess);
             }
 
             // refresh production list
@@ -1593,7 +1618,7 @@ namespace FNPlugin.Reactors
             // produce reactor products
             foreach (var product in currentFuelVariant.ReactorProducts)
             {
-                var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime);
+                var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess != null);
                 if (product.IsPropellant)
                     _reactorProduction.Add(new ReactorProduction() {fuelMode = product, mass = massProduced});
             }
@@ -1889,7 +1914,15 @@ namespace FNPlugin.Reactors
             _tritiumProducedPerSecond = _lithiumConsumedPerSecond * _tritiumBreedingMassAdjustment;
             _heliumProducedPerSecond = _lithiumConsumedPerSecond * _heliumBreedingMassAdjustment;
 
-            if (!CheatOptions.InfinitePropellant && _lithiumConsumedPerSecond > 0)
+            PartResource lithiumBreedControlResource = Kerbalism.IsLoaded ? part.Resources["_Lithium6Breeder"] : null;
+
+            if (Kerbalism.IsLoaded && lithiumBreedControlResource != null)
+            {
+                // configure Kerbalism to consume lithium and produce helium and tritium gas
+                lithiumBreedControlResource.maxAmount = lithiumRequest;
+                lithiumBreedControlResource.amount = lithiumRequest;
+            }
+            else if (!CheatOptions.InfinitePropellant && _lithiumConsumedPerSecond > 0)
             {
                 // consume the lithium
                 part.RequestResource(_lithium6Def.id, _lithiumConsumedPerSecond * fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH);
@@ -2113,16 +2146,21 @@ namespace FNPlugin.Reactors
             if (currentFuelVariant == null)
                 return;
 
-            // consume fuel
-            foreach (var fuel in persistentFuelVariantsSorted.First().ReactorFuels)
+            // skip consumption when Kerbalism is loaded and process control resource is found
+            var reactorFuelProcess = Kerbalism.IsLoaded ? part.Resources["_" + currentFuelVariant.Name] : null;
+            if (reactorFuelProcess == null)
             {
-                ConsumeReactorFuel(fuel, ongoing_total_power_generated, deltaTimeDiff);
-            }
+                // consume fuel
+                foreach (var fuel in persistentFuelVariantsSorted.First().ReactorFuels)
+                {
+                    ConsumeReactorFuel(fuel, ongoing_total_power_generated, deltaTimeDiff);
+                }
 
-            // produce reactor products
-            foreach (var product in persistentFuelVariantsSorted.First().ReactorProducts)
-            {
-                ProduceReactorProduct(product, ongoing_total_power_generated, deltaTimeDiff);
+                // produce reactor products
+                foreach (var product in persistentFuelVariantsSorted.First().ReactorProducts)
+                {
+                    ProduceReactorProduct(product, ongoing_total_power_generated, deltaTimeDiff);
+                }
             }
 
             // breed tritium
@@ -2200,7 +2238,7 @@ namespace FNPlugin.Reactors
                 print("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
         }
 
-        protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj, double deltaTime)
+        protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj, double deltaTime, PartResource resourceControl = null )
         {
             if (fuel == null)
             {
@@ -2212,17 +2250,23 @@ namespace FNPlugin.Reactors
                 return 0;
 
             var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ? powerInMj * fuel.AmountFuelUsePerMj * fuelUsePerMJMult / FuelEfficiency : 0;
+            if (resourceControl != null)
+            {
+                resourceControl.maxAmount = consumeAmountInUnitOfStorage;
+                resourceControl.amount = consumeAmountInUnitOfStorage;
+            }
 
             if (fuel.ConsumeGlobal)
             {
-                var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage * deltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage * deltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW, resourceControl != null);
                 return (fuel.Simulate || CheatOptions.InfinitePropellant ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
             }
 
             if (part.Resources.Contains(fuel.ResourceName))
             {
                 double reduction = Math.Min(deltaTime * consumeAmountInUnitOfStorage, part.Resources[fuel.ResourceName].amount);
-                part.Resources[fuel.ResourceName].amount -= reduction;
+                if (resourceControl == null)
+                    part.Resources[fuel.ResourceName].amount -= reduction;
                 return reduction * fuel.DensityInTon;
             }
             else

@@ -20,9 +20,17 @@ namespace FNPlugin.Powermanagement
 
         private readonly Queue<double> ecOutput = new Queue<double>();
 
+        private double auxiliaryElectricChargeRate;
+
+        public void AuxiliaryResourceSupplied(double rate)
+        {
+            auxiliaryElectricChargeRate = rate;
+            _mjConverted = 0;
+        }
+
         public double MjConverted => _mjConverted;
 
-        protected override double AuxiliaryResourceDemand => _lastMjConverted;
+        protected override double AuxiliaryResourceDemand => _lastMjConverted + auxiliaryElectricChargeRate;
 
         public override double CurrentSurplus => Math.Max(0.0, base.CurrentSurplus - _lastMjConverted);
 
@@ -37,7 +45,7 @@ namespace FNPlugin.Powermanagement
 
         protected override void DoWindowFinal()
         {
-            var providedAuxiliaryPower = _lastMjConverted;
+            var providedAuxiliaryPower = _lastMjConverted + auxiliaryElectricChargeRate;
 
             ecOutput.Enqueue(providedAuxiliaryPower);
             if (ecOutput.Count > 10)
@@ -81,11 +89,16 @@ namespace FNPlugin.Powermanagement
         {
             part.GetConnectedResourceTotals(electricResourceDefinition.id, out double amount, out double maxAmount);
 
-            double ecNeeded = maxAmount - amount;
+            var minimumEc = Math.Max(0, maxAmount - amount - maxAmount / 2);
+            double ecNeeded = Kerbalism.IsLoaded ? minimumEc : maxAmount - amount;
 
             double neededRatio = maxAmount > 0 ? ecNeeded / maxAmount : 0;
             if (amount.IsInfinityOrNaN() || ecNeeded <= 0.0)
+            {
+                if (priority == 0)
+                    current.Demand += auxiliaryElectricChargeRate;
                 return;
+            }
 
             if (priority == 0)
             {
@@ -111,6 +124,9 @@ namespace FNPlugin.Powermanagement
 
                 SupplyEc(timeWarpDt, ecNeeded);
             }
+
+            if (priority == 0)
+                current.Demand += auxiliaryElectricChargeRate;
         }
     }
 }
