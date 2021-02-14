@@ -1,5 +1,15 @@
 # TweakScale :: Change Log
 
+* 2021-0120: 2.4.4.5 (Lisias) for 1.4.4 <= KSP <= 1.11.1
+	+ Fix some somewhat embarrassing bugs on the default patching.
+		- Thank you very much, [AccidentalDisassembly](https://forum.kerbalspaceprogram.com/index.php?/profile/110936-accidentaldisassembly/)!
+	+ Closes Issues:
+		- [#158](https://github.com/net-lisias-ksp/TweakScale/issues/158) Duplicate TS patches in provided .cfgs
+		- [#157](https://github.com/net-lisias-ksp/TweakScale/issues/157) Missing or extra curly braces
+* 2021-0108: 2.4.4.4 (Lisias) for 1.4.4 <= KSP <= 1.11.1
+	+ Fix a nasty regression on scaling drag cubes. Sorry.
+	+ Closes Issues:
+		- [#155](https://github.com/net-lisias-ksp/TweakScale/issues/155) Drag is being terribly scaled!
 * 2021-0105: 2.4.4.3 R2 (Lisias) for 1.4.4 <= KSP <= 1.11.1
 	+ Same old 2.4.4.3 release, but with some additional dummy patches to prevent FATALities when updating over a dirty TweakScale folder.
 	+ Fix some regressions from 2.4.4.2 that passed through.
