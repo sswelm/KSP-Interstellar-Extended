@@ -117,7 +117,7 @@ namespace FNPlugin
 
                 // transmission of zero data breaks the experiment result dialog box
                 data_size = Math.Max(float.Epsilon, science_awaiting_addition * subject.dataScale);
-                science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Infrared Telescope Data");
+                scienceData = new ScienceData((float)data_size, 1, 0, subject.id, "Infrared Telescope Data");
 
                 result_title = Localizer.Format("#LOC_KSPIE_Telescope_Resulttitle");//"Infrared Telescope Experiment"
                 result_string = Localizer.Format("#LOC_KSPIE_Telescope_Resultmsg", vessel.mainBody.name);//"Infrared telescope observations were recovered from the vicinity of " +  + "."

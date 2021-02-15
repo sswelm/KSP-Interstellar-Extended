@@ -28,10 +28,10 @@ namespace FNPlugin.Powermanagement
 
             if (vessel == null) return;
 
-            var megajoulesOvermanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceSettings.Config.ElectricPowerInMegawatt);
-            if (megajoulesOvermanager.hasManagerForVessel(vessel) && !hideButton)
+            var megajoulesOvermanager = ResourceOvermanager.GetResourceOvermanagerForResource(ResourceSettings.Config.ElectricPowerInMegawatt);
+            if (megajoulesOvermanager.HasManagerForVessel(vessel) && !hideButton)
             {
-                ResourceManager megaManager = megajoulesOvermanager.getManagerForVessel(vessel);
+                ResourceManager megaManager = megajoulesOvermanager.GetManagerForVessel(vessel);
                 if (megaManager != null && megaManager.PartModule != null)
                 {
                     // activate rendering
@@ -43,10 +43,10 @@ namespace FNPlugin.Powermanagement
                 }
             }
 
-            var thermalPowerOvermanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceSettings.Config.ThermalPowerInMegawatt);
-            if (thermalPowerOvermanager.hasManagerForVessel(vessel) && !hideButton)
+            var thermalPowerOvermanager = ResourceOvermanager.GetResourceOvermanagerForResource(ResourceSettings.Config.ThermalPowerInMegawatt);
+            if (thermalPowerOvermanager.HasManagerForVessel(vessel) && !hideButton)
             {
-                ResourceManager thermalManager = thermalPowerOvermanager.getManagerForVessel(vessel);
+                ResourceManager thermalManager = thermalPowerOvermanager.GetManagerForVessel(vessel);
                 if (thermalManager != null && thermalManager.PartModule != null)
                 {
                     // activate rendering
@@ -58,10 +58,10 @@ namespace FNPlugin.Powermanagement
                 }
             }
 
-            var chargedOvermanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceSettings.Config.ChargedParticleInMegawatt);
-            if (chargedOvermanager.hasManagerForVessel(vessel) && !hideButton)
+            var chargedOvermanager = ResourceOvermanager.GetResourceOvermanagerForResource(ResourceSettings.Config.ChargedParticleInMegawatt);
+            if (chargedOvermanager.HasManagerForVessel(vessel) && !hideButton)
             {
-                ResourceManager chargedManager = chargedOvermanager.getManagerForVessel(vessel);
+                ResourceManager chargedManager = chargedOvermanager.GetManagerForVessel(vessel);
                 if (chargedManager != null && chargedManager.PartModule != null)
                 {
                     // activate rendering
@@ -73,10 +73,10 @@ namespace FNPlugin.Powermanagement
                 }
             }
 
-            var wasteheatOvermanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceSettings.Config.WasteHeatInMegawatt);
-            if (wasteheatOvermanager.hasManagerForVessel(vessel) && !hideButton)
+            var wasteheatOvermanager = ResourceOvermanager.GetResourceOvermanagerForResource(ResourceSettings.Config.WasteHeatInMegawatt);
+            if (wasteheatOvermanager.HasManagerForVessel(vessel) && !hideButton)
             {
-                ResourceManager wasteManager = wasteheatOvermanager.getManagerForVessel(vessel);
+                ResourceManager wasteManager = wasteheatOvermanager.GetManagerForVessel(vessel);
                 if (wasteManager != null && wasteManager.PartModule != null)
                 {
                     // activate rendering

@@ -576,7 +576,7 @@ namespace FNPlugin.Powermanagement
             return manager.GetTotalResourceCapacity();
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             Id = Guid.NewGuid();
 
@@ -587,7 +587,7 @@ namespace FNPlugin.Powermanagement
 
             foreach (string resourceName in resourcesToSupply)
             {
-                ResourceManager manager = getOvermanagerForResource(resourceName).getManagerForVessel(vessel);
+                ResourceManager manager = getOvermanagerForResource(resourceName).GetManagerForVessel(vessel);
 
                 if (manager != null) continue;
 
@@ -626,7 +626,7 @@ namespace FNPlugin.Powermanagement
                 ResourceManager resourceManager = null;;
 
                 if (overmanager != null)
-                    resourceManager = overmanager.getManagerForVessel(vessel);
+                    resourceManager = overmanager.GetManagerForVessel(vessel);
 
                 if (resourceManager == null)
                 {
@@ -662,7 +662,7 @@ namespace FNPlugin.Powermanagement
             {
                 var overmanager = getOvermanagerForResource(resourceName);
 
-                ResourceManager resourceManager = overmanager?.getManagerForVessel(vessel);
+                ResourceManager resourceManager = overmanager?.GetManagerForVessel(vessel);
 
                 if (resourceManager != null && resourceManager.PartModule == this)
                     resourceManager.UpdatePartModule(null);
@@ -703,7 +703,7 @@ namespace FNPlugin.Powermanagement
 
         private ResourceOvermanager getOvermanagerForResource(string resourceName)
         {
-            return ResourceOvermanager.getResourceOvermanagerForResource(resourceName);
+            return ResourceOvermanager.GetResourceOvermanagerForResource(resourceName);
         }
 
         protected ResourceManager GetManagerForVessel(string resourceName)
@@ -719,7 +719,7 @@ namespace FNPlugin.Powermanagement
                 Debug.LogError("[KSPI]: ResourceSuppliableModule failed to find " + resourceName + " Overmanager for " + vessel.name);
                 return null;
             }
-            return overmanager.getManagerForVessel(vessel);
+            return overmanager.GetManagerForVessel(vessel);
         }
 
         private SupplyPriorityManager getSupplyPriorityManager(Vessel vessel)

@@ -68,34 +68,23 @@ namespace FNPlugin.Science
         public bool IsEnabled = false;
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_ComputerCore_IsPowered", guiActive = true, guiActiveEditor = false)]//Powered
         public bool IsPowered;
-        [KSPField(isPersistant = true, guiActiveEditor = true)]
-        public bool isupgraded;
-        [KSPField(isPersistant = true)]
-        public double electrical_power_ratio;
-        [KSPField(isPersistant = true)]
-        public double last_active_time;
-        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_ComputerCore_Datastored", guiActive = true, guiActiveEditor = false)]//Data stored
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_ComputerCore_Datastored", guiActive = true)]//Data stored
         public double science_to_add;
-        [KSPField(isPersistant = true)]
-        public bool coreInit = false;
-        [KSPField]
-        public string upgradeTechReq = null;
-        [KSPField]
-        public string upgradedName = "";
-        [KSPField]
-        public string originalName = "";
-        [KSPField]
-        public float upgradeCost = 100;
-        [KSPField]
-        public float megajouleRate = 1;
-        [KSPField]
-        public float upgradedMegajouleRate = 10;
-        [KSPField]
-        public double powerReqMult = 1;
-        [KSPField]
-        public double activeAIControlDistance = 1.0e+13; // Distance from the Large Multi Bandwidth Dish Transciever
-        [KSPField]
-        public double inactiveAIControlDistance = 100000;
+
+        [KSPField(isPersistant = true)] public bool isupgraded;
+        [KSPField(isPersistant = true)] public double electrical_power_ratio;
+        [KSPField(isPersistant = true)] public double last_active_time;
+        [KSPField(isPersistant = true)] public bool coreInit = false;
+
+        [KSPField] public string upgradeTechReq = null;
+        [KSPField] public string upgradedName = "";
+        [KSPField] public string originalName = "";
+        [KSPField] public float upgradeCost = 100;
+        [KSPField] public float megajouleRate = 1;
+        [KSPField] public float upgradedMegajouleRate = 10;
+        [KSPField] public double powerReqMult = 1;
+        [KSPField] public double activeAIControlDistance = 1.0e+13; // Distance from the Large Multi Bandwidth Dish Transciever
+        [KSPField] public double inactiveAIControlDistance = 100000;
 
         //Gui
         [KSPField]
@@ -118,7 +107,6 @@ namespace FNPlugin.Science
         BaseEvent _retrofitCoreEvent;
         ModuleDataTransmitter _moduleDataTransmitter;
         ModuleCommand _moduleCommand;
-        AIHome _moduleAiHome;
 
         //Properties
         public string UpgradeTechnology => upgradeTechReq;
@@ -131,9 +119,6 @@ namespace FNPlugin.Science
             if (ResearchAndDevelopment.Instance == null) return;
             if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
 
-            if (_moduleAiHome != null)
-                _moduleAiHome.NewHome();
-
             upgradePartModule();
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
@@ -141,8 +126,8 @@ namespace FNPlugin.Science
         // Public Overrides
         public override void OnStart(StartState state)
         {
-            string[] resourcesToSupply = { ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt, ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
-            this.resourcesToSupply = resourcesToSupply;
+            if (!Kerbalism.IsLoaded)
+                resourcesToSupply = new[] { ResourceSettings.Config.ElectricPowerInMegawatt };
 
             _isEnabledField = Fields[nameof(IsEnabled)];
             _isPoweredField = Fields[nameof(IsPowered)];
@@ -165,7 +150,6 @@ namespace FNPlugin.Science
 
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
             _moduleCommand = part.FindModuleImplementing<ModuleCommand>();
-            _moduleAiHome = part.FindModuleImplementing<AIHome>();
 
             if (isupgraded || !PluginHelper.TechnologyIsInUse)
                 upgradePartModule();
@@ -296,32 +280,30 @@ namespace FNPlugin.Science
             if (experiment == null)
                 return false;
 
-            if (science_to_add > 0)
-            {
-                ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "", "");
-                if (subject == null)
-                    return false;
-                subject.subjectValue = PluginHelper.GetScienceMultiplier(vessel);
-                subject.scienceCap = 167 * subject.subjectValue;
-                subject.dataScale = 1.25f;
+            if (!(science_to_add > 0)) return false;
 
-                science_to_add = Math.Min(science_to_add, (subject.scienceCap - subject.science) / subject.subjectValue);
+            ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "", "");
+            if (subject == null)
+                return false;
+            subject.subjectValue = PluginHelper.GetScienceMultiplier(vessel);
+            subject.scienceCap = 167 * subject.subjectValue;
+            subject.dataScale = 1.25f;
 
-                // transmission of zero data breaks the experiment result dialog box
-                data_size = Math.Max(float.Epsilon, science_to_add * subject.dataScale);
-                science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Science Lab Data");
+            science_to_add = Math.Min(science_to_add, (subject.scienceCap - subject.science) / subject.subjectValue);
 
-                result_title = experiment.experimentTitle;
-                result_string = nameStr + " " + GetRandomExperimentResult();
+            // transmission of zero data breaks the experiment result dialog box
+            data_size = Math.Max(float.Epsilon, science_to_add * subject.dataScale);
+            scienceData = new ScienceData((float)data_size, 1, 0, subject.id, "Science Lab Data");
 
-                recovery_value = science_to_add;
-                transmit_value = recovery_value;
-                xmit_scalar = 1;
-                ref_value = subject.scienceCap;
+            result_title = experiment.experimentTitle;
+            result_string = nameStr + " " + GetRandomExperimentResult();
 
-                return true;
-            }
-            return false;
+            recovery_value = science_to_add;
+            transmit_value = recovery_value;
+            xmit_scalar = 1;
+            ref_value = subject.scienceCap;
+
+            return true;
         }
 
         protected override void cleanUpScienceData()

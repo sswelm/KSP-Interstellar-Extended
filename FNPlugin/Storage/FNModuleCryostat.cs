@@ -2,7 +2,7 @@
 using FNPlugin.Powermanagement;
 using KSP.Localization;
 using System;
-using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using TweakScale;
 
 namespace FNPlugin
@@ -18,8 +18,7 @@ namespace FNPlugin
         public const string StockResourceElectricCharge = "ElectricCharge";
 
         // Persistent
-        [KSPField(isPersistant = true)]
-        public double storedTemp = 0;
+        [KSPField(isPersistant = true)] public double storedTemp;
 
         // Configuration
         [KSPField] public string resourceName = "";
@@ -82,8 +81,6 @@ namespace FNPlugin
 
         public override void OnStart(StartState state)
         {
-            enabled = true;
-
             boiloffResourceName = boiloffPrefix + resourceName + boiloffPostfix;
             coolingResourceName = "_" + resourceName + coolingPostfix;
             heatingResourceName = "_" + resourceName + heatingPostfix;

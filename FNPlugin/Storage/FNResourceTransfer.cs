@@ -12,8 +12,8 @@ namespace FNPlugin.Storage
         public const string GroupTitle = "#LOC_KSPIE_ResourceTransfer_GroupTitle";
 
         [KSPField] public string resourceName = "";
-        [KSPField] public double maxAmount = 1;
-        [KSPField] public double transferCost = 0.1;
+        [KSPField] public double maxTransferCapacity = 1;
+        [KSPField] public double transferCostPerUnit = 0.1;
         [KSPField] public bool showPriority = true;
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "Transfer Priority"), UI_FloatRange(minValue = -10, maxValue = 10, stepIncrement = 1, affectSymCounterparts = UI_Scene.All)]
@@ -89,9 +89,9 @@ namespace FNPlugin.Storage
                 return;
 
             var fixedDeltaTime = (double)(decimal) Math.Round(TimeWarp.fixedDeltaTime, 7);
-            var fixedPowerRequest = fixedDeltaTime * transferCost;
+            var fixedPowerRequest = fixedDeltaTime * maxTransferCapacity * transferCostPerUnit;
 
-            var fixedMaxAmount = maxAmount * fixedDeltaTime * GetPowerRatio(fixedPowerRequest);
+            var fixedMaxAmount = fixedDeltaTime * maxTransferCapacity * GetPowerRatio(fixedPowerRequest);
             var requestedResource = fixedMaxAmount;
 
             for (var priority = tanksWithAvailableStoredResource.First().TransferPriority; priority < TransferPriority; priority++)

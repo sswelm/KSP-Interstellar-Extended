@@ -8,7 +8,7 @@ namespace FNPlugin.Powermanagement
     {
         private static readonly Dictionary<string, ResourceOvermanager> resourceOverManagers = new Dictionary<string, ResourceOvermanager>();
 
-        public static ResourceOvermanager getResourceOvermanagerForResource(string resource_name)
+        public static ResourceOvermanager GetResourceOvermanagerForResource(string resource_name)
         {
             if (resourceOverManagers.TryGetValue(resource_name, out ResourceOvermanager fnro))
                 return fnro;
@@ -28,7 +28,7 @@ namespace FNPlugin.Powermanagement
         public static void ResetForVessel(Vessel vess)
         {
             foreach (var pair in resourceOverManagers)
-                pair.Value.deleteManagerForVessel(vess);
+                pair.Value.DeleteManagerForVessel(vess);
         }
 
         public Guid Id { get; }
@@ -50,17 +50,17 @@ namespace FNPlugin.Powermanagement
             return resourceManager;
         }
 
-        public void deleteManagerForVessel(Vessel vess)
+        public void DeleteManagerForVessel(Vessel vess)
         {
             managers.Remove(vess);
         }
 
-        public void deleteManager(ResourceManager manager)
+        public void DeleteManager(ResourceManager manager)
         {
             managers.Remove(manager.Vessel);
         }
 
-        public ResourceManager getManagerForVessel(Vessel vess)
+        public ResourceManager GetManagerForVessel(Vessel vess)
         {
             if (vess == null)
                 return null;
@@ -69,7 +69,7 @@ namespace FNPlugin.Powermanagement
             return manager;
         }
 
-        public bool hasManagerForVessel(Vessel vess)
+        public bool HasManagerForVessel(Vessel vess)
         {
             return managers.ContainsKey(vess);
         }

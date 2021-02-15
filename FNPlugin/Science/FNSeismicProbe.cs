@@ -102,7 +102,7 @@ namespace FNPlugin
 
                             float base_science = experiment.baseValue * distribution_factor;
                             data_size = base_science * subject.dataScale;
-                            science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Impactor Data");
+                            scienceData = new ScienceData((float)data_size, 1, 0, subject.id, "Impactor Data");
 
                             result_string = Localizer.Format("#LOC_KSPIE_SeismicProbe_Resultmsg2", vessel_name,vessel.mainBody.name,vessel.mainBody.name);// + " impacted into " +  + " producing seismic activity.  From this data, information on the structure of " +  + "'s crust can be determined."
 
