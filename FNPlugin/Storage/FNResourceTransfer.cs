@@ -13,7 +13,7 @@ namespace FNPlugin.Storage
 
         [KSPField] public string resourceName = "";
         [KSPField] public double maxTransferCapacity = 1;
-        [KSPField] public double transferCostPerUnit = 0.1;
+        [KSPField] public double transferCostPerUnit = 1;
         [KSPField] public bool showPriority = true;
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "Transfer Priority"), UI_FloatRange(minValue = -10, maxValue = 10, stepIncrement = 1, affectSymCounterparts = UI_Scene.All)]
@@ -58,19 +58,34 @@ namespace FNPlugin.Storage
             _managedTransferableResources.AddRange(compatibleTanks);
         }
 
+        public void Update()
+        {
+            PartResource = part.Resources[resourceName];
+            if (PartResource == null || !PartResource.flowState)
+            {
+                if (HighLogic.LoadedSceneIsEditor)
+                    _transferPriorityField.guiActiveEditor = false;
+                else
+                    _transferPriorityField.guiActive = false;
+
+                return;
+            }
+
+            if (HighLogic.LoadedSceneIsEditor)
+                _transferPriorityField.guiActiveEditor = true;
+            else
+                _transferPriorityField.guiActive = true;
+
+            TransferPriority = (int)Math.Round(transferPriority);
+        }
+
         public void FixedUpdate()
         {
             if (_resourceDefinition == null)
                 return;
 
-            PartResource = part.Resources[resourceName];
             if (PartResource == null || !PartResource.flowState)
-            {
-                _transferPriorityField.guiActive = false;
                 return;
-            }
-
-            TransferPriority = (int)Math.Round(transferPriority);
 
             var tanksWithAvailableStorage = _managedTransferableResources
                 .Where(m => m.PartResource != null && m.AvailableStorage > 0)
@@ -88,9 +103,9 @@ namespace FNPlugin.Storage
             if (!tanksWithAvailableStoredResource.Any())
                 return;
 
-            var fixedDeltaTime = (double)(decimal) Math.Round(TimeWarp.fixedDeltaTime, 7);
-            var fixedPowerRequest = fixedDeltaTime * maxTransferCapacity * transferCostPerUnit;
-
+            var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
+            var powerCostPerUnit = _resourceDefinition.resourceTransferMode == ResourceTransferMode.NONE ? transferCostPerUnit : 0;
+            var fixedPowerRequest = fixedDeltaTime * maxTransferCapacity * powerCostPerUnit;
             var fixedMaxAmount = fixedDeltaTime * maxTransferCapacity * GetPowerRatio(fixedPowerRequest);
             var requestedResource = fixedMaxAmount;
 
