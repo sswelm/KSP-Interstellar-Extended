@@ -103,6 +103,7 @@ namespace InterstellarFuelSwitch
         [KSPField] public bool adaptiveTankSelection = false;
         [KSPField] public bool overrideMassWithTankDividers = false;
         [KSPField] public bool orderBySwitchName = false;
+        [KSPField] public bool forceTankSelectionDurringFlight = true;
 
         [KSPField] public float windowWidth = 200;
         [KSPField] public float basePartMass = 0;
@@ -717,8 +718,7 @@ namespace InterstellarFuelSwitch
 
                 double resourceNodeAmount;
                 if (HighLogic.LoadedSceneIsFlight && existingResource != null)
-                    resourceNodeAmount = Math.Min(existingResource.amount * maxAmount / existingResource.maxAmount,
-                        maxAmount);
+                    resourceNodeAmount = Math.Min(existingResource.amount * maxAmount / existingResource.maxAmount, maxAmount);
                 else if (HighLogic.LoadedSceneIsFlight && resourceId < parsedConfigAmount.Count)
                     resourceNodeAmount = parsedConfigAmount[resourceId];
                 else if (HighLogic.LoadedSceneIsFlight && calledByPlayer && !CheatOptions.InfinitePropellant)
@@ -750,7 +750,7 @@ namespace InterstellarFuelSwitch
                 newResourceNodes.Add(newResourceNode);
             }
 
-            if (HighLogic.LoadedSceneIsEditor || calledByPlayer)
+            if (HighLogic.LoadedSceneIsEditor || calledByPlayer || forceTankSelectionDurringFlight)
             {
                 currentPart.Resources.Clear();
 
