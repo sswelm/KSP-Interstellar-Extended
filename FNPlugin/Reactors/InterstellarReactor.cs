@@ -2185,14 +2185,13 @@ namespace FNPlugin.Reactors
         {
             var fuelModeConfigs = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
 
-            var allFuelModes = fuelModeConfigs.Select(node => new ReactorFuelMode(node));
-
-            var fuelModesFilteredByReactorType =
-                allFuelModes.Where(fm => (fm.SupportedReactorTypes & ReactorType) == ReactorType).ToList();
+            var allFuelModes = fuelModeConfigs
+                .Select(node => new ReactorFuelMode(node)).ToList();
 
             var filteredFuelModes =
-                fuelModesFilteredByReactorType.Where(fm =>
-                       fm.AllFuelResourcesDefinitionsAvailable
+                allFuelModes.Where(fm =>
+                    (fm.SupportedReactorTypes & ReactorType) == ReactorType
+                    && fm.AllFuelResourcesDefinitionsAvailable
                     && fm.AllProductResourcesDefinitionsAvailable
                     && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
                     && ReactorFuelModeTechLevel >= fm.TechLevel
@@ -2210,7 +2209,8 @@ namespace FNPlugin.Reactors
 
             Debug.Log("[KSPI]: found " + filteredFuelModes.Count + " valid fuel types");
 
-            var groups = filteredFuelModes.GroupBy(mode => mode.ModeGuiName).Select(group => new ReactorFuelType(group)).ToList();
+            var groups = filteredFuelModes.GroupBy(mode => mode.ModeGuiName)
+                .Select(group => new ReactorFuelType(group)).ToList();
 
             Debug.Log("[KSPI]: grouped them into " + groups.Count + " valid fuel modes");
 
