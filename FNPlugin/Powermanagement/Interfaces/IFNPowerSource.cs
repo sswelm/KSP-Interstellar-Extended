@@ -20,7 +20,9 @@ namespace FNPlugin.Powermanagement
 
         bool CanProducePower { get; }
 
-        double FuelRato { get; }
+        float DefaultPowerGeneratorPercentage { get; }
+
+        double FuelRatio { get; }
 
         double MinThermalNozzleTempRequired { get; }
 

@@ -1,7 +1,6 @@
-﻿using FNPlugin.Powermanagement;
-using KSP.Localization;
-using System;
+﻿using System;
 using System.Linq;
+using KSP.Localization;
 using FNPlugin.Powermanagement.Interfaces;
 using UnityEngine;
 
@@ -9,7 +8,6 @@ namespace FNPlugin.Reactors
 {
     abstract class InterstellarFusionReactor : InterstellarReactor, IFNChargedParticleSource
     {
-        [KSPField(isPersistant = true)] public int fuel_mode;
         [KSPField(isPersistant = true)] public bool allowJumpStart = true;
 
         [KSPField] public double magneticNozzlePowerMult = 1;
@@ -29,8 +27,6 @@ namespace FNPlugin.Reactors
         public double plasma_ratio = 1;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaModifier", guiFormat = "F6")]//Plasma Modifier
         public double plasma_modifier = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_IsSwappingFuelMode")]//Is Swapping Fuel Mode
-        public bool isSwappingFuelMode;
 
         [KSPField] public double reactorRatioThreshold = 0.000005;
         [KSPField] public double minReactorRatio = 0;
@@ -136,68 +132,6 @@ namespace FNPlugin.Reactors
             PreviousFusionModeEvent();
         }
 
-        private void SwitchToNextFuelMode(int initialFuelMode)
-        {
-            if (fuelModes == null || fuelModes.Count == 0)
-                return;
-
-            fuel_mode++;
-            if (fuel_mode >= fuelModes.Count)
-                fuel_mode = 0;
-
-            stored_fuel_ratio = 1;
-            CurrentFuelMode = fuelModes[fuel_mode];
-            fuel_mode_name = CurrentFuelMode.ModeGUIName;
-
-            UpdateFuelMode();
-
-            if (!FullFuelRequirements() && fuel_mode != initialFuelMode)
-                SwitchToNextFuelMode(initialFuelMode);
-
-            isSwappingFuelMode = true;
-        }
-
-        private void SwitchToPreviousFuelMode(int initialFuelMode)
-        {
-            if (fuelModes == null || fuelModes.Count == 0)
-                return;
-
-            fuel_mode--;
-            if (fuel_mode < 0)
-                fuel_mode = fuelModes.Count - 1;
-
-            CurrentFuelMode = fuelModes[fuel_mode];
-            fuel_mode_name = CurrentFuelMode.ModeGUIName;
-
-            UpdateFuelMode();
-
-            if (!FullFuelRequirements() && fuel_mode != initialFuelMode)
-                SwitchToPreviousFuelMode(initialFuelMode);
-
-            isSwappingFuelMode = true;
-        }
-
-        private bool FullFuelRequirements()
-        {
-            return !CurrentFuelMode.Hidden && HasAllFuels() && FuelRequiresLab(CurrentFuelMode.RequiresLab);
-        }
-
-        private bool HasAllFuels()
-        {
-            if (CheatOptions.InfinitePropellant)
-                return true;
-
-            var hasAllFuels = true;
-            foreach (var fuel in currentFuelVariantsSorted.First().ReactorFuels)
-            {
-                if (!(GetFuelRatio(fuel, FuelEfficiency, NormalisedMaximumPower) < 1)) continue;
-
-                hasAllFuels = false;
-                break;
-            }
-            return hasAllFuels;
-        }
-
         protected override void WindowReactorControlSpecificOverride()
         {
             GUILayout.BeginHorizontal();
@@ -259,6 +193,7 @@ namespace FNPlugin.Reactors
             }
 
             fuel_mode = fuelModes.IndexOf(CurrentFuelMode);
+            fuelmode_index = fuel_mode;
         }
 
         public override int getPowerPriority()

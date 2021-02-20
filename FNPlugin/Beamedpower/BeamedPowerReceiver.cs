@@ -209,6 +209,7 @@ namespace FNPlugin.Beamedpower
         [KSPField] public int supportedPropellantAtoms = 511;
         [KSPField] public int supportedPropellantTypes = 127;
 
+        [KSPField] public float defaultPowerGeneratorGeneratorPercentage = 200;
         [KSPField] public double maximumElectricPower = 0;
         [KSPField] public double electricWasteheatExponent = 1;
         [KSPField] public double electricMaxEfficiency = 1;
@@ -329,7 +330,8 @@ namespace FNPlugin.Beamedpower
         private readonly Dictionary<Guid, double> connectedReceiverById = new Dictionary<Guid, double>();
 
         // Properties
-        public double FuelRato => 1;
+        public float DefaultPowerGeneratorPercentage => defaultPowerGeneratorGeneratorPercentage;
+        public double FuelRatio => 1;
         public double MagneticNozzlePowerMult => 1;
         public bool MayExhaustInAtmosphereHomeworld => true;
         public bool MayExhaustInLowSpaceHomeworld => true;

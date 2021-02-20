@@ -1,8 +1,8 @@
-﻿using FNPlugin.Resources;
+﻿using System;
+using System.Linq;
+using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Reactors
@@ -22,12 +22,8 @@ namespace FNPlugin.Reactors
     [KSPModule("Fission Reactor")]
     class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable
     {
-        [KSPField(isPersistant = true)] public int fuel_mode;
-
         [KSPField] public double actinidesModifer = 1;
         [KSPField] public double temperatureThrottleExponent = 0.5;
-        [KSPField] public double temp_scale;
-        [KSPField] public double temp_diff;
         [KSPField] public double minimumTemperature = 0;
         [KSPField] public bool canDumpActinides = false;
 
@@ -206,15 +202,16 @@ namespace FNPlugin.Reactors
 
                 var baseCoreTemperature = base.CoreTemperature;
 
+                double tempScale;
                 if (minimumTemperature > 0)
-                    temp_scale = minimumTemperature;
+                    tempScale = minimumTemperature;
                 else if (vessel != null && FNRadiator.HasRadiatorsForVessel(vessel))
-                    temp_scale = FNRadiator.GetAverageMaximumRadiatorTemperatureForVessel(vessel);
+                    tempScale = FNRadiator.GetAverageMaximumRadiatorTemperatureForVessel(vessel);
                 else
-                    temp_scale = baseCoreTemperature / 2;
+                    tempScale = baseCoreTemperature / 2;
 
-                temp_diff = (baseCoreTemperature - temp_scale) * Math.Pow(powerPercent / 100, temperatureThrottleExponent);
-                return Math.Min(temp_scale + temp_diff, actinidesModifer * baseCoreTemperature);
+                var tempDiff = (baseCoreTemperature - tempScale) * Math.Pow(powerPercent / 100, temperatureThrottleExponent);
+                return Math.Min(tempScale + tempDiff, actinidesModifer * baseCoreTemperature);
             }
         }
 

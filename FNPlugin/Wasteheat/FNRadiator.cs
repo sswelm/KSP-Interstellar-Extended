@@ -757,6 +757,7 @@ namespace FNPlugin.Wasteheat
         [KSPField] public string emissiveTextureLocation = "";
         [KSPField] public string bumpMapTextureLocation = "";
         [KSPField] public double areaMultiplier = 1;
+        [KSPField] public double autoAreaMultiplier = 1;
 
         [KSPField] public string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         [KSPField] public int RADIATOR_DELAY = 20;
@@ -1422,7 +1423,7 @@ namespace FNPlugin.Wasteheat
             isDeployable = false;
             maintainResourceBuffers = false;
             clarifyFunction = true;
-            radiatorArea = Math.PI * part.partInfo.partSize;
+            radiatorArea = Math.PI * part.partInfo.partSize * autoAreaMultiplier;
 
             if (radiatorArea > 0 && MeshRadiatorSize(out var size))
                 convectiveBonus = Math.Max(1, size / radiatorArea);

@@ -1648,8 +1648,8 @@ namespace FNPlugin.Propulsion
                 }
 
                 // set engines maximum fuel flow
-                if (IsPositiveValidNumber(maxFuelFlowRate) && IsPositiveValidNumber(AttachedReactor.FuelRato))
-                    maxFuelFlowOnEngine = (float)Math.Max(maxFuelFlowRate * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
+                if (IsPositiveValidNumber(maxFuelFlowRate) && IsPositiveValidNumber(AttachedReactor.FuelRatio))
+                    maxFuelFlowOnEngine = (float)Math.Max(maxFuelFlowRate * AttachedReactor.FuelRatio * AttachedReactor.FuelRatio, 1e-10);
                 else
                     maxFuelFlowOnEngine = 1e-10f;
 
@@ -1940,8 +1940,8 @@ namespace FNPlugin.Propulsion
             }
 
             // set engines maximum fuel flow
-            if (IsPositiveValidNumber(maxFuelFlowRate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRato))
-                maxFuelFlowOnEngine = (float)Math.Max(maxFuelFlowRate * adjustedFuelFlowMult * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
+            if (IsPositiveValidNumber(maxFuelFlowRate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRatio))
+                maxFuelFlowOnEngine = (float)Math.Max(maxFuelFlowRate * adjustedFuelFlowMult * AttachedReactor.FuelRatio * AttachedReactor.FuelRatio, 1e-10);
             else
                 maxFuelFlowOnEngine = 1e-10f;
             myAttachedEngine.maxFuelFlow = maxFuelFlowOnEngine;
@@ -2110,8 +2110,8 @@ namespace FNPlugin.Propulsion
 
             baseMaxIsp = Math.Sqrt(coreTemperature) * EffectiveCoreTempIspMult;
 
-            if (IsPositiveValidNumber(AttachedReactor.FuelRato))
-                baseMaxIsp *= AttachedReactor.FuelRato;
+            if (IsPositiveValidNumber(AttachedReactor.FuelRatio))
+                baseMaxIsp *= AttachedReactor.FuelRatio;
 
             if (baseMaxIsp > maxJetModeBaseIsp && _currentPropellantIsJet)
                 baseMaxIsp = maxJetModeBaseIsp;

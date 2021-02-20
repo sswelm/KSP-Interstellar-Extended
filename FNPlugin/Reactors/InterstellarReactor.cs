@@ -1,4 +1,9 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.External;
 using FNPlugin.Power;
@@ -8,11 +13,6 @@ using FNPlugin.Redist;
 using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using TweakScale;
 using UnityEngine;
 
@@ -48,6 +48,7 @@ namespace FNPlugin.Reactors
         public float forcedMinimumThrottle = 0;
 
         // Persistent True
+        [KSPField(isPersistant = true)] public int fuel_mode;
         [KSPField(isPersistant = true)] public int fuelmode_index = -1;
         [KSPField(isPersistant = true)] public string fuel_mode_name = string.Empty;
         [KSPField(isPersistant = true)] public string fuel_mode_variant = string.Empty;
@@ -94,9 +95,12 @@ namespace FNPlugin.Reactors
         public double lithium_modifier = 1;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiFormat = "F2", guiName = "#LOC_KSPIE_Reactor_connectionRadius")]
         public double radius = 2.5;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_IsSwappingFuelMode")]//Is Swapping Fuel Mode
+        public bool isSwappingFuelMode;
 
         [KSPField] public double maximumPower;
         [KSPField] public float minimumPowerPercentage = 10;
+        [KSPField] public float defaultPowerGeneratorPercentage = 101;
 
         [KSPField] public string upgradeTechReqMk2;
         [KSPField] public string upgradeTechReqMk3;
@@ -417,10 +421,11 @@ namespace FNPlugin.Reactors
         private bool _isFixedUpdatedCalled;
 
         // properties
-        public double ForcedMinimumThrottleRatio => ((double)(decimal)forcedMinimumThrottle) / 100;
+        public double ForcedMinimumThrottleRatio => (double)(decimal)forcedMinimumThrottle / 100;
         public double EfficencyConnectedThermalEnergyGenerator => storedIsThermalEnergyGeneratorEfficiency;
         public double EfficencyConnectedChargedEnergyGenerator => storedIsChargedEnergyGeneratorEfficiency;
-        public double FuelRato => fuel_ratio;
+        public float DefaultPowerGeneratorPercentage => defaultPowerGeneratorPercentage;
+        public double FuelRatio => fuel_ratio;
         public double MinThermalNozzleTempRequired => minThermalNozzleTempRequired;
         public double MinCoolingFactor => minCoolingFactor;
         public double EngineHeatProductionMult => engineHeatProductionMult;
@@ -673,6 +678,27 @@ namespace FNPlugin.Reactors
                 embrittlementModifier = CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlementConditionRatio * Math.PI * 0.5);
                 return embrittlementModifier;
             }
+        }
+
+        protected bool FullFuelRequirements()
+        {
+            return !CurrentFuelMode.Hidden && HasAllFuels() && FuelRequiresLab(CurrentFuelMode.RequiresLab);
+        }
+
+        protected bool HasAllFuels()
+        {
+            if (CheatOptions.InfinitePropellant)
+                return true;
+
+            var hasAllFuels = true;
+            foreach (var fuel in currentFuelVariantsSorted.First().ReactorFuels)
+            {
+                if (!(GetFuelRatio(fuel, FuelEfficiency, NormalisedMaximumPower) < 1)) continue;
+
+                hasAllFuels = false;
+                break;
+            }
+            return hasAllFuels;
         }
 
         private void DetermineChargedParticleUtilizationRatio()
@@ -1327,6 +1353,49 @@ namespace FNPlugin.Reactors
 
             UpdateConnectedReceiversStr();
             reactorSurface = radius * radius;
+        }
+
+        protected void SwitchToNextFuelMode(int initialFuelMode)
+        {
+            if (fuelModes == null || fuelModes.Count == 0)
+                return;
+
+            fuel_mode++;
+            if (fuel_mode >= fuelModes.Count)
+                fuel_mode = 0;
+            fuelmode_index = fuel_mode;
+
+            stored_fuel_ratio = 1;
+            CurrentFuelMode = fuelModes[fuel_mode];
+            fuel_mode_name = CurrentFuelMode.ModeGUIName;
+
+            UpdateFuelMode();
+
+            if (!FullFuelRequirements() && fuel_mode != initialFuelMode)
+                SwitchToNextFuelMode(initialFuelMode);
+
+            isSwappingFuelMode = true;
+        }
+
+        protected void SwitchToPreviousFuelMode(int initialFuelMode)
+        {
+            if (fuelModes == null || fuelModes.Count == 0)
+                return;
+
+            fuel_mode--;
+            if (fuel_mode < 0)
+                fuel_mode = fuelModes.Count - 1;
+            fuelmode_index = fuel_mode;
+
+            CurrentFuelMode = fuelModes[fuel_mode];
+            fuel_mode_name = CurrentFuelMode.ModeGUIName;
+
+            UpdateFuelMode();
+
+            if (!FullFuelRequirements() && fuel_mode != initialFuelMode)
+                SwitchToPreviousFuelMode(initialFuelMode);
+
+            isSwappingFuelMode = true;
         }
 
         protected void UpdateFuelMode()
@@ -2237,16 +2306,16 @@ namespace FNPlugin.Reactors
             maxPowerToSupply = Math.Max(MaximumPower * (double)(decimal)TimeWarp.fixedDeltaTime, 0);
 
             if (CurrentFuelMode == null)
-                print("[KSPI]: Warning : CurrentFuelMode is null");
+                Debug.LogWarning("[KSPI]: Warning : CurrentFuelMode is null");
             else
-                print("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
+                Debug.Log("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
         }
 
         protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj, double deltaTime, PartResource resourceControl = null )
         {
             if (fuel == null)
             {
-                Debug.LogError("[KSPI]: ConsumeReactorFuel fuel null");
+                Debug.LogWarning("[KSPI]: Warning ConsumeReactorFuel fuel null");
                 return 0;
             }
 
@@ -2281,7 +2350,7 @@ namespace FNPlugin.Reactors
         {
             if (product == null)
             {
-                Debug.LogError("[KSPI]: ProduceReactorProduct product null");
+                Debug.LogWarning("[KSPI]: ProduceReactorProduct product null");
                 return 0;
             }
 
