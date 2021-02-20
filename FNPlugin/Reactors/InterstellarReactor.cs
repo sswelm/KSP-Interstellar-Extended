@@ -2185,11 +2185,15 @@ namespace FNPlugin.Reactors
         {
             var fuelModeConfigs = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
 
-            var filteredFuelModes = fuelModeConfigs.Select(node => new ReactorFuelMode(node))
-                .Where(fm =>
+            var allFuelModes = fuelModeConfigs.Select(node => new ReactorFuelMode(node));
+
+            var fuelModesFilteredByReactorType =
+                allFuelModes.Where(fm => (fm.SupportedReactorTypes & ReactorType) == ReactorType).ToList();
+
+            var filteredFuelModes =
+                fuelModesFilteredByReactorType.Where(fm =>
                        fm.AllFuelResourcesDefinitionsAvailable
                     && fm.AllProductResourcesDefinitionsAvailable
-                    && (fm.SupportedReactorTypes & ReactorType) == ReactorType
                     && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
                     && ReactorFuelModeTechLevel >= fm.TechLevel
                     && FusionEnergyGainFactor >= fm.MinimumFusionGainFactor
