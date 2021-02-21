@@ -245,7 +245,7 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_AirCooling", guiFormat = "F5")]//Air Cooling
         protected double airFlowForCooling;
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_CurrentIsp", guiFormat = "F1")]//Current Isp
-        protected double current_isp = 0;
+        protected double current_isp;
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxPressureThresholdAtKerbinSurface", guiFormat = "F1", guiUnits = " kPa")]//Max Pressure Thresshold @ 1 atm
         protected double maxPressureThresholdAtKerbinSurface;
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_ThermalRatio")]//Thermal Ratio
@@ -255,7 +255,7 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_ExpectedMaxThrust")]//Expected Max Thrust
         protected double expectedMaxThrust;
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_IsLFO")]//Is LFO
-        protected bool _propellantIsLFO = false;
+        protected bool _propellantIsLFO;
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_VelocityModifier", guiFormat = "F3")]//Velocity Modifier
         protected float vcurveAtCurrentVelocity;
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_AtmosphereModifier", guiFormat = "F3")]//Atmosphere Modifier
@@ -297,15 +297,14 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_ElectricalyPowered", guiUnits = "%", guiFormat = "F1")]//Electricaly Powered
         public double received_megajoules_percentage;
         [KSPField(groupName = GROUP, isPersistant = true, guiActive = false, guiName = "Jet Spool Ratio", guiFormat = "F2")]
-        public float jetSpoolRatio = 0;
+        public float jetSpoolRatio;
         [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "Spool Effect Ratio", guiFormat = "F2")]
-        public float spoolEffectRatio = 0;
+        public float spoolEffectRatio;
         [KSPField(groupName = GROUP, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_PropelantWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_ThermalNozzleController_WindowHidden", enabledText = "#LOC_KSPIE_ThermalNozzleController_WindowShown", affectSymCounterparts = UI_Scene.None)]//Propelant Window--Hidden--Shown
         public bool render_window;
         [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_ModuleSabreHeating_MissingPrecoolerRatio")]
         public double missingPrecoolerRatio;
 
-        [KSPField] public bool showIspThrottle;
         [KSPField] public bool hasJetUpgradeTech1;
         [KSPField] public bool hasJetUpgradeTech2;
         [KSPField] public bool hasJetUpgradeTech3;
@@ -361,6 +360,7 @@ namespace FNPlugin.Propulsion
         private int _windowId;
         private int _switches;
 
+        private bool _showIspThrottle;
         private bool _fuelRequiresUpgrade;
         private bool _engineWasInactivePreviousFrame;
         private bool _hasRequiredUpgrade;
@@ -416,11 +416,14 @@ namespace FNPlugin.Propulsion
 
         public bool UsePlasmaPower => isPlasmaNozzle || canUsePlasmaPower && (AttachedReactor != null && AttachedReactor.PlasmaPropulsionEfficiency > 0);
 
-        public bool UseThermalPowerOnly => AttachedReactor != null && (!isPlasmaNozzle || AttachedReactor.ChargedParticlePropulsionEfficiency == 0 || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0 || _listOfPropellants.Count > 1 );
+        public bool UseThermalPowerOnly => AttachedReactor != null &&
+                                           (!isPlasmaNozzle || !SourceCanProducePlasmaOrChargedPower || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0 || _listOfPropellants.Count > 1 );
 
         public bool UseThermalAndChargedPower => !UseThermalPowerOnly && ispThrottle == 0;
 
-        public bool UsePlasmaAfterBurner => AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && isPlasmaNozzle && ispThrottle != 0 && (ispThrottle != 1 || !canUsePureChargedPower);
+        public bool SourceCanProducePlasmaOrChargedPower => AttachedReactor.ChargedParticlePropulsionEfficiency > 0 || AttachedReactor.PlasmaPropulsionEfficiency > 0;
+
+        public bool UsePlasmaAfterBurner => SourceCanProducePlasmaOrChargedPower && isPlasmaNozzle && ispThrottle != 0 && (ispThrottle != 1 || !canUsePureChargedPower);
 
         public bool UseChargedPowerOnly => canUsePureChargedPower && ispThrottle == 100 && _listOfPropellants.Count == 1;
 
@@ -664,8 +667,8 @@ namespace FNPlugin.Propulsion
             mhdPowerGenerationPercentageField.guiActiveEditor = requiredMegajouleRatio > 0;
 
             var ispThrottleField = Fields[nameof(ispThrottle)];
-            ispThrottleField.guiActiveEditor = showIspThrottle;
-            ispThrottleField.guiActive = showIspThrottle;
+            ispThrottleField.guiActiveEditor = _showIspThrottle;
+            ispThrottleField.guiActive = _showIspThrottle;
 
             if (state == StartState.Editor)
             {
@@ -817,13 +820,15 @@ namespace FNPlugin.Propulsion
 
             if (AttachedReactor != null)
             {
-                showIspThrottle = isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
+                _showIspThrottle = isPlasmaNozzle
+                    && SourceCanProducePlasmaOrChargedPower
+                    && AttachedReactor.ChargedPowerRatio > 0;
 
                 var ispThrottleField = Fields[nameof(ispThrottle)];
                 if (ispThrottleField != null)
                 {
-                    ispThrottleField.guiActiveEditor = showIspThrottle;
-                    ispThrottleField.guiActive = showIspThrottle;
+                    ispThrottleField.guiActiveEditor = _showIspThrottle;
+                    ispThrottleField.guiActive = _showIspThrottle;
                 }
             }
 
@@ -2131,7 +2136,7 @@ namespace FNPlugin.Propulsion
             if (UseThermalPowerOnly)
             {
                 _maxISP = isPlasmaNozzle
-                    ? (baseMaxIsp + AttachedReactor.ChargedPowerRatio * baseMaxIsp)
+                    ? baseMaxIsp + AttachedReactor.ChargedPowerRatio * baseMaxIsp
                     : baseMaxIsp;
             }
             else if (UseChargedPowerOnly)
@@ -2141,7 +2146,7 @@ namespace FNPlugin.Propulsion
             }
             else
             {
-                var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
+                var scaledChargedRatio =  Math.Min(1, 0.2 + Math.Pow(Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25, 2));
                 _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * maxThermalNozzleIsp;
 
                 if (UsePlasmaAfterBurner)  // when  mixing charged particles from reactor with cold propellant

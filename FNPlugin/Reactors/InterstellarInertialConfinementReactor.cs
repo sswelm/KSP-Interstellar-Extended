@@ -119,7 +119,7 @@ namespace FNPlugin.Reactors
         {
             get
             {
-                var currentMinimumThrottle = (powerPercentage > 0 && base.MinimumThrottle > 0)
+                var currentMinimumThrottle = powerPercentage > 0 && base.MinimumThrottle > 0
                     ? Math.Min(base.MinimumThrottle / PowerRatio, 1)
                     : base.MinimumThrottle;
 
@@ -223,10 +223,24 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdate()
         {
-            double timeWarpFixedDeltaTime = TimeWarp.fixedDeltaTime;
             base.OnFixedUpdate();
 
             UpdateLoopingAnimation(ongoing_consumption_rate * powerPercentage / 100);
+
+            // quit if no fuel available
+            if (stored_fuel_ratio <= 0.01)
+            {
+                plasma_ratio = 0;
+                return;
+            }
+
+            // stop processing if no power needed
+            var laserPowerRequirements = LaserPowerRequirements;
+            if (laserPowerRequirements <= 0)
+            {
+                plasma_ratio = 1;
+                return;
+            }
 
             if (!IsEnabled && !isChargingForJumpstart)
             {
@@ -240,14 +254,9 @@ namespace FNPlugin.Reactors
 
             ProcessCharging();
 
-            // quit if no fuel available
-            if (stored_fuel_ratio <= 0.01)
-            {
-                plasma_ratio = 0;
-                return;
-            }
+            var powerRequested = laserPowerRequirements * required_reactor_ratio;
 
-            var powerRequested = LaserPowerRequirements * required_reactor_ratio;
+            double timeWarpFixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
             double primaryPowerReceived;
             if (!CheatOptions.InfiniteElectricity && powerRequested > 0)
@@ -267,7 +276,7 @@ namespace FNPlugin.Reactors
             var powerRequirementMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1;
 
             // retrieve any shortage from secondary buffer
-            if (secondaryInputMultiplier > 0 && secondaryInputResourceDefinition != null && !CheatOptions.InfiniteElectricity && IsEnabled && powerReceived < powerRequested)
+            if (secondaryInputMultiplier > 0 && secondaryInputResourceDefinition != null && !CheatOptions.InfiniteElectricity && IsEnabled && powerRequirementMetRatio < 1)
             {
                 double currentSecondaryRatio;
                 double currentSecondaryCapacity;
@@ -301,7 +310,7 @@ namespace FNPlugin.Reactors
             }
 
             // adjust power to optimal power
-            _powerConsumed = LaserPowerRequirements * powerRequirementMetRatio;
+            _powerConsumed = laserPowerRequirements * powerRequirementMetRatio;
 
             // verify if we need startup with accumulated power
             if (canJumpstart && timeWarpFixedDeltaTime <= 0.1 && accumulatedElectricChargeInMW > 0 && _powerConsumed < StartupPower && (accumulatedElectricChargeInMW + _powerConsumed) >= StartupPower)
@@ -328,7 +337,7 @@ namespace FNPlugin.Reactors
             }
             else if (_framesPlasmaRatioIsGood > 0) // maintain reactor
             {
-                plasma_ratio = Math.Round(LaserPowerRequirements > 0 ? _powerConsumed / LaserPowerRequirements : 1, 4);
+                plasma_ratio = Math.Round(laserPowerRequirements > 0 ? _powerConsumed / laserPowerRequirements : 1, 4);
                 allowJumpStart = plasma_ratio >= 1;
             }
             else  // starting reactor

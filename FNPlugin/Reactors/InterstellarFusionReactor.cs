@@ -48,7 +48,14 @@ namespace FNPlugin.Reactors
 
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic && CurrentFuelMode.NeutronsRatio > 0;
 
-        public double PowerRequirement => RawPowerOutput / FusionEnergyGainFactor;
+        public double PowerRequirement
+        {
+            get
+            {
+                var gainFactor = FusionEnergyGainFactor;
+                return gainFactor > 0 ? RawPowerOutput / gainFactor : 0;
+            }
+        }
 
         public double NormalizedPowerRequirement => PowerRequirement * CurrentFuelMode.NormalizedPowerRequirements;
 

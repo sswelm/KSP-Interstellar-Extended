@@ -149,7 +149,7 @@ namespace FNPlugin.Reactors
         [KSPField] public double basePowerOutputMk6 = 0;
         [KSPField] public double basePowerOutputMk7 = 0;
 
-        [KSPField] public double fusionEnergyGainFactorMk1 = 10;
+        [KSPField] public double fusionEnergyGainFactorMk1 = 0;
         [KSPField] public double fusionEnergyGainFactorMk2;
         [KSPField] public double fusionEnergyGainFactorMk3;
         [KSPField] public double fusionEnergyGainFactorMk4;

@@ -10,17 +10,13 @@ namespace FNPlugin.Reactors
     [KSPModule("Magnetic Confinement Fusion Reactor")]
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
-        // persistants
-        [KSPField(isPersistant = true)]
-        public double storedPlasmaEnergyRatio;
+        // persistent
+        [KSPField(isPersistant = true)] public double storedPlasmaEnergyRatio;
 
         // configs
-        [KSPField]
-        public double plasmaBufferSize = 10;
-        [KSPField]
-        public double minimumHeatingRequirements = 0.1;
-        [KSPField]
-        public double heatingRequestExponent = 1.5;
+        [KSPField] public double plasmaBufferSize = 10;
+        [KSPField] public double minimumHeatingRequirements = 0.1;
+        [KSPField] public double heatingRequestExponent = 1.5;
 
         // help varaiables
         public bool fusion_alert;
@@ -36,6 +32,9 @@ namespace FNPlugin.Reactors
                 heatingPowerRequirements = CurrentFuelMode == null
                     ? PowerRequirement
                     : PowerRequirement * CurrentFuelMode.NormalizedPowerRequirements;
+
+                if (heatingPowerRequirements <= 0)
+                    return 0;
 
                 heatingPowerRequirements = Math.Max(heatingPowerRequirements * Math.Pow(required_reactor_ratio, heatingRequestExponent), heatingPowerRequirements * minimumHeatingRequirements);
 
@@ -66,7 +65,10 @@ namespace FNPlugin.Reactors
 
         private double GetPlasmaRatio(double receivedPowerPerSecond, double fusionPowerRequirement)
         {
-            if (receivedPowerPerSecond > fusionPowerRequirement)
+            if (fusionPowerRequirement <= 0)
+                return 1;
+
+            if (receivedPowerPerSecond >= fusionPowerRequirement)
             {
                 storedPlasmaEnergyRatio += ((receivedPowerPerSecond - fusionPowerRequirement) / PowerRequirement);
                 receivedPowerPerSecond = fusionPowerRequirement;
@@ -132,7 +134,15 @@ namespace FNPlugin.Reactors
             {
                 var fusionPowerRequirement = HeatingPowerRequirements;
 
-                var requestedPower = fusionPowerRequirement + ((plasmaBufferSize - storedPlasmaEnergyRatio) * PowerRequirement);
+                if (fusionPowerRequirement <= 0)
+                {
+                    plasma_ratio = 1;
+                    power_consumed = 0;
+                    return;
+                }
+
+                var requestedPower = reactor_power_ratio <= 0 ? 0
+                    : fusionPowerRequirement + ((plasmaBufferSize - storedPlasmaEnergyRatio) * PowerRequirement);
 
                 // consume power from managed power source
                 power_consumed = CheatOptions.InfiniteElectricity
@@ -140,7 +150,8 @@ namespace FNPlugin.Reactors
                     : ConsumeFnResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
 
                 if (maintenancePowerWasteheatRatio > 0)
-                    SupplyFnResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed, ResourceSettings.Config.WasteHeatInMegawatt);
+                    SupplyFnResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed,
+                        ResourceSettings.Config.WasteHeatInMegawatt);
 
                 if (isSwappingFuelMode)
                 {
