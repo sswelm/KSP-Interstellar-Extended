@@ -167,9 +167,6 @@ namespace FNPlugin.Powermanagement
                 effectiveFuelRatio = Math.Min(1, fuelRatio);
                 var rawPowerSupply = effectiveFuelRatio * electrical_power_currently_needed;
 
-                effectiveMaxPower = currentMaxPower * efficiency * effectiveFuelRatio;
-
-
                 powerSupply = efficiency * rawPowerSupply;
                 wasteheat = inefficiency * rawPowerSupply;
 
@@ -177,9 +174,17 @@ namespace FNPlugin.Powermanagement
                 {
                     powerSurplus = 0;
 
+                    effectiveMaxPower = currentMaxPower * efficiency * effectiveFuelRatio;
+
                     SupplyFnResourcePerSecondWithMax(powerSupply, effectiveMaxPower, ResourceSettings.Config.ElectricPowerInMegawatt);
                     if (inefficiency > 0)
                         SupplyFnResourcePerSecondWithMax(wasteheat, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceSettings.Config.WasteHeatInMegawatt);
+                }
+                else
+                {
+                    SupplyFnResourcePerSecondWithMax(0, effectiveMaxPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    if (inefficiency > 0)
+                        SupplyFnResourcePerSecondWithMax(0, currentMaxPower * inefficiency * effectiveFuelRatio, ResourceSettings.Config.WasteHeatInMegawatt);
                 }
             }
             else

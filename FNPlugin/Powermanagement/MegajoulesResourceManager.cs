@@ -20,17 +20,9 @@ namespace FNPlugin.Powermanagement
 
         private readonly Queue<double> ecOutput = new Queue<double>();
 
-        private double auxiliaryElectricChargeRate;
-
-        public void AuxiliaryResourceSupplied(double rate)
-        {
-            auxiliaryElectricChargeRate = rate;
-            _mjConverted = 0;
-        }
-
         public double MjConverted => _mjConverted;
 
-        protected override double AuxiliaryResourceDemand => _lastMjConverted + auxiliaryElectricChargeRate;
+        protected override double AuxiliaryResourceDemand => _lastMjConverted;
 
         public override double CurrentSurplus => Math.Max(0.0, base.CurrentSurplus - _lastMjConverted);
 
@@ -45,7 +37,7 @@ namespace FNPlugin.Powermanagement
 
         protected override void DoWindowFinal()
         {
-            var providedAuxiliaryPower = _lastMjConverted + auxiliaryElectricChargeRate;
+            var providedAuxiliaryPower = _lastMjConverted;
 
             ecOutput.Enqueue(providedAuxiliaryPower);
             if (ecOutput.Count > 10)
@@ -64,7 +56,6 @@ namespace FNPlugin.Powermanagement
 
         protected override void DoWindowInitial()
         {
-            if (!(ResourceSupply >= ResourceDemand * 0.5)) return;
             double storedSupplyRatio = ResourceSupply != 0.0 ? Math.Min(1.0, Math.Max(0.0, TotalPowerSupplied / ResourceSupply)) : 0.0;
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_ResourceManager_CurrentDistribution"), leftBoldLabel, GUILayout.ExpandWidth(true));//"Current Distribution"
@@ -95,8 +86,6 @@ namespace FNPlugin.Powermanagement
             double neededRatio = maxAmount > 0 ? ecNeeded / maxAmount : 0;
             if (amount.IsInfinityOrNaN() || ecNeeded <= 0.0)
             {
-                if (priority == 0)
-                    current.Demand += auxiliaryElectricChargeRate;
                 return;
             }
 
@@ -124,9 +113,6 @@ namespace FNPlugin.Powermanagement
 
                 SupplyEc(timeWarpDt, ecNeeded);
             }
-
-            if (priority == 0)
-                current.Demand += auxiliaryElectricChargeRate;
         }
     }
 }
