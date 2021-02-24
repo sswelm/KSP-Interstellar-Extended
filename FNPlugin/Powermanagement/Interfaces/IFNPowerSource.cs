@@ -38,6 +38,8 @@ namespace FNPlugin.Powermanagement
 
         double MagneticNozzlePowerMult { get; }
 
+        double MagneticNozzleMhdMult { get; }
+
         void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource);
 
         double RawMaximumPowerForPowerGeneration { get; }

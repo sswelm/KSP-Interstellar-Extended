@@ -1788,7 +1788,7 @@ namespace FNPlugin.Propulsion
                 var requestedElectricPowerMegajoules = availablePower * requiredMegajouleRatio * AttachedReactor.MagneticNozzlePowerMult;
                 var receivedElectricMegajoules = ConsumeFnResourcePerSecond(requestedElectricPowerMegajoules, ResourceSettings.Config.ElectricPowerInMegawatt);
                 SupplyFnResourcePerSecond(receivedElectricMegajoules, ResourceSettings.Config.WasteHeatInMegawatt);
-                requiredElectricalPowerFromMhd = CalculateElectricalPowerCurrentlyNeeded(Math.Min(availablePower, availablePower * requiredMegajouleRatio * 2));
+                requiredElectricalPowerFromMhd = CalculateElectricalPowerCurrentlyNeeded(Math.Min(availablePower, availablePower * requiredMegajouleRatio * AttachedReactor.MagneticNozzleMhdMult));
                 var electricalPowerCurrentlyNeedRatio = requestedElectricPowerMegajoules > 0 ? Math.Min(1, requiredElectricalPowerFromMhd / requestedElectricPowerMegajoules) : 0;
                 receivedMegajoulesRatio = Math.Min(1, Math.Max(electricalPowerCurrentlyNeedRatio,  requestedElectricPowerMegajoules > 0 ? receivedElectricMegajoules / requestedElectricPowerMegajoules : 0));
                 received_megajoules_percentage = receivedMegajoulesRatio * 100;

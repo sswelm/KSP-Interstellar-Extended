@@ -8,8 +8,6 @@ namespace FNPlugin.Reactors
     class FNAntimatterReactor : InterstellarReactor, IFNChargedParticleSource
     {
         [KSPField]
-        public double magneticNozzlePowerMult = 0.1;
-        [KSPField]
         public double maximumChargedIspMult = 100;
         [KSPField]
         public double minimumChargdIspMult = 10;
@@ -25,7 +23,5 @@ namespace FNPlugin.Reactors
         public double MaximumChargedIspMult { get { return maximumChargedIspMult; } }
 
         public double MinimumChargdIspMult { get { return minimumChargdIspMult; } }
-
-        public override double MagneticNozzlePowerMult { get { return magneticNozzlePowerMult; } }
     }
 }

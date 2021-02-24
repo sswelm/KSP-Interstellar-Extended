@@ -257,6 +257,9 @@ namespace FNPlugin.Reactors
         [KSPField] public double PowerOutput = 0;
         [KSPField] public double massCostExponent = 2.5;
 
+        [KSPField] public double magneticNozzlePowerMult = 1;
+        [KSPField] public double magneticNozzleMhdMult = 2;
+
         [KSPField] public double overheatMultiplier = 10;
         [KSPField] public double overheatThreshHold = 0.95;
         [KSPField] public double overheatExponent = 2;
@@ -474,7 +477,8 @@ namespace FNPlugin.Reactors
 
         public string UpgradeTechnology => upgradeTechReq;
 
-        public virtual double MagneticNozzlePowerMult => 1;
+        public virtual double MagneticNozzlePowerMult => magneticNozzlePowerMult;
+        public virtual double MagneticNozzleMhdMult => magneticNozzleMhdMult;
         public virtual double CurrentMeVPerChargedProduct => _currentFuelMode?.MeVPerChargedProduct ?? 0;
         public virtual string TypeName => part.partInfo.title;
         public virtual double ChargedPowerRatio => CurrentFuelMode?.ChargedPowerRatio ?? 0;

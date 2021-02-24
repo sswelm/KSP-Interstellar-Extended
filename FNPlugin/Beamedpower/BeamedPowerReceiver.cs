@@ -237,6 +237,8 @@ namespace FNPlugin.Beamedpower
         [KSPField] public double thermalPropulsionEfficiency = 1;
         [KSPField] public double thermalEnergyEfficiency = 1;
         [KSPField] public double thermalProcessingModifier = 1;
+        [KSPField] public double magneticNozzlePowerMult = 1;
+        [KSPField] public double magneticNozzleMhdMult = 4;
 
         [KSPField] public double hothBathTemperatureMk1 = 2000;
         [KSPField] public double hothBathTemperatureMk2 = 2500;
@@ -332,7 +334,8 @@ namespace FNPlugin.Beamedpower
         // Properties
         public float DefaultPowerGeneratorPercentage => defaultPowerGeneratorGeneratorPercentage;
         public double FuelRatio => 1;
-        public double MagneticNozzlePowerMult => 1;
+        public double MagneticNozzlePowerMult => magneticNozzlePowerMult;
+        public double MagneticNozzleMhdMult => magneticNozzleMhdMult;
         public bool MayExhaustInAtmosphereHomeworld => true;
         public bool MayExhaustInLowSpaceHomeworld => true;
         public double MinThermalNozzleTempRequired => 0;

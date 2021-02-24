@@ -10,7 +10,6 @@ namespace FNPlugin.Reactors
     {
         [KSPField(isPersistant = true)] public bool allowJumpStart = true;
 
-        [KSPField] public double magneticNozzlePowerMult = 1;
         [KSPField] public int powerPriority = 0;
         [KSPField] public bool powerIsAffectedByLithium = true;
 
@@ -43,8 +42,6 @@ namespace FNPlugin.Reactors
         public override double MaximumThermalPower => Math.Max(base.MaximumThermalPower * PlasmaModifier * lithium_modifier, 0);
 
         public override double MaximumChargedPower => base.MaximumChargedPower * PlasmaModifier;
-
-        public override double MagneticNozzlePowerMult => magneticNozzlePowerMult;
 
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic && CurrentFuelMode.NeutronsRatio > 0;
 
