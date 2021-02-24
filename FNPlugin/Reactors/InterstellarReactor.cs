@@ -2142,16 +2142,24 @@ namespace FNPlugin.Reactors
 
         private List<ReactorFuelType> GetFuelGroups(int maximumFuelTechLevel)
         {
-            var groups = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE")
-                .Select(node => new ReactorFuelMode(node))
-                .Where(fm =>
-                       fm.AllFuelResourcesDefinitionsAvailable && fm.AllProductResourcesDefinitionsAvailable
-                    && (fm.SupportedReactorTypes & ReactorType) == ReactorType
-                    && maximumFuelTechLevel >= fm.TechLevel
-                    && FusionEnergyGainFactor >= fm.MinimumFusionGainFactor
-                    && (fm.Aneutronic || canUseNeutronicFuels)
-                    && maxGammaRayPower >= fm.GammaRayEnergy)
-                .GroupBy(mode => mode.ModeGuiName).Select(group => new ReactorFuelType(group)).OrderBy(m => m.TechLevel).ToList();
+            var allFuelModes = GameDatabase.Instance
+                .GetConfigNodes("REACTOR_FUEL_MODE")
+                .Select(node => new ReactorFuelMode(node)).ToList();
+
+            var compatibleFuelModes = allFuelModes.Where(fm =>
+                fm.AllFuelResourcesDefinitionsAvailable
+                && fm.AllProductResourcesDefinitionsAvailable
+                && (fm.SupportedReactorTypes & ReactorType) == ReactorType
+                && maximumFuelTechLevel >= fm.TechLevel
+                && FusionEnergyGainFactor >= fm.MinimumQ
+                && (fm.Aneutronic || canUseNeutronicFuels)
+                && maxGammaRayPower >= fm.GammaRayEnergy).ToList();
+
+            var groups = compatibleFuelModes
+                .GroupBy(mode => mode.ModeGuiName)
+                .Select(group => new ReactorFuelType(group))
+                .OrderBy(m => m.TechLevel).ToList();
+
             return groups;
         }
 
@@ -2254,19 +2262,19 @@ namespace FNPlugin.Reactors
         {
             var fuelModeConfigs = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
 
-            var allFuelModes = fuelModeConfigs
-                .Select(node => new ReactorFuelMode(node)).ToList();
+            var allFuelModesForReactorType = fuelModeConfigs
+                .Select(node => new ReactorFuelMode(node)).Where(fm =>
+                (fm.SupportedReactorTypes & ReactorType) == ReactorType).ToList();
 
             var filteredFuelModes =
-                allFuelModes.Where(fm =>
-                    (fm.SupportedReactorTypes & ReactorType) == ReactorType
+                allFuelModesForReactorType.Where(fm =>
+                PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
+                    && (fm.Aneutronic || canUseNeutronicFuels)
+                    && fm.MinimumQ <= FusionEnergyGainFactor
                     && fm.AllFuelResourcesDefinitionsAvailable
                     && fm.AllProductResourcesDefinitionsAvailable
-                    && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
-                    && ReactorFuelModeTechLevel >= fm.TechLevel
-                    && FusionEnergyGainFactor >= fm.MinimumFusionGainFactor
-                    && (fm.Aneutronic || canUseNeutronicFuels)
-                    && maxGammaRayPower >= fm.GammaRayEnergy
+                    && fm.TechLevel <= ReactorFuelModeTechLevel
+                    && fm.GammaRayEnergy <= maxGammaRayPower
                     && fm.NeutronsRatio <= maxNeutronsRatio
                     && fm.NeutronsRatio >= minNeutronsRatio
                     ).ToList();

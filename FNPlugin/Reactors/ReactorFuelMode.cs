@@ -56,7 +56,7 @@ namespace FNPlugin.Reactors
             Index = first.Index;
             ModeGUIName = first.ModeGuiName;
             TechLevel = first.TechLevel;
-            MinimumFusionGainFactor = first.MinimumFusionGainFactor;
+            MinimumFusionGainFactor = first.MinimumQ;
             TechRequirement = first.TechRequirement;
             SupportedReactorTypes = first.SupportedReactorTypes;
             Aneutronic = first.Aneutronic;
@@ -151,7 +151,7 @@ namespace FNPlugin.Reactors
             RequiresLab = node.HasValue("RequiresLab") && bool.Parse(node.GetValue("RequiresLab"));
             RequiresUpgrade = node.HasValue("RequiresUpgrade") && bool.Parse(node.GetValue("RequiresUpgrade"));
             TechLevel = node.HasValue("TechLevel") ? int.Parse(node.GetValue("TechLevel")) : 0;
-            MinimumFusionGainFactor = node.HasValue("MinimumQ") ? int.Parse(node.GetValue("MinimumQ")) : 0;
+            MinimumQ = node.HasValue("MinimumQ") ? int.Parse(node.GetValue("MinimumQ")) : 0;
             Aneutronic = node.HasValue("Aneutronic") && bool.Parse(node.GetValue("Aneutronic"));
             GammaRayEnergy = node.HasValue("GammaRayEnergy") ? double.Parse(node.GetValue("GammaRayEnergy")) : 0;
 
@@ -191,7 +191,7 @@ namespace FNPlugin.Reactors
         public int Index { get; }
         public int Position { get; set; }
         public int TechLevel { get; }
-        public int MinimumFusionGainFactor { get; }
+        public int MinimumQ { get; }
 
         public bool Hidden { get; }
         public bool RequiresLab { get; }

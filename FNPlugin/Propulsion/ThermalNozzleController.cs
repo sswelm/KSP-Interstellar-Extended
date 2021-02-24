@@ -2146,11 +2146,15 @@ namespace FNPlugin.Propulsion
             }
             else
             {
-                var scaledChargedRatio =  Math.Min(1, 0.2 + Math.Pow(Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25, 2));
-                _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * maxThermalNozzleIsp;
+                var scaledChargedRatio =  Math.Min(1, 0.2 + 0.8 * Math.Pow(Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25, 2));
 
-                if (UsePlasmaAfterBurner)  // when  mixing charged particles from reactor with cold propellant
-                    _maxISP = _maxISP + Math.Pow(ispThrottle / 100d, 2) * plasmaAfterburnerRange * baseMaxIsp;
+                if (UsePlasmaAfterBurner)
+                {
+                    _maxISP = scaledChargedRatio * baseMaxIsp;
+                    _maxISP += Math.Pow(ispThrottle / 100d, 2) * scaledChargedRatio * plasmaAfterburnerRange * baseMaxIsp;
+                }
+                else
+                    _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * maxThermalNozzleIsp;
             }
 
             effectiveFuelflowThrottle = Math.Min(fuelflowThrottleMaxValue, fuelFlowThrottle);
