@@ -19,7 +19,7 @@ namespace FNPlugin.Reactors
         }
 
         public PartResourceDefinition resourceDefinition;
-        public double ratio = 1;
+        public double ratio;
     }
 
     class ResourceGroupMetaData
@@ -52,6 +52,7 @@ namespace FNPlugin.Reactors
             AlternativeFuelType3 = first.AlternativeFuelType3;
             AlternativeFuelType4 = first.AlternativeFuelType4;
             AlternativeFuelType5 = first.AlternativeFuelType5;
+            AlternativeFuelType6 = first.AlternativeFuelType6;
 
             Index = first.Index;
             ModeGUIName = first.ModeGuiName;
@@ -98,6 +99,7 @@ namespace FNPlugin.Reactors
         public string AlternativeFuelType3 { get;}
         public string AlternativeFuelType4 { get;}
         public string AlternativeFuelType5 { get; }
+        public string AlternativeFuelType6 { get; }
 
         public string ModeGUIName { get; }
         public string TechRequirement { get; }
@@ -119,8 +121,8 @@ namespace FNPlugin.Reactors
 
     class ReactorFuelMode
     {
-        protected float _reactionRate;
-        protected float _powerMultiplier;
+        protected float reactionRate;
+        protected float powerMultiplier;
 
         public ReactorFuelMode(ConfigNode node)
         {
@@ -137,9 +139,10 @@ namespace FNPlugin.Reactors
             AlternativeFuelType3 = node.HasValue("AlternativeFuelType3") ? node.GetValue("AlternativeFuelType3") : string.Empty;
             AlternativeFuelType4 = node.HasValue("AlternativeFuelType4") ? node.GetValue("AlternativeFuelType4") : string.Empty;
             AlternativeFuelType5 = node.HasValue("AlternativeFuelType5") ? node.GetValue("AlternativeFuelType5") : string.Empty;
+            AlternativeFuelType6 = node.HasValue("AlternativeFuelType6") ? node.GetValue("AlternativeFuelType6") : string.Empty;
 
-            _reactionRate = node.HasValue("NormalisedReactionRate") ? float.Parse(node.GetValue("NormalisedReactionRate")) : 1;
-            _powerMultiplier = node.HasValue("NormalisedPowerMultiplier") ? float.Parse(node.GetValue("NormalisedPowerMultiplier")) : 1;
+            reactionRate = node.HasValue("NormalisedReactionRate") ? float.Parse(node.GetValue("NormalisedReactionRate")) : 1;
+            powerMultiplier = node.HasValue("NormalisedPowerMultiplier") ? float.Parse(node.GetValue("NormalisedPowerMultiplier")) : 1;
             NormalizedPowerRequirements = node.HasValue("NormalisedPowerConsumption") ? float.Parse(node.GetValue("NormalisedPowerConsumption")) : 1;
             ChargedPowerRatio = node.HasValue("ChargedParticleRatio") ? float.Parse(node.GetValue("ChargedParticleRatio")) : 0;
 
@@ -172,7 +175,7 @@ namespace FNPlugin.Reactors
             GigawattPerGram = 1 / (totalTonsFuelUsePerMj * 1e9);
         }
 
-        public float NormalizedReactionRate => _reactionRate * _powerMultiplier;
+        public float NormalizedReactionRate => reactionRate * powerMultiplier;
 
         public IList<ReactorFuel> ReactorFuels { get; }
         public IList<ReactorProduct> ReactorProducts { get; }
@@ -182,6 +185,7 @@ namespace FNPlugin.Reactors
         public string AlternativeFuelType3 { get; }
         public string AlternativeFuelType4 { get; }
         public string AlternativeFuelType5 { get; }
+        public string AlternativeFuelType6 { get; }
 
         public string Name { get; }
         public string ModeGuiName { get; }

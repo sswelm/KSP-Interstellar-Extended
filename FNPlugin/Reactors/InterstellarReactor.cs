@@ -1808,6 +1808,7 @@ namespace FNPlugin.Reactors
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType3);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType4);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType5);
+            SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType6);
 
             if (stored_fuel_ratio < 0.99)
             {
