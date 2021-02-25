@@ -340,6 +340,8 @@ namespace FNPlugin.Beamedpower
         public bool MayExhaustInLowSpaceHomeworld => true;
         public double MinThermalNozzleTempRequired => 0;
         public double CurrentMeVPerChargedProduct => 0;
+        public double CurrentPlasmaPropulsionRatio => 0;
+        public double CurrentChargedPropulsionRatio => 0;
         public bool UsePropellantBaseIsp => false;
         public bool CanUseAllPowerForPlasma => false;
         public bool CanProducePower => ProducedThermalHeat > 0;
@@ -452,6 +454,7 @@ namespace FNPlugin.Beamedpower
         }
 
         public void UpdateAuxiliaryPowerSource(double available) { }
+        public bool IsConnectedToChargedGenerator => false;
 
         public void RemoveOtherVesselData()
         {

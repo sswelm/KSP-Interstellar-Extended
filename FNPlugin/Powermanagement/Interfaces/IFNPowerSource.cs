@@ -28,6 +28,10 @@ namespace FNPlugin.Powermanagement
 
         bool CanUseAllPowerForPlasma { get; }
 
+        double CurrentPlasmaPropulsionRatio { get; }
+
+        double CurrentChargedPropulsionRatio { get; }
+
         bool UsePropellantBaseIsp { get; }
 
         double CurrentMeVPerChargedProduct { get; }
@@ -47,5 +51,7 @@ namespace FNPlugin.Powermanagement
         double MaxCoreTemperature { get; }
 
         void UpdateAuxiliaryPowerSource(double available);
+
+        bool IsConnectedToChargedGenerator { get; }
     }
 }

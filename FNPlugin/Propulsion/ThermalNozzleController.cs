@@ -423,7 +423,7 @@ namespace FNPlugin.Propulsion
 
         public bool SourceCanProducePlasmaOrChargedPower => AttachedReactor.ChargedParticlePropulsionEfficiency > 0 || AttachedReactor.PlasmaPropulsionEfficiency > 0;
 
-        public bool UsePlasmaAfterBurner => SourceCanProducePlasmaOrChargedPower && isPlasmaNozzle && ispThrottle != 0 && (ispThrottle != 1 || !canUsePureChargedPower);
+        public bool UsePlasmaAfterBurner => SourceCanProducePlasmaOrChargedPower && isPlasmaNozzle && (ispThrottle != 100 || !canUsePureChargedPower);
 
         public bool UseChargedPowerOnly => canUsePureChargedPower && ispThrottle == 100 && _listOfPropellants.Count == 1;
 
@@ -583,12 +583,61 @@ namespace FNPlugin.Propulsion
             AttachedReactor.DisconnectWithEngine(this);
         }
 
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+
+            timewarpEngine = part.FindModuleImplementing<ModuleEnginesWarp>();
+            if (timewarpEngine != null)
+            {
+                timewarpEngine.Fields[nameof(ModuleEnginesWarp.thrust_d)].Attribute.groupName = GROUP;
+                timewarpEngine.Fields[nameof(ModuleEnginesWarp.thrust_d)].Attribute.groupDisplayName = GROUP_TITLE;
+            }
+
+            myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
+            if (myAttachedEngine != null)
+            {
+                myAttachedEngine.Fields[nameof(ModuleEngines.status)].Attribute.groupName = GROUP;
+                myAttachedEngine.Fields[nameof(ModuleEngines.status)].Attribute.groupDisplayName = GROUP_TITLE;
+
+                myAttachedEngine.Fields[nameof(ModuleEngines.realIsp)].Attribute.groupName = GROUP;
+                myAttachedEngine.Fields[nameof(ModuleEngines.realIsp)].Attribute.groupDisplayName = GROUP_TITLE;
+
+                myAttachedEngine.Fields[nameof(ModuleEngines.finalThrust)].Attribute.groupName = GROUP;
+                myAttachedEngine.Fields[nameof(ModuleEngines.finalThrust)].Attribute.groupDisplayName = GROUP_TITLE;
+
+                myAttachedEngine.Fields[nameof(ModuleEngines.propellantReqMet)].Attribute.groupName = GROUP;
+                myAttachedEngine.Fields[nameof(ModuleEngines.propellantReqMet)].Attribute.groupDisplayName = GROUP_TITLE;
+
+                myAttachedEngine.Fields[nameof(ModuleEngines.fuelFlowGui)].Attribute.groupName = GROUP;
+                myAttachedEngine.Fields[nameof(ModuleEngines.fuelFlowGui)].Attribute.groupDisplayName = GROUP_TITLE;
+
+                myAttachedEngine.Fields[nameof(ModuleEngines.thrustPercentage)].Attribute.groupName = GROUP;
+                myAttachedEngine.Fields[nameof(ModuleEngines.thrustPercentage)].Attribute.groupDisplayName = GROUP_TITLE;
+                myAttachedEngine.Fields[nameof(ModuleEngines.thrustPercentage)].guiActive = showThrustPercentage;
+
+                myAttachedEngine.Fields[nameof(ModuleEngines.independentThrottle)].Attribute.groupName = GROUP;
+                myAttachedEngine.Fields[nameof(ModuleEngines.independentThrottle)].Attribute.groupDisplayName = GROUP_TITLE;
+
+                myAttachedEngine.Fields[nameof(ModuleEngines.independentThrottlePercentage)].Attribute.groupName = GROUP;
+                myAttachedEngine.Fields[nameof(ModuleEngines.independentThrottlePercentage)].Attribute.groupDisplayName = GROUP_TITLE;
+
+                _originalAtmCurve = myAttachedEngine.atmCurve;
+                _originalAtmosphereCurve = myAttachedEngine.atmosphereCurve;
+                _originalVelocityCurve = myAttachedEngine.velCurve;
+
+                _originalEngineAccelerationSpeed = myAttachedEngine.engineAccelerationSpeed;
+                _originalEngineDecelerationSpeed = myAttachedEngine.engineDecelerationSpeed;
+            }
+            else
+                Debug.LogError("[KSPI]: ThermalNozzleController - failed to find engine!");
+        }
+
         public override void OnStart(StartState state)
         {
             Debug.Log("[KSPI]: ThermalNozzleController - start");
 
-            string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resourcesToSupply = resourcesToSupply;
+            resourcesToSupply = new[] { ResourceSettings.Config.ElectricPowerInMegawatt };
 
             base.OnStart(state);
 
@@ -635,25 +684,8 @@ namespace FNPlugin.Propulsion
 
             resourceBuffers.Init(part);
 
-            myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
-            timewarpEngine = part.FindModuleImplementing<ModuleEnginesWarp>();
-
             if (!string.IsNullOrEmpty(throttleAnimName))
                 throttleAnimation = part.FindModelAnimators(throttleAnimName).FirstOrDefault();
-
-            if (myAttachedEngine != null)
-            {
-                myAttachedEngine.Fields[nameof(ModuleEngines.thrustPercentage)].guiActive = showThrustPercentage;
-
-                _originalAtmCurve = myAttachedEngine.atmCurve;
-                _originalAtmosphereCurve = myAttachedEngine.atmosphereCurve;
-                _originalVelocityCurve = myAttachedEngine.velCurve;
-
-                _originalEngineAccelerationSpeed = myAttachedEngine.engineAccelerationSpeed;
-                _originalEngineDecelerationSpeed = myAttachedEngine.engineDecelerationSpeed;
-            }
-            else
-                Debug.LogError("[KSPI]: ThermalNozzleController - failed to find engine!");
 
             // find attached thermal source
             ConnectToThermalSource();

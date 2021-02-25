@@ -1044,7 +1044,9 @@ namespace FNPlugin.Wasteheat
                     RadTemperatureQueues.Add(vess, queue);
                 }
 
-                if (queue.Time == vess.launchTime && queue.Queue.Count > 0)
+                var universalTime = Planetarium.GetUniversalTime();
+
+                if (queue.Time == universalTime && queue.Queue.Count > 0)
                 {
                     return queue.Queue.Max();
                 }
@@ -1053,7 +1055,7 @@ namespace FNPlugin.Wasteheat
                 var totalRadiatorsMass = radiatorVessel.Sum(r => (double)(decimal)r.part.mass);
                 var temp = radiatorVessel.Sum(r => Math.Min(1, r.GetAverageRadiatorTemperature() / r.MaxRadiatorTemperature) * maxTemperature * (r.part.mass / totalRadiatorsMass));
 
-                queue.Time = vess.launchTime;
+                queue.Time = universalTime;
                 queue.Queue.Enqueue(temp);
                 if (queue.Queue.Count > 4)
                     queue.Queue.Dequeue();

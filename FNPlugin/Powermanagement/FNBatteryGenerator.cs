@@ -106,6 +106,8 @@ namespace FNPlugin.Powermanagement
 
             if (currentUnfilledResourceDemand == 0 && powerSurplus > 0 && canRecharge)
             {
+                SupplyFnResourcePerSecondWithMax(0, effectiveMaxPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+
                 for (var i = 0; i < inputResourceNames.Count; i++)
                 {
                     var currentResourceName = inputResourceNames[i];

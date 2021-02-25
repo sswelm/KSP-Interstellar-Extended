@@ -67,10 +67,10 @@ namespace FNPlugin.Propulsion
         private double masslessFuelPercentage3;
         private double masslessFuelPercentage4;
 
-        public double fuelRequestAmount1 = 0;
-        public double fuelRequestAmount2 = 0;
-        public double fuelRequestAmount3 = 0;
-        public double fuelRequestAmount4 = 0;
+        public double fuelRequestAmount1;
+        public double fuelRequestAmount2;
+        public double fuelRequestAmount3;
+        public double fuelRequestAmount4;
 
         double consumedPropellant1;
         double consumedPropellant2;

@@ -497,21 +497,8 @@ namespace FNPlugin.Powermanagement
             }
 
             initialGeneratorPowerEC = _outputModuleResource.rate;
-
-            if (maximumGeneratorPowerEC > 0)
-            {
-                //outputModuleResource.rate = maximumGeneratorPowerEC;
-            }
-
             maximumGeneratorPowerEC = _outputModuleResource.rate;
             maximumGeneratorPowerMJ = maximumGeneratorPowerEC / GameConstants.ecPerMJ;
-
-            //mockInputResource = new ModuleResource
-            //{
-            //    name = outputModuleResource.name, id = outputModuleResource.name.GetHashCode()
-            //};
-
-            //stockModuleGenerator.resHandler.inputResources.Add(mockInputResource);
         }
 
         private void InitializeEfficiency()
@@ -827,7 +814,7 @@ namespace FNPlugin.Powermanagement
 
                 maximumElectricPower = _totalEfficiency >= 0
                     ? !chargedParticleMode
-                        ? _totalEfficiency * _maxThermalPower
+                        ? _totalEfficiency * _maxChargedPowerForThermalGenerator
                         : _totalEfficiency * _maxChargedPowerForChargedGenerator
                     : 0;
 
@@ -890,12 +877,6 @@ namespace FNPlugin.Powermanagement
 
             if (!chargedParticleMode) // thermal or plasma mode
             {
-                //averageRadiatorTemperatureQueue.Enqueue(FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel));
-
-                //while (averageRadiatorTemperatureQueue.Count > 10)
-                //    averageRadiatorTemperatureQueue.Dequeue();
-
-                //coldBathTempDisplay = averageRadiatorTemperatureQueue.Average();
                 coldBathTempDisplay = FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel);
 
                 hotBathTemp = GetHotBathTemperature(coldBathTempDisplay);
@@ -931,7 +912,10 @@ namespace FNPlugin.Powermanagement
             _maxThermalPower = attachedPowerSourceMaximumThermalPowerUsageRatio * Math.Min(rawReactorPower, potentialThermalPower);
             _maxChargedPowerForThermalGenerator = attachedPowerSourceMaximumThermalPowerUsageRatio    * Math.Min(rawChargedPower, (1 / attachedPowerSourceRatio) * _maxAllowedChargedPower);
             _maxChargedPowerForChargedGenerator = _attachedPowerSource.ChargedParticleEnergyEfficiency * Math.Min(rawChargedPower, (1 / attachedPowerSourceRatio) * _maxAllowedChargedPower);
-            _maxReactorPower = chargedParticleMode ? _maxChargedPowerForChargedGenerator : _maxThermalPower;
+
+            _maxReactorPower = chargedParticleMode || (!_attachedPowerSource.IsConnectedToChargedGenerator && _maxThermalPower == 0)
+                ? _maxChargedPowerForChargedGenerator
+                : _maxThermalPower;
         }
 
         // Update is called in the editor
@@ -979,7 +963,6 @@ namespace FNPlugin.Powermanagement
 
                 _powerDownFraction = 1;
 
-                //var wasteheatRatio = getResourceBarRatio(ResourceSettings.Config.WasteHeatInMegawatt);
                 var wasteheatRatio = FNRadiator.GetAverageRadiatorTemperatureForVessel(vessel) / 4500;
                 var overheatingModifier = wasteheatRatio < 0.9 ? 1 : (1 - wasteheatRatio) * 10;
 
@@ -992,7 +975,7 @@ namespace FNPlugin.Powermanagement
 
                     _totalEfficiency = Math.Min(maxEfficiency, hotColdBathRatio * maxEfficiency);
 
-                    if (hotColdBathRatio <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || _maxThermalPower <= 0) return;
+                    if (hotColdBathRatio <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || _maxReactorPower <= 0) return;
 
                     electrical_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
@@ -1002,11 +985,15 @@ namespace FNPlugin.Powermanagement
                     _requestedPostReactorPower = Math.Max(0, _attachedPowerSource.MinimumPower - _reactorPowerRequested);
 
                     var thermalPowerRequested = Math.Max(0, Math.Min(_maxThermalPower, effectiveThermalPowerNeededForElectricity));
-                    thermalPowerRequested *= _appliesBalance && chargedPowerRatio < 1 ? thermalPowerRatio : 1;
+
+                    thermalPowerRequested *= _appliesBalance
+                        ? thermalPowerRatio
+                        : thermalPowerRatio + (1 - thermalPowerRatio) * Math.Max(_attachedPowerSource.CurrentChargedPropulsionRatio, _attachedPowerSource.CurrentPlasmaPropulsionRatio);
+
                     _requestedPostThermalPower = Math.Max(0, _attachedPowerSource.MinimumPower * thermalPowerRatio - thermalPowerRequested);
 
                     double initialThermalPowerReceived;
-                    if (chargedPowerRatio < 1)
+                    if ( chargedPowerRatio < 1)
                     {
                         var requestedThermalPower = Math.Min(thermalPowerRequested, _effectiveMaximumThermalPower);
                         initialThermalPowerReceived = ConsumeFnResourcePerSecond(requestedThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
@@ -1025,17 +1012,20 @@ namespace FNPlugin.Powermanagement
                     if (chargedPowerRatio >= 1)
                     {
                         _requestedChargedPower = _reactorPowerRequested;
+                        _requestedChargedPower *= 1 - Math.Max(_attachedPowerSource.CurrentChargedPropulsionRatio, _attachedPowerSource.CurrentPlasmaPropulsionRatio);
 
                         _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
 
                         var maximumChargedPower = _attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
-                        var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? thermalPowerRequested / maximumChargedPower : 0);
+                        var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? _requestedChargedPower / maximumChargedPower : 0);
 
                         _attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEfficiency, chargedPowerRequestRatio, isMHD, isLimitedByMinThrottle ? part.mass * 0.05 : part.mass);
                     }
                     else if (_shouldUseChargedPower && _thermalPowerReceived < _reactorPowerRequested)
                     {
                         _requestedChargedPower = Math.Min(Math.Min(_reactorPowerRequested - _thermalPowerReceived, _maxChargedPowerForThermalGenerator), Math.Max(0, _maxReactorPower - _thermalPowerReceived));
+                        _requestedChargedPower *= 1 - Math.Max(_attachedPowerSource.CurrentChargedPropulsionRatio, _attachedPowerSource.CurrentPlasmaPropulsionRatio);
+
                         _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
                     }
                     else
@@ -1083,7 +1073,7 @@ namespace FNPlugin.Powermanagement
                 _electricPowerPerSecond = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
                 if (!chargedParticleMode)
                 {
-                    var effectiveMaxThermalPowerRatio = isMHD || !_appliesBalance ? 1 : thermalPowerRatio;
+                    var effectiveMaxThermalPowerRatio = (!_attachedPowerSource.IsConnectedToChargedGenerator && _maxThermalPower == 0) || isMHD || !_appliesBalance ? 1 : thermalPowerRatio;
                     _maxElectricPowerPerSecond = effectiveMaxThermalPowerRatio * _attachedPowerSource.StableMaximumReactorPower * _attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEfficiency * CapacityRatio;
                 }
                 else
