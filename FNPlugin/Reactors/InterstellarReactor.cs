@@ -1243,13 +1243,6 @@ namespace FNPlugin.Reactors
                 || !string.IsNullOrEmpty(fuelModeTechReqLevel6)
                 || !string.IsNullOrEmpty(fuelModeTechReqLevel7);
 
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel2)) fuelModeTechReqLevel2 = upgradeTechReqMk2;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel3)) fuelModeTechReqLevel3 = upgradeTechReqMk3;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel4)) fuelModeTechReqLevel4 = upgradeTechReqMk4;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel5)) fuelModeTechReqLevel5 = upgradeTechReqMk5;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel6)) fuelModeTechReqLevel6 = upgradeTechReqMk6;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel7)) fuelModeTechReqLevel7 = upgradeTechReqMk7;
-
             fuelModeTechLevel = 0;
             if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel2)) fuelModeTechLevel++;
             if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel3)) fuelModeTechLevel++;
