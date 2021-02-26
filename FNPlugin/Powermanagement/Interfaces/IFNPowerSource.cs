@@ -8,6 +8,8 @@ namespace FNPlugin.Powermanagement
 
         void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, double mass);
 
+        double NormalizedPowerMultiplier { get; }
+
         double EngineHeatProductionMult { get; }
 
         double PlasmaHeatProductionMult { get; }

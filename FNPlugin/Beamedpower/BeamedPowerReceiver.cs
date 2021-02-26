@@ -545,6 +545,7 @@ namespace FNPlugin.Beamedpower
         public void NotifyActiveChargedEnergyGenerator(double efficiency, double power_ratio) { }
 
         public void NotifyActiveChargedEnergyGenerator(double efficiency, double power_ratio, double mass) { }
+        public double NormalizedPowerMultiplier => 1;
 
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }

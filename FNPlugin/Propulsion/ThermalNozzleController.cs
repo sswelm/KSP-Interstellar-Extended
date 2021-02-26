@@ -2178,7 +2178,7 @@ namespace FNPlugin.Propulsion
             }
             else
             {
-                var scaledChargedRatio =  Math.Min(1, 0.2 + 0.8 * Math.Pow(Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25, 2));
+                var scaledChargedRatio =  Math.Pow(AttachedReactor.ChargedPowerRatio * AttachedReactor.NormalizedPowerMultiplier, 0.5);
 
                 if (UsePlasmaAfterBurner)
                 {

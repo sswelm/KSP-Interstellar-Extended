@@ -484,7 +484,7 @@ namespace FNPlugin.Reactors
         public virtual string TypeName => part.partInfo.title;
         public virtual double ChargedPowerRatio => CurrentFuelMode?.ChargedPowerRatio ?? 0;
         public virtual double ReactorEmbrittlementConditionRatio => Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
-        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode?.NormalizedReactionRate ?? 1);
+        public virtual double NormalisedMaximumPower => RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode?.ReactionRatePowerMultiplier ?? 1);
         public virtual double MinimumPower => MaximumPower * MinimumThrottle;
         public virtual double MaximumThermalPower => PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier;
         public virtual double MaximumChargedPower => PowerRatio * NormalisedMaximumPower * ChargedPowerRatio * geeForceModifier * overheatModifier;
@@ -844,6 +844,8 @@ namespace FNPlugin.Reactors
             _currentGeneratorChargedEnergyRequestRatio = power_ratio;
             IsConnectedToChargedGenerator = true;
         }
+
+        public double NormalizedPowerMultiplier => _currentFuelMode.NormalizedPowerMultiplier;
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType)
         {

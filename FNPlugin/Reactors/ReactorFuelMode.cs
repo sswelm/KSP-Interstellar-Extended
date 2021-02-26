@@ -67,7 +67,8 @@ namespace FNPlugin.Reactors
             RequiresUpgrade = first.RequiresUpgrade;
             ChargedPowerRatio = first.ChargedPowerRatio;
             MeVPerChargedProduct = first.MeVPerChargedProduct;
-            NormalizedReactionRate = first.NormalizedReactionRate;
+            ReactionRatePowerMultiplier = first.ReactionRatePowerMultiplier;
+            NormalizedPowerMultiplier = first.NormalizedPowerMultiplier;
             NormalizedPowerRequirements = first.NormalizedPowerRequirements;
             NeutronsRatio = first.NeutronsRatio;
             TritiumBreedModifier = first.TritiumBreedModifier;
@@ -86,7 +87,8 @@ namespace FNPlugin.Reactors
 
         public float NeutronsRatio { get;}
         public float TritiumBreedModifier { get;}
-        public float NormalizedReactionRate { get; }
+        public float ReactionRatePowerMultiplier { get; }
+        public float NormalizedPowerMultiplier { get; }
         public float NormalizedPowerRequirements { get; }
         public float ChargedPowerRatio { get; }
 
@@ -122,7 +124,7 @@ namespace FNPlugin.Reactors
     class ReactorFuelMode
     {
         protected float reactionRate;
-        protected float powerMultiplier;
+        protected float normalizedPowerMultiplier;
 
         public ReactorFuelMode(ConfigNode node)
         {
@@ -142,7 +144,7 @@ namespace FNPlugin.Reactors
             AlternativeFuelType6 = node.HasValue("AlternativeFuelType6") ? node.GetValue("AlternativeFuelType6") : string.Empty;
 
             reactionRate = node.HasValue("NormalisedReactionRate") ? float.Parse(node.GetValue("NormalisedReactionRate")) : 1;
-            powerMultiplier = node.HasValue("NormalisedPowerMultiplier") ? float.Parse(node.GetValue("NormalisedPowerMultiplier")) : 1;
+            normalizedPowerMultiplier = node.HasValue("NormalisedPowerMultiplier") ? float.Parse(node.GetValue("NormalisedPowerMultiplier")) : 1;
             NormalizedPowerRequirements = node.HasValue("NormalisedPowerConsumption") ? float.Parse(node.GetValue("NormalisedPowerConsumption")) : 1;
             ChargedPowerRatio = node.HasValue("ChargedParticleRatio") ? float.Parse(node.GetValue("ChargedParticleRatio")) : 0;
 
@@ -175,7 +177,8 @@ namespace FNPlugin.Reactors
             GigawattPerGram = 1 / (totalTonsFuelUsePerMj * 1e9);
         }
 
-        public float NormalizedReactionRate => reactionRate * powerMultiplier;
+        public float NormalizedPowerMultiplier => normalizedPowerMultiplier;
+        public float ReactionRatePowerMultiplier => reactionRate * normalizedPowerMultiplier;
 
         public IList<ReactorFuel> ReactorFuels { get; }
         public IList<ReactorProduct> ReactorProducts { get; }
