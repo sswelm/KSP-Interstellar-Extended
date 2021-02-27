@@ -675,7 +675,8 @@ namespace FNPlugin.Reactors
                 CurrentFuelVariant = currentFuelVariantsSorted.First();
 
                 // persist
-                fuelmode_index = _currentFuelMode.Index;
+                fuelmode_index = fuelModes.IndexOf(_currentFuelMode);
+                fuel_mode = fuelmode_index;
                 fuel_mode_name = _currentFuelMode.ModeGUIName;
             }
         }

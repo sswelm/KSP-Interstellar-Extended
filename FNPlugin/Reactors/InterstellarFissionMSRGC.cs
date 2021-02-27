@@ -112,6 +112,7 @@ namespace FNPlugin.Reactors
                 if (fuel_mode >= fuelModes.Count)
                     fuel_mode = 0;
 
+                fuelmode_index = fuel_mode;
                 CurrentFuelMode = fuelModes[fuel_mode];
                 currentFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
             }
@@ -239,16 +240,6 @@ namespace FNPlugin.Reactors
             // start as normal
             base.OnStart(state);
 
-            // auto switch if current fuel mode is depleted
-            if (IsCurrentFuelDepleted())
-            {
-                fuel_mode++;
-                if (fuel_mode >= fuelModes.Count)
-                    fuel_mode = 0;
-
-                CurrentFuelMode = fuelModes[fuel_mode];
-            }
-
             fuelModeStr = CurrentFuelMode.ModeGUIName;
 
             _manualRestartEvent = Events[nameof(ManualRestart)];
@@ -263,9 +254,9 @@ namespace FNPlugin.Reactors
             enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
             oxygenDepletedUraniumVolumeMultiplier = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
 
-            var mainReactorFuel = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName);
+            var mainReactorFuel = part.Resources.Get(CurrentFuelMode.Variants.First(m => m.FuelRatio > 0).ReactorFuels.First().ResourceName);
             if (mainReactorFuel != null)
-                reactorFuelMaxAmount = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName).maxAmount;
+                reactorFuelMaxAmount = part.Resources.Get(mainReactorFuel.resourceName).maxAmount;
 
             foreach (ReactorFuelType fuelMode in fuelModes)
             {
