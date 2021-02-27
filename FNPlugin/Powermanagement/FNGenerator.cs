@@ -781,40 +781,23 @@ namespace FNPlugin.Powermanagement
             else
                 Events[nameof(RetrofitGenerator)].active = false;
 
-            if (IsEnabled)
+            if (_playPowerUpSound && _animation != null)
             {
-                if (_playPowerUpSound && _animation != null)
-                {
-                    _playPowerDownSound = true;
-                    _playPowerUpSound = false;
-                    _animation[animName].speed = 1;
-                    _animation[animName].normalizedTime = 0;
-                    _animation.Blend(animName, 2);
-                }
-            }
-            else
-            {
-                if (_playPowerDownSound && _animation != null)
-                {
-                    _playPowerDownSound = false;
-                    _playPowerUpSound = true;
-                    _animation[animName].speed = -1;
-                    _animation[animName].normalizedTime = 1;
-                    _animation.Blend(animName, 2);
-                }
+                _playPowerDownSound = IsEnabled;
+                _playPowerUpSound = !IsEnabled;
+                _animation[animName].speed = IsEnabled ? 1 : -1;
+                _animation[animName].normalizedTime = IsEnabled ? 0 : 1;
+                _animation.Blend(animName, 2);
             }
 
             if (IsEnabled)
             {
-                var percentOutputPower = _totalEfficiency * 100.0;
-                var outputPowerReport = -_outputPower;
-
-                OutputPower = PluginHelper.GetFormattedPowerString(outputPowerReport);
-                overallEfficiencyStr = percentOutputPower.ToString("0.00") + "%";
+                OutputPower = PluginHelper.GetFormattedPowerString(-_outputPower);
+                overallEfficiencyStr = (_totalEfficiency * 10).ToString("0.00") + "%";
 
                 maximumElectricPower = _totalEfficiency >= 0
                     ? !chargedParticleMode
-                        ? _totalEfficiency * _maxChargedPowerForThermalGenerator
+                        ? _totalEfficiency * Math.Max(_maxChargedPowerForThermalGenerator, _maxThermalPower)
                         : _totalEfficiency * _maxChargedPowerForChargedGenerator
                     : 0;
 
