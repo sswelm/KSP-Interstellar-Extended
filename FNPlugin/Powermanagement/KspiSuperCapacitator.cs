@@ -15,12 +15,12 @@ namespace FNPlugin.Powermanagement
     [KSPModule("Super Capacitator")]
     class KspiSuperCapacitator : ResourceSuppliableModule
     {
-        [KSPField(groupName = FNBatteryGenerator.GROUP, groupDisplayName = FNBatteryGenerator.GROUP_TITLE, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_MaxCapacity", guiUnits = " MJe")]//Max Capacity
+        [KSPField(groupName = FNBatteryGenerator.Group, groupDisplayName = FNBatteryGenerator.GroupTitle, isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_MaxCapacity", guiUnits = " MJe")]//Max Capacity
         public float maxStorageCapacityMJ = 0;
         //[KSPField(groupName = FNBatteryGenerator.GROUP, groupDisplayName = FNBatteryGenerator.GROUP_TITLE, isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_Mass", guiUnits = " t")]//Mass
         //public float partMass = 0;
 
-        [KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
+        [KSPField(groupName = FNBatteryGenerator.Group, guiActiveEditor = false)]
         public string powerResourceName = ResourceSettings.Config.ElectricPowerInMegawatt;
         //[KSPField(groupName = FNBatteryGenerator.GROUP, guiActiveEditor = false)]
         //public string electricChargeResourceName = ResourceSettings.Config.ElectricPowerInKilowatt;

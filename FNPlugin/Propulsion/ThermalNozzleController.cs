@@ -614,7 +614,6 @@ namespace FNPlugin.Propulsion
 
                 myAttachedEngine.Fields[nameof(ModuleEngines.thrustPercentage)].Attribute.groupName = GROUP;
                 myAttachedEngine.Fields[nameof(ModuleEngines.thrustPercentage)].Attribute.groupDisplayName = GROUP_TITLE;
-                myAttachedEngine.Fields[nameof(ModuleEngines.thrustPercentage)].guiActive = showThrustPercentage;
 
                 myAttachedEngine.Fields[nameof(ModuleEngines.independentThrottle)].Attribute.groupName = GROUP;
                 myAttachedEngine.Fields[nameof(ModuleEngines.independentThrottle)].Attribute.groupDisplayName = GROUP_TITLE;
@@ -635,6 +634,8 @@ namespace FNPlugin.Propulsion
 
             if (myAttachedEngine != null)
             {
+                myAttachedEngine.Fields[nameof(ModuleEngines.thrustPercentage)].guiActive = showThrustPercentage;
+
                 _originalAtmCurve = myAttachedEngine.atmCurve;
                 _originalAtmosphereCurve = myAttachedEngine.atmosphereCurve;
                 _originalVelocityCurve = myAttachedEngine.velCurve;

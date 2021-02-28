@@ -15,47 +15,43 @@ namespace FNPlugin.Powermanagement
     [KSPModule("Battery Power Generator")]
     class FNBatteryGenerator : ResourceSuppliableModule
     {
-        public const string GROUP = "FNBatteryGenerator";
-        public const string GROUP_TITLE = "#LOC_KSPIE_FNBatteryGenerator_groupName";
+        public const string Group = "FNBatteryGenerator";
+        public const string GroupTitle = "#LOC_KSPIE_FNBatteryGenerator_groupName";
 
         // configuration
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumEnergy", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F2")]//Maximum Energy Stored
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumEnergy", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F2")]//Maximum Energy Stored
         public double maxPower = 1;
-        [KSPField]
-        public bool forceActivateAtStartup = true;
-        [KSPField]
-        public bool canRecharge = true;
-        [KSPField]
-        public double efficiency = 1;
-        [KSPField]
-        public string inputResources = "KilowattHour";
-        [KSPField]
-        public string inputConversionRates = "2.77777777777e-1";
-        [KSPField]
-        public string outputConversionRates = "";
-        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
+
+        [KSPField] public bool forceActivateAtStartup = true;
+        [KSPField] public bool canRecharge = true;
+        [KSPField] public bool canConsumeGlobal = false;
+        [KSPField] public double efficiency = 1;
+        [KSPField] public string inputResources = "KilowattHour";
+        [KSPField] public string inputConversionRates = "2.77777777777e-1";
+
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
         public float electricSupplyPriority = 5;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_SpareMWCapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Spare MW Capacity
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_SpareMWCapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Spare MW Capacity
         public double spareResourceCapacity;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Remainingsupplylifetime", guiUnits = " s", guiFormat = "F0")]//Remaining supply lifetime
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Remainingsupplylifetime", guiUnits = " s", guiFormat = "F0")]//Remaining supply lifetime
         public double batterySupplyRemaining;
-        [KSPField(groupName = GROUP, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Maximum Power
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Maximum Power
         public double currentMaxPower = 1;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_PowerSupply", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Power Supply
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_PowerSupply", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]//Power Supply
         public double powerSupply;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Wasteheat", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F3")]//Wasteheat
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FNBatteryGenerator_Wasteheat", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F3")]//Wasteheat
         public double wasteheat;
 
-        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
-        public double electrical_power_currently_needed;
-        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        public double electricalPowerCurrentlyNeeded;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
 
-        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = true, guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double powerSurplus;
-        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiFormat = "F2")]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiFormat = "F2")]
         public double effectiveFuelRatio;
-        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = false, guiActive = false, guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double effectiveMaxPower;
 
         // privates
@@ -76,8 +72,8 @@ namespace FNPlugin.Powermanagement
         {
             if (state == StartState.Editor) return;
 
-            string[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resourcesToSupply = resources_to_supply;
+            resourcesToSupply = new[]{ ResourceSettings.Config.ElectricPowerInMegawatt };
+
             base.OnStart(state);
 
             if (forceActivateAtStartup)
@@ -139,35 +135,47 @@ namespace FNPlugin.Powermanagement
             {
                 spareResourceCapacity = GetSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
 
-                electrical_power_currently_needed = efficiency == 0 ? 0 : efficiencyModifier * Math.Min(currentUnfilledResourceDemand + spareResourceCapacity, currentMaxPower) / efficiency;
+                electricalPowerCurrentlyNeeded = efficiency == 0 ? 0 : efficiencyModifier * Math.Min(currentUnfilledResourceDemand + spareResourceCapacity, currentMaxPower) / efficiency;
 
                 for (var i = 0; i < inputResourceNames.Count; i++)
                 {
+                    var currentInputConversionRate = inputResourceRate[i];
                     var currentResourceName = inputResourceNames[i];
-                    var currentBatteryResource = part.Resources[currentResourceName];
+                    currentFixedConsumption = electricalPowerCurrentlyNeeded * currentInputConversionRate * fixedDeltaTime;
 
-                    if (currentBatteryResource != null)
+                    double currentFuelRatio;
+                    if (canConsumeGlobal)
                     {
-                        var currentInputConversionRate = inputResourceRate[i];
+                        var consumedFixedAmount = CheatOptions.InfinitePropellant
+                            ? currentFixedConsumption
+                            : part.RequestResource(currentResourceName, currentFixedConsumption);
 
-                        currentRequestedConsumptionRate = electrical_power_currently_needed * currentInputConversionRate;
-                        currentFixedConsumption = currentRequestedConsumptionRate * fixedDeltaTime;
-                        var currentFuelRatio = currentFixedConsumption == 0 ? 1 : currentBatteryResource.amount / currentFixedConsumption;
+                        currentFuelRatio = currentFixedConsumption == 0 ? 1 : consumedFixedAmount / currentFixedConsumption;
+                    }
+                    else
+                    {
+                        var currentBatteryResource = part.Resources[currentResourceName];
 
-                        if (currentFuelRatio < fuelRatio)
-                            fuelRatio = currentFuelRatio;
+                        if (currentBatteryResource == null) continue;
 
-                        var currentBatterySupplyRemaining = currentFuelRatio / fixedDeltaTime / GameConstants.ecPerMJ;
-                        if (currentBatterySupplyRemaining < batterySupplyRemaining)
-                            batterySupplyRemaining = currentBatterySupplyRemaining;
+                        var availableAmount = CheatOptions.InfinitePropellant ? currentFixedConsumption : currentBatteryResource.amount;
 
-                        if (currentFixedConsumption.IsInfinityOrNaN().IsFalse())
+                        currentFuelRatio = currentFixedConsumption == 0 ? 1 : availableAmount / currentFixedConsumption;
+
+                        if (!CheatOptions.InfinitePropellant && currentFixedConsumption.IsInfinityOrNaN().IsFalse())
                             currentBatteryResource.amount = Math.Max(0, currentBatteryResource.amount - currentFixedConsumption);
                     }
+
+                    if (currentFuelRatio < fuelRatio)
+                        fuelRatio = currentFuelRatio;
+
+                    var currentBatterySupplyRemaining = currentFuelRatio / fixedDeltaTime / GameConstants.ecPerMJ;
+                    if (currentBatterySupplyRemaining < batterySupplyRemaining)
+                        batterySupplyRemaining = currentBatterySupplyRemaining;
                 }
 
                 effectiveFuelRatio = Math.Min(1, fuelRatio);
-                var rawPowerSupply = effectiveFuelRatio * electrical_power_currently_needed;
+                var rawPowerSupply = effectiveFuelRatio * electricalPowerCurrentlyNeeded;
 
                 powerSupply = efficiency * rawPowerSupply;
                 wasteheat = inefficiency * rawPowerSupply;
