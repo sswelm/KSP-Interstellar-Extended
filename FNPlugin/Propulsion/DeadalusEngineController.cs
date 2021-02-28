@@ -791,7 +791,21 @@ namespace FNPlugin.Propulsion
 
                 massFlowRateKgPerSecond = _calculatedFuelflow * 0.001;
 
-                PersistentThrust(fixedDeltaTime, _universalTime, part.transform.up, vessel.totalMass);
+                var realFixedDeltaTime = (double)(decimal) Math.Round(TimeWarp.fixedDeltaTime, 7);
+
+                if (realFixedDeltaTime > 20)
+                {
+                    var deltaCalculations = Math.Ceiling(realFixedDeltaTime * 0.05);
+                    var deltaTimeStep = realFixedDeltaTime / deltaCalculations;
+
+                    for (var step = 0; step < deltaCalculations; step++)
+                    {
+                        PersistentThrust(deltaTimeStep, _universalTime + step * deltaTimeStep, part.transform.up, vessel.totalMass);
+                        CalculateTimeDilation();
+                    }
+                }
+                else
+                    PersistentThrust(realFixedDeltaTime, _universalTime, part.transform.up, vessel.totalMass);
 
                 if (fuelRatio < 0.999)
                 {
@@ -851,7 +865,7 @@ namespace FNPlugin.Propulsion
             _curEngineT.atmosphereCurve = newAtmosphereCurve;
         }
 
-        private void PersistentThrust(double modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
+        private void PersistentThrust(double fixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
             ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSioCountdown > 0, ratioHeadingVersusRequest == 1);
             if (ratioHeadingVersusRequest != 1)
@@ -862,7 +876,7 @@ namespace FNPlugin.Propulsion
 
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
 
-            var deltaVv = PluginHelper.CalculateDeltaVV(thrustVector, vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * _engineIsp, out demandMass);
+            var deltaVv = PluginHelper.CalculateDeltaVV(thrustVector, vesselMass, fixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * _engineIsp, out demandMass);
 
             double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
             if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))
