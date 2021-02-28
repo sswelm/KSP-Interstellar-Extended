@@ -1,11 +1,11 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Collections.Generic;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.External;
 using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Collections.Generic;
 using TweakScale;
 using UnityEngine;
 
@@ -177,7 +177,7 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
         public double timeDilation;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_radhazardstr")]
-        public string radhazardstr = "";
+        public string radHazardStr = "";
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_partMass", guiFormat = "F3", guiUnits = " t")]
         public float partMass = 1;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fusionRatio", guiFormat = "F3")]
@@ -189,16 +189,15 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")]
         public string fuelAmountsRatio;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_thrustPowerInTeraWatt", guiFormat = "F2", guiUnits = " TW")]
-        public double thrustPowerInTeraWatt;
+        public double thrustPowerInTerraWatt;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateKgPerSecond", guiFormat = "F6", guiUnits = " kg/s")]
         public double massFlowRateKgPerSecond;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateTonPerHour", guiFormat = "F6", guiUnits = " t/h")]
         public double massFlowRateTonPerHour;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_storedThrotle")]
-        public float storedThrotle;
+        public float storedThrottle;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_effectiveMaxThrustInKiloNewton", guiFormat = "F2", guiUnits = " kN")]
         public double effectiveMaxThrustInKiloNewton;
-
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_worldSpaceVelocity", guiFormat = "F2", guiUnits = " m/s")]
         public double worldSpaceVelocity;
 
@@ -425,7 +424,7 @@ namespace FNPlugin.Propulsion
             // bind with fields and events
             _deactivateRadSafetyEvent = Events[nameof(DeactivateRadSafety)];
             _activateRadSafetyEvent = Events[nameof(ActivateRadSafety)];
-            _radHazardStrField = Fields[nameof(radhazardstr)];
+            _radHazardStrField = Fields[nameof(radHazardStr)];
 
             translatedTechMk1 = PluginHelper.DisplayTech(upgradeTechReq1);
             translatedTechMk2 = PluginHelper.DisplayTech(upgradeTechReq2);
@@ -590,13 +589,13 @@ namespace FNPlugin.Propulsion
         public override void OnUpdate()
         {
             // stop engines and drop out of timewarp when X pressed
-            if (vessel.packed && storedThrotle > 0 && Input.GetKeyDown(KeyCode.X))
+            if (vessel.packed && storedThrottle > 0 && Input.GetKeyDown(KeyCode.X))
             {
                 // Return to realtime
                 TimeWarp.SetRate(0, true);
 
-                storedThrotle = 0;
-                vessel.ctrlState.mainThrottle = storedThrotle;
+                storedThrottle = 0;
+                vessel.ctrlState.mainThrottle = storedThrottle;
             }
 
             if (_curEngineT == null) return;
@@ -604,7 +603,7 @@ namespace FNPlugin.Propulsion
             // When transitioning from timewarp to real update radiationRatio
             if (_warpToReal)
             {
-                vessel.ctrlState.mainThrottle = storedThrotle;
+                vessel.ctrlState.mainThrottle = storedThrottle;
                 _warpToReal = false;
             }
 
@@ -629,7 +628,7 @@ namespace FNPlugin.Propulsion
             if (kerbalHazardCount > 0)
             {
                 _radHazard = true;
-                radhazardstr = Localizer.Format(kerbalHazardCount > 1
+                radHazardStr = Localizer.Format(kerbalHazardCount > 1
                     ? "#LOC_KSPIE_DeadalusEngineController_radhazardstr2"
                     : "#LOC_KSPIE_DeadalusEngineController_radhazardstr1", kerbalHazardCount);
 
@@ -639,7 +638,7 @@ namespace FNPlugin.Propulsion
             {
                 _radHazardStrField.guiActive = false;
                 _radHazard = false;
-                radhazardstr = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_radhazardstr3");//"None."
+                radHazardStr = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_radhazardstr3");//"None."
             }
 
             Fields[nameof(powerUsage)].guiActive = EffectiveMaxPowerRequirement > 0;
@@ -711,7 +710,7 @@ namespace FNPlugin.Propulsion
             KillKerbalsWithRadiation(throttle);
 
             if (!vessel.packed && !_warpToReal)
-                storedThrotle = vessel.ctrlState.mainThrottle;
+                storedThrottle = vessel.ctrlState.mainThrottle;
 
             // Update ISP
             effectiveIsp = timeDilation * _engineIsp;
@@ -769,7 +768,7 @@ namespace FNPlugin.Propulsion
                     ? 1
                     : maximizeThrust
                         ? ProcessPowerAndWasteHeat(1)
-                        : ProcessPowerAndWasteHeat(storedThrotle);
+                        : ProcessPowerAndWasteHeat(storedThrottle);
 
                 if (fusionRatio <= 0.01)
                 {
@@ -852,7 +851,7 @@ namespace FNPlugin.Propulsion
             _curEngineT.maxThrust =  Mathf.Max((float)effectiveMaxThrustInKiloNewton, 0.0001f);
 
             massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
-            thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * PhysicsGlobals.GravitationalAcceleration * 1e-12;
+            thrustPowerInTerraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * PhysicsGlobals.GravitationalAcceleration * 1e-12;
 
             UpdateKerbalismEmitter();
         }
@@ -874,7 +873,7 @@ namespace FNPlugin.Propulsion
                 return;
             }
 
-            var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
+            var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrottle);
 
             var deltaVv = PluginHelper.CalculateDeltaVV(thrustVector, vesselMass, fixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * _engineIsp, out demandMass);
 
