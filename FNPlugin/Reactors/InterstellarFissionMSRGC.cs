@@ -254,25 +254,29 @@ namespace FNPlugin.Reactors
             enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
             oxygenDepletedUraniumVolumeMultiplier = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
 
-            var mainReactorFuel = part.Resources.Get(CurrentFuelMode.Variants.First(m => m.FuelRatio > 0).ReactorFuels.First().ResourceName);
-            if (mainReactorFuel != null)
-                reactorFuelMaxAmount = part.Resources.Get(mainReactorFuel.resourceName).maxAmount;
-
-            foreach (ReactorFuelType fuelMode in fuelModes)
-            {
-                foreach (ReactorFuel fuel in fuelMode.Variants.First().ReactorFuels)
-                {
-                    var resource = part.Resources.Get(fuel.ResourceName);
-                    if (resource == null)
-                        // non-tweakable resources
-                        part.Resources.Add(fuel.ResourceName, 0, 0, true, false, false, true, 0);
-                }
-            }
-
             Events[nameof(DumpActinides)].guiActive = canDumpActinides;
             Events[nameof(SwitchMode)].guiActiveEditor = Events[nameof(SwitchMode)].guiActive = Events[nameof(SwitchMode)].guiActiveUnfocused = CheckFuelModes() > 1;
             Events[nameof(SwapFuelMode)].guiActive = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1;
             Events[nameof(EditorSwapFuel)].guiActiveEditor = fuelModes.Count > 1;
+
+            if (!CurrentFuelMode.Variants.Any(m => m.FuelRatio > 0))
+                return;
+
+            ReactorFuelMode currentVariant = CurrentFuelMode.Variants.First(m => m.FuelRatio > 0);
+            var initialReactorFuel = part.Resources.Get(currentVariant.ReactorFuels.First().ResourceName);
+            if (initialReactorFuel != null)
+                reactorFuelMaxAmount = part.Resources.Get(initialReactorFuel.resourceName).maxAmount;
+
+            foreach (var fuelMode in fuelModes)
+            {
+                foreach (var reactorFuel in fuelMode.Variants.First().ReactorFuels)
+                {
+                    var resource = part.Resources.Get(reactorFuel.ResourceName);
+                    if (resource == null)
+                        // non-tweakable resources
+                        part.Resources.Add(reactorFuel.ResourceName, 0, 0, true, false, false, true, 0);
+                }
+            }
         }
 
         public override void OnFixedUpdate()
@@ -420,13 +424,16 @@ namespace FNPlugin.Reactors
         public int CheckFuelModes()
         {
             var modesAvailable = 0;
-            var fuelType = CurrentFuelMode.Variants.First().ReactorFuels.First().FuelName;
+            var fuelMode = CurrentFuelMode.Variants.First();
+            string fuelName = fuelMode.ReactorFuels.First().FuelName;
             foreach (var reactorFuelType in fuelModes)
             {
-                var currentMode = reactorFuelType.Variants.First().ReactorFuels.First().FuelName;
-                if (currentMode == fuelType)
+                var currentFuelMode = reactorFuelType.Variants.First();
+                var reactorFuel = currentFuelMode.ReactorFuels.First();
+                if (reactorFuel.FuelName == fuelName)
                     modesAvailable++;
             }
+
             return modesAvailable;
         }
 
