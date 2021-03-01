@@ -986,7 +986,10 @@ namespace FNPlugin.Propulsion
                 return;
 
             var parts = EditorLogic.fetch.ship.parts;
-            var warpDriveList = parts.Select(currentPart => currentPart.FindModuleImplementing<AlcubierreDrive>()).ToList();
+
+            var warpDriveList = parts.Select(currentPart => currentPart
+                .FindModuleImplementing<AlcubierreDrive>())
+                .Where(alcubierreDrive => alcubierreDrive != null).ToList();
 
             var vesselDryMass = parts.Sum(m => m.mass);
             var vesselWetMass = parts.Sum(m => m.Resources.Sum(r => r.amount * r.info.density));

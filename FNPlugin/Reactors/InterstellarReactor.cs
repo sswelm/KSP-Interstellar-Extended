@@ -256,6 +256,7 @@ namespace FNPlugin.Reactors
         [KSPField] public double powerUpgradeCoreTempMult = 1;
         [KSPField] public double PowerOutput = 0;
         [KSPField] public double massCostExponent = 2.5;
+        [KSPField] public double plasmaAfterburnerRange = 2;
 
         [KSPField] public double magneticNozzlePowerMult = 1;
         [KSPField] public double magneticNozzleMhdMult = 2;
@@ -422,6 +423,8 @@ namespace FNPlugin.Reactors
         private bool _isFixedUpdatedCalled;
 
         // properties
+
+        public double PlasmaAfterburnerRange => plasmaAfterburnerRange;
         public double ForcedMinimumThrottleRatio => (double)(decimal)forcedMinimumThrottle / 100;
         public double EfficencyConnectedThermalEnergyGenerator => storedIsThermalEnergyGeneratorEfficiency;
         public double EfficencyConnectedChargedEnergyGenerator => storedIsChargedEnergyGeneratorEfficiency;

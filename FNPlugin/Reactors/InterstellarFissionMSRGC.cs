@@ -27,18 +27,18 @@ namespace FNPlugin.Reactors
         [KSPField] public double minimumTemperature = 0;
         [KSPField] public bool canDumpActinides = false;
 
-        PartResourceDefinition fluorineGasDefinition;
-        PartResourceDefinition depletedFuelDefinition;
-        PartResourceDefinition enrichedUraniumDefinition;
-        PartResourceDefinition oxygenGasDefinition;
+        private PartResourceDefinition fluorineGasDefinition;
+        private PartResourceDefinition depletedFuelDefinition;
+        private PartResourceDefinition enrichedUraniumDefinition;
+        private PartResourceDefinition oxygenGasDefinition;
 
-        BaseEvent _manualRestartEvent;
+        private BaseEvent _manualRestartEvent;
 
-        double fluorineDepletedFuelVolumeMultiplier;
-        double enrichedUraniumVolumeMultiplier;
-        double depletedToEnrichVolumeMultiplier;
-        double oxygenDepletedUraniumVolumeMultiplier;
-        double reactorFuelMaxAmount;
+        private double fluorineDepletedFuelVolumeMultiplier;
+        private double enrichedUraniumVolumeMultiplier;
+        private double depletedToEnrichVolumeMultiplier;
+        private double oxygenDepletedUraniumVolumeMultiplier;
+        private double reactorFuelMaxAmount;
 
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic;
 
@@ -342,7 +342,7 @@ namespace FNPlugin.Reactors
                 fuelModes = GetReactorFuelModes();
             }
 
-            CurrentFuelMode = (fuel_mode < fuelModes.Count) ? fuelModes[fuel_mode] : fuelModes.FirstOrDefault();
+            CurrentFuelMode = fuel_mode < fuelModes.Count ? fuelModes[fuel_mode] : fuelModes.FirstOrDefault();
         }
 
         private void DisableResources()

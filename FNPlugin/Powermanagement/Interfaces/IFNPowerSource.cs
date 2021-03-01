@@ -10,6 +10,8 @@ namespace FNPlugin.Powermanagement
 
         double NormalizedPowerMultiplier { get; }
 
+        double PlasmaAfterburnerRange { get; }
+
         double EngineHeatProductionMult { get; }
 
         double PlasmaHeatProductionMult { get; }

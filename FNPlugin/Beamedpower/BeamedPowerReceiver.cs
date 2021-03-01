@@ -346,6 +346,7 @@ namespace FNPlugin.Beamedpower
         public bool CanUseAllPowerForPlasma => false;
         public bool CanProducePower => ProducedThermalHeat > 0;
         public double MinCoolingFactor => minCoolingFactor;
+        public double PlasmaAfterburnerRange => 2;
         public double EngineHeatProductionMult => engineHeatProductionMult;
         public double PlasmaHeatProductionMult => plasmaHeatProductionMult;
         public double EngineWasteheatProductionMult => engineWasteheatProductionMult;

@@ -144,7 +144,6 @@ namespace FNPlugin.Propulsion
         [KSPField] public double requiredMegajouleRatio = 0;
         [KSPField] public double exitArea = 1;
         [KSPField] public double exitAreaScaleExponent = 2;
-        [KSPField] public double plasmaAfterburnerRange = 2;
         [KSPField] public bool showThrustPercentage = true;
         [KSPField] public string throttleAnimName;
         [KSPField] public float throttleAnimExp = 1;
@@ -2060,12 +2059,20 @@ namespace FNPlugin.Propulsion
             if (!string.IsNullOrEmpty(_powerEffectNameParticleFx))
             {
                 powerEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.currentThrottle, fuelEffectRatio)) : 0;
+
+                if (_showIspThrottle)
+                    powerEffectRatio *= 0.5f + (1 - ispThrottle) * 0.005f;
+
                 part.Effect(_powerEffectNameParticleFx, powerEffectRatio);
             }
 
             if (!string.IsNullOrEmpty(_runningEffectNameParticleFx))
             {
                 runningEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.requestedThrottle, fuelEffectRatio)) : 0;
+
+                if (_showIspThrottle)
+                    powerEffectRatio *= 0.5f + (1 - ispThrottle) * 0.005f;
+
                 part.Effect(_runningEffectNameParticleFx, powerEffectRatio);
             }
 
@@ -2210,7 +2217,7 @@ namespace FNPlugin.Propulsion
                 if (UsePlasmaAfterBurner)
                 {
                     _maxISP = scaledChargedRatio * baseMaxIsp;
-                    _maxISP += Math.Pow(ispThrottle / 100d, 2) * scaledChargedRatio * plasmaAfterburnerRange * baseMaxIsp;
+                    _maxISP += Math.Pow(ispThrottle / 100d, 2) * scaledChargedRatio * AttachedReactor.PlasmaAfterburnerRange * baseMaxIsp;
                 }
                 else
                     _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * maxThermalNozzleIsp;
