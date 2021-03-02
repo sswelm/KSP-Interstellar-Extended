@@ -172,6 +172,7 @@ namespace FNPlugin.Reactors
         [KSPField(groupName = UpgradesGroup, groupDisplayName = UpgradesGroupDisplayName, guiName = "#LOC_KSPIE_Reactor_powerOutputMk6", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")] public double powerOutputMk6;
         [KSPField(groupName = UpgradesGroup, groupDisplayName = UpgradesGroupDisplayName, guiName = "#LOC_KSPIE_Reactor_powerOutputMk7", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")] public double powerOutputMk7;
 
+        [KSPField] public bool allModesAvailableAtStart;
         [KSPField] public bool showEngineConnectionInfo = true;
         [KSPField] public bool showPowerGeneratorConnectionInfo = true;
         [KSPField] public bool mayExhaustInAtmosphereHomeworld = true;
@@ -2116,7 +2117,10 @@ namespace FNPlugin.Reactors
                 sb.Append(headerColor).Append(Localizer.Format("#LOC_KSPIE_Reactor_getInfoFuelModes")).AppendLine(":</color><size=10>");
                 foreach (var group in fuelGroups)
                 {
-                     sb.Append("Mk").Append(Math.Max(0, 1 + group.TechLevel - reactorModeTechBonus)).Append(": ").AppendLine(Localizer.Format(group.ModeGUIName));
+                    if (!allModesAvailableAtStart)
+                        sb.Append("Mk").Append(Math.Max(0, 1 + group.TechLevel - reactorModeTechBonus)).Append(": ");
+
+                    sb.AppendLine(Localizer.Format(group.ModeGUIName));
                 }
                 sb.AppendLine("</size>");
             }
