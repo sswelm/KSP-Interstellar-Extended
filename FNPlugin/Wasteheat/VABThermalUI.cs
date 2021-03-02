@@ -1,5 +1,4 @@
 ﻿using FNPlugin.Beamedpower;
-using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Powermanagement;
 using FNPlugin.Powermanagement.Interfaces;
@@ -690,6 +689,7 @@ namespace FNPlugin.Wasteheat
             var convectionRestingTempAboveExternalAt4Percent = Math.Max(0, restingConvectionTempAt4Percent - ExternalTemperatureInKelvin);
             var convectionRestingTempAboveExternalAt2Percent = Math.Max(0, restingConvectionTempAt2Percent - ExternalTemperatureInKelvin);
 
+            // calculates dissipation on top of convection
             var dissipationEnergyAtCustomPct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAtCustomPct, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
             var dissipationEnergyAt100Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt100Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;
             var dissipationEnergyAt90Pct = Math.Pow(Math.Pow(convectionRestingTempAboveExternalAt90Percent, 4) * PhysicsGlobals.StefanBoltzmanConstant * _vesselBaseRadiatorArea, 0.25) * 1e-6;

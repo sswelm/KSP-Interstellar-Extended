@@ -1242,8 +1242,7 @@ namespace FNPlugin.Wasteheat
 
         public override void OnStart(StartState state)
         {
-            string[] resourcesToSupply = { ResourceSettings.Config.WasteHeatInMegawatt };
-            this.resourcesToSupply = resourcesToSupply;
+            resourcesToSupply = new[] { ResourceSettings.Config.WasteHeatInMegawatt };
 
             base.OnStart(state);
 
@@ -1679,8 +1678,6 @@ namespace FNPlugin.Wasteheat
                     if (!radiatorIsEnabled)
                         convPowerDissipation *= 0.2;
 
-                    //_convectedThermalPower = canRadiateHeat && convPowerDissipation > 0 ? ConsumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager) : 0;
-
                     _convectedThermalPower = canRadiateHeat
                         ? convPowerDissipation > 0
                             ? ConsumeWasteHeatPerSecond(convPowerDissipation, wasteheatManager)
@@ -1722,7 +1719,7 @@ namespace FNPlugin.Wasteheat
 
             var airHeatTransferModifier = PluginSettings.Config.AirHeatTransferCoefficient * (1 - submergedPortion) * atmosphericDensity;
             var lqdHeatTransferModifier = PluginSettings.Config.LqdHeatTransferCoefficient * submergedPortion;
-            var grapheneModifier = 1 - grapheneRadiatorRatio + grapheneRadiatorRatio * 0.10;
+            var grapheneModifier = (1 - grapheneRadiatorRatio) + (grapheneRadiatorRatio * 0.10);
             var totalHeatTransferModifier = airHeatTransferModifier + lqdHeatTransferModifier;
             var heatTransferModifier = radiatorConvectiveBonus + Math.Max(1, effectiveVesselSpeed + rotationModifier);
 
