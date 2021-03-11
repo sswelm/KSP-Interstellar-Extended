@@ -89,23 +89,23 @@ namespace FNPlugin
 
         void OnPartDestroyed(Part part)
         {
-            Debug.Log("[KSPI]: GameEventSubscriber - detected OnPartDestroyed");
+            //Debug.Log("[KSPI]: GameEventSubscriber - detected OnPartDestroyed");
 
-            var drive = part.FindModuleImplementing<AlcubierreDrive>();
+            //var drive = part.FindModuleImplementing<AlcubierreDrive>();
 
-            if (drive == null) return;
+            //if (drive == null) return;
 
-            if (drive.IsSlave)
-            {
-                Debug.Log("[KSPI]: GameEventSubscriber - destroyed part is a slave warpdrive");
-                drive = drive.vessel.FindPartModulesImplementing<AlcubierreDrive>().FirstOrDefault(m => !m.IsSlave);
-            }
+            //if (drive.IsSlave)
+            //{
+            //    Debug.Log("[KSPI]: GameEventSubscriber - destroyed part is a slave warpdrive");
+            //    drive = drive.vessel.FindPartModulesImplementing<AlcubierreDrive>().FirstOrDefault(m => !m.IsSlave);
+            //}
 
-            if (drive != null)
-            {
-                Debug.Log("[KSPI]: GameEventSubscriber - deactivate master warp drive");
-                drive.DeactivateWarpDrive();
-            }
+            //if (drive != null)
+            //{
+            //    Debug.Log("[KSPI]: GameEventSubscriber - deactivate master warp drive");
+            //    drive.DeactivateWarpDrive();
+            //}
         }
 
         void OnVesselSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody> gameEvent)

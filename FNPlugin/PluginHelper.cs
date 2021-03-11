@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using FNPlugin.Constants;
 using UnityEngine;
 
 namespace FNPlugin
