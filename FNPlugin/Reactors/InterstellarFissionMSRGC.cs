@@ -181,7 +181,7 @@ namespace FNPlugin.Reactors
                 if (actinidesResource == null)
                     return base.MaximumThermalPower;
 
-                var fuelActinideMassRatio = 1 - actinidesResource.amount / actinidesResource.maxAmount;
+                var fuelActinideMassRatio = actinidesResource.maxAmount > 0 ?  1 - actinidesResource.amount / actinidesResource.maxAmount : 1;
 
                 actinidesModifer = Math.Pow(fuelActinideMassRatio * fuelActinideMassRatio, CurrentFuelMode.ReactionRatePowerMultiplier);
 
@@ -383,6 +383,7 @@ namespace FNPlugin.Reactors
         {
             var startFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
             ReactorFuel currentFirstFuelType;
+            var initialFuelMode = fuel_mode;
             do
             {
                 fuel_mode++;
@@ -392,7 +393,7 @@ namespace FNPlugin.Reactors
                 CurrentFuelMode = fuelModes[fuel_mode];
                 currentFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
             }
-            while (currentFirstFuelType.ResourceName == startFirstFuelType.ResourceName);
+            while (currentFirstFuelType.ResourceName == startFirstFuelType.ResourceName && initialFuelMode != fuel_mode);
 
             fuelModeStr = CurrentFuelMode.ModeGUIName;
         }

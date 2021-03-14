@@ -2438,7 +2438,7 @@ namespace FNPlugin.Reactors
                 return 0;
         }
 
-        protected double GetFuelAvailability(PartResourceDefinition definition)
+        protected double GetFuelAvailability(PartResourceDefinition definition, bool consumeGlobal)
         {
             if (definition == null)
             {
@@ -2446,7 +2446,7 @@ namespace FNPlugin.Reactors
                 return 0;
             }
 
-            if (definition.resourceTransferMode == ResourceTransferMode.NONE)
+            if (!consumeGlobal)
             {
                 if (part.Resources.Contains(definition.name))
                     return part.Resources[definition.name].amount;
@@ -2677,7 +2677,7 @@ namespace FNPlugin.Reactors
 
                     var availableResources = resourceVariantsDefinitions
                         .Select(m => new { m.resourceDefinition, m.ratio }).Distinct()
-                        .Select(d => new { definition = d.resourceDefinition, amount = GetFuelAvailability(d.resourceDefinition), effectiveDensity = d.resourceDefinition.density * d.ratio})
+                        .Select(d => new { definition = d.resourceDefinition, amount = GetFuelAvailability(d.resourceDefinition, fuel.ConsumeGlobal), effectiveDensity = d.resourceDefinition.density * d.ratio})
                         .Where(m => m.amount > 0).ToList();
 
                     var availabilityInTon = availableResources.Sum(m => m.amount * m.effectiveDensity);
