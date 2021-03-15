@@ -38,7 +38,8 @@ namespace FNPlugin.Reactors
         private double enrichedUraniumVolumeMultiplier;
         private double depletedToEnrichVolumeMultiplier;
         private double oxygenDepletedUraniumVolumeMultiplier;
-        private double reactorFuelMaxAmount;
+        private double reactorMainFuelMaxAmount;
+        private double reactorMainFuelDensityInTon;
 
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic;
 
@@ -263,9 +264,16 @@ namespace FNPlugin.Reactors
                 return;
 
             ReactorFuelMode currentVariant = CurrentFuelMode.Variants.First(m => m.FuelRatio > 0);
-            var initialReactorFuel = part.Resources.Get(currentVariant.ReactorFuels.First().ResourceName);
+
+            var firstReactorFuel = currentVariant.ReactorFuels.First();
+
+            var initialReactorFuel = part.Resources.Get(firstReactorFuel.ResourceName);
             if (initialReactorFuel != null)
-                reactorFuelMaxAmount = part.Resources.Get(initialReactorFuel.resourceName).maxAmount;
+            {
+                if (reactorMainFuelMaxAmount == 0)
+                    reactorMainFuelMaxAmount = initialReactorFuel.maxAmount;
+                reactorMainFuelDensityInTon = firstReactorFuel.DensityInTon;
+            }
 
             foreach (var fuelMode in fuelModes)
             {
@@ -348,34 +356,63 @@ namespace FNPlugin.Reactors
         private void DisableResources()
         {
             bool editor = HighLogic.LoadedSceneIsEditor;
-            foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
+
+            var firstVariant = CurrentFuelMode.Variants.First();
+
+            foreach (ReactorFuel fuel in firstVariant.ReactorFuels)
             {
                 var resource = part.Resources.Get(fuel.ResourceName);
                 if (resource == null) continue;
+
+                resource.maxAmount = 0;
 
                 if (editor)
                 {
                     resource.amount = 0;
                     resource.isTweakable = false;
                 }
-                resource.maxAmount = 0;
             }
         }
 
         private void EnableResources()
         {
             bool editor = HighLogic.LoadedSceneIsEditor;
-            foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
+
+            // calculate total
+            var firstVariant = CurrentFuelMode.Variants.First();
+
+            var totalTonsFuelUsePerMj = firstVariant.ReactorFuels.Sum(m => m.TonsFuelUsePerMj);
+            //var totalDensityInTon = firstVariant.ReactorFuels.Sum(m => m.DensityInTon);
+
+            foreach (ReactorFuel fuel in firstVariant.ReactorFuels)
             {
                 var resource = part.Resources.Get(fuel.ResourceName);
                 if (resource == null) continue;
 
+                var weightedAmount = reactorMainFuelMaxAmount * (fuel.TonsFuelUsePerMj / totalTonsFuelUsePerMj) * ( reactorMainFuelDensityInTon / fuel.DensityInTon);
+
+                resource.maxAmount = weightedAmount;
+
                 if (editor)
                 {
-                    resource.amount = reactorFuelMaxAmount;
+                    resource.amount = weightedAmount;
                     resource.isTweakable = true;
                 }
-                resource.maxAmount = reactorFuelMaxAmount;
+            }
+
+            UpdatePartActionWindow();
+        }
+
+        private void UpdatePartActionWindow()
+        {
+            var window = FindObjectsOfType<UIPartActionWindow>().FirstOrDefault(w => w.part == part);
+            if (window == null) return;
+
+            foreach (UIPartActionWindow actionWindow in FindObjectsOfType<UIPartActionWindow>())
+            {
+                if (window.part != part) continue;
+                actionWindow.ClearList();
+                actionWindow.displayDirty = true;
             }
         }
 

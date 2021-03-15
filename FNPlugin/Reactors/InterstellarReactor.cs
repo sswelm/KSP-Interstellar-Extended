@@ -1413,7 +1413,7 @@ namespace FNPlugin.Reactors
 
         protected void UpdateFuelMode()
         {
-            fuelModeStr = CurrentFuelMode != null ? CurrentFuelMode.ModeGUIName : "null";
+            fuelModeStr = CurrentFuelMode != null ? CurrentFuelMode.DisplayName : "null";
         }
 
         public override void OnUpdate()
@@ -2120,7 +2120,7 @@ namespace FNPlugin.Reactors
                     if (!allModesAvailableAtStart)
                         sb.Append("Mk").Append(Math.Max(0, 1 + group.TechLevel - reactorModeTechBonus)).Append(": ");
 
-                    sb.AppendLine(Localizer.Format(group.ModeGUIName));
+                    sb.AppendLine(Localizer.Format(group.DisplayName));
                 }
                 sb.AppendLine("</size>");
             }
@@ -2330,7 +2330,7 @@ namespace FNPlugin.Reactors
             if (CurrentFuelMode == null)
                 Debug.LogWarning("[KSPI]: Warning : CurrentFuelMode is null");
             else
-                Debug.Log("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
+                Debug.Log("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.DisplayName);
         }
 
         protected double ConsumeReactorFuel(ReactorFuel fuel, double powerInMj, double deltaTime, PartResource resourceControl = null )

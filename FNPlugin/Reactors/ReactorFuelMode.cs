@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using KSP.Localization;
 
 namespace FNPlugin.Reactors
 {
@@ -56,6 +57,7 @@ namespace FNPlugin.Reactors
 
             Index = first.Index;
             ModeGUIName = first.ModeGuiName;
+            DisplayName = first.DisplayName;
             TechLevel = first.TechLevel;
             MinimumFusionGainFactor = first.MinimumQ;
             TechRequirement = first.TechRequirement;
@@ -104,6 +106,7 @@ namespace FNPlugin.Reactors
         public string AlternativeFuelType6 { get; }
 
         public string ModeGUIName { get; }
+        public string DisplayName { get; }
         public string TechRequirement { get; }
 
         public List<ReactorFuelMode> Variants { get;}
@@ -130,6 +133,7 @@ namespace FNPlugin.Reactors
         {
             Name = node.GetValue("name");
             ModeGuiName = node.GetValue("GUIName");
+            DisplayName = node.HasValue("DisplayName") ? Localizer.Format(node.GetValue("DisplayName")) : ModeGuiName;
             SupportedReactorTypes = Convert.ToInt32(node.GetValue("ReactorType"));
             Index = node.HasValue("Index") ? int.Parse(node.GetValue("Index")) : 0;
             Hidden = node.HasValue("Hidden") && bool.Parse(node.GetValue("Hidden"));
@@ -192,6 +196,7 @@ namespace FNPlugin.Reactors
 
         public string Name { get; }
         public string ModeGuiName { get; }
+        public string DisplayName { get; }
         public string TechRequirement { get; }
 
         public int SupportedReactorTypes { get; }
