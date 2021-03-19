@@ -1,5 +1,7 @@
 ﻿using KSP.Localization;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FNPlugin.Storage
 {
@@ -12,10 +14,11 @@ namespace FNPlugin.Storage
         private const double HourDay = 24;
         private const double MinutesInHour = 60;
         private const double SecondsInMinute = 60;
+        private const double SecondsInDay = SecondsInMinute * MinutesInHour * HourDay;
 
         // isPersistent
         [KSPField(isPersistant = true)]
-        public double lastActiveTime = 1;
+        public double lastActiveTime = -1;
 
         // Settings
         [KSPField(isPersistant = false)]
@@ -34,6 +37,7 @@ namespace FNPlugin.Storage
         private double _densityRat = 1;
         private PartResourceDefinition _decaySourceDefinition;
         private PartResourceDefinition _decayProductDefinition;
+        private readonly List<FNResourceTransfer> _managedTransferableResources = new List<FNResourceTransfer>();
 
         public override void OnStart(StartState state)
         {
@@ -43,30 +47,38 @@ namespace FNPlugin.Storage
             if (_decaySourceDefinition == null)
                 return;
 
-            if (CheatOptions.UnbreakableJoints)
-                return;
-
             var decayResource = part.Resources[resourceName];
             if (decayResource == null)
                 return;
 
+            if (part.vessel != null)
+            {
+                var compatibleTanks =
+                    part.vessel.FindPartModulesImplementing<FNResourceTransfer>()
+                        .Where(m => m.resourceName == _decayProductDefinition.displayName);
+
+                _managedTransferableResources.AddRange(compatibleTanks);
+            }
+
             if (halfLifeInYears > 0)
-                decayConstant = Math.Log(2) / (halfLifeInYears * LengthYear * HourDay * MinutesInHour * SecondsInMinute);
+                decayConstant = Math.Log(2) / (halfLifeInYears * LengthYear * SecondsInDay);
 
             if (halfLifeInDays > 0)
-                decayConstant = Math.Log(2) / (halfLifeInDays * HourDay * MinutesInHour * SecondsInMinute);
+                decayConstant = Math.Log(2) / (halfLifeInDays * SecondsInDay);
 
             if (_decayProductDefinition != null)
             {
-                var decayDensity = _decayProductDefinition.density;
-                if (decayDensity > 0 && decayResource.info.density > 0)
-                    _densityRat = (double)(decimal)decayResource.info.density / (double)(decimal)_decayProductDefinition.density;
+                if (_decayProductDefinition.density > 0 && _decaySourceDefinition.density > 0)
+                    _densityRat = (double)(decimal)_decaySourceDefinition.density / (double)(decimal)_decayProductDefinition.density;
             }
 
             if (state == StartState.Editor || CheatOptions.UnbreakableJoints)
                 return;
 
-            double timeDiffInSeconds = lastActiveTime - Planetarium.GetUniversalTime();
+            if (lastActiveTime < 0)
+                lastActiveTime = Planetarium.GetUniversalTime();
+
+            double timeDiffInSeconds = Planetarium.GetUniversalTime() - lastActiveTime;
 
             if (!(timeDiffInSeconds > 0)) return;
 
@@ -100,7 +112,7 @@ namespace FNPlugin.Storage
                 return;
             }
 
-            part.RequestResource(decayProduct, -decayProductAmount);
+            StoreDecayProduct(decayProductAmount, decayProductResource);
         }
 
         public void FixedUpdate()
@@ -114,9 +126,7 @@ namespace FNPlugin.Storage
             var decayResource = part.Resources[resourceName];
             if (decayResource == null) return;
 
-            var currentActiveTime = Planetarium.GetUniversalTime();
-
-            lastActiveTime = currentActiveTime;
+            lastActiveTime = Planetarium.GetUniversalTime();
 
             double decayAmount = decayConstant * decayResource.amount * TimeWarp.fixedDeltaTime;
             decayResource.amount -= decayAmount;
@@ -146,7 +156,51 @@ namespace FNPlugin.Storage
                 return;
             }
 
-            part.RequestResource(decayProduct, -decayProductAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+            StoreDecayProduct(decayProductAmount, decayProductResource);
+        }
+
+        private void StoreDecayProduct(double decayProductAmount, PartResource decayProductResource)
+        {
+            var tanksWithAvailableStorage = _managedTransferableResources
+                .Where(m => m.AvailableStorage > 0)
+                .OrderByDescending(m => m.transferPriority).ToList();
+
+            if (!tanksWithAvailableStorage.Any() || decayProductAmount <= 0)
+            {
+                part.RequestResource(_decayProductDefinition.id, -decayProductAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                return;
+            }
+
+            double shortageDecayProductAmount = decayProductAmount;
+            if (decayProductResource != null)
+            {
+                var newLocalDecayProductAmount = decayProductResource.amount + decayProductAmount;
+
+                if (newLocalDecayProductAmount > decayProductResource.maxAmount)
+                {
+                    shortageDecayProductAmount = newLocalDecayProductAmount - decayProductResource.maxAmount;
+                    decayProductResource.amount = decayProductResource.maxAmount;
+                }
+                else
+                {
+                    decayProductResource.amount = newLocalDecayProductAmount;
+                    shortageDecayProductAmount = 0;
+                }
+            }
+
+            if (!(shortageDecayProductAmount > 0)) return;
+
+            foreach (var fnResourceTransfer in tanksWithAvailableStorage)
+            {
+                var unrestrictedNewAmount = fnResourceTransfer.PartResource.amount + shortageDecayProductAmount;
+
+                shortageDecayProductAmount = unrestrictedNewAmount - fnResourceTransfer.PartResource.maxAmount;
+
+                fnResourceTransfer.PartResource.amount = Math.Min(fnResourceTransfer.PartResource.maxAmount, unrestrictedNewAmount);
+
+                if (shortageDecayProductAmount <= 0)
+                    break;
+            }
         }
 
         public override string GetInfo()

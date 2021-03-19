@@ -4,6 +4,7 @@ using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Linq;
+using FNPlugin.Reactors;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
@@ -41,13 +42,13 @@ namespace FNPlugin.Refinery.Activity
         {
             _current_power = PowerRequirements * rateMultiplier;
 
-            var nuclearReactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();
+            var nuclearReactors = _vessel.FindPartModulesImplementing<IFNNuclearFuelReprocessable>();
             double remainingCapacityToReprocess = GameConstants.baseReprocessingRate * fixedDeltaTime / PluginSettings.Config.SecondsInDay * rateMultiplier;
             double enumActinidesChange = 0;
 
-            foreach (INuclearFuelReprocessable nuclearReactor in nuclearReactors)
+            foreach (var nuclearReactor in nuclearReactors)
             {
-                double actinidesChange = nuclearReactor.ReprocessFuel(remainingCapacityToReprocess);
+                double actinidesChange = nuclearReactor.ReprocessFuel(remainingCapacityToReprocess, fixedDeltaTime, productionModifier);
                 enumActinidesChange += actinidesChange;
                 remainingCapacityToReprocess = Math.Max(0, remainingCapacityToReprocess - actinidesChange);
             }

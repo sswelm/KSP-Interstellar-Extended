@@ -20,11 +20,12 @@ namespace FNPlugin.Reactors
     class InterstellarMoltenSaltReactor : InterstellarFissionMSRGC { }
 
     [KSPModule("Fission Reactor")]
-    class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable
+    class InterstellarFissionMSRGC : InterstellarReactor, IFNNuclearFuelReprocessable
     {
         [KSPField] public double actinidesModifer = 1;
         [KSPField] public double temperatureThrottleExponent = 0.5;
         [KSPField] public double minimumTemperature = 0;
+        [KSPField] public double actinideProcessingSpeedMult = 0.1;
         [KSPField] public bool canDumpActinides = false;
 
         private PartResourceDefinition fluorineGasDefinition;
@@ -306,12 +307,20 @@ namespace FNPlugin.Reactors
             return true;
         }
 
-        public double ReprocessFuel(double rate)
+        public double ReprocessFuel(double rate, double deltaTime, double productionModifier)
         {
+            if (!hasStarted)
+                OnStart(StartState.None);
+
             if (!part.Resources.Contains(ResourceSettings.Config.Actinides)) return 0;
 
             var actinides = part.Resources[ResourceSettings.Config.Actinides];
-            var newActinidesAmount = Math.Max(actinides.amount - rate, 0);
+
+            if (actinides.maxAmount <= 0)
+                return 0;
+
+            var actinideProcessingSpeed = actinideProcessingSpeedMult * productionModifier * deltaTime * (actinides.amount / actinides.maxAmount);
+            var newActinidesAmount = Math.Max(actinides.amount -  Math.Min(rate, actinideProcessingSpeed), 0);
             var actinidesChange = actinides.amount - newActinidesAmount;
             actinides.amount = newActinidesAmount;
 
@@ -323,12 +332,25 @@ namespace FNPlugin.Reactors
             var enrichedUraniumRetrieved = Part.RequestResource(enrichedUraniumDefinition.id, enrichedUraniumRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
             var receivedEnrichedUraniumFraction = enrichedUraniumRequest > 0 ? enrichedUraniumRetrieved / enrichedUraniumRequest : 0;
 
-            // if missing fluorine is dumped
-            Part.RequestResource(oxygenGasDefinition.id, -depletedFuelsProduced * oxygenDepletedUraniumVolumeMultiplier * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-            Part.RequestResource(fluorineGasDefinition.id, -depletedFuelsProduced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
+            var reactorFuels = CurrentFuelVariant?.ReactorFuels;
+            if (reactorFuels == null)
+                return 0;
 
-            var reactorFuels = CurrentFuelMode.Variants.First().ReactorFuels;
             var sumUsagePerMw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMj * fuelUsePerMJMult);
+
+            if (reactorFuels.Any(m => m.ResourceName == "UF4"))
+            {
+                // if missing fluorine is dumped
+                Part.RequestResource(oxygenGasDefinition.id, -depletedFuelsProduced * oxygenDepletedUraniumVolumeMultiplier * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                Part.RequestResource(fluorineGasDefinition.id, -depletedFuelsProduced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
+            }
+
+            if (reactorFuels.Any(m => m.ResourceName == "ThF4"))
+            {
+                // if missing fluorine is dumped
+                Part.RequestResource(oxygenGasDefinition.id, -depletedFuelsProduced * oxygenDepletedUraniumVolumeMultiplier * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                Part.RequestResource(fluorineGasDefinition.id, -depletedFuelsProduced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
+            }
 
             foreach (ReactorFuel fuel in reactorFuels)
             {

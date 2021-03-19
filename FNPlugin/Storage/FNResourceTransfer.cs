@@ -29,7 +29,10 @@ namespace FNPlugin.Storage
         public double AvailableAmount => PartResource == null || !PartResource.flowState ? 0 : PartResource.amount;
 
         public int TransferPriority { get; private set; }
-        public PartResource PartResource { get; private set; }
+
+
+        private PartResource _partResource;
+        public PartResource PartResource => _partResource ?? (_partResource = part.Resources[resourceName]);
 
         public override void OnStart(StartState state)
         {
@@ -60,7 +63,6 @@ namespace FNPlugin.Storage
 
         public void Update()
         {
-            PartResource = part.Resources[resourceName];
             if (PartResource == null || !PartResource.flowState)
             {
                 if (HighLogic.LoadedSceneIsEditor)

@@ -267,30 +267,32 @@ namespace FNPlugin.Refinery
 
             currentPowerReq = powerReqMult * _current_activity.PowerRequirements * baseProduction;
 
-            var powerRequest = currentPowerReq * (powerPercentage / 100);
+            var requestedPowerRatio = powerPercentage / 100;
+
+            var powerRequest = currentPowerReq * requestedPowerRatio;
 
             consumedPowerMW = CheatOptions.InfiniteElectricity
                 ? powerRequest
                 : powerSupply.ConsumeMegajoulesPerSecond(powerRequest);
 
-            var shortage = Math.Max(currentPowerReq - consumedPowerMW, 0);
+            var shortage = Math.Max(powerRequest - consumedPowerMW, 0);
 
-            var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
+            var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
             var receivedElectricCharge = part.RequestResource(ResourceSettings.Config.ElectricPowerInKilowatt, shortage *
                 GameConstants.ecPerMJ * fixedDeltaTime) / fixedDeltaTime;
 
             consumedPowerMW += receivedElectricCharge / GameConstants.ecPerMJ;
 
-            var power_ratio = currentPowerReq > 0 ? consumedPowerMW / currentPowerReq : 0;
+            var receivedPowerRatio = currentPowerReq > 0 ? consumedPowerMW / currentPowerReq : 0;
 
-            utilisationPercentage = power_ratio * 100;
+            utilisationPercentage = receivedPowerRatio * 100;
 
             var productionModifier = productionMult * baseProduction;
 
-            _current_activity.UpdateFrame(power_ratio * productionModifier, power_ratio, productionModifier, _overflowAllowed, fixedDeltaTime);
+            _current_activity.UpdateFrame(requestedPowerRatio * receivedPowerRatio * productionModifier, requestedPowerRatio * receivedPowerRatio, requestedPowerRatio * productionModifier, _overflowAllowed, fixedDeltaTime);
 
-            lastPowerRatio = power_ratio; // save the current power ratio in case the vessel is unloaded
+            lastPowerRatio = receivedPowerRatio; // save the current power ratio in case the vessel is unloaded
             lastOverflowSettings = _overflowAllowed; // save the current overflow settings in case the vessel is unloaded
             lastActivityName = _current_activity.ActivityName; // take the string with the name of the current activity, store it in persistent string
             lastClassName = _current_activity.GetType().Name;

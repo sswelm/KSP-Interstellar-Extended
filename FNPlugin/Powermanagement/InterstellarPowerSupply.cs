@@ -8,33 +8,35 @@ namespace FNPlugin.Powermanagement
     [KSPModule("Power Supply")]
     class InterstellarPowerSupply : ResourceSuppliableModule, IPowerSupply
     {
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_InterstellarPowerSupply_TotalPowerSupply", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Total Power Supply
+        public const string Group = "PowerSupply";
+        public const string GroupTitle = "PowerSupply";
+
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_InterstellarPowerSupply_TotalPowerSupply", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Total Power Supply
         public double totalPowerSupply;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_InterstellarPowerSupply_Proces")]//Proces
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_InterstellarPowerSupply_Proces")]//Proces
         public string displayName = "";
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_InterstellarPowerSupply_PowerPriority")]//Power Priority
-        public int powerPriority = 4;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_InterstellarPowerSupply_PowerPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
+        public float powerPriority = 4;
 
         protected ResourceBuffers resourceBuffers;
         protected double currentPowerSupply;
 
         public int PowerPriority
         {
-            get { return powerPriority; }
-            set { powerPriority = value; }
+            get => (int)Math.Round(powerPriority, 0);
+            set => powerPriority = value;
         }
 
         public string DisplayName
         {
-            get { return displayName; }
-            set { displayName = value; }
+            get => displayName;
+            set => displayName = value;
         }
 
         public override void OnStart(PartModule.StartState state)
         {
             displayName = part.partInfo.title;
-            string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resourcesToSupply = resourcesToSupply;
+            resourcesToSupply = new [] { ResourceSettings.Config.ElectricPowerInMegawatt };
 
             if (state == StartState.Editor) return;
 
@@ -77,7 +79,7 @@ namespace FNPlugin.Powermanagement
 
         public override int getPowerPriority()
         {
-            return powerPriority;
+            return PowerPriority;
         }
 
         public void Update()

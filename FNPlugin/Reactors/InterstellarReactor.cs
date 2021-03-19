@@ -342,6 +342,7 @@ namespace FNPlugin.Reactors
         // shared variables
         protected bool ongoingDecay;
         protected bool initialized;
+        protected bool hasStarted;
         protected bool messagedRanOutOfFuel;
 
         protected double maxPowerToSupply;
@@ -1036,6 +1037,8 @@ namespace FNPlugin.Reactors
 
         public override void OnStart(StartState state)
         {
+            hasStarted = true;
+
             UpdateReactorCharacteristics();
 
             InitializeKerbalismEmitter();
@@ -2229,6 +2232,8 @@ namespace FNPlugin.Reactors
 
             // calculate delta time since last processing
             double deltaTimeDiff = Math.Max(Planetarium.GetUniversalTime() - last_active_time, 0);
+
+            last_active_time = Planetarium.GetUniversalTime();
 
             // determine available variants
             var persistentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, deltaTimeDiff * ongoing_total_power_generated, fuelUsePerMJMult);
