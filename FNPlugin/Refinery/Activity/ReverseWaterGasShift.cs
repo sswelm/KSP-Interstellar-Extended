@@ -1,14 +1,14 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class ReverseWaterGasShift : RefineryActivity, IRefineryActivity
+    class ReverseWaterGasShift : RefineryActivity
     {
         public ReverseWaterGasShift()
         {
@@ -51,9 +51,10 @@ namespace FNPlugin.Refinery.Activity
         private double _maxCapacityMonoxideMass;
         private double _maxCapacityHydrogenMass;
 
-        public RefineryType RefineryType => RefineryType.Synthesize;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Synthesize;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             if (_waterResourceName == null || _monoxideResourceName == null || _dioxideResourceName == null || _hydrogenResourceName == null)
                 return false;
@@ -62,12 +63,9 @@ namespace FNPlugin.Refinery.Activity
                    _part.GetConnectedResources(_hydrogenResourceName).Any(rs => rs.amount > 0);
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             _waterResourceName = ResourceSettings.Config.WaterPure;
             _monoxideResourceName = ResourceSettings.Config.CarbonMonoxideGas;
@@ -80,7 +78,7 @@ namespace FNPlugin.Refinery.Activity
             _monoxideDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _allowOverflow = allowOverflow;
 
@@ -145,7 +143,7 @@ namespace FNPlugin.Refinery.Activity
                 _waterProductionRate = 0;
             }
 
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -208,7 +206,7 @@ namespace FNPlugin.Refinery.Activity
             GUILayout.EndHorizontal();
         }
 
-        private void updateStatusMessage()
+        private void UpdateStatusMessage()
         {
             if (_monoxideProductionRate > 0 && _waterProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg1");//"Water Gas Shifting"
@@ -224,7 +222,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Statumsg7");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             if (!_part.GetConnectedResources(ResourceSettings.Config.CarbonDioxideLqd).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ReverseWaterGasShift_Postmsg") + " " + ResourceSettings.Config.CarbonDioxideLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing

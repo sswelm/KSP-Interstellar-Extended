@@ -7,35 +7,28 @@ namespace FNPlugin.Refinery
 {
     class AntimatterFactory : ResourceSuppliableModule
     {
-        public const double ONE_THIRD = 1.0 / 3.0;
+        public const double OneThird = 1.0 / 3.0;
+
+        [KSPField(isPersistant = true)] public double lastActiveTime;
+        [KSPField(isPersistant = true)] public double electricalPowerRatio;
+
+        [KSPField] public double productionRate;
+        [KSPField] public double efficiencyMultiplier = 10;
+        [KSPField] public string activateTitle = "#LOC_KSPIE_AntimatterFactory_producePositron";
+        [KSPField] public string resourceName = "Positrons";
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false), UI_Toggle(disabledText = "#LOC_KSPIE_AntimatterFactory_Off", enabledText = "#LOC_KSPIE_AntimatterFactory_On")]//OffOn
         public bool isActive = false;
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_powerPecentage"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
         public float powerPercentage = 100;
-
-        [KSPField]
-        public string activateTitle = "#LOC_KSPIE_AntimatterFactory_producePositron";
-
-        [KSPField(isPersistant = true)]
-        public double lastActiveTime;
-        [KSPField(isPersistant = true)]
-        public double electricalPowerRatio;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_productionRate")]
         public string productionRateTxt;
-
-        [KSPField]
-        public double productionRate;
-        [KSPField]
-        public double efficiencyMultiplier = 10;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterFactory_MaximumPowercapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Maximum Power capacity
         public double powerCapacity = 1000;
-        [KSPField]
-        public string resourceName = "Positrons";
 
-        AntimatterGenerator _generator;
-        PartResourceDefinition _antimatterDefinition;
-        string _disabledText;
+        private AntimatterGenerator _generator;
+        private PartResourceDefinition _antimatterDefinition;
+        private string _disabledText;
 
         public override void OnStart(StartState state)
         {
@@ -94,7 +87,7 @@ namespace FNPlugin.Refinery
 
             var availablePower = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
             var resourceBarRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
-            var effectiveResourceThrottling = resourceBarRatio > ONE_THIRD ? 1 : resourceBarRatio * 3;
+            var effectiveResourceThrottling = resourceBarRatio > OneThird ? 1 : resourceBarRatio * 3;
 
             var energyRequestedInMegajoulesPerSecond = Math.Min(powerCapacity, effectiveResourceThrottling * availablePower * (double)(decimal)powerPercentage * 0.01);
 

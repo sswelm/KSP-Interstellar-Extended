@@ -13,7 +13,7 @@ namespace FNPlugin.Refinery
     class NuclearRefineryController : InterstellarRefineryController { }
 
     [KSPModule("ISRU Refinery")]
-    class InterstellarRefineryController : PartModule
+    public class InterstellarRefineryController : PartModule
     {
         [KSPField(isPersistant = true, guiActive = false)]
         protected bool refinery_is_enabled;
@@ -65,52 +65,6 @@ namespace FNPlugin.Refinery
 
         private bool _overflowAllowed;
 
-        /*
-
-        [KSPEvent(guiActive = true, guiName = "Test Atmosphere", active = true)]
-        public void SampleAtmosphere()
-        {
-            CelestialBody celestialBody = vessel.mainBody;
-
-            AtmosphericResourceHandler.GenerateCompositionFromCelestialBody(celestialBody);
-
-            Debug.Log("[KSPI]: determined " + celestialBody.name + " to be current celestrial body");
-
-            // Lookup homeworld
-            CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
-
-            Debug.Log("[KSPI]: determined " + homeworld.name + " to be the home world");
-
-            double presureAtSurface = celestialBody.GetPressure(0);
-
-            Debug.Log("[KSPI]: surface presure " + celestialBody.name + " is " + presureAtSurface);
-            Debug.Log("[KSPI]: surface presure " + homeworld.name + " is " + homeworld.GetPressure(0));
-            Debug.Log("[KSPI]: mass " + celestialBody.name + " is " + celestialBody.Mass);
-            Debug.Log("[KSPI]: mass " + homeworld.name + " is " + celestialBody.Mass);
-
-            List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
-
-            foreach (var resource in resources)
-            {
-                ScreenMessages.PostScreenMessage(resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
-            }
-        }
-
-        [KSPEvent(guiActive = true, guiName = "Sample Ocean", active = true)]
-        public void SampleOcean()
-        {
-            List<OceanicResource> resources = OceanicResourceHandler.GetOceanicCompositionForBody(part.vessel.mainBody).ToList();
-
-            foreach (var resource in resources)
-            {
-                Definition definition = PartResourceLibrary.Instance.GetDefinition(resource.ResourceName);
-
-                string found = definition != null ? "D" : "U";
-                ScreenMessages.PostScreenMessage(found + " " + resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
-            }
-        }
-         *
-         */
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Refinery_ToggleRefineryWindow", active = true)]//Toggle Refinery Window
         public void ToggleWindow()
@@ -166,13 +120,13 @@ namespace FNPlugin.Refinery
                 availableRefineries = refineriesList.OrderBy(a => a.ActivityName).ToList();
 
             // initialize refineries
-            availableRefineries.ForEach(m => m.Initialize(part));
+            availableRefineries.ForEach(m => m.Initialize(part, this));
 
             foreach (var availableRefinery in availableRefineries)
             {
                 try
                 {
-                    availableRefinery.Initialize(part);
+                    availableRefinery.Initialize(part, this);
                 }
                 catch (Exception e)
                 {
@@ -311,6 +265,41 @@ namespace FNPlugin.Refinery
             _window_position = GUILayout.Window(_window_ID, _window_position, Window, Localizer.Format("#LOC_KSPIE_Refinery_WindowTitle"));//"ISRU Refinery Interface"
         }
 
+        public bool IsActive(IRefineryActivity activity)
+        {
+            return _current_activity == activity;
+        }
+
+        public void ToggleRefinery(IRefineryActivity activity)
+        {
+            if (refinery_is_enabled)
+            {
+                DeactivateRefinery();
+                return;
+            }
+
+            ActivateRefinery(activity);
+        }
+
+        private void ActivateRefinery(IRefineryActivity activity)
+        {
+            bool hasRequirement = activity.HasActivityRequirements(); // if the requirements for the activity are fulfilled
+
+            if (hasRequirement)
+            {
+                _current_activity = activity; // the activity will be treated as the current activity
+                refinery_is_enabled = true; // refinery is now on
+            }
+            else
+                activity.PrintMissingResources();
+        }
+
+        public void DeactivateRefinery()
+        {
+            refinery_is_enabled = false;
+            _current_activity = null;
+        }
+
         private void Window(int window)
         {
             if (_bold_label == null)
@@ -332,24 +321,17 @@ namespace FNPlugin.Refinery
 
             if (_current_activity == null || !refinery_is_enabled) // if there is no processing going on or the refinery is not enabled
             {
-                availableRefineries.ForEach(act => // per each activity (notice the end brackets are there, 13 lines below)
+                availableRefineries.ForEach(activity => // per each activity (notice the end brackets are there, 13 lines below)
                 {
                     GUILayout.BeginHorizontal();
-                    bool hasRequirement = act.HasActivityRequirements(); // if the requirements for the activity are fulfilled
+                    bool hasRequirement = activity.HasActivityRequirements(); // if the requirements for the activity are fulfilled
                     GUIStyle guiStyle = hasRequirement ? _enabled_button : _disabled_button; // either draw the enabled, bold button, or the disabled one
 
-                    var buttonText = string.IsNullOrEmpty(act.Formula) ? act.ActivityName : act.ActivityName + " : " + act.Formula;
+                    var buttonText = string.IsNullOrEmpty(activity.Formula) ? activity.ActivityName : activity.ActivityName + " : " + activity.Formula;
 
                     if (GUILayout.Button(buttonText, guiStyle, GUILayout.ExpandWidth(true))) // if user clicks the button and has requirements for the activity
                     {
-                        if (hasRequirement)
-                        {
-                            _current_activity = act; // the activity will be treated as the current activity
-                            refinery_is_enabled = true; // refinery is now on
-                        }
-                        else
-                            act.PrintMissingResources();
-
+                        ToggleRefinery(activity);
                     }
                     GUILayout.EndHorizontal();
                 });

@@ -104,8 +104,11 @@ namespace FNPlugin.Storage
                 if (productOverflow > 0)
                     decayProductResource.maxAmount = decayProductResource.amount;
 
+                var previousAmount = decayResource.maxAmount;
                 var appliedDecayAmount = productOverflow / _densityRat;
                 decayResource.maxAmount -= appliedDecayAmount;
+                var effectiveDecayAmount = previousAmount - decayResource.maxAmount;
+                var decayDifference = appliedDecayAmount - effectiveDecayAmount;
 
                 decayResource.amount = Math.Min(decayResource.amount, decayResource.maxAmount);
 
@@ -161,16 +164,6 @@ namespace FNPlugin.Storage
 
         private void StoreDecayProduct(double decayProductAmount, PartResource decayProductResource)
         {
-            var tanksWithAvailableStorage = _managedTransferableResources
-                .Where(m => m.AvailableStorage > 0)
-                .OrderByDescending(m => m.transferPriority).ToList();
-
-            if (!tanksWithAvailableStorage.Any() || decayProductAmount <= 0)
-            {
-                part.RequestResource(_decayProductDefinition.id, -decayProductAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                return;
-            }
-
             double shortageDecayProductAmount = decayProductAmount;
             if (decayProductResource != null)
             {
@@ -184,11 +177,19 @@ namespace FNPlugin.Storage
                 else
                 {
                     decayProductResource.amount = newLocalDecayProductAmount;
-                    shortageDecayProductAmount = 0;
+                    return;
                 }
             }
 
-            if (!(shortageDecayProductAmount > 0)) return;
+            var tanksWithAvailableStorage = _managedTransferableResources
+                .Where(m => m.AvailableStorage > 0)
+                .OrderByDescending(m => m.transferPriority).ToList();
+
+            if (!tanksWithAvailableStorage.Any() || decayProductAmount <= 0)
+            {
+                part.RequestResource(_decayProductDefinition.id, -shortageDecayProductAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                return;
+            }
 
             foreach (var fnResourceTransfer in tanksWithAvailableStorage)
             {

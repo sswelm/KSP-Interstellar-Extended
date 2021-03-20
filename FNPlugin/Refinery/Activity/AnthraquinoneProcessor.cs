@@ -1,14 +1,14 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class AnthraquinoneProcessor : RefineryActivity, IRefineryActivity
+    class AnthraquinoneProcessor : RefineryActivity
     {
         public AnthraquinoneProcessor()
         {
@@ -44,9 +44,10 @@ namespace FNPlugin.Refinery.Activity
         private double _oxygenConsumptionRate;
         private double _hydrogenPeroxideProductionRate;
 
-        public RefineryType RefineryType => RefineryType.Synthesize;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Synthesize;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             if (_hydrogenResourceName == null || _oxygenResourceName == null || _hydrogenPeroxideResourceName == null)
                 return false;
@@ -55,12 +56,9 @@ namespace FNPlugin.Refinery.Activity
                 _part.GetConnectedResources(_oxygenResourceName).Any(rs => rs.amount > 0);
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             _oxygenResourceName = ResourceSettings.Config.OxygenGas;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenGas;
@@ -71,7 +69,7 @@ namespace FNPlugin.Refinery.Activity
             _hydrogenPeroxideDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenPeroxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _effectiveMaxPower = PowerRequirements * productionModifier;
 
@@ -182,7 +180,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_statumsg3");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             if (!_part.GetConnectedResources(_hydrogenResourceName).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AnthraquinoneProcessor_Postmsg") + " " + _hydrogenResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing

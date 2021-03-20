@@ -1,13 +1,13 @@
-﻿using FNPlugin.Constants;
+﻿using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class UF4Ammonolysiser : RefineryActivity, IRefineryActivity
+    class UF4Ammonolysiser : RefineryActivity
     {
         public UF4Ammonolysiser()
         {
@@ -24,26 +24,25 @@ namespace FNPlugin.Refinery.Activity
         double _uraniumTetrafluorideConsumptionRate;
         double _uraniumNitrideProductionRate;
 
-        public RefineryType RefineryType => RefineryType.Synthesize;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Synthesize;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             return _part.GetConnectedResources(ResourceSettings.Config.UraniumTetraflouride)
                 .Any(rs => rs.amount > 0) && _part.GetConnectedResources(ResourceSettings.Config.AmmoniaLqd).Any(rs => rs.amount > 0);
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
+
             _ammoniaDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AmmoniaLqd).density;
             _uraniumTetrafluorideDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.UraniumTetraflouride).density;
             _uraniumNitrideDensity = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.UraniumNitride).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / EnergyPerTon;
@@ -102,7 +101,7 @@ namespace FNPlugin.Refinery.Activity
 
             }
         }
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             if (!_part.GetConnectedResources(ResourceSettings.Config.AmmoniaLqd).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UF4Ammonolysiser_Postmsg") + " " + ResourceSettings.Config.AmmoniaLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing

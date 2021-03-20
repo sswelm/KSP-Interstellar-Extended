@@ -310,7 +310,7 @@ namespace FNPlugin
             */
 
             reprocessor = new NuclearFuelReprocessor();
-            reprocessor.Initialize(part);
+            reprocessor.Initialize(part, null);
             antimatterGenerator = new AntimatterGenerator(part, 1, PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AntiProtium));
 
             UnityEngine.Debug.Log("[KSPI]: ScienceModule on " + part.name + " was Force Activated");
@@ -632,8 +632,8 @@ namespace FNPlugin
                 globalRateMultipliers = globalRateMultipliers * electrical_power_ratio;
                 reprocessor.UpdateFrame(globalRateMultipliers, electrical_power_ratio, productionModifier, true, TimeWarp.fixedDeltaTime);
 
-                if (reprocessor.getActinidesRemovedPerHour() > 0)
-                    reprocessing_rate_f = reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour();
+                if (reprocessor.GetActinidesRemovedPerHour() > 0)
+                    reprocessing_rate_f = reprocessor.GetRemainingAmountToReprocess() / reprocessor.GetActinidesRemovedPerHour();
                 else
                     IsEnabled = false;
             }

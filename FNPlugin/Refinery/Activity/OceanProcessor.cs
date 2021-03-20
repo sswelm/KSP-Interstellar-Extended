@@ -1,17 +1,17 @@
-﻿using FNPlugin.Constants;
-using FNPlugin.Extensions;
-using FNPlugin.Resources;
-using KSP.Localization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using FNPlugin.Constants;
+using FNPlugin.Extensions;
+using FNPlugin.Resources;
+using KSP.Localization;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
     [KSPModule("ISRU Ocean Processing")]
-    class OceanProcessor : RefineryActivity, IRefineryActivity
+    class OceanProcessor : RefineryActivity
     {
         public OceanProcessor()
         {
@@ -22,11 +22,10 @@ namespace FNPlugin.Refinery.Activity
 
         public double fixedConsumptionRate;
 
-        public RefineryType RefineryType => RefineryType.Heating;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Heating;
 
-        public bool HasActivityRequirements() { return IsThereAnyLiquid();  }
-
-        public string Status => string.Copy(_status);
+        public override bool HasActivityRequirements() { return IsThereAnyLiquid();  }
 
         // characteristics of the intake liquid, a generic resource we 'collect' and process into resources. This will be the same on all planets, as the 'collection' doesn't rely on abundanceRequests etc. and the resource is not actually collected and stored anywhere anyway
         private double _intakeLqdConsumptionRate;
@@ -36,10 +35,9 @@ namespace FNPlugin.Refinery.Activity
 
         private readonly Dictionary<string, double> _productionRateDict = new Dictionary<string, double>();
 
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             // get the definition of the 'generic' input resource
             _intakeLiquidDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeLiquid);
@@ -51,7 +49,7 @@ namespace FNPlugin.Refinery.Activity
         double _currentResourceProductionRate;
         // end of variables for the ExtractSeawater function
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double timeDifference, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double timeDifference, bool isStartup = false)
         {
             ExtractSeawater(rateMultiplier, powerFraction, productionModifier, allowOverflow, timeDifference, false);
 
@@ -276,7 +274,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_SeawaterExtract_Statumsg3");//"Insufficient Storage, try allowing overflow"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SeawaterExtract_Postmsg2") + " " + ResourceSettings.Config.IntakeLiquid, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

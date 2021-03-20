@@ -1,14 +1,14 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class SolarWindProcessor : RefineryActivity, IRefineryActivity
+    class SolarWindProcessor : RefineryActivity
     {
         public SolarWindProcessor()
         {
@@ -74,21 +74,17 @@ namespace FNPlugin.Refinery.Activity
         private string _neonLiquidResourceName;
         private string _neonGasResourceName;
 
-        public RefineryType RefineryType => RefineryType.Cryogenics;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Cryogenics;
 
-        public bool HasActivityRequirements ()
+        public override bool HasActivityRequirements ()
         {
            return _part.GetConnectedResources(_solarWindResourceName).Any(rs => rs.maxAmount > 0);
         }
 
-
-        public string Status => string.Copy(_status);
-
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             _solarWindResourceName = ResourceSettings.Config.SolarWind;
 
@@ -163,7 +159,7 @@ namespace FNPlugin.Refinery.Activity
         private double _nitrogenMassByFraction  = 0.04173108;
         private double _neonMassByFraction      = 0.06012;
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / EnergyPerTon;
@@ -427,7 +423,7 @@ namespace FNPlugin.Refinery.Activity
             return value == 0 ? "-" : value < 1 ? (value * 1000).ToString(format) + " mg/hour" : value.ToString(format) + " g/hour";
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarWindProcessor_Postmsg") +" " + ResourceSettings.Config.SolarWind, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

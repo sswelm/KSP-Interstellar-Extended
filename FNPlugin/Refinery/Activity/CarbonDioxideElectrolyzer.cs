@@ -1,14 +1,14 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class CarbonDioxideElectrolyzer : RefineryActivity, IRefineryActivity
+    class CarbonDioxideElectrolyzer : RefineryActivity
     {
         public CarbonDioxideElectrolyzer()
         {
@@ -44,9 +44,10 @@ namespace FNPlugin.Refinery.Activity
         private double _maxCapacityMonoxideMass;
         private double _maxCapacityOxygenMass;
 
-        public RefineryType RefineryType => RefineryType.Electrolysis;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             if (_dioxideResourceName == null || _oxygenResourceName == null || _monoxideResourceName == null)
                 return false;
@@ -54,12 +55,9 @@ namespace FNPlugin.Refinery.Activity
             return _part.GetConnectedResources(_dioxideResourceName).Any(rs => rs.amount > 0);
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             _dioxideResourceName = ResourceSettings.Config.CarbonDioxideGas;
             _oxygenResourceName = ResourceSettings.Config.OxygenGas;
@@ -70,7 +68,7 @@ namespace FNPlugin.Refinery.Activity
             _monoxideDensity = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;
@@ -120,7 +118,7 @@ namespace FNPlugin.Refinery.Activity
                 _oxygenProductionRate = 0;
             }
 
-            updateStatusMessage();
+            UpdateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -168,7 +166,7 @@ namespace FNPlugin.Refinery.Activity
             GUILayout.EndHorizontal();
         }
 
-        private void updateStatusMessage()
+        private void UpdateStatusMessage()
         {
             if (_monoxideProductionRate > 0 && _oxygenProductionRate > 0)
                 _status = Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Statumsg1");//"Electrolysing CarbonDioxide"
@@ -184,7 +182,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Statumsg5");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_CarbonDioxideElectroliser_Postmsg") + " " + _dioxideResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

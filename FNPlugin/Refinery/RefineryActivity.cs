@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    internal enum RefineryType { Heating = 1, Cryogenics = 2, Electrolysis = 4, Synthesize = 8,  }
+    public enum RefineryType { None = 0, Heating = 1, Cryogenics = 2, Electrolysis = 4, Synthesize = 8 }
 
-    public class RefineryActivity: PartModule
+    abstract class RefineryActivity: PartModule, IRefineryActivity
     {
         [KSPField(guiActiveEditor = true, guiName = "Size Multiplier")]
         public double sizeModifier = 1;
@@ -27,6 +27,10 @@ namespace FNPlugin.Refinery
         protected double _current_rate;
         protected double _effectiveMaxPower;
 
+        private BaseEvent _toggleEvent;
+
+        private InterstellarRefineryController _refineryController;
+
         public double CurrentPower => _current_power;
 
         public string ActivityName { get; protected set; }
@@ -35,6 +39,44 @@ namespace FNPlugin.Refinery
         public double PowerRequirements { get; protected set; }
         public double EnergyPerTon { get; protected set; }
 
+        public virtual RefineryType RefineryType { get; } = RefineryType.None;
+        public virtual string Status { get; } = "";
+
+        [KSPEvent(guiActive = false, guiName = "Toggle", active = true)]//Toggle RefineryActivity
+        public void ToggleWindow()
+        {
+            if (_refineryController == null)
+                return;
+
+            _refineryController.ToggleRefinery(this);
+        }
+
+        public abstract void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier,
+            bool allowOverflow, double fixedDeltaTime, bool isStartup = false);
+
+        public abstract bool HasActivityRequirements();
+
+        public abstract void PrintMissingResources();
+
+        public virtual void Initialize(Part localPart, InterstellarRefineryController controller)
+        {
+            _part = localPart;
+            _vessel = localPart.vessel;
+            _refineryController = controller;
+
+            _toggleEvent = Events[nameof(ToggleWindow)];
+            _toggleEvent.guiActive = true;
+        }
+
+        public override void OnUpdate()
+        {
+            if (_toggleEvent == null || _refineryController == null)
+                return;
+
+            var isActive = _refineryController.IsActive(this);
+
+            _toggleEvent.guiName = (isActive ? "Stop " : "Start ") + ActivityName;
+        }
 
         public virtual void UpdateGUI()
         {

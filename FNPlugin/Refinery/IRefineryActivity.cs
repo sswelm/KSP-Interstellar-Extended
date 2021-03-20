@@ -1,6 +1,6 @@
 ﻿namespace FNPlugin.Refinery
 {
-    interface IRefineryActivity
+    public interface IRefineryActivity
     {
         // 1 seperation
         // 2 desconstrution
@@ -28,6 +28,6 @@
 
         void PrintMissingResources();
 
-        void Initialize(Part localPart);
+        void Initialize(Part localPart, InterstellarRefineryController controller);
     }
 }

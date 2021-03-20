@@ -1,15 +1,15 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Linq;
 using FNPlugin.Reactors;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class NuclearFuelReprocessor : RefineryActivity, IRefineryActivity
+    class NuclearFuelReprocessor : RefineryActivity
     {
         public NuclearFuelReprocessor()
         {
@@ -22,23 +22,15 @@ namespace FNPlugin.Refinery.Activity
         private double _remainingToReprocess;
         private double _remainingSeconds;
 
-        public RefineryType RefineryType => RefineryType.Synthesize;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Synthesize;
 
-
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             return _part.GetConnectedResources(ResourceSettings.Config.Actinides).Any(rs => rs.amount < rs.maxAmount);
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
-        {
-            _part = localPart;
-            _vessel = localPart.vessel;
-        }
-
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
 
@@ -80,17 +72,17 @@ namespace FNPlugin.Refinery.Activity
             GUILayout.EndHorizontal();
         }
 
-        public double getActinidesRemovedPerHour()
+        public double GetActinidesRemovedPerHour()
         {
-            return _current_rate * 3600.0;
+            return _current_rate * 3600;
         }
 
-        public double getRemainingAmountToReprocess()
+        public double GetRemainingAmountToReprocess()
         {
             return _remainingToReprocess;
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_NuclearFuelReprocessor_Postmsg") + " " + ResourceSettings.Config.Actinides, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

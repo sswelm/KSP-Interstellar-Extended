@@ -1,14 +1,14 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class SabatierReactor : RefineryActivity, IRefineryActivity
+    class SabatierReactor : RefineryActivity
     {
         public SabatierReactor()
         {
@@ -54,9 +54,10 @@ namespace FNPlugin.Refinery.Activity
         private double _fixedCombinedConsumptionRate;
         private double _combinedConsumptionRate;
 
-        public RefineryType RefineryType => RefineryType.Synthesize;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Synthesize;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             if (_carbonDioxideResourceName == null || _hydrogenResourceName == null || _methaneResourceName == null || _oxygenResourceName == null)
                 return false;
@@ -65,12 +66,9 @@ namespace FNPlugin.Refinery.Activity
                 _part.GetConnectedResources(_carbonDioxideResourceName).Any(rs => rs.amount > 0);
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             _carbonDioxideResourceName = ResourceSettings.Config.CarbonDioxideGas;
             _hydrogenResourceName = ResourceSettings.Config.HydrogenGas;
@@ -83,7 +81,7 @@ namespace FNPlugin.Refinery.Activity
             _oxygenDensity = PartResourceLibrary.Instance.GetDefinition(_oxygenResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / EnergyPerTon;
@@ -208,7 +206,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_SabatierReactor_Statumsg3");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             if (!_part.GetConnectedResources(_carbonDioxideResourceName).Any(rs => rs.amount > 0))
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SabatierReactor_Postmsg") + " " + _carbonDioxideResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing

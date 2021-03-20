@@ -54,5 +54,25 @@ namespace FNPlugin.Refinery
 
             _current_rate = -_part.RequestResource(_antimatterDefinition.id, -antimatterUnits, ResourceFlowMode.STAGE_PRIORITY_FLOW);
         }
+
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        {
+            // do nothing
+        }
+
+        public override bool HasActivityRequirements()
+        {
+            return true;
+        }
+
+        public override void PrintMissingResources()
+        {
+            // do nothing
+        }
+
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
+        {
+            // do nothing
+        }
     }
 }

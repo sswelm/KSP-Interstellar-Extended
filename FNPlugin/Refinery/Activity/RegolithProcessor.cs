@@ -1,10 +1,10 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
@@ -19,7 +19,6 @@ namespace FNPlugin.Refinery.Activity
             EnergyPerTon = PluginSettings.Config.ElectrolysisEnergyPerTon;
         }
 
-        private double _dFixedDeltaTime;
         private double _dFixedConsumptionRate;
         private double _dConsumptionStorageRatio;
 
@@ -58,22 +57,19 @@ namespace FNPlugin.Refinery.Activity
         private string _strNitrogenResourceName;
         private string _strWaterResourceName;
 
-        public RefineryType RefineryType => RefineryType.Heating;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Heating;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             return _part.GetConnectedResources(_strRegolithResourceName).Any(rs => rs.amount > 0);
         }
 
-        public string Status => string.Copy(_status);
-
-
         protected PartResourceDefinition deuteriumDefinition;
 
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             _strRegolithResourceName = ResourceSettings.Config.Regolith;
             _strHydrogenResourceName = ResourceSettings.Config.HydrogenLqd;
@@ -124,8 +120,6 @@ namespace FNPlugin.Refinery.Activity
         protected double dSpareRoomNitrogenMass;
         protected double dSpareRoomWaterMass;
 
-        //double dFixedMaxDeuteriumRate;
-
         /* these are the constituents of regolith with their appropriate mass ratios. I'm using concentrations from lunar regolith, yes, I know regolith on other planets varies, let's keep this simple.
          * The exact fractions were calculated mostly from a chart that's also available on http://imgur.com/lpaE1Ah.
          */
@@ -147,9 +141,8 @@ namespace FNPlugin.Refinery.Activity
             return collectorsList.Where(m => m.bIsEnabled).Sum(m => m.resourceProduction);
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
-            _dFixedDeltaTime = fixedDeltaTime;
             _effectiveMaxPower = PowerRequirements * productionModifier;
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / EnergyPerTon;
@@ -355,7 +348,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_RegolithProcessor_Statumsg3");//"Insufficient Storage, try allowing overflow"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithProcessor_Postmsg") +" " + ResourceSettings.Config.Regolith, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

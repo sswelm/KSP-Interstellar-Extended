@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class AtmosphereProcessor : RefineryActivity, IRefineryActivity
+    class AtmosphereProcessor : RefineryActivity
     {
         public AtmosphereProcessor()
         {
@@ -145,19 +145,18 @@ namespace FNPlugin.Refinery.Activity
             isDeployed = false;
         }
 
-        public RefineryType RefineryType => RefineryType.Cryogenics;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Cryogenics;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             return true;
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
+
             _intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>();
 
             if (!string.IsNullOrEmpty(animName))
@@ -266,7 +265,7 @@ namespace FNPlugin.Refinery.Activity
 
         List<AtmosphericIntake> _intakesList; // create a new list for keeping track of atmo intakes
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             ExtractAir(rateMultiplier, powerFraction, productionModifier, allowOverflow, fixedDeltaTime, false);
 
@@ -666,7 +665,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg5");//"Insufficient Storage, try allowing overflow"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + ResourceSettings.Config.IntakeAtmosphere, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

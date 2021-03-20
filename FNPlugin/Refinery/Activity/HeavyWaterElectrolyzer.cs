@@ -1,14 +1,14 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class HeavyWaterElectrolyzer : RefineryActivity, IRefineryActivity
+    class HeavyWaterElectrolyzer : RefineryActivity
     {
         public HeavyWaterElectrolyzer()
         {
@@ -45,9 +45,10 @@ namespace FNPlugin.Refinery.Activity
         private double _maxCapacityDeuteriumMass;
         private double _maxCapacityOxygenMass;
 
-        public RefineryType RefineryType => RefineryType.Electrolysis;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             if (_waterHeavyResourceName == null || _oxygenResourceName == null || _deuteriumResourceName == null)
                 return false;
@@ -55,11 +56,9 @@ namespace FNPlugin.Refinery.Activity
             return _part.GetConnectedResources(ResourceSettings.Config.WaterHeavy).Any(rs => rs.amount > 0);
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
+            base.Initialize(localPart, controller);
 
             _waterHeavyResourceName = ResourceSettings.Config.WaterHeavy;
             _oxygenResourceName = ResourceSettings.Config.OxygenGas;
@@ -71,7 +70,7 @@ namespace FNPlugin.Refinery.Activity
             _deuteriumDensity = PartResourceLibrary.Instance.GetDefinition(_deuteriumResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;
@@ -185,7 +184,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Statumsg5");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HeavyWaterElectroliser_Postmsg") + " " + _waterHeavyResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

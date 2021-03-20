@@ -1,13 +1,13 @@
-﻿using FNPlugin.Constants;
+﻿using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class AmmoniaElectrolyzer : RefineryActivity, IRefineryActivity
+    class AmmoniaElectrolyzer : RefineryActivity
     {
         public AmmoniaElectrolyzer()
         {
@@ -30,9 +30,10 @@ namespace FNPlugin.Refinery.Activity
         private double _hydrogenProductionMassRate;
         private double _nitrogenProductionMassRate;
 
-        public RefineryType RefineryType => RefineryType.Electrolysis;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Electrolysis;
 
-        public bool HasActivityRequirements()
+        public override bool HasActivityRequirements()
         {
             if (_ammoniaResourceName == null || _nitrogenResourceName == null || _hydrogenResourceName == null)
                 return false;
@@ -40,12 +41,9 @@ namespace FNPlugin.Refinery.Activity
             return _part.GetConnectedResources(_ammoniaResourceName).Any(rs => rs.amount > 0);
         }
 
-        public string Status => string.Copy(_status);
-
-        public void Initialize(Part localPart)
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             _ammoniaResourceName = ResourceSettings.Config.AmmoniaGas;
             _nitrogenResourceName = ResourceSettings.Config.NitrogenGas;
@@ -56,7 +54,7 @@ namespace FNPlugin.Refinery.Activity
             _hydrogenDensity = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _currentMassRate = (CurrentPower / EnergyPerTon);
@@ -130,7 +128,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_statumsg5");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AmmoniaElectrolyzer_Postmsg") +" " + _ammoniaResourceName, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }

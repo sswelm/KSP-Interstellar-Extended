@@ -1,13 +1,13 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
 {
-    class HaberProcess : RefineryActivity, IRefineryActivity
+    class HaberProcess : RefineryActivity
     {
         public HaberProcess()
         {
@@ -33,9 +33,10 @@ namespace FNPlugin.Refinery.Activity
         private double _hydrogenDensity;
         private double _nitrogenDensity;
 
-        public RefineryType RefineryType => RefineryType.Synthesize;
+        public override string Status => string.Copy(_status);
+        public override RefineryType RefineryType => RefineryType.Synthesize;
 
-        public bool HasActivityRequirements ()
+        public override bool HasActivityRequirements ()
         {
             return HasAccessToHydrogen() & HasAccessToNitrogen() & HasSpareCapacityAmmonia();
         }
@@ -66,12 +67,11 @@ namespace FNPlugin.Refinery.Activity
 
         private double _effectiveMaxPowerRequirements;
 
-        public string Status => string.Copy(_status);
 
-        public void Initialize(Part localPart)
+
+        public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
-            _part = localPart;
-            _vessel = localPart.vessel;
+            base.Initialize(localPart, controller);
 
             _definitionAmmonia = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AmmoniaGas);
             _definitionHydrogen = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.HydrogenGas);
@@ -82,7 +82,7 @@ namespace FNPlugin.Refinery.Activity
             _nitrogenDensity = _definitionNitrogen.density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
+        public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _effectiveMaxPowerRequirements = PowerRequirements * productionModifier;
             _current_power = powerFraction * _effectiveMaxPowerRequirements;
@@ -181,7 +181,7 @@ namespace FNPlugin.Refinery.Activity
                 _status = Localizer.Format("#LOC_KSPIE_HaberProcess_Statumsg4");//"Insufficient Storage"
         }
 
-        public void PrintMissingResources()
+        public override void PrintMissingResources()
         {
             if (!HasAccessToHydrogen())
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_HaberProcess_Postmsg1") + " " + ResourceSettings.Config.HydrogenLqd, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
