@@ -39,58 +39,29 @@ namespace FNPlugin.Wasteheat
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActiveEditor = true, guiName = "Pump Speed Upgrade", guiFormat = "F0", guiUnits = " m/s"), UI_FloatRange(stepIncrement = 1F, maxValue = 1024F, minValue = 0F)]
         public float pumpSpeedUpgrade;
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 0F)]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiName = "Pump Speed"), UI_FloatRange(stepIncrement = 1.0F, maxValue = 1000F, minValue = 0F)]
         public float pumpSpeed = 1;
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "intakeAtmSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
-        public double intakeAtmSpecificHeatCapacity;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "intakeLqdSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")]
-        public double intakeLqdSpecificHeatCapacity;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Air Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
-        public double airHeatTransferrable;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Water Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
-        public double waterHeatTransferrable;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Steam Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
-        public double steamHeatTransferrable;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Max Heat Transferrable", guiFormat = "F2", guiUnits = " K")]
-        public double heatTransferrable;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Max Heat Supply", guiFormat = "F2", guiUnits = " K")]
-        public double maxSupplyOfHeat;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Coolant Supply Used", guiFormat = "F2", guiUnits = "%")]
-        public double intakeReduction;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Intake ATM Amount", guiFormat = "F2", guiUnits = "")]
-        public double intakeAtmAmount;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Intake Lqd Amount", guiFormat = "F2", guiUnits = "")]
-        public double intakeLqdAmount;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Air Coolant Total", guiFormat = "F2", guiUnits = "")]
-        public double airCoolantTotal;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Water Coolant Total", guiFormat = "F2", guiUnits = "")]
-        public double waterCoolantTotal;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = false, guiName = "Steam Coolant Total", guiFormat = "F2", guiUnits = "")]
-        public double steamCoolantTotal;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "intakeAtmSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")] public double intakeAtmSpecificHeatCapacity;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "intakeLqdSpecificHeatCapacity", guiFormat = "F0", guiUnits = "")] public double intakeLqdSpecificHeatCapacity;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Air Heat Transferrable", guiFormat = "F2", guiUnits = " K")] public double airHeatTransferrable;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Water Heat Transferrable", guiFormat = "F2", guiUnits = " K")] public double waterHeatTransferrable;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Steam Heat Transferrable", guiFormat = "F2", guiUnits = " K")] public double steamHeatTransferrable;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Max Heat Transferrable", guiFormat = "F2", guiUnits = " K")] public double heatTransferrable;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Max Heat Supply", guiFormat = "F2", guiUnits = " K")] public double maxSupplyOfHeat;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Coolant Supply Used", guiFormat = "F2", guiUnits = "%")] public double intakeReduction;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Intake ATM Amount", guiFormat = "F2", guiUnits = "")] public double intakeAtmAmount;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Intake Lqd Amount", guiFormat = "F2", guiUnits = "")] public double intakeLqdAmount;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Air Coolant Total", guiFormat = "F2", guiUnits = "")] public double airCoolantTotal;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Water Coolant Total", guiFormat = "F2", guiUnits = "")] public double waterCoolantTotal;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Steam Coolant Total", guiFormat = "F2", guiUnits = "")] public double steamCoolantTotal;
 
         // https://www.engineersedge.com/heat_transfer/convective_heat_transfer_coefficients__13378.htm
         // forced convection case
-        [KSPField]
-        public double airHeatTransferCoefficient = 0.002;
-        [KSPField]
-        public double lqdHeatTransferCoefficient = 0.03;
-        [KSPField]
-        public double powerDrawInJoules = 1; // How much power needed to run fans / etc. in joules.
-        [KSPField]
-        public double wasteHeatMultiplier = 1; // Reduce heat radiated in NF mode.
+        [KSPField] public double airHeatTransferCoefficient = 0.002;
+        [KSPField] public double lqdHeatTransferCoefficient = 0.03;
+        [KSPField] public double powerDrawInJoules = 1; // How much power needed to run fans / etc. in joules.
+        [KSPField] public double wasteHeatMultiplier = 1; // Reduce heat radiated in NF mode.
 
         private int intakeLqdId;
         private int intakeAtmId;
@@ -564,25 +535,16 @@ namespace FNPlugin.Wasteheat
         public float drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
         // Duplicate code end
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = false, guiActive = true, guiName = "Distance underground", guiFormat = "F1", guiUnits = "m")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "Distance underground", guiFormat = "F1", guiUnits = "m")]
         public double undergroundAmount;
 
-        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false, guiName = "Radiator effective size", guiFormat = "F2", guiUnits = "m")]
-        public double effectiveSize;
+        [KSPField(groupName = GROUP, guiName = "Radiator effective size", guiFormat = "F2", guiUnits = "m")] public double effectiveSize;
+        [KSPField(groupName = GROUP)] public double meanGroundTempDistance = 10;
+        [KSPField(groupName = GROUP, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")] public double coolTemp;
+        [KSPField(groupName = GROUP, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")] public double hotTemp;
+        [KSPField(groupName = GROUP, guiActive = true, guiName = "Underground Temp", guiFormat = "F2", guiUnits = "K")] public double undergroundTemp;
 
-        [KSPField(groupName = GROUP, isPersistant = false, guiActive = false)]
-        public double meanGroundTempDistance = 10;
-
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "Cool Temp", guiFormat = "F2", guiUnits = "K")]
-        public double coolTemp;
-
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "Hot Temp", guiFormat = "F2", guiUnits = "K")]
-        public double hotTemp;
-
-        [KSPField(groupName = GROUP, isPersistant = false, guiActive = true, guiName = "Underground Temp", guiFormat = "F2", guiUnits = "K")]
-        public double undergroundTemp;
-
-        [KSPEvent(groupName = GROUP, guiActive = true, guiActiveEditor = false, guiName = "Toggle Heat Pump Information", active = true)]
+        [KSPEvent(groupName = GROUP, guiActive = true, guiName = "Toggle Heat Pump Information", active = true)]
         public void ToggleHeatPumpDebugAction()
         {
             var coolTempField = Fields[nameof(coolTemp)];
@@ -764,27 +726,16 @@ namespace FNPlugin.Wasteheat
         [KSPField] public int DEPLOYMENT_DELAY = 6;
         [KSPField] public float drapperPoint = 500; // 798
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_RadiatorTemp")]//Rad Temp
-        public string radiatorTempStr;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PartTemp")]//Part Temp
-        public string partTempStr;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PowerRadiated")]//Power Radiated
-        public string thermalPowerDissipStr;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PowerConvected")]//Power Convected
-        public string thermalPowerConvStr;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_RadUpgradeCost")]//Rad Upgrade Cost
-        public string upgradeCostStr;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_RadiatorStartTemp")]//Radiator Start Temp
-        public double radiatorTemperatureTempVal;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_DynamicPressureStress", guiActive = true, guiFormat = "P2")]//Dynamic Pressure Stress
-        public double dynamicPressureStress;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_MaxEnergyTransfer", guiFormat = "F2")]//Max Energy Transfer
-        private double _maxEnergyTransfer;
-
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "Part Rotation Distance", guiFormat = "F2", guiUnits = "m/s")]
-        public double partRotationDistance;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "Atmosphere Density", guiFormat = "F2", guiUnits = "")]
-        public double atmDensity;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_RadiatorTemp")] public string radiatorTempStr;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PartTemp")] public string partTempStr;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PowerRadiated")] public string thermalPowerDissipStr;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiName = "#LOC_KSPIE_Radiator_PowerConvected")] public string thermalPowerConvStr;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_RadUpgradeCost")] public string upgradeCostStr;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_RadiatorStartTemp")] public double radiatorTemperatureTempVal;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_DynamicPressureStress", guiActive = true, guiFormat = "P2")] public double dynamicPressureStress;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_MaxEnergyTransfer", guiFormat = "F2")] private double _maxEnergyTransfer;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Part Rotation Distance", guiFormat = "F2", guiUnits = "m/s")] public double partRotationDistance;
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Atmosphere Density", guiFormat = "F2", guiUnits = "")] public double atmDensity;
 
         public bool IsGraphene { get; private set; }
 
