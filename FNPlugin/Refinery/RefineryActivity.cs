@@ -42,7 +42,7 @@ namespace FNPlugin.Refinery
         public virtual RefineryType RefineryType { get; } = RefineryType.None;
         public virtual string Status { get; } = "";
 
-        [KSPEvent(guiActive = false, guiName = "Toggle", active = true)]//Toggle RefineryActivity
+        [KSPEvent(groupDisplayName = InterstellarRefineryController.GroupTitle, groupName = InterstellarRefineryController.Group, guiActive = false, guiName = "Toggle", active = true)]//Toggle RefineryActivity
         public void ToggleWindow()
         {
             if (_refineryController == null)
