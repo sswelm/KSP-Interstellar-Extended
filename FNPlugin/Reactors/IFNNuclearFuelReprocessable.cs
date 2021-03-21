@@ -4,6 +4,6 @@
     {
         double WasteToReprocess { get; }
 
-        double ReprocessFuel(double rate, double deltaTime, double productionModifier);
+        double ReprocessFuel(double rate, double deltaTime, double productionModifier, Part processor);
     }
 }

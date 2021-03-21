@@ -8,7 +8,6 @@ namespace FNPlugin.Resources
         private static ResourceSettings _config;
 
         // Chemical resources
-        public string Actinides { get; private set; } = "Actinides";
         public string Alumina { get; private set; } = "Alumina";
         public string Aluminium { get; private set; } = "Aluminium";
         public string AmmoniaGas { get; private set; } = "Ammonia";
@@ -55,12 +54,17 @@ namespace FNPlugin.Resources
         public string XenonLqd { get; private set; } = "LqdXenon";
 
         // Nuclear resources
+        public string Actinides { get; private set; } = "Actinides";
         public string DepletedFuel { get; private set; } = "DepletedFuel";
         public string EnrichedUranium { get; private set; } = "EnrichedUranium";
+        public string Protactinium233 { get; private set; } = "Protactinium-233";
         public string Plutonium238 { get; private set; } = "Plutonium-238";
+        public string Plutonium239 { get; private set; } = "Plutonium-239";
         public string ThoriumTetraflouride { get; private set; } = "ThF4";
         public string UraniumTetraflouride { get; private set; } = "UF4";
         public string Uranium233 { get; private set; } = "Uranium-233";
+        public string Uranium235 { get; private set; } = "Uranium-235";
+        public string Uranium238 { get; private set; } = "DepletedUranium";
         public string UraniumNitride { get; private set; } = "UraniumNitride";
 
         // Abstract resources
@@ -133,6 +137,7 @@ namespace FNPlugin.Resources
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Nitrogen15Lqd), value => Nitrogen15Lqd = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(OxygenGas), value => OxygenGas = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(OxygenLqd), value => OxygenLqd = value);
+            UpdatePropertyWithConfigNode(pluginSettings, nameof(Protactinium233), value => Protactinium233 = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Regolith), value => Regolith = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Sodium), value => Sodium = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(SolarWind), value => SolarWind = value);
@@ -153,8 +158,11 @@ namespace FNPlugin.Resources
             UpdatePropertyWithConfigNode(pluginSettings, nameof(DepletedFuel), value => DepletedFuel = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(EnrichedUranium), value => EnrichedUranium = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Plutonium238), value => Plutonium238 = value);
+            UpdatePropertyWithConfigNode(pluginSettings, nameof(Plutonium239), value => Plutonium239 = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(ThoriumTetraflouride), value => ThoriumTetraflouride = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(Uranium233), value => Uranium233 = value);
+            UpdatePropertyWithConfigNode(pluginSettings, nameof(Uranium235), value => Uranium235 = value);
+            UpdatePropertyWithConfigNode(pluginSettings, nameof(Uranium238), value => Uranium238 = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(UraniumNitride), value => UraniumNitride = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(UraniumTetraflouride), value => UraniumTetraflouride = value);
 

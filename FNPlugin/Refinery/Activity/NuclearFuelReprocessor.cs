@@ -40,7 +40,7 @@ namespace FNPlugin.Refinery.Activity
 
             foreach (var nuclearReactor in nuclearReactors)
             {
-                double actinidesChange = nuclearReactor.ReprocessFuel(remainingCapacityToReprocess, fixedDeltaTime, productionModifier);
+                double actinidesChange = nuclearReactor.ReprocessFuel(remainingCapacityToReprocess, fixedDeltaTime, productionModifier, _part);
                 enumActinidesChange += actinidesChange;
                 remainingCapacityToReprocess = Math.Max(0, remainingCapacityToReprocess - actinidesChange);
             }

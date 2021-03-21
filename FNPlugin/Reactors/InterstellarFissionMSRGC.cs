@@ -25,21 +25,12 @@ namespace FNPlugin.Reactors
         [KSPField] public double actinidesModifer = 1;
         [KSPField] public double temperatureThrottleExponent = 0.5;
         [KSPField] public double minimumTemperature = 0;
-        [KSPField] public double actinideProcessingSpeedMult = 0.1;
+        [KSPField] public double poisonsProcessingSpeedMult = 0.05;
         [KSPField] public bool canDumpActinides = false;
-
-        private PartResourceDefinition fluorineGasDefinition;
-        private PartResourceDefinition depletedFuelDefinition;
-        private PartResourceDefinition enrichedUraniumDefinition;
-        private PartResourceDefinition oxygenGasDefinition;
+        [KSPField] public double reactorMainFuelMaxAmount;
 
         private BaseEvent _manualRestartEvent;
 
-        private double fluorineDepletedFuelVolumeMultiplier;
-        private double enrichedUraniumVolumeMultiplier;
-        private double depletedToEnrichVolumeMultiplier;
-        private double oxygenDepletedUraniumVolumeMultiplier;
-        private double reactorMainFuelMaxAmount;
         private double reactorMainFuelDensityInTon;
 
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic;
@@ -235,7 +226,7 @@ namespace FNPlugin.Reactors
             base.OnUpdate();
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             Debug.Log("[KSPI]: OnStart MSRGC " + part.name);
 
@@ -245,16 +236,6 @@ namespace FNPlugin.Reactors
             fuelModeStr = CurrentFuelMode.ModeGUIName;
 
             _manualRestartEvent = Events[nameof(ManualRestart)];
-
-            oxygenGasDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.OxygenGas);
-            fluorineGasDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.FluorineGas);
-            depletedFuelDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.DepletedFuel);
-            enrichedUraniumDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.EnrichedUranium);
-
-            depletedToEnrichVolumeMultiplier = enrichedUraniumDefinition.density / depletedFuelDefinition.density;
-            fluorineDepletedFuelVolumeMultiplier = ((19 * 4) / 232d) * (depletedFuelDefinition.density / fluorineGasDefinition.density);
-            enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
-            oxygenDepletedUraniumVolumeMultiplier = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
 
             Events[nameof(DumpActinides)].guiActive = canDumpActinides;
             Events[nameof(SwitchMode)].guiActiveEditor = Events[nameof(SwitchMode)].guiActive = Events[nameof(SwitchMode)].guiActiveUnfocused = CheckFuelModes() > 1;
@@ -274,6 +255,18 @@ namespace FNPlugin.Reactors
                 if (reactorMainFuelMaxAmount == 0)
                     reactorMainFuelMaxAmount = initialReactorFuel.maxAmount;
                 reactorMainFuelDensityInTon = firstReactorFuel.DensityInTon;
+            }
+            else
+            {
+                if (reactorMainFuelMaxAmount == 0)
+                {
+                    // assume the densest resource is nuclear fuel
+                    PartResource densestFuel = part.Resources.OrderByDescending(m => m.info.density).FirstOrDefault();
+                    if (densestFuel != null)
+                        reactorMainFuelMaxAmount = densestFuel.maxAmount;
+                    else
+                        reactorMainFuelMaxAmount = part.mass * 100;
+                }
             }
 
             foreach (var fuelMode in fuelModes)
@@ -307,60 +300,99 @@ namespace FNPlugin.Reactors
             return true;
         }
 
-        public double ReprocessFuel(double rate, double deltaTime, double productionModifier)
+        public double ReprocessFuel(double rate, double deltaTime, double productionModifier, Part processor)
         {
             if (!hasStarted)
                 OnStart(StartState.None);
 
-            if (!part.Resources.Contains(ResourceSettings.Config.Actinides)) return 0;
+            double poisonsAmount = 0;
 
             var actinides = part.Resources[ResourceSettings.Config.Actinides];
+            if (actinides != null)
+                poisonsAmount += actinides.amount;
 
-            if (actinides.maxAmount <= 0)
+            var protactinium233 = part.Resources[ResourceSettings.Config.Protactinium233];
+            if (protactinium233 != null)
+                poisonsAmount += protactinium233.amount;
+
+            if (poisonsAmount <= 0)
                 return 0;
 
-            var actinideProcessingSpeed = actinideProcessingSpeedMult * productionModifier * deltaTime * (actinides.amount / actinides.maxAmount);
-            var newActinidesAmount = Math.Max(actinides.amount -  Math.Min(rate, actinideProcessingSpeed), 0);
-            var actinidesChange = actinides.amount - newActinidesAmount;
-            actinides.amount = newActinidesAmount;
+            var poisonsProcessingSpeed = poisonsProcessingSpeedMult * productionModifier * deltaTime * (poisonsAmount / reactorMainFuelMaxAmount);
+            var effectivePoisonsCapacity = Math.Min(rate, poisonsProcessingSpeed);
 
-            var depletedFuelsRequest = actinidesChange * 0.2;
-            var depletedFuelsProduced = -Part.RequestResource(depletedFuelDefinition.id, -depletedFuelsRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+            double massPoisonDecrease = 0;
+            if (actinides != null)
+            {
+                var actinidesCapacity = effectivePoisonsCapacity * (actinides.amount / poisonsAmount);
+                var processorActinides = processor.Resources[ResourceSettings.Config.Actinides];
+                if (processorActinides != null)
+                {
+                    var storedActinides = Math.Min(processorActinides.maxAmount - processorActinides.amount, actinidesCapacity);
+                    processorActinides.amount = processorActinides.amount + storedActinides;
 
-            // first try to replace depletedFuel with enriched uranium
-            var enrichedUraniumRequest = depletedFuelsProduced * enrichedUraniumVolumeMultiplier;
-            var enrichedUraniumRetrieved = Part.RequestResource(enrichedUraniumDefinition.id, enrichedUraniumRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-            var receivedEnrichedUraniumFraction = enrichedUraniumRequest > 0 ? enrichedUraniumRetrieved / enrichedUraniumRequest : 0;
+                    massPoisonDecrease += storedActinides * actinides.info.density;
+                    actinides.amount = Math.Max(actinides.amount - storedActinides, 0);
+                }
+            }
+
+            if (protactinium233 != null)
+            {
+                var protactinium233Capacity = effectivePoisonsCapacity * (protactinium233.amount / poisonsAmount);
+                var processorProtactinium233 = processor.Resources[ResourceSettings.Config.Protactinium233];
+                if (processorProtactinium233 != null)
+                {
+                    var storedProtactinium233 = Math.Min(processorProtactinium233.maxAmount - processorProtactinium233.amount, protactinium233Capacity);
+                    processorProtactinium233.amount = processorProtactinium233.amount + storedProtactinium233;
+
+                    massPoisonDecrease += storedProtactinium233 * protactinium233.info.density;
+                    protactinium233.amount = Math.Max(protactinium233.amount - storedProtactinium233, 0);
+                }
+            }
+
+            if (massPoisonDecrease == 0)
+                return effectivePoisonsCapacity;
 
             var reactorFuels = CurrentFuelVariant?.ReactorFuels;
             if (reactorFuels == null)
-                return 0;
+                return effectivePoisonsCapacity;
 
-            var sumUsagePerMw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMj * fuelUsePerMJMult);
+            var reactorProducts = CurrentFuelVariant.ReactorProducts;
 
-            if (reactorFuels.Any(m => m.ResourceName == "UF4"))
+            var totalProductMassUsagePerMw = reactorProducts.Sum(fuel => fuel.TonsProductUsePerMj * fuelUsePerMJMult);
+            var totalPoisonMassUsagePerMw = reactorProducts
+                .Where(m => m.ResourceName == ResourceSettings.Config.Actinides || m.ResourceName == "Protactinium-233")
+                .Sum(fuel => fuel.TonsProductUsePerMj * fuelUsePerMJMult);
+
+            var poisonRatio = totalPoisonMassUsagePerMw / totalProductMassUsagePerMw;
+
+            var totalProcessingMass = poisonRatio > 0 ? massPoisonDecrease / poisonRatio : 0;
+            var totalFuelMassUsagePerMw = reactorFuels.Sum(fuel => fuel.TonsFuelUsePerMj * fuelUsePerMJMult);
+
+            foreach (var reactorFuel in reactorFuels)
             {
-                // if missing fluorine is dumped
-                Part.RequestResource(oxygenGasDefinition.id, -depletedFuelsProduced * oxygenDepletedUraniumVolumeMultiplier * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-                Part.RequestResource(fluorineGasDefinition.id, -depletedFuelsProduced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var processorFuelResource = processor.Resources[reactorFuel.ResourceName];
+                if (processorFuelResource == null || processorFuelResource.amount <= 0)
+                    continue;
+
+                var reactorFuelResource = part.Resources[reactorFuel.ResourceName];
+                if (reactorFuelResource == null)
+                    continue;
+
+                var availableReactorStorage = reactorFuelResource.maxAmount - reactorFuelResource.amount;
+                if (availableReactorStorage <= 0)
+                    continue;
+
+                var powerFraction = totalFuelMassUsagePerMw > 0 ? reactorFuel.TonsFuelUsePerMj * fuelUsePerMJMult / totalFuelMassUsagePerMw : 1;
+                var requiredFuelAmount = Math.Min(availableReactorStorage, totalProcessingMass * powerFraction / reactorFuelResource.info.density);
+
+                var availableFuelAmount = Math.Min(requiredFuelAmount, processorFuelResource.amount);
+                processorFuelResource.amount -= availableFuelAmount;
+
+                reactorFuelResource.amount = reactorFuelResource.amount + availableFuelAmount;
             }
 
-            if (reactorFuels.Any(m => m.ResourceName == "ThF4"))
-            {
-                // if missing fluorine is dumped
-                Part.RequestResource(oxygenGasDefinition.id, -depletedFuelsProduced * oxygenDepletedUraniumVolumeMultiplier * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-                Part.RequestResource(fluorineGasDefinition.id, -depletedFuelsProduced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
-            }
-
-            foreach (ReactorFuel fuel in reactorFuels)
-            {
-                var fuelResource = part.Resources[fuel.ResourceName];
-                var powerFraction = sumUsagePerMw > 0.0 ? fuel.AmountFuelUsePerMj * fuelUsePerMJMult / sumUsagePerMw : 1;
-                var newFuelAmount = Math.Min(fuelResource.amount + ((depletedFuelsProduced * 4) + (depletedFuelsProduced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultiplier, fuelResource.maxAmount);
-                fuelResource.amount = newFuelAmount;
-            }
-
-            return actinidesChange;
+            return effectivePoisonsCapacity;
         }
 
         // This Methods loads the correct fuel mode
@@ -377,8 +409,6 @@ namespace FNPlugin.Reactors
 
         private void DisableResources()
         {
-            bool editor = HighLogic.LoadedSceneIsEditor;
-
             var firstVariant = CurrentFuelMode.Variants.First();
 
             foreach (ReactorFuel fuel in firstVariant.ReactorFuels)
@@ -388,7 +418,7 @@ namespace FNPlugin.Reactors
 
                 resource.maxAmount = 0;
 
-                if (editor)
+                if (HighLogic.LoadedSceneIsEditor)
                 {
                     resource.amount = 0;
                     resource.isTweakable = false;
@@ -398,13 +428,10 @@ namespace FNPlugin.Reactors
 
         private void EnableResources()
         {
-            bool editor = HighLogic.LoadedSceneIsEditor;
-
             // calculate total
             var firstVariant = CurrentFuelMode.Variants.First();
 
             var totalTonsFuelUsePerMj = firstVariant.ReactorFuels.Sum(m => m.TonsFuelUsePerMj);
-            //var totalDensityInTon = firstVariant.ReactorFuels.Sum(m => m.DensityInTon);
 
             foreach (ReactorFuel fuel in firstVariant.ReactorFuels)
             {
@@ -415,7 +442,7 @@ namespace FNPlugin.Reactors
 
                 resource.maxAmount = weightedAmount;
 
-                if (editor)
+                if (HighLogic.LoadedSceneIsEditor)
                 {
                     resource.amount = weightedAmount;
                     resource.isTweakable = true;
@@ -466,8 +493,7 @@ namespace FNPlugin.Reactors
 
                 swapResourceList.ForEach(res =>
                 {
-                    double spareCapacityForFuel = res.maxAmount - res.amount;
-                    double fuelAdded = Math.Min(fuelReactor.amount, spareCapacityForFuel);
+                    double fuelAdded = Math.Min(fuelReactor.amount, res.maxAmount - res.amount);
                     fuelReactor.amount -= fuelAdded;
                     res.amount += fuelAdded;
                 });
@@ -485,7 +511,7 @@ namespace FNPlugin.Reactors
         {
             var modesAvailable = 0;
             var fuelMode = CurrentFuelMode.Variants.First();
-            string fuelName = fuelMode.ReactorFuels.First().FuelName;
+            var fuelName = fuelMode.ReactorFuels.First().FuelName;
             foreach (var reactorFuelType in fuelModes)
             {
                 var currentFuelMode = reactorFuelType.Variants.First();
