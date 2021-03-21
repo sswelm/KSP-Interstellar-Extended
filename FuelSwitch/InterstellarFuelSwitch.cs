@@ -98,6 +98,7 @@ namespace InterstellarFuelSwitch
         [KSPField] public bool controlCrewCapacity = false;
         [KSPField] public bool useTextureSwitchModule;
         [KSPField] public bool showTankName = true;
+        [KSPField] public bool showMass = true;
         [KSPField] public bool showInfo = true;    // if false, does not feed info to the part list pop up info menu
         [KSPField] public bool ignoreInitialCost = false;
         [KSPField] public bool adaptiveTankSelection = false;
@@ -211,6 +212,7 @@ namespace InterstellarFuelSwitch
         private BaseField _maxWetDryMassField;
         private BaseField _crewCapacityField;
         private BaseField _tankGuiNameField;
+        private BaseField _totalMassField;
         private BaseField _chooseField;
 
         private BaseEvent _nextTankSetupEvent;
@@ -494,6 +496,7 @@ namespace InterstellarFuelSwitch
                 _field2 = Fields[nameof(resourceAmountStr2)];
                 _field3 = Fields[nameof(resourceAmountStr3)];
                 _tankGuiNameField = Fields[nameof(tankGuiName)];
+                _totalMassField = Fields[nameof(totalMass)];
 
                 SetupTankList();
 
@@ -642,8 +645,18 @@ namespace InterstellarFuelSwitch
             tankGuiName = _modularTankList[selectedTankSetup].GuiName;
 
             var tankGuiNameIsNotEmpty = !string.IsNullOrEmpty(tankGuiName);
-            _tankGuiNameField.guiActive = showTankName && tankGuiNameIsNotEmpty;
-            _tankGuiNameField.guiActiveEditor = showTankName && tankGuiNameIsNotEmpty;
+
+            if (_tankGuiNameField != null)
+            {
+                _tankGuiNameField.guiActive = showTankName && tankGuiNameIsNotEmpty;
+                _tankGuiNameField.guiActiveEditor = showTankName && tankGuiNameIsNotEmpty;
+            }
+
+            if (_totalMassField != null)
+            {
+                _totalMassField.guiActive = showMass;
+                _totalMassField.guiActiveEditor = showMass;
+            }
         }
 
         private List<string> SetupTankInPart(Part currentPart, bool calledByPlayer)
