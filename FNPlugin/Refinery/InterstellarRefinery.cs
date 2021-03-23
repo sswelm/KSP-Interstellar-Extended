@@ -128,8 +128,6 @@ namespace FNPlugin.Refinery
                 availableRefineries = refineriesList.OrderBy(a => a.ActivityName).ToList();
 
             // initialize refineries
-            availableRefineries.ForEach(m => m.Initialize(part, this));
-
             foreach (var availableRefinery in availableRefineries)
             {
                 try
@@ -138,7 +136,7 @@ namespace FNPlugin.Refinery
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("[KSPI]: Failed to initialized " + availableRefinery.ActivityName + " with exception: " + e.Message);
+                    Debug.LogError("[KSPI]: Failed to initialize " + availableRefinery.ActivityName + " with exception: " + e.Message);
                 }
             }
 

@@ -64,8 +64,11 @@ namespace FNPlugin.Refinery
             _vessel = localPart.vessel;
             _refineryController = controller;
 
-            _toggleEvent = Events[nameof(ToggleWindow)];
-            _toggleEvent.guiActive = true;
+            if (Events != null)
+            {
+                _toggleEvent = Events[nameof(ToggleWindow)];
+                _toggleEvent.guiActive = true;
+            }
         }
 
         public override void OnUpdate()
