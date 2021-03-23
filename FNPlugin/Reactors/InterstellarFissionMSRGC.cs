@@ -318,6 +318,9 @@ namespace FNPlugin.Reactors
             if (poisonsAmount <= 0)
                 return 0;
 
+            if (reactorMainFuelMaxAmount <= 0)
+                reactorMainFuelMaxAmount = part.mass * 100;
+
             var poisonsProcessingSpeed = poisonsProcessingSpeedMult * productionModifier * deltaTime * (poisonsAmount / reactorMainFuelMaxAmount);
             var effectivePoisonsCapacity = Math.Min(rate, poisonsProcessingSpeed);
 
@@ -428,6 +431,9 @@ namespace FNPlugin.Reactors
 
         private void EnableResources()
         {
+            if (reactorMainFuelMaxAmount <= 0)
+                reactorMainFuelMaxAmount = part.mass * 100;
+
             // calculate total
             var firstVariant = CurrentFuelMode.Variants.First();
 
