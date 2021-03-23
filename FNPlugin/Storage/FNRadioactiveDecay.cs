@@ -21,18 +21,12 @@ namespace FNPlugin.Storage
         public double lastActiveTime = -1;
 
         // Settings
-        [KSPField(isPersistant = false)]
-        public double halfLifeInYears = 0;
-        [KSPField(isPersistant = false)]
-        public double halfLifeInDays = 0;
-        [KSPField(isPersistant = false)]
-        public double decayConstant;
-        [KSPField(isPersistant = false)]
-        public string resourceName = "";
-        [KSPField(isPersistant = false)]
-        public string decayProduct = "";
-        [KSPField(isPersistant = false)]
-        public bool canConvertVolume = true;
+        [KSPField(isPersistant = false)] public double halfLifeInYears = 0;
+        [KSPField(isPersistant = false)] public double halfLifeInDays = 0;
+        [KSPField(isPersistant = false)] public double decayConstant;
+        [KSPField(isPersistant = false)] public string resourceName = "";
+        [KSPField(isPersistant = false)] public string decayProduct = "";
+        [KSPField(isPersistant = false)] public bool canConvertVolume = true;
 
         private double _densityRat = 1;
         private PartResourceDefinition _decaySourceDefinition;
@@ -78,23 +72,23 @@ namespace FNPlugin.Storage
             if (lastActiveTime < 0)
                 lastActiveTime = Planetarium.GetUniversalTime();
 
-            double timeDiffInSeconds = Planetarium.GetUniversalTime() - lastActiveTime;
+            var timeDiffInSeconds = Planetarium.GetUniversalTime() - lastActiveTime;
 
             if (!(timeDiffInSeconds > 0)) return;
 
-            double resourceAmount = decayResource.amount;
+            var resourceAmount = decayResource.amount;
             decayResource.amount = resourceAmount * Math.Exp(-decayConstant * timeDiffInSeconds);
 
             if (_decayProductDefinition == null)
                 return;
 
-            double resourceChange = resourceAmount - decayResource.amount;
+            var resourceChange = resourceAmount - decayResource.amount;
             if (resourceChange <= 0)
                 return;
 
             var decayProductAmount = resourceChange * _densityRat;
 
-            var decayProductResource = part.Resources[decayProduct];
+            var decayProductResource = part.Resources.Get(_decayProductDefinition.id);
 
             if (canConvertVolume && decayProductResource != null)
             {
@@ -131,7 +125,7 @@ namespace FNPlugin.Storage
 
             lastActiveTime = Planetarium.GetUniversalTime();
 
-            double decayAmount = decayConstant * decayResource.amount * TimeWarp.fixedDeltaTime;
+            var decayAmount = decayConstant * decayResource.amount * TimeWarp.fixedDeltaTime;
             decayResource.amount -= decayAmount;
 
             if (_decayProductDefinition == null || !(decayAmount > 0)) return;
@@ -164,7 +158,7 @@ namespace FNPlugin.Storage
 
         private void StoreDecayProduct(double decayProductAmount, PartResource decayProductResource)
         {
-            double shortageDecayProductAmount = decayProductAmount;
+            var shortageDecayProductAmount = decayProductAmount;
             if (decayProductResource != null)
             {
                 var newLocalDecayProductAmount = decayProductResource.amount + decayProductAmount;

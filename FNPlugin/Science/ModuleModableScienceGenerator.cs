@@ -5,7 +5,6 @@ using KSP.UI.Screens.Flight.Dialogs;
 
 namespace FNPlugin
 {
-
     class ModuleModableScienceGenerator : ResourceSuppliableModule, IScienceDataContainer
     {
         [KSPField(isPersistant = false)] public bool canDeploy = false;
@@ -30,10 +29,10 @@ namespace FNPlugin
         [KSPEvent(guiName = "#LOC_KSPIE_ScienceGenerator_Deploy", active = true, guiActive = true)]//Deploy
         public void DeployExperiment()
         {
-            data_gend = generateScienceData();
+            data_gend = GenerateScienceData();
             ReviewData();
             Deployed = true;
-            cleanUpScienceData();
+            CleanUpScienceData();
         }
 
         [KSPAction("Deploy")]
@@ -72,11 +71,11 @@ namespace FNPlugin
                         false,
                         "",
                         true,
-                        new ScienceLabSearch(this.vessel, this.scienceData),
-                        this.endExperiment,
-                        this.keepData,
-                        this.sendDataToComms,
-                        this.sendDataToLab);
+                        new ScienceLabSearch(vessel, scienceData),
+                        this.EndExperiment,
+                        this.KeepData,
+                        this.SendDataToComms,
+                        this.SendDataToLab);
 
                     //merdp = new ModableExperimentResultDialogPage(
                     //		base.part,
@@ -190,12 +189,12 @@ namespace FNPlugin
             data.triggered = scienceData.triggered;
         }
 
-        protected void endExperiment(ScienceData science_data)
+        protected void EndExperiment(ScienceData science_data)
         {
             DumpData(science_data);
         }
 
-        protected void sendDataToComms(ScienceData science_data)
+        protected void SendDataToComms(ScienceData science_data)
         {
             List<IScienceDataTransmitter> list = vessel.FindPartModulesImplementing<IScienceDataTransmitter>();
             if (list.Any() && science_data != null && data_gend)
@@ -203,11 +202,11 @@ namespace FNPlugin
                 merdp = null;
                 var list2 = new List<ScienceData> {science_data};
                 list.OrderBy(ScienceUtil.GetTransmitterScore).First<IScienceDataTransmitter>().TransmitData(list2);
-                endExperiment(science_data);
+                EndExperiment(science_data);
             }
         }
 
-        protected void sendDataToLab(ScienceData science_data)
+        protected void SendDataToLab(ScienceData science_data)
         {
             ModuleScienceLab moduleScienceLab = part.FindModuleImplementing<ModuleScienceLab>();
             if (moduleScienceLab == null || science_data == null || !data_gend) return;
@@ -215,20 +214,20 @@ namespace FNPlugin
             if (!(moduleScienceLab.dataStored + science_data.dataAmount <= moduleScienceLab.dataStorage)) return;
 
             moduleScienceLab.dataStored += science_data.labValue;
-            endExperiment(science_data);
+            EndExperiment(science_data);
         }
 
-        protected void keepData(ScienceData science_data)
+        protected void KeepData(ScienceData science_data)
         {
 
         }
 
-        protected virtual bool generateScienceData()
+        protected virtual bool GenerateScienceData()
         {
             return false;
         }
 
-        protected virtual void cleanUpScienceData()
+        protected virtual void CleanUpScienceData()
         {
 
         }

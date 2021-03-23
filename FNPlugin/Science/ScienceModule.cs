@@ -13,99 +13,67 @@ namespace FNPlugin
     class ScienceModule : ResourceSuppliableModule, ITelescopeController, IUpgradeableModule
     {
         // persistant true
-        [KSPField(isPersistant = true)]
-        public bool IsEnabled;
-        [KSPField(isPersistant = true)]
-        public int active_mode = 0;
-        [KSPField(isPersistant = true)]
-        public double last_active_time;
-        [KSPField(isPersistant = true)]
-        public double electrical_power_ratio;
-        //[KSPField(isPersistant = true)]
-        //public double science_to_add;
+        [KSPField(isPersistant = true)] public bool IsEnabled;
+        [KSPField(isPersistant = true)] public int active_mode = 0;
+        [KSPField(isPersistant = true)] public double last_active_time;
+        [KSPField(isPersistant = true)] public double electrical_power_ratio;
+        [KSPField(isPersistant = true)] public bool isupgraded;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_Activity")]//Activity
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_Activity")]//Activity
         public string statusTitle;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_Power")]//Power
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_Power")]//Power
         public string powerStr;
-        //[KSPField(isPersistant = false, guiActive = false, guiName = "Data Scan Rate")]
-        //public string scienceRate;
-        //[KSPField(isPersistant = false, guiActive = false, guiName = "Scanned Data")]
-        //public string collectedScience;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "R")]
-        public string reprocessingRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "A")]
-        public string antimatterRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "E")]
-        public string electrolysisRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "C")]
-        public string centrifugeRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_AntimatterEfficiency")]//Antimatter Efficiency
+
+        [KSPField(guiActive = true, guiName = "R")] public string reprocessingRate;
+        [KSPField(guiActive = true, guiName = "A")] public string antimatterRate;
+        [KSPField(guiActive = true, guiName = "E")] public string electrolysisRate;
+        [KSPField(guiActive = true, guiName = "C")] public string centrifugeRate;
+
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_AntimatterEfficiency")]//Antimatter Efficiency
         public string antimatterProductionEfficiency;
-        //[KSPField(isPersistant = false)]
-        //public string beginResearchName = "Begin Scanning";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_DataProcessingMultiplier")] //Data Processing Multiplier
+
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_DataProcessingMultiplier")] //Data Processing Multiplier
         public float dataProcessingMultiplier;
 
 
-        [KSPField(isPersistant = false)]
-        public string Mk2Tech = "longTermScienceTech";
-        [KSPField(isPersistant = false)]
-        public string Mk3Tech = "scientificOutposts";
-        [KSPField(isPersistant = false)]
-        public string Mk4Tech = "highEnergyScience";
-        [KSPField(isPersistant = false)]
-        public string Mk5Tech = "appliedHighEnergyPhysics";
-        [KSPField(isPersistant = false)]
-        public string Mk6Tech = "ultraHighEnergyPhysics";
-        [KSPField(isPersistant = false)]
-        public string Mk7Tech = "extremeHighEnergyPhysics";
+        [KSPField] public string Mk2Tech = "longTermScienceTech";
+        [KSPField] public string Mk3Tech = "scientificOutposts";
+        [KSPField] public string Mk4Tech = "highEnergyScience";
+        [KSPField] public string Mk5Tech = "appliedHighEnergyPhysics";
+        [KSPField] public string Mk6Tech = "ultraHighEnergyPhysics";
+        [KSPField] public string Mk7Tech = "extremeHighEnergyPhysics";
 
 
-        [KSPField(isPersistant = false)]
-        public int Mk1ScienceCap = 1000;
-        [KSPField(isPersistant = false)]
-        public int Mk2ScienceCap = 1600;
-        [KSPField(isPersistant = false)]
-        public int Mk3ScienceCap = 2500;
-        [KSPField(isPersistant = false)]
-        public int Mk4ScienceCap = 4000;
-        [KSPField(isPersistant = false)]
-        public int Mk5ScienceCap = 6350;
-        [KSPField(isPersistant = false)]
-        public int Mk6ScienceCap = 10000;
-        [KSPField(isPersistant = false)]
-        public int Mk7ScienceCap = 16000;
-
+        [KSPField] public int Mk1ScienceCap = 1000;
+        [KSPField] public int Mk2ScienceCap = 1600;
+        [KSPField] public int Mk3ScienceCap = 2500;
+        [KSPField] public int Mk4ScienceCap = 4000;
+        [KSPField] public int Mk5ScienceCap = 6350;
+        [KSPField] public int Mk6ScienceCap = 10000;
+        [KSPField] public int Mk7ScienceCap = 16000;
 
         // persistant false
-        [KSPField(isPersistant = false)]
-        public string animName1 = "";
-        [KSPField(isPersistant = false)]
-        public string animName2 = "";
-        [KSPField(isPersistant = false)]
-        public string upgradeTechReq = null;
-        [KSPField(isPersistant = false)]
-        public float upgradeCost = 20;
-        [KSPField(isPersistant = true)]
-        public bool isupgraded = false;
-        [KSPField(isPersistant = false)]
-        public float powerReqMult = 1;
-        [KSPField(isPersistant = false)]
-        public float baseDataStorage = 750;
+        [KSPField] public string animName1 = "";
+        [KSPField] public string animName2 = "";
+        [KSPField] public string upgradeTechReq = null;
+        [KSPField] public float upgradeCost = 20;
+
+        [KSPField] public float powerReqMult = 1;
+        [KSPField] public float baseDataStorage = 750;
 
         protected int techLevel;
-        protected float megajoules_supplied = 0;
-        protected String[] modes = { "Scanning", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
-        protected double science_rate_f;
-        protected double reprocessing_rate_f = 0;
-        protected float crew_capacity_ratio;
-        protected double antimatter_rate_f = 0;
 
-        protected float electrolysis_rate_f = 0;
-        protected double deut_rate_f = 0;
+        protected string[] modes = { "Scanning", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
+
+        protected double science_rate_f;
+        protected double reprocessing_rate_f;
+        protected float crew_capacity_ratio;
+        protected double antimatter_rate_f;
+
+        protected float electrolysis_rate_f;
+        protected double deut_rate_f;
         protected bool play_down = true;
-        protected bool hasrequiredupgrade = false;
+        protected bool hasrequiredupgrade;
 
         protected Animation anim;
         protected Animation anim2;
@@ -258,7 +226,7 @@ namespace FNPlugin
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
 
-        public String UpgradeTechnology { get { return upgradeTechReq; } }
+        public string UpgradeTechnology => upgradeTechReq;
 
         public void upgradePartModule()
         {
@@ -313,7 +281,7 @@ namespace FNPlugin
             reprocessor.Initialize(part, null);
             antimatterGenerator = new AntimatterGenerator(part, 1, PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.AntiProtium));
 
-            UnityEngine.Debug.Log("[KSPI]: ScienceModule on " + part.name + " was Force Activated");
+            Debug.Log("[KSPI]: ScienceModule on " + part.name + " was Force Activated");
             part.force_activate();
 
             anim = part.FindModelAnimators(animName1).FirstOrDefault();
@@ -346,7 +314,7 @@ namespace FNPlugin
             if (IsEnabled && last_active_time != 0)
             {
                 double globalRateMultipliers = 1;
-                crew_capacity_ratio = ((float)(part.protoModuleCrew.Count)) / ((float)part.CrewCapacity);
+                crew_capacity_ratio = part.protoModuleCrew.Count / (float)part.CrewCapacity;
                 globalRateMultipliers = globalRateMultipliers * crew_capacity_ratio;
 
                 /*
@@ -478,16 +446,16 @@ namespace FNPlugin
                         Fields["antimatterProductionEfficiency"].guiActive = true;
                         powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginSettings.Config.BaseAMFPowerConsumption).ToString("0.00") + "MW";
                         antimatterProductionEfficiency = (antimatterGenerator.Efficiency * 100).ToString("0.0000") + "%";
-                        double antimatter_rate_per_day = antimatter_rate_f * PluginSettings.Config.SecondsInDay;
+                        double antimatterRatePerDay = antimatter_rate_f * PluginSettings.Config.SecondsInDay;
 
-                        if (antimatter_rate_per_day > 0.1)
-                            antimatterRate = (antimatter_rate_per_day).ToString("0.0000") + " mg/day";
+                        if (antimatterRatePerDay > 0.1)
+                            antimatterRate = (antimatterRatePerDay).ToString("0.0000") + " mg/day";
                         else
                         {
-                            if (antimatter_rate_per_day > 0.1e-3)
-                                antimatterRate = (antimatter_rate_per_day * 1e3).ToString("0.0000") + " ug/day";
+                            if (antimatterRatePerDay > 0.1e-3)
+                                antimatterRate = (antimatterRatePerDay * 1e3).ToString("0.0000") + " ug/day";
                             else
-                                antimatterRate = (antimatter_rate_per_day * 1e6).ToString("0.0000") + " ng/day";
+                                antimatterRate = (antimatterRatePerDay * 1e6).ToString("0.0000") + " ng/day";
                         }
                     }
                     catch (Exception e)
@@ -508,8 +476,8 @@ namespace FNPlugin
                     currentpowertmp = electrical_power_ratio * PluginSettings.Config.BaseCentriPowerConsumption * powerReqMult;
                     Fields["centrifugeRate"].guiActive = true;
                     powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginSettings.Config.BaseCentriPowerConsumption).ToString("0.00") + "MW";
-                    double deut_per_hour = deut_rate_f * 3600;
-                    centrifugeRate = Localizer.Format("#LOC_KSPIE_ScienceModule_Centrifuge", deut_per_hour.ToString("0.00"));// + " Kg Deuterium/Hour"
+                    double deutPerHour = deut_rate_f * 3600;
+                    centrifugeRate = Localizer.Format("#LOC_KSPIE_ScienceModule_Centrifuge", deutPerHour.ToString("0.00"));// + " Kg Deuterium/Hour"
                 }
                 else
                 {
@@ -665,8 +633,8 @@ namespace FNPlugin
 
                     electrical_power_ratio = electricalPowerProvided / TimeWarp.fixedDeltaTime / PluginSettings.Config.BaseCentriPowerConsumption / powerReqMult;
                     globalRateMultipliers = globalRateMultipliers * electrical_power_ratio;
-                    double deut_produced = globalRateMultipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f;
-                    deut_rate_f = -part.RequestResource(ResourceSettings.Config.DeuteriumLqd, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    double deutProduced = globalRateMultipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f;
+                    deut_rate_f = -part.RequestResource(ResourceSettings.Config.DeuteriumLqd, -deutProduced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                 }
                 else
                 {
@@ -736,7 +704,6 @@ namespace FNPlugin
 
             return Localizer.Format("#LOC_KSPIE_ScienceModule_ResourceManagerDisplayName2");//"Science Lab"
         }
-
 
     }
 }

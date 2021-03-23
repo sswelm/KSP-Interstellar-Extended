@@ -47,7 +47,7 @@ namespace FNPlugin
             Events["DeactivateProbe"].active = probeIsEnabled;
         }
 
-        protected override bool generateScienceData()
+        protected override bool GenerateScienceData()
         {
             ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment("FNSeismicProbeExperiment");
             if (experiment == null)
@@ -119,7 +119,7 @@ namespace FNPlugin
             return false;
         }
 
-        protected override void cleanUpScienceData()
+        protected override void CleanUpScienceData()
         {
             if (science_vess_ref != null)
             {

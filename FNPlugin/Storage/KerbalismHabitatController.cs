@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace FNPlugin.Storage
+﻿namespace FNPlugin.Storage
 {
     [KSPModule("Kerbalism Habitat Controller")]
 	class KerbalismHabitatController : PartModule
@@ -16,7 +11,7 @@ namespace FNPlugin.Storage
 
 		public double Volume
 		{
-			get 
+			get
 			{
 				if (isInitialized == false)
 					InitializeKerbalismHabitat();
@@ -31,10 +26,7 @@ namespace FNPlugin.Storage
 				if (isInitialized == false)
 					InitializeKerbalismHabitat();
 
-				if (habitatVolumeField == null)
-					return;
-
-				habitatVolumeField.SetValue(value, habitatModule);
+                habitatVolumeField?.SetValue(value, habitatModule);
 			}
 		}
 
@@ -55,10 +47,7 @@ namespace FNPlugin.Storage
 				if (isInitialized == false)
 					InitializeKerbalismHabitat();
 
-				if (habitatSurfaceField == null)
-					return;
-
-				habitatSurfaceField.SetValue(value, habitatModule);
+                habitatSurfaceField?.SetValue(value, habitatModule);
 			}
 		}
 
@@ -72,33 +61,24 @@ namespace FNPlugin.Storage
 		{
 			isInitialized = true;
 
-			bool found = false;
-
 			foreach (PartModule module in part.Modules)
-			{
-				if (module.moduleName == "Habitat")
-				{
-					habitatModule = module;
-					found = true;
+            {
+                if (module.moduleName != "Habitat") continue;
 
-					habitatVolumeField = module.Fields["volume"];
+                habitatModule = module;
 
-					if (habitatVolumeField == null)
-						UnityEngine.Debug.LogError("[KSPI]: volume Field not found on Habitat");
+                habitatVolumeField = module.Fields["volume"];
 
-					habitatSurfaceField = module.Fields["surface"];
+                if (habitatVolumeField == null)
+                    UnityEngine.Debug.LogError("[KSPI]: volume Field not found on Habitat");
 
-					if (habitatSurfaceField == null)
-						UnityEngine.Debug.LogError("[KSPI]: surface Field not found on Habitat");
+                habitatSurfaceField = module.Fields["surface"];
 
-					break;
-				}
-			}
+                if (habitatSurfaceField == null)
+                    UnityEngine.Debug.LogError("[KSPI]: surface Field not found on Habitat");
 
-            //if (found)
-            //    UnityEngine.Debug.Log("[KSPI]: Found Habitat PartModule on " + part.partInfo.title );
-            //else
-            //    UnityEngine.Debug.LogWarning("[KSPI]: No Habitat PartModule found on " + part.partInfo.title);
+                break;
+            }
 		}
 	}
 }

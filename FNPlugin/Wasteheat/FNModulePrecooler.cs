@@ -21,7 +21,7 @@ namespace FNPlugin
         AtmosphericIntake attachedIntake;
         List<AtmosphericIntake> radialAttachedIntakes = new List<AtmosphericIntake>();
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             Debug.Log("[KSPI]: FNModulePreecooler - Onstart start search for Air Intake module to cool");
 

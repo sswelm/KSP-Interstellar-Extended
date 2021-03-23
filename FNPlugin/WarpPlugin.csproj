@@ -189,7 +189,7 @@
     <Compile Include="Propulsion\ElectricRCSController.cs" />
     <Compile Include="External\FNHabitat.cs" />
     <Compile Include="Science\FNModuleReactionWheelController.cs" />
-    <Compile Include="Storage\FNModuleAnimater.cs" />
+    <Compile Include="Storage\FNModuleAnimator.cs" />
     <Compile Include="Storage\FNRadioActiveStorage.cs" />
     <Compile Include="Storage\FNResourceTransfer.cs" />
     <Compile Include="Storage\KerbalismHabitatController.cs" />

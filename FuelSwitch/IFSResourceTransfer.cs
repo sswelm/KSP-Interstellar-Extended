@@ -27,7 +27,9 @@ namespace InterstellarFuelSwitch
         public double AvailableAmount => PartResource == null || !PartResource.flowState ? 0 : PartResource.amount;
 
         public int TransferPriority { get; private set; }
-        public PartResource PartResource { get; private set; }
+
+        private PartResource _partResource;
+        public PartResource PartResource => _partResource ?? (_partResource = part.Resources.Get(_resourceDefinition.id));
 
         public override void OnStart(StartState state)
         {
@@ -52,14 +54,13 @@ namespace InterstellarFuelSwitch
 
             var compatibleTanks =
                 part.vessel.FindPartModulesImplementing<IFSResourceTransfer>()
-                    .Where(m => m.resourceName == _resourceDefinition.displayName);
+                    .Where(m => m.resourceName == _resourceDefinition.name);
 
             _managedTransferableResources.AddRange(compatibleTanks);
         }
 
         public void Update()
         {
-            PartResource = part.Resources[resourceName];
             if (PartResource == null || !PartResource.flowState)
             {
                 if (HighLogic.LoadedSceneIsEditor)
@@ -82,6 +83,9 @@ namespace InterstellarFuelSwitch
         {
             if (_resourceDefinition == null)
                 return;
+
+            // force refresh
+            _partResource = null;
 
             if (PartResource == null || !PartResource.flowState)
                 return;

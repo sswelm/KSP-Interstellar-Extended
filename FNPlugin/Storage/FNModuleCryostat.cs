@@ -1,11 +1,10 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using FNPlugin.Constants;
 using FNPlugin.Powermanagement;
 using KSP.Localization;
-using System;
-using FNPlugin.Resources;
 using TweakScale;
 
-namespace FNPlugin
+namespace FNPlugin.Storage
 {
     [KSPModule("Cryostat")]
     class ModuleStorageCryostat: FNModuleCryostat {}
@@ -77,15 +76,20 @@ namespace FNPlugin
         private string heatingResourceName;
 
         private ScalingFactor _factor;
+        private PartResourceDefinition _resourceDefinition;
         private PartResourceDefinition _electricChargeDefinition;
 
         public override void OnStart(StartState state)
         {
+            _resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
+            if (_resourceDefinition == null)
+                return;
+
+            _electricChargeDefinition = PartResourceLibrary.Instance.GetDefinition(StockResourceElectricCharge);
+
             boiloffResourceName = boiloffPrefix + resourceName + boiloffPostfix;
             coolingResourceName = "_" + resourceName + coolingPostfix;
             heatingResourceName = "_" + resourceName + heatingPostfix;
-
-            _electricChargeDefinition = PartResourceLibrary.Instance.GetDefinition(StockResourceElectricCharge);
 
             // compensate for stock solar initialization heating issues
             part.temperature = storedTemp;
@@ -105,14 +109,14 @@ namespace FNPlugin
             // if electricCharge buffer is missing, add it.
             if (!part.Resources.Contains(StockResourceElectricCharge))
             {
-                ConfigNode node = new ConfigNode("RESOURCE");
+                var node = new ConfigNode("RESOURCE");
                 node.AddValue("name", StockResourceElectricCharge);
                 node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
                 node.AddValue("amount", powerReqKW > 0 ? powerReqKW / 50 : 1);
                 part.AddResource(node);
             }
 
-            var cryostatResource = part.Resources[resourceName];
+            var cryostatResource = part.Resources.Get(_resourceDefinition.id);
             if (cryostatResource != null && Kerbalism.IsLoaded)
             {
                 AddKerbalismVariables();
@@ -173,11 +177,14 @@ namespace FNPlugin
 
         public void Update()
         {
+            if (_resourceDefinition == null)
+                return;
+
             storedTemp = part.temperature;
             if (initializationCountdown > 0)
                 initializationCountdown--;
 
-            var cryostatResource = part.Resources[resourceName];
+            var cryostatResource = part.Resources.Get(_resourceDefinition.id);
 
             if (cryostatResource != null)
             {
@@ -248,7 +255,10 @@ namespace FNPlugin
         // FixedUpdate is also called while not staged
         public void FixedUpdate()
         {
-            var cryostatResource = part.Resources[resourceName];
+            if (_resourceDefinition == null)
+                return;
+
+            var cryostatResource = part.Resources.Get(_resourceDefinition.id);
             if (cryostatResource == null || double.IsPositiveInfinity(currentPowerReq) || double.IsNaN(currentPowerReq))
             {
                 maxBoiloff = 0;
@@ -323,7 +333,7 @@ namespace FNPlugin
                 heatingResource.amount = powerReqKw;
 
                 part.GetConnectedResourceTotals(_electricChargeDefinition.id, out double amount, out _);
-                //return part.RequestResource(_electricChargeDefinition.id, powerReqKw * deltaTime, true) / deltaTime;
+
                 return amount;
             }
 

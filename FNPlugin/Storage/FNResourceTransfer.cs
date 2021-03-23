@@ -16,7 +16,7 @@ namespace FNPlugin.Storage
         [KSPField] public double transferCostPerUnit = 1;
         [KSPField] public bool showPriority = true;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "Transfer Priority"), UI_FloatRange(minValue = -10, maxValue = 10, stepIncrement = 1, affectSymCounterparts = UI_Scene.All)]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Transfer Priority"), UI_FloatRange(minValue = -10, maxValue = 10, stepIncrement = 1, affectSymCounterparts = UI_Scene.All)]
         public float transferPriority = 0;
 
         private BaseField _transferPriorityField;
@@ -32,7 +32,7 @@ namespace FNPlugin.Storage
 
 
         private PartResource _partResource;
-        public PartResource PartResource => _partResource ?? (_partResource = part.Resources[resourceName]);
+        public PartResource PartResource => _partResource ?? (_partResource = part.Resources.Get(_resourceDefinition.id));
 
         public override void OnStart(StartState state)
         {
@@ -56,7 +56,7 @@ namespace FNPlugin.Storage
 
             var compatibleTanks =
                 part.vessel.FindPartModulesImplementing<FNResourceTransfer>()
-                    .Where(m => m.resourceName == _resourceDefinition.displayName);
+                    .Where(m => m.resourceName == _resourceDefinition.name);
 
             _managedTransferableResources.AddRange(compatibleTanks);
         }
@@ -85,6 +85,9 @@ namespace FNPlugin.Storage
         {
             if (_resourceDefinition == null)
                 return;
+
+            // force refresh
+            _partResource = null;
 
             if (PartResource == null || !PartResource.flowState)
                 return;
@@ -122,14 +125,10 @@ namespace FNPlugin.Storage
                     var partialRequest = Math.Min(availableAmount, requestedResource) / tanksWithSamePriority.Count;
 
                     if (currentTank.PartResource.amount <= partialRequest)
-                    {
-                        partialRequest -= currentTank.PartResource.amount;
                         currentTank.PartResource.amount = 0;
-                    }
                     else
-                    {
                         currentTank.PartResource.amount -= partialRequest;
-                    }
+
                     requestedResource -= partialRequest;
 
                     if (requestedResource <= 0)

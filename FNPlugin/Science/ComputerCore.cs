@@ -274,7 +274,7 @@ namespace FNPlugin.Science
         {
         }
 
-        protected override bool generateScienceData()
+        protected override bool GenerateScienceData()
         {
             ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(experimentID);
             if (experiment == null)
@@ -306,7 +306,7 @@ namespace FNPlugin.Science
             return true;
         }
 
-        protected override void cleanUpScienceData()
+        protected override void CleanUpScienceData()
         {
             science_to_add = 0;
         }
