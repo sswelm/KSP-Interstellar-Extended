@@ -12,7 +12,7 @@ namespace InterstellarFuelSwitch
     //supports optional enabling of the animation in editor -or- flight scene
     //allows for custom name specification for action group and gui action names
     //?supports basic single resource use for things like lights
-    //?supports basic resource generation for things like Fuel Cells 
+    //?supports basic resource generation for things like Fuel Cells
     public class InterstellarAnimate : PartModule
     {
         //    CONFIG FIELD
@@ -34,11 +34,11 @@ namespace InterstellarFuelSwitch
         //    the action group name for the 'toggle state' action
         [KSPField]
         public string actionToggleName = Localizer.Format("#LOC_IFS_Animate_ToggleStatus");//"Toggle Status"
-        
+
         [KSPField]
         public string animStatusName = Localizer.Format("#LOC_IFS_Animate_AnimState");//"AnimState"
-        
-        public bool showAnimState = true;    
+
+        public bool showAnimState = true;
 
         //    CONFIG FIELD
         //    should the animation be available in the editor?
@@ -73,7 +73,7 @@ namespace InterstellarFuelSwitch
         private SSTUAnimState animationState = SSTUAnimState.RETRACTED;
 
         //cached list of animationData
-        private Animation[] deployAnimation;    
+        private Animation[] deployAnimation;
 
         //panel state enum, each represents a discrete state
         public enum SSTUAnimState
@@ -138,7 +138,7 @@ namespace InterstellarFuelSwitch
             {
                 if(animationState==SSTUAnimState.EXTENDED || animationState==SSTUAnimState.EXTENDING)
                 {
-                    playAnimationForward();                    
+                    playAnimationForward();
                     setAnimationNormTime(1);//should set everything to the 'extended' state
                     setAnimationState(SSTUAnimState.EXTENDED);
                 }
@@ -148,7 +148,7 @@ namespace InterstellarFuelSwitch
                     setAnimationNormTime(0);
                     setAnimationState(SSTUAnimState.RETRACTED);
                 }
-            }            
+            }
             initializeGuiLabels ();
             updateGuiLabels();//force initial status update for gui labels
         }
@@ -157,7 +157,7 @@ namespace InterstellarFuelSwitch
         {
             base.OnLoad (node);
             print ("SSTUAnimate OnLoad");
-            
+
             //parse any previously saved deployedStatus value, or fallback to RETRACTED if none found/errors occur
             try
             {
@@ -217,7 +217,7 @@ namespace InterstellarFuelSwitch
                 {
                     setAnimationNormTime(1);
                 }
-                setAnimationState(SSTUAnimState.RETRACTING);    
+                setAnimationState(SSTUAnimState.RETRACTING);
                 updateGuiLabels();
             }
             else if (animationState == SSTUAnimState.RETRACTED || animationState == SSTUAnimState.RETRACTING)
@@ -242,24 +242,24 @@ namespace InterstellarFuelSwitch
                 updateGuiLabels();
             }
         }
-        
+
         //update GUI labels only when called -- updates their availability based on current animation state
         private void updateGuiLabels()
-        {            
+        {
             print ("SSTUAnimate updateGuiLabels");
             if(animationState==SSTUAnimState.EXTENDED || animationState==SSTUAnimState.EXTENDING)
-            {                
+            {
                 Events ["deployEvent"].guiActiveEditor = false;
                 Events ["deployEvent"].guiActive = false;
-                
+
                 Events ["retractEvent"].guiActiveEditor = editorEnabled;
-                Events ["retractEvent"].guiActive = flightEnabled;            
+                Events ["retractEvent"].guiActive = flightEnabled;
             }
             else
-            {                
+            {
                 Events ["deployEvent"].guiActiveEditor = editorEnabled;
                 Events ["deployEvent"].guiActive = flightEnabled;
-                
+
                 Events ["retractEvent"].guiActiveEditor = false;
                 Events ["retractEvent"].guiActive = false;
             }
@@ -363,7 +363,7 @@ namespace InterstellarFuelSwitch
         {
             print ("SSTUAnimate initializeAnimation");
             deployAnimation = part.FindModelAnimators(animationName);
-            if (deployAnimation == null || deployAnimation.Length <= 0) 
+            if (deployAnimation == null || deployAnimation.Length <= 0)
             {
                 print ("Could not find or load animation for name: "+animationName);
                 return;
@@ -377,7 +377,7 @@ namespace InterstellarFuelSwitch
                 anim[animationName].wrapMode = WrapMode.Once;//use WrapMode.Once to enforce self-ending animation
             }
         }
-                
+
         //initialize GUI labels from OnStart, sets their initial names and availability from the config values
         private void initializeGuiLabels()
         {
@@ -385,15 +385,15 @@ namespace InterstellarFuelSwitch
             Actions ["deployAction"].guiName = actionDeployName;
             Actions ["retractAction"].guiName = actionRetractName;
             Actions ["toggleAction"].guiName = actionToggleName;
-            
+
             Events ["deployEvent"].guiName = actionDeployName;
             Events ["deployEvent"].guiActiveEditor = editorEnabled;
             Events ["deployEvent"].guiActive = flightEnabled;
-            
+
             Events ["retractEvent"].guiName = actionRetractName;
             Events ["retractEvent"].guiActiveEditor = editorEnabled;
             Events ["retractEvent"].guiActive = flightEnabled;
-            
+
             Fields ["deployedStatus"].guiName = animStatusName;
             Fields ["deployedStatus"].guiActive = showAnimState;
         }

@@ -1,15 +1,13 @@
 ﻿using FNPlugin.Resources;
 
-namespace FNPlugin.Wasteheat 
+namespace FNPlugin.Wasteheat
 {
     class FNWasteheatExplode : PartModule
     {
-        [KSPField] 
-        public bool activeOnlyWhenActivated = true;
-        [KSPField]
-        public double explodeFrame = 25;    // half a second
-        [KSPField]
-        public double explodeRatio = 1;
+        [KSPField] public bool activeOnlyWhenActivated = true;
+        [KSPField] public double explodeFrame = 25;    // half a second
+        [KSPField] public double explodeRatio = 1;
+
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Explosion Potential")]
         public float explosionPotential;
 

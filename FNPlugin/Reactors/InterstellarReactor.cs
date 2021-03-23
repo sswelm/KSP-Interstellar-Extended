@@ -307,19 +307,13 @@ namespace FNPlugin.Reactors
         public string fuelModeStr = string.Empty;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_connectedRecievers")]
         public string connectedRecieversStr = string.Empty;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_reactorSurface", guiUnits = " m\xB3")]
-        public double reactorSurface;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_InitialCost")]//Initial Cost
-        public double initialCost;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_CalculatedCost")]//Calculated Cost
-        public double calculatedCost;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_MaxResourceCost")]//Max Resource Cost
-        public double maxResourceCost;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_ModuleCost")]//Module Cost
-        public float moduleCost;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_NeutronEmbrittlementCost")]//Neutron Embrittlement Cost
-        public double neutronEmbrittlementCost;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_reactorSurface", guiUnits = " m\xB3")] public double reactorSurface;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_InitialCost")] public double initialCost;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_CalculatedCost")] public double calculatedCost;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_MaxResourceCost")] public double maxResourceCost;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_ModuleCost")] public float moduleCost;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_Reactor_NeutronEmbrittlementCost")] public double neutronEmbrittlementCost;
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false)]
@@ -425,7 +419,6 @@ namespace FNPlugin.Reactors
         private bool _isFixedUpdatedCalled;
 
         // properties
-
         public double PlasmaAfterburnerRange => plasmaAfterburnerRange;
         public double ForcedMinimumThrottleRatio => (double)(decimal)forcedMinimumThrottle / 100;
         public double EfficencyConnectedThermalEnergyGenerator => storedIsThermalEnergyGeneratorEfficiency;
@@ -500,7 +493,6 @@ namespace FNPlugin.Reactors
         public virtual bool IsFuelNeutronRich => false;
         public virtual double MaximumPower => MaximumThermalPower + MaximumChargedPower;
         public virtual double StableMaximumReactorPower => IsEnabled ? NormalisedMaximumPower : 0;
-
         public virtual double MaxCoreTemperature => CoreTemperature;
 
         public bool IsConnectedToThermalGenerator { get; private set; }

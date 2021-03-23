@@ -120,7 +120,7 @@ namespace FNPlugin.Propulsion
 
         public bool RequiresChargedPower => true;
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             resourcesToSupply = new[]{ ResourceSettings.Config.ElectricPowerInMegawatt };
 

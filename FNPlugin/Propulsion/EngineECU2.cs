@@ -12,89 +12,61 @@ namespace FNPlugin.Propulsion
 
     abstract class EngineECU2 : ResourceSuppliableModule
     {
-        public const string GROUP = "EngineECU2";
-        public const string GROUP_TITLE = "#LOC_KSPIE_EngineECU2_groupName";
+        public const string Group = "EngineECU2";
+        public const string GroupTitle = "#LOC_KSPIE_EngineECU2_groupName";
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_MaxThrust", guiUnits = " kN", guiFormat = "F1")]//Max Thrust
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_MaxThrust", guiUnits = " kN", guiFormat = "F1")]//Max Thrust
         public double maximumThrust;
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaximumFuelFlow", guiFormat = "F3")]//Maximum FuelFlow
+        [KSPField(groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_FusionECU2_MaximumFuelFlow", guiFormat = "F3")]//Maximum FuelFlow
         public double maxFuelFlow;
 
-        [KSPField(groupName = GROUP, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_FuelConfig")]//Fuel Config
+        [KSPField(groupName = Group, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_EngineECU2_FuelConfig")]//Fuel Config
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedFuel;
 
         // Persistent
-        [KSPField(isPersistant = true)]
-        public bool IsEnabled;
-        [KSPField(isPersistant = true)]
-        bool Launched = false;
-        [KSPField(isPersistant = true)]
-        public bool hideEmpty;
-        [KSPField(isPersistant = true)]
-        public int selectedTank;
-        [KSPField(isPersistant = true)]
-        public string selectedTankName = "";
+        [KSPField(isPersistant = true)] public bool IsEnabled;
+        [KSPField(isPersistant = true)] bool Launched = false;
+        [KSPField(isPersistant = true)] public bool hideEmpty;
+        [KSPField(isPersistant = true)] public int selectedTank;
+        [KSPField(isPersistant = true)] public string selectedTankName = "";
 
         // None Persistent VAB
-        [KSPField]
-        public string upgradeTechReq1;
-        [KSPField]
-        public string upgradeTechReq2;
-        [KSPField]
-        public string upgradeTechReq3;
-        [KSPField]
-        public string upgradeTechReq4;
+        [KSPField] public string upgradeTechReq1;
+        [KSPField] public string upgradeTechReq2;
+        [KSPField] public string upgradeTechReq3;
+        [KSPField] public string upgradeTechReq4;
 
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_EngineECU2_upgradetech1")]//upgrade tech 1
-        public string translatedTechMk1;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_EngineECU2_upgradetech2")]//upgrade tech 2
-        public string translatedTechMk2;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_EngineECU2_upgradetech3")]//upgrade tech 3
-        public string translatedTechMk3;
-        [KSPField(groupName = GROUP, guiName = "#LOC_KSPIE_EngineECU2_upgradetech4")]//upgrade tech 4
-        public string translatedTechMk4;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_upgradetech1")] public string translatedTechMk1;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_upgradetech2")] public string translatedTechMk2;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_upgradetech3")] public string translatedTechMk3;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_upgradetech4")] public string translatedTechMk4;
 
         // Gui
-        [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_EngineECU2_ThrustPower", guiUnits = " GW", guiFormat = "F3")]//Thrust Power
+        [KSPField(groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_EngineECU2_ThrustPower", guiUnits = " GW", guiFormat = "F3")]//Thrust Power
         public double thrustPower;
-        [KSPField(groupName = GROUP, guiActive = false, guiName = "#LOC_KSPIE_EngineECU2_FusionRatio", guiFormat = "F3")]//Fusion Ratio
+        [KSPField(groupName = Group, guiActive = false, guiName = "#LOC_KSPIE_EngineECU2_FusionRatio", guiFormat = "F3")]//Fusion Ratio
         public double fusionRatio;
 
-        [KSPField]
-        public string intakeResource = "IntakeAtm";
-        [KSPField]
-        public double thrustmultiplier = 1;
+        [KSPField] public string intakeResource = "IntakeAtm";
+        [KSPField] public double thrustmultiplier = 1;
 
-        [KSPField]
-        public float maxThrust = 150;
-        [KSPField]
-        public float maxThrustUpgraded1 = 300;
-        [KSPField]
-        public float maxThrustUpgraded2 = 500;
-        [KSPField]
-        public float maxThrustUpgraded3 = 800;
-        [KSPField]
-        public float maxThrustUpgraded4 = 1200;
+        [KSPField] public float maxThrust = 150;
+        [KSPField] public float maxThrustUpgraded1 = 300;
+        [KSPField] public float maxThrustUpgraded2 = 500;
+        [KSPField] public float maxThrustUpgraded3 = 800;
+        [KSPField] public float maxThrustUpgraded4 = 1200;
 
-        [KSPField]
-        public double efficiency = 1;
-        [KSPField]
-        public double efficiencyUpgraded1 = 1;
-        [KSPField]
-        public double efficiencyUpgraded2 = 1;
-        [KSPField]
-        public double efficiencyUpgraded3 = 1;
-        [KSPField]
-        public double efficiencyUpgraded4 = 1;
+        [KSPField] public double efficiency = 1;
+        [KSPField] public double efficiencyUpgraded1 = 1;
+        [KSPField] public double efficiencyUpgraded2 = 1;
+        [KSPField] public double efficiencyUpgraded3 = 1;
+        [KSPField] public double efficiencyUpgraded4 = 1;
 
         // Use for SETI Mode
-        [KSPField]
-        public float maxTemp = 2500;
-        [KSPField]
-        public float upgradeCost = 100;
-        [KSPField]
-        public double rateMultplier = 1;
+        [KSPField] public float maxTemp = 2500;
+        [KSPField] public float upgradeCost = 100;
+        [KSPField] public double rateMultplier = 1;
 
         public ModuleEngines curEngineT;
         public ModuleEnginesWarp curEngineWarp;
@@ -107,7 +79,6 @@ namespace FNPlugin.Propulsion
 
         private UI_ChooseOption chooseOptionEditor;
         private UI_ChooseOption chooseOptionFlight;
-
         public GenerationType EngineGenerationType { get; private set; }
 
         public double MaxThrust => maxThrust * ThrustMult();
@@ -131,7 +102,7 @@ namespace FNPlugin.Propulsion
             EngineGenerationType = (GenerationType)numberOfUpgradeTechs;
         }
 
-        [KSPEvent(groupName = GROUP, active = true, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "#LOC_KSPIE_EngineECU2_HideUnusableConfigurations")]//Hide Unusable Configurations
+        [KSPEvent(groupName = Group, active = true, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "#LOC_KSPIE_EngineECU2_HideUnusableConfigurations")]//Hide Unusable Configurations
         public void HideFuels()
         {
             hideEmpty = true;
@@ -143,7 +114,7 @@ namespace FNPlugin.Propulsion
             UpdateFuel();
         }
 
-        [KSPEvent(groupName = GROUP, active = false, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "#LOC_KSPIE_EngineECU2_ShowAllConfigurations")]//Show All Configurations
+        [KSPEvent(groupName = Group, active = false, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "#LOC_KSPIE_EngineECU2_ShowAllConfigurations")]//Show All Configurations
         public void ShowFuels()
         {
             FuelConfiguration curConfig = CurrentActiveConfiguration;
@@ -691,70 +662,42 @@ namespace FNPlugin.Propulsion
 
     class FuelConfiguration : PartModule
     {
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_FuelConfiguration")]//Fuel Configuration
-        public string fuelConfigurationName = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_RequiredTechLevel")]//Required Tech Level
-        public int requiredTechLevel = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_Fuels")]//Fuels
-        public string fuels = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_Ratios")]//Ratios
-        public string ratios = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_TypeMasks")]//TypeMasks
-        public string typeMasks = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_ThrustMult")]//Thrust Mult
-        public float thrustMult = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_PowerMult")]//Power Mult
-        public float powerMult = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_NeutronRatio")]//Neutron Ratio
-        public float neutronRatio = 0.8f;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_WasteheatMult")]//Wasteheat Mult
-        public float wasteheatMult = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_HasIspThrottling")]//Has Isp Throttling
-        public bool hasIspThrottling = true;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_FuelConfiguration")] public string fuelConfigurationName = "";
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_RequiredTechLevel")] public int requiredTechLevel = 0;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_Fuels")] public string fuels = "";
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_Ratios")] public string ratios = "";
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_TypeMasks")] public string typeMasks = "";
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_ThrustMult")] public float thrustMult = 1;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_PowerMult")] public float powerMult = 1;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_NeutronRatio")] public float neutronRatio = 0.8f;
+        [KSPField( guiName = "#LOC_KSPIE_EngineECU2_WasteheatMult")] public float wasteheatMult = 1;
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_HasIspThrottling")] public bool hasIspThrottling = true;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public FloatCurve atmosphereCurve = new FloatCurve();
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public FloatCurve velCurve = new FloatCurve();
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public FloatCurve atmCurve = new FloatCurve();
+        [KSPField(guiActive = false, guiActiveEditor = false)] public FloatCurve atmosphereCurve = new FloatCurve();
+        [KSPField(guiActive = false, guiActiveEditor = false)] public FloatCurve velCurve = new FloatCurve();
+        [KSPField(guiActive = false, guiActiveEditor = false)] public FloatCurve atmCurve = new FloatCurve();
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_IgnoreISP")]//Ignore ISP
-        public string ignoreForIsp = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_EngineECU2_IgnoreThrust")]//Ignore Thrust
-        public string ignoreForThrustCurve = "";
+        [KSPField(guiName = "#LOC_KSPIE_EngineECU2_IgnoreISP")] public string ignoreForIsp = "";
+        [KSPField( guiName = "#LOC_KSPIE_EngineECU2_IgnoreThrust")] public string ignoreForThrustCurve = "";
 
-        [KSPField]
-        public double maxAtmosphereDensity = -1;
-        [KSPField]
-        public double minIsp = 100;
+        [KSPField] public double maxAtmosphereDensity = -1;
+        [KSPField] public double minIsp = 100;
 
-        [KSPField]
-        public bool atmChangeFlow = false;
-        [KSPField]
-        public bool useVelCurve = false;
-        [KSPField]
-        public bool useAtmCurve = false;
-        [KSPField]
-        public bool clampPropReceived = false;
-        [KSPField]
-        public bool useEngineResponseTime = false;
-        [KSPField]
-        public string effectname = null;
-        [KSPField(isPersistant = true)]
-        private string akConfigName = "";
-        [KSPField]
-        public float flowMultCap = float.MaxValue;
-        [KSPField]
-        public float ignitionThreshold = 0.1f;
-        [KSPField]
-        public double exhaustDamageMultiplier = 165;
-        [KSPField]
-        public double exhaustDamageDistanceOffset = 0;
-        [KSPField]
-        public float engineAccelerationSpeed = 0.2f;
-        [KSPField]
-        public float engineDecelerationSpeed = 0.1f;
+        [KSPField] public bool atmChangeFlow = false;
+        [KSPField] public bool useVelCurve = false;
+        [KSPField] public bool useAtmCurve = false;
+        [KSPField] public bool clampPropReceived = false;
+        [KSPField] public bool useEngineResponseTime = false;
+        [KSPField] public string effectname = null;
+
+        [KSPField(isPersistant = true)] private string akConfigName = "";
+
+        [KSPField] public float flowMultCap = float.MaxValue;
+        [KSPField] public float ignitionThreshold = 0.1f;
+        [KSPField] public double exhaustDamageMultiplier = 165;
+        [KSPField] public double exhaustDamageDistanceOffset = 0;
+        [KSPField] public float engineAccelerationSpeed = 0.2f;
+        [KSPField] public float engineDecelerationSpeed = 0.1f;
 
         private int[] akTypeMask = new int[0];
         private string[] akFuels = new string[0];

@@ -1,11 +1,11 @@
-﻿using FNPlugin.Powermanagement;
-using FNPlugin.Wasteheat;
-using KSP.Localization;
-using KSP.UI.Screens;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using FNPlugin.Powermanagement;
+using FNPlugin.Wasteheat;
+using KSP.Localization;
+using KSP.UI.Screens;
 using UnityEngine;
 
 namespace FNPlugin
@@ -13,7 +13,7 @@ namespace FNPlugin
     [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class PluginHelper : MonoBehaviour
     {
-        public const string WARP_PLUGIN_SETTINGS_FILEPATH = "WarpPlugin/WarpPluginSettings/WarpPluginSettings";
+        public const string WarpPluginSettingsFilepath = "WarpPlugin/WarpPluginSettings/WarpPluginSettings";
 
         public static bool usingToolbar;
         protected bool techNodesConfigured;
@@ -21,7 +21,7 @@ namespace FNPlugin
 
         private static Dictionary<string, RDTech> _rdTechByName;
 
-        public static Dictionary<string, RDTech> RDTechByName
+        public static Dictionary<string, RDTech> RdTechByName
         {
             get
             {
@@ -95,7 +95,7 @@ namespace FNPlugin
             }
         }
 
-        public static Vector3d CalculateDeltaVV(Vector3d thrustDirection, double totalMass, double deltaTime, double thrust, double isp, out double demandMass)
+        public static Vector3d CalculateDeltaVv(Vector3d thrustDirection, double totalMass, double deltaTime, double thrust, double isp, out double demandMass)
         {
             // Mass flow rate
             var massFlowRate = thrust / (isp * PhysicsGlobals.GravitationalAcceleration);
@@ -122,7 +122,7 @@ namespace FNPlugin
 
         public static bool TechnologyIsInUse => (HighLogic.CurrentGame.Mode == Game.Modes.CAREER || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX);
 
-        public static ConfigNode PluginSettingsConfig => GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
+        public static ConfigNode PluginSettingsConfig => GameDatabase.Instance.GetConfigNode(WarpPluginSettingsFilepath);
 
         public static string PluginSaveFilePath => KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/WarpPlugin.cfg";
 
@@ -181,7 +181,7 @@ namespace FNPlugin
             {
                 if (partUpgrade != null && !string.IsNullOrEmpty(partUpgrade.techRequired))
                 {
-                    if (RDTechByName.TryGetValue(partUpgrade.techRequired, out var upgradeTechNode))
+                    if (RdTechByName.TryGetValue(partUpgrade.techRequired, out var upgradeTechNode))
                         return upgradeTechNode?.title;
                 }
                 else if (partUpgrade == null)
@@ -190,7 +190,7 @@ namespace FNPlugin
                     Debug.LogError("[KSPI]: GetTechTitleById - partUpgrade.techRequired is null");
             }
 
-            if (RDTechByName.TryGetValue(id, out var techNode))
+            if (RdTechByName.TryGetValue(id, out var techNode))
                 return techNode.title;
 
             return id;
@@ -433,7 +433,7 @@ namespace FNPlugin
             if (resourcesConfigured) return;
 
             // read WarpPluginSettings.cfg
-            var pluginSettingConfigs = GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
+            var pluginSettingConfigs = GameDatabase.Instance.GetConfigNode(WarpPluginSettingsFilepath);
 
             if (pluginSettingConfigs == null)
             {

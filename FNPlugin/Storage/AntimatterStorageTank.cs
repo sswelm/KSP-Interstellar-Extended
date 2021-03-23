@@ -18,29 +18,25 @@ namespace FNPlugin.Storage
         public const string GroupTitle = "#LOC_KSPIE_AntimatterStorageTank_groupName";
 
         // persistent
-        [KSPField(isPersistant = true)]
-        public double chargeStatus = 1000;
+        [KSPField(isPersistant = true)] public double emptyCost;
+        [KSPField(isPersistant = true)] public double chargeStatus = 1000;
+        [KSPField(isPersistant = true)] public double storedResourceCostMultiplier = 1;
+        [KSPField(isPersistant = true)] public double storedInitialCostMultiplier = 1;
+        [KSPField(isPersistant = true)] public double storedTargetCostMultiplier = 1;
+
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = true, guiUnits = "K", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxTemperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]//Maximum Temperature
         public float maxTemperature = 340;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxAcceleration"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 10f, minValue = 0.05f)]//Maximum Acceleration
         public float maxGeeforce = 1;
-
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_ModuleCost")]//Module Cost
-        public double moduleCost;
-
-        [KSPField] public double resourceCost;
-        [KSPField] public double projectedCost;
-        [KSPField] public double targetCost;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TechLevel")]//Tech Level
+        public int techLevel;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AntimatterStorageTank_Storedamount")]//Stored amount
+        public double storedAmount;
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredMass")]//Stored Mass
         public double storedMassMultiplier = 1;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredTargetMass")]//Stored Target Mass
         public double storedTargetMassMultiplier = 1;
-
-        [KSPField(isPersistant = true)] public double storedResourceCostMultiplier = 1;
-        [KSPField(isPersistant = true)] public double storedInitialCostMultiplier = 1;
-        [KSPField(isPersistant = true)] public double storedTargetCostMultiplier = 1;
-
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ScalingFactor")]//Scaling Factor
         public double storedScalingfactor = 1;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_AntomatterDensity")]//Antomatter Density
@@ -55,12 +51,10 @@ namespace FNPlugin.Storage
         public double attachedAntimatterTanksCount;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ResourceRatio", guiFormat = "F3")]//Resource Ratio
         public double resourceRatio;
-        [KSPField(isPersistant = true)]
-        public double emptyCost;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TechLevel")]//Tech Level
-        public int techLevel;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AntimatterStorageTank_Storedamount")]//Stored amount
-        public double storedAmount;
+
+        [KSPField] public double resourceCost;
+        [KSPField] public double projectedCost;
+        [KSPField] public double targetCost;
 
         [KSPField] public double Mk1AmountRatio = 1;
         [KSPField] public double Mk2AmountRatio = 1;
@@ -91,31 +85,21 @@ namespace FNPlugin.Storage
         [KSPField] public double massTemperatureDivider = 12000;
         [KSPField] public double massGeeforceDivider = 40;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_RequiredPower")]//Required Power
-        public double effectivePowerNeeded;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_Exploding")]//Exploding
-        public bool exploding;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_Charge")]//Charge
-        public string chargeStatusStr;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_Status")]//Status
-        public string statusStr;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Current")]//Current
-        public string capacityStr;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Maximum")]//Maximum
-        public string maxAmountStr;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Cur_MaxTemp", guiFormat = "F0")]//Cur/Max Temp
-        public string TemperatureStr;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_CurMaxGeeforce")]//Cur/Max Geeforce
-        public string GeeforceStr;
-        [KSPField]
-        public bool canExplodeFromHeat = false;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_PartMass", guiUnits = " t", guiFormat = "F3" )]//Part Mass
-        public double partMass;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_ModuleCost")] public double moduleCost;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_RequiredPower")] public double effectivePowerNeeded;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_Exploding")] public bool exploding;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_Charge")] public string chargeStatusStr;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_Status")] public string statusStr;
 
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Current")] public string capacityStr;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Maximum")] public string maxAmountStr;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Cur_MaxTemp", guiFormat = "F0")] public string TemperatureStr;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_CurMaxGeeforce")] public string GeeforceStr;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_PartMass", guiUnits = " t", guiFormat = "F3" )] public double partMass;
+
+        [KSPField] public bool canExplodeFromHeat = false;
         [KSPField] public bool calculatedMass = false;
         [KSPField] public bool canExplodeFromGeeForce = false;
-        [KSPField] public double currentGeeForce;
-        [KSPField] public bool GForcesIgnored;
 
         bool _isJustAboutToDie;
         bool _showAntimatterFields;
@@ -131,6 +115,7 @@ namespace FNPlugin.Storage
         double _effectiveMaxGeeforce;
         double _previousSpeed;
         double _previousFixedTime;
+        double currentGeeForce;
 
         int _startupTimeout;
         int _powerExplodeCounter;
@@ -393,14 +378,12 @@ namespace FNPlugin.Storage
             UpdateAttachedTanks();
         }
 
-
         private bool HasSignificantAmountOfAntimatter()
         {
             var antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null) return false;
             return antimatterResource.amount > _minimumAntimatterAmount;
         }
-
 
         void OnJustAboutToDie()
         {
@@ -590,8 +573,6 @@ namespace FNPlugin.Storage
         {
             if (HighLogic.LoadedSceneIsEditor)
                 return;
-
-            GForcesIgnored = PluginHelper.GForcesIgnored;
 
             if (!vessel.packed)
             {

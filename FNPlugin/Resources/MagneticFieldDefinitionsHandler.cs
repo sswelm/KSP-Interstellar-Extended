@@ -7,7 +7,7 @@ namespace FNPlugin.Resources
 {
     class MagneticFieldDefinitionsHandler
     {
-        protected static Dictionary<string, MagneticFieldDefinition> magneticFieldDefinitions_by_name = null;
+        protected static Dictionary<string, MagneticFieldDefinition> magneticFieldDefinitionsByName;
 
         public static MagneticFieldDefinition GetMagneticFieldDefinitionForBody(CelestialBody celestialBodyName)
         {
@@ -22,18 +22,18 @@ namespace FNPlugin.Resources
                 LoadMagneticfiedDefinition();
 
                 // check if there's a composition for this body
-                if (!magneticFieldDefinitions_by_name.TryGetValue(celestialBodyName, out magneticFieldDefinition))
+                if (!magneticFieldDefinitionsByName.TryGetValue(celestialBodyName, out magneticFieldDefinition))
                 {
                     Debug.LogWarning("[KSPI]: Failed to find magneticFieldDefinition for: " + celestialBodyName);
                     magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding default multiplier
-                    magneticFieldDefinitions_by_name.Add(celestialBodyName, magneticFieldDefinition);
+                    magneticFieldDefinitionsByName.Add(celestialBodyName, magneticFieldDefinition);
                 }
             }
             catch (Exception ex)
             {
                 Debug.Log("[KSPI]: Exception while retrieving MagneticFieldDefinition : " + ex.ToString());
                 magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding default multiplier
-                magneticFieldDefinitions_by_name.Add(celestialBodyName, magneticFieldDefinition);
+                magneticFieldDefinitionsByName.Add(celestialBodyName, magneticFieldDefinition);
             }
             return magneticFieldDefinition;
         }
@@ -42,7 +42,7 @@ namespace FNPlugin.Resources
         {
             try
             {
-                if (magneticFieldDefinitions_by_name != null)
+                if (magneticFieldDefinitionsByName != null)
                     return;
 
                 Debug.Log("[KSPI]: Start Loading Magnetic Field Definitions");
@@ -54,9 +54,7 @@ namespace FNPlugin.Resources
                     Debug.LogWarning("[KSPI]: failed to find ConfigNodes MAGNETIC_FIELD_DEFINITION_KSPI");
 
                     // create empty dictionary
-                    magneticFieldDefinitions_by_name = new Dictionary<string, MagneticFieldDefinition>();
-
-                    return;
+                    magneticFieldDefinitionsByName = new Dictionary<string, MagneticFieldDefinition>();
                 }
                 else
                 {
@@ -65,14 +63,14 @@ namespace FNPlugin.Resources
 
                     Debug.Log("[KSPI]: found " + magneticFieldDefinitionModels.Count + " Magnetic Field Definitions");
 
-                    magneticFieldDefinitions_by_name = magneticFieldDefinitionModels.ToDictionary(m => m.CelestialBodyName);
+                    magneticFieldDefinitionsByName = magneticFieldDefinitionModels.ToDictionary(m => m.CelestialBodyName);
                 }
             }
             catch (Exception ex)
             {
                 Debug.Log("[KSPI]: Exception while loading MagneticFieldDefinitions : " + ex.ToString());
             }
-            
+
         }
     }
 }

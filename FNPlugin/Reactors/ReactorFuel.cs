@@ -30,23 +30,14 @@ namespace FNPlugin.Reactors
         public PartResourceDefinition Definition { get; }
 
         public double Ratio { get; }
-
         public bool ConsumeGlobal { get; }
-
         public double DensityInTon { get; }
-
         public double DensityInKg { get; }
-
         public bool Simulate { get; }
-
         public double AmountFuelUsePerMj { get; }
-
         public double TonsFuelUsePerMj { get; }
-
         public string FuelName { get; }
-
         public string ResourceName { get; }
-
         public string Unit { get; }
 
         public double GetFuelRatio(Part part, double fuelEfficiency, double megajoules, double fuelUsePerMjMult, bool simulate)

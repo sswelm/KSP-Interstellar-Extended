@@ -14,14 +14,10 @@ namespace FNPlugin.Resources
         public const string GroupTitle = "#LOC_KSPIE_RegolithCollector_groupName";
 
         // Persistent True
-        [KSPField(isPersistant = true)]
-        public bool bIsEnabled;
-        [KSPField(isPersistant = true)]
-        public double dLastActiveTime;
-        [KSPField(isPersistant = true)]
-        public double dLastPowerPercentage;
-        [KSPField(isPersistant = true)]
-        public double dLastRegolithConcentration;
+        [KSPField(isPersistant = true)] public bool bIsEnabled;
+        [KSPField(isPersistant = true)] public double dLastActiveTime;
+        [KSPField(isPersistant = true)] public double dLastPowerPercentage;
+        [KSPField(isPersistant = true)] public double dLastRegolithConcentration;
 
         // Part properties
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_Drillsize", guiUnits = " m\xB3")]//Drill size

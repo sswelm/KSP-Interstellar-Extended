@@ -232,7 +232,6 @@
     <Compile Include="Powermanagement\FNGeneratorAdapter.cs" />
     <Compile Include="Wasteheat\FNSolarPanelWasteHeatModule.cs" />
     <Compile Include="Storage\AntimatterStorageTank.cs" />
-    <Compile Include="Propulsion\ModuleSolarSail.cs" />
     <Compile Include="Refinery\Activity\WaterElectrolyzer.cs" />
     <Compile Include="Wasteheat\FNPassiveThermalDissipation.cs" />
     <Compile Include="Wasteheat\FNWasteheatBuffer.cs" />

@@ -3,7 +3,7 @@ using System.Linq;
 using FNPlugin.Powermanagement;
 using KSP.UI.Screens.Flight.Dialogs;
 
-namespace FNPlugin
+namespace FNPlugin.Science
 {
     class ModuleModableScienceGenerator : ResourceSuppliableModule, IScienceDataContainer
     {

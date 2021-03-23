@@ -20,30 +20,21 @@ namespace FNPlugin.Reactors
         [KSPField] public double minimumChargdIspMult = 1;
         [KSPField] public double maintenancePowerWasteheatRatio = 0.1;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_Maintance")]//Maintance
-        public string electricPowerMaintenance;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaRatio")]//Plasma Ratio
-        public double plasma_ratio = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_PlasmaModifier", guiFormat = "F6")]//Plasma Modifier
-        public double plasma_modifier = 1;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_Maintance")] public string electricPowerMaintenance;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_PlasmaRatio")] public double plasma_ratio = 1;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_PlasmaModifier", guiFormat = "F6")] public double plasma_modifier = 1;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_RequiredRatio", guiFormat = "F3")] public double required_reactor_ratio;
 
         [KSPField] public double reactorRatioThreshold = 0.000005;
         [KSPField] public double minReactorRatio = 0;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_RequiredRatio", guiFormat = "F3")]//Required Ratio
-        public double required_reactor_ratio;
-
         // Properties
-
         public double MaximumChargedIspMult => maximumChargedIspMult;
-
         public double MinimumChargdIspMult => minimumChargdIspMult;
-
         public override double MaximumThermalPower => Math.Max(base.MaximumThermalPower * PlasmaModifier * lithium_modifier, 0);
-
         public override double MaximumChargedPower => base.MaximumChargedPower * PlasmaModifier;
-
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic && CurrentFuelMode.NeutronsRatio > 0;
+        public double NormalizedPowerRequirement => PowerRequirement * CurrentFuelMode.NormalizedPowerRequirements;
 
         public double PowerRequirement
         {
@@ -54,14 +45,11 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public double NormalizedPowerRequirement => PowerRequirement * CurrentFuelMode.NormalizedPowerRequirements;
-
         public override double StableMaximumReactorPower
         {
             get
             {
                 var stablePower = base.StableMaximumReactorPower;
-
                 return stablePower * ChargedPowerRatio + stablePower * ThermalPowerRatio * lithium_modifier;
             }
         }
@@ -104,7 +92,7 @@ namespace FNPlugin.Reactors
                 fusionEnergyGainFactorMk7 = fusionEnergyGainFactorMk6;
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             InitialiseGainFactors();
 

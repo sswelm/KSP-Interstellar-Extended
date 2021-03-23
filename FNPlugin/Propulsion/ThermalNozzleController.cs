@@ -2407,7 +2407,7 @@ namespace FNPlugin.Propulsion
             {
                 foreach (var fuel in _compatibleThermalEngineFuels)
                 {
-                    if (!HighLogic.LoadedSceneIsEditor && !fuel.hasAnyStorage()) continue;
+                    if (!HighLogic.LoadedSceneIsEditor && !fuel.HasAnyStorage()) continue;
 
                     GUILayout.BeginHorizontal();
                     if (GUILayout.Button(fuel.GuiName, GUILayout.ExpandWidth(true)))

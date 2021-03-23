@@ -1,12 +1,12 @@
-﻿using FNPlugin.Beamedpower;
-using KSP.Localization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Microwave;
+using KSP.Localization;
 using TweakScale;
 using UnityEngine;
 
-namespace FNPlugin.Microwave
+namespace FNPlugin.Beamedpower
 {
     [KSPModule("Integrated Beam Generator")]//#LOC_KSPIE_BeamGenerator_ModuleName1
     class IntegratedBeamGenerator : BeamGenerator { }
@@ -174,7 +174,7 @@ namespace FNPlugin.Microwave
 
         public void UpdateMass(double power)
         {
-            this.maximumPower = power;
+            maximumPower = power;
             targetMass = power * powerMassFraction * 0.001;
         }
 

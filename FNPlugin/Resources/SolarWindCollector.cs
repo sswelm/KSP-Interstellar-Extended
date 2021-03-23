@@ -15,26 +15,16 @@ namespace FNPlugin.Resources
         public const string GROUP_TITLE = "#LOC_KSPIE_SolarwindCollector_groupName";
 
         // Persistent True
-        [KSPField(isPersistant = true)]
-        public bool bIsEnabled;
-        [KSPField(isPersistant = true)]
-        public double dLastActiveTime;
-        [KSPField(isPersistant = true)]
-        public double dLastPowerRatio;
-        [KSPField(isPersistant = true)]
-        public double dLastMagnetoStrength;
-        [KSPField(isPersistant = true)]
-        public double interstellarDustMolesPerCubicMeter;
-        [KSPField(isPersistant = true)]
-        public double dInterstellarIonsConcentrationPerSquareMeter;
-        [KSPField(isPersistant = true)]
-        public bool bIsExtended;
-        [KSPField(isPersistant = true)]
-        public double hydrogenMolarMassPerSquareMeterPerSecond;
-        [KSPField(isPersistant = true)]
-        public double heliumMolarMassPerSquareMeterPerSecond;
-        [KSPField(isPersistant = true)]
-        public double solarWindMolesPerSquareMeterPerSecond;
+        [KSPField(isPersistant = true)] public bool bIsEnabled;
+        [KSPField(isPersistant = true)] public double dLastActiveTime;
+        [KSPField(isPersistant = true)] public double dLastPowerRatio;
+        [KSPField(isPersistant = true)] public double dLastMagnetoStrength;
+        [KSPField(isPersistant = true)] public double interstellarDustMolesPerCubicMeter;
+        [KSPField(isPersistant = true)] public double dInterstellarIonsConcentrationPerSquareMeter;
+        [KSPField(isPersistant = true)] public bool bIsExtended;
+        [KSPField(isPersistant = true)] public double hydrogenMolarMassPerSquareMeterPerSecond;
+        [KSPField(isPersistant = true)] public double heliumMolarMassPerSquareMeterPerSecond;
+        [KSPField(isPersistant = true)] public double solarWindMolesPerSquareMeterPerSecond;
 
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionisation"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 0)]
         protected float ionizationPercentage;
@@ -57,28 +47,17 @@ namespace FNPlugin.Resources
         [KSPField(groupName = GROUP, guiActiveEditor = true, guiName = "#LOC_KSPIE_SolarwindCollector_ionRequirements", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
         public double ionRequirements = 100; // MW requirements of the collector panel.
 
-        [KSPField]
-        public double powerReqMult = 1;
-        [KSPField]
-        public double squareVelocityDragRatio = 0.075;
-        [KSPField]
-        public double interstellarIonRatio = 0.001;
-        [KSPField]
-        public double heliumRequirement = 0.2;
-        [KSPField]
-        public string animName = "";
-        [KSPField]
-        public string ionAnimName = "";
-        [KSPField]
-        public double solarCheatMultiplier = 1;             // Amount of boosted Solar wind activity
-        [KSPField]
-        public double interstellarDensityCubeCm = 50;       // Amount of Interstellar molecules per cubic cm
-        [KSPField]
-        public double collectMultiplier = 1;
-        [KSPField]
-        public double solarWindSpeed = 5e5;              // Average Solar win speed 500 km/s
-        [KSPField]
-        public double avgSolarWindPerCubM = 6e6;        // various sources differ, most state that there are around 6 particles per cm^3, so around 6000000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
+        [KSPField] public double powerReqMult = 1;
+        [KSPField] public double squareVelocityDragRatio = 0.075;
+        [KSPField] public double interstellarIonRatio = 0.001;
+        [KSPField] public double heliumRequirement = 0.2;
+        [KSPField] public string animName = "";
+        [KSPField] public string ionAnimName = "";
+        [KSPField] public double solarCheatMultiplier = 1;             // Amount of boosted Solar wind activity
+        [KSPField] public double interstellarDensityCubeCm = 50;       // Amount of Interstellar molecules per cubic cm
+        [KSPField] public double collectMultiplier = 1;
+        [KSPField] public double solarWindSpeed = 5e5;              // Average Solar win speed 500 km/s
+        [KSPField] public double avgSolarWindPerCubM = 6e6;        // various sources differ, most state that there are around 6 particles per cm^3, so around 6000000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
         // GUI
         [KSPField(groupName = GROUP, guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_effectiveSurfaceArea", guiFormat = "F3", guiUnits = " km\xB2")]

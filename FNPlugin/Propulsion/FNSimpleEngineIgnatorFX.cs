@@ -7,16 +7,12 @@ namespace FNPlugin.Propulsion
 {
     class FNSimpleEngineIgnatorFX : PartModule
     {
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_InitialIgnitions")]//Ignitions
-        public int initialIgnitions = -1;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_RemainingIgnitions")]//Ignitions
-        public int remainingIgnitions = -1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_ReloadRequiredExperienceLevel")]//Reload required experience level
-        public int reloadRequiresExperienceLevel = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_ReloadRequiresEngeneer")]//Reload requires Engeneer
-        public bool reloadRequiresEngineer = true;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_ReloadRequiresLandedVessel")]//Reload requires landed vessel
-        public bool reloadRequiresLandedVessel = true;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_InitialIgnitions")] public int initialIgnitions = -1;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_RemainingIgnitions")] public int remainingIgnitions = -1;
+
+        [KSPField( guiActiveEditor = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_ReloadRequiredExperienceLevel")] public int reloadRequiresExperienceLevel = 1;
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_ReloadRequiresEngeneer")] public bool reloadRequiresEngineer = true;
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FNSimpleEngineIgnatorFX_ReloadRequiresLandedVessel")] public bool reloadRequiresLandedVessel = true;
 
         float maxFuelFlow;
         float previousThrottle;

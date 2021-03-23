@@ -7,31 +7,31 @@ namespace FNPlugin.Resources
     {
         public AtmosphericResource(PartResourceDefinition definition, double abundance)
         {
-            this.ResourceName = definition.name;
-            this.ResourceAbundance = abundance;
-            this.DisplayName = string.IsNullOrEmpty(definition.displayName) ? definition.name : definition.displayName;
-            this.Synonyms = new[] { ResourceName, DisplayName }.Distinct().ToList();
+            ResourceName = definition.name;
+            ResourceAbundance = abundance;
+            DisplayName = string.IsNullOrEmpty(definition.displayName) ? definition.name : definition.displayName;
+            Synonyms = new[] { ResourceName, DisplayName }.Distinct().ToList();
         }
 
         public AtmosphericResource(string resourcename, double abundance, string displayname)
         {
-            this.ResourceName = resourcename;
-            this.ResourceAbundance = abundance;
-            this.DisplayName = displayname;
-            this.Synonyms = new[] { resourcename }.ToList();
+            ResourceName = resourcename;
+            ResourceAbundance = abundance;
+            DisplayName = displayname;
+            Synonyms = new[] { resourcename }.ToList();
         }
 
         public AtmosphericResource(string resourcename, double abundance, string displayname, string[] synonyms)
         {
-            this.ResourceName = resourcename;
-            this.ResourceAbundance = abundance;
-            this.DisplayName = displayname;
-            this.Synonyms = synonyms.ToList();
+            ResourceName = resourcename;
+            ResourceAbundance = abundance;
+            DisplayName = displayname;
+            Synonyms = synonyms.ToList();
         }
 
-        public string DisplayName { get; private set; }
-        public string ResourceName {get; private set;}
-        public double ResourceAbundance { get; private set; }
-        public List<string> Synonyms { get; private set; }
+        public string DisplayName { get; }
+        public string ResourceName {get; }
+        public double ResourceAbundance { get; }
+        public List<string> Synonyms { get; }
     }
 }

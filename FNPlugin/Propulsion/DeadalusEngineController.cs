@@ -875,7 +875,7 @@ namespace FNPlugin.Propulsion
 
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrottle);
 
-            var deltaVv = PluginHelper.CalculateDeltaVV(thrustVector, vesselMass, fixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * _engineIsp, out demandMass);
+            var deltaVv = PluginHelper.CalculateDeltaVv(thrustVector, vesselMass, fixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * _engineIsp, out demandMass);
 
             double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
             if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))

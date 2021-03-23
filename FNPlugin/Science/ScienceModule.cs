@@ -35,14 +35,12 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ScienceModule_DataProcessingMultiplier")] //Data Processing Multiplier
         public float dataProcessingMultiplier;
 
-
         [KSPField] public string Mk2Tech = "longTermScienceTech";
         [KSPField] public string Mk3Tech = "scientificOutposts";
         [KSPField] public string Mk4Tech = "highEnergyScience";
         [KSPField] public string Mk5Tech = "appliedHighEnergyPhysics";
         [KSPField] public string Mk6Tech = "ultraHighEnergyPhysics";
         [KSPField] public string Mk7Tech = "extremeHighEnergyPhysics";
-
 
         [KSPField] public int Mk1ScienceCap = 1000;
         [KSPField] public int Mk2ScienceCap = 1600;
@@ -52,7 +50,7 @@ namespace FNPlugin
         [KSPField] public int Mk6ScienceCap = 10000;
         [KSPField] public int Mk7ScienceCap = 16000;
 
-        // persistant false
+        // persistent false
         [KSPField] public string animName1 = "";
         [KSPField] public string animName2 = "";
         [KSPField] public string upgradeTechReq = null;
@@ -82,11 +80,7 @@ namespace FNPlugin
         protected ModuleScienceConverter moduleScienceConverter;
         protected ModuleScienceLab moduleScienceLab;
 
-
-        public bool CanProvideTelescopeControl
-        {
-            get { return part.protoModuleCrew.Count > 0; }
-        }
+        public bool CanProvideTelescopeControl => part.protoModuleCrew.Count > 0;
 
         /*
         [KSPEvent(guiActive = true, guiName = "Begin Scanning", active = true)]

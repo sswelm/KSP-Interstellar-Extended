@@ -1,76 +1,66 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using FNPlugin.Extensions;
 using FNPlugin.Constants;
+using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
 
-namespace FNPlugin
+namespace FNPlugin.Science
 {
     class InterstellarTelescope : ModuleModableScienceGenerator
     {
         // Persistent True
-        [KSPField(isPersistant = true)]
-        public bool telescopeIsEnabled;
-        [KSPField(isPersistant = true)]
-        public double lastActiveTime;
-        [KSPField(isPersistant = true)]
-        public double lastMaintained;
-        [KSPField(isPersistant = true)]
-        public bool telescopeInit;
-        [KSPField(isPersistant = true)]
-        public bool dpo;
-        [KSPField(isPersistant = true)]
-        public double helium_depleted_time;
-        [KSPField(isPersistant = true)]
-        public double science_awaiting_addition;
+        [KSPField(isPersistant = true)] public bool telescopeIsEnabled;
+        [KSPField(isPersistant = true)] public double lastActiveTime;
+        [KSPField(isPersistant = true)] public double lastMaintained;
+        [KSPField(isPersistant = true)] public bool telescopeInit;
+        [KSPField(isPersistant = true)] public bool dpo;
+        [KSPField(isPersistant = true)] public double helium_depleted_time;
+        [KSPField(isPersistant = true)] public double science_awaiting_addition;
 
         //GUI
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_Performance")]//Performance
-        public string performPcnt = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_Science")]//Science
-        public string sciencePerDay = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_GLens")]//G-Lens
-        public string gLensStr = "";
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_Performance")] public string performPcnt = "";
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_Science")] public string sciencePerDay = "";
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_GLens")] public string gLensStr = "";
 
         //Internal
-        protected double perform_factor_d = 0;
-        protected double perform_exponent = 0;
-        protected double science_rate = 0;
-        protected double helium_time_scale = 0;
+        protected double perform_factor_d;
+        protected double perform_exponent;
+        protected double science_rate;
+        protected double helium_time_scale;
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Telescope_DeepFieldSurvey", active = false)]//Deep Field Survey
-        public void beginOberservations()
+        public void BeginOberservations()
         {
             telescopeIsEnabled = true;
             dpo = false;
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Telescope_DirectPlanetaryObservation", active = false)]//Direct Planetary Observation
-        public void beginOberservations2()
+        public void BeginOberservations2()
         {
             telescopeIsEnabled = true;
             dpo = true;
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Telescope_StopSurvey", active = false)]//Stop Survey
-        public void stopOberservations()
+        public void StopOberservations()
         {
             telescopeIsEnabled = false;
         }
 
         [KSPEvent(guiName = "#LOC_KSPIE_Telescope_PerformMaintenance", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]//Perform Maintenance
-        public void maintainTelescope()
+        public void MaintainTelescope()
         {
             lastMaintained = Planetarium.GetUniversalTime();
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             if (state == StartState.Editor) return;
 
-            base.canDeploy = true;
+            canDeploy = true;
 
             if (telescopeInit == false || lastMaintained == 0)
             {
@@ -78,23 +68,23 @@ namespace FNPlugin
                 lastMaintained = (float)Planetarium.GetUniversalTime();
             }
 
-            if (telescopeIsEnabled && lastActiveTime > 0)
-            {
-                calculateTimeToHeliumDepletion();
+            if (!telescopeIsEnabled || !(lastActiveTime > 0))
+                return;
 
-                double t0 = lastActiveTime - lastMaintained;
-                double t1 = Math.Min(Planetarium.GetUniversalTime(), helium_depleted_time) - lastMaintained;
-                if (t1 > t0)
-                {
-                    double a = -GameConstants.telescopePerformanceTimescale;
-                    double base_science = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
-                    double time_diff = Math.Min(Planetarium.GetUniversalTime(), helium_depleted_time) - lastActiveTime;
-                    double avg_science_rate = 0.5*base_science * ( Math.Exp(a * t1)  + Math.Exp(a * t0) );
-                    double science_to_add = avg_science_rate / 28800 * time_diff;
-                    lastActiveTime = Planetarium.GetUniversalTime();
-                    science_awaiting_addition += science_to_add;
-                }
-            }
+            CalculateTimeToHeliumDepletion();
+
+            double t0 = lastActiveTime - lastMaintained;
+            double t1 = Math.Min(Planetarium.GetUniversalTime(), helium_depleted_time) - lastMaintained;
+
+            if (!(t1 > t0)) return;
+
+            double a = -GameConstants.telescopePerformanceTimescale;
+            double baseScience = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
+            double timeDiff = Math.Min(Planetarium.GetUniversalTime(), helium_depleted_time) - lastActiveTime;
+            double avgScienceRate = 0.5*baseScience * ( Math.Exp(a * t1)  + Math.Exp(a * t0) );
+            double scienceToAdd = avgScienceRate / 28800 * timeDiff;
+            lastActiveTime = Planetarium.GetUniversalTime();
+            science_awaiting_addition += scienceToAdd;
         }
 
         protected override bool GenerateScienceData()
@@ -112,8 +102,8 @@ namespace FNPlugin
                 subject.scienceCap = 167 * subject.subjectValue;   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
                 subject.dataScale = 1.25f;
 
-                float remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
-                science_awaiting_addition = Math.Min(science_awaiting_addition, remaining_base_science);
+                float remainingBaseScience = (subject.scienceCap - subject.science) / subject.subjectValue;
+                science_awaiting_addition = Math.Min(science_awaiting_addition, remainingBaseScience);
 
                 // transmission of zero data breaks the experiment result dialog box
                 data_size = Math.Max(float.Epsilon, science_awaiting_addition * subject.dataScale);
@@ -155,12 +145,12 @@ namespace FNPlugin
         {
             get
             {
-                if (homeworld == null)
-                {
-                    var planetarium = Planetarium.fetch;
-                    if (planetarium != null)
-                        homeworld = planetarium.Home;
-                }
+                if (homeworld != null)
+                    return homeworld;
+
+                var planetarium = Planetarium.fetch;
+                if (planetarium != null)
+                    homeworld = planetarium.Home;
                 return homeworld;
             }
         }
@@ -169,40 +159,40 @@ namespace FNPlugin
         {
             if (vessel.IsInAtmosphere()) telescopeIsEnabled = false;
 
-            Events[nameof(beginOberservations)].active = !vessel.IsInAtmosphere() && !telescopeIsEnabled;
-            Events[nameof(stopOberservations)].active = telescopeIsEnabled;
+            Events[nameof(BeginOberservations)].active = !vessel.IsInAtmosphere() && !telescopeIsEnabled;
+            Events[nameof(StopOberservations)].active = telescopeIsEnabled;
             Fields[nameof(sciencePerDay)].guiActive = telescopeIsEnabled;
             performPcnt = (perform_factor_d * 100).ToString("0.0") + "%";
             sciencePerDay = (science_rate * 28800 * PluginHelper.GetScienceMultiplier(vessel)).ToString("0.00") + " "+Localizer.Format("#LOC_KSPIE_Telescope_ScienceperDa");//Science/Day
 
-            List<ITelescopeController> telescope_controllers = vessel.FindPartModulesImplementing<ITelescopeController>();
+            List<ITelescopeController> telescopeControllers = vessel.FindPartModulesImplementing<ITelescopeController>();
 
-            if (telescope_controllers.Any(tscp => tscp.CanProvideTelescopeControl))
+            if (telescopeControllers.Any(tscp => tscp.CanProvideTelescopeControl))
             {
-                double current_au = Vector3d.Distance(vessel.transform.position, LocalStar.position) / Vector3d.Distance(Homeworld.position, LocalStar.position);
+                double currentAu = Vector3d.Distance(vessel.transform.position, LocalStar.position) / Vector3d.Distance(Homeworld.position, LocalStar.position);
 
-                if (current_au >= 548 && !vessel.IsInAtmosphere())
+                if (currentAu >= 548 && !vessel.IsInAtmosphere())
                 {
                     if (vessel.orbit.eccentricity < 0.8)
                     {
-                        Events[nameof(beginOberservations2)].active = true;
+                        Events[nameof(BeginOberservations2)].active = true;
                         gLensStr = (telescopeIsEnabled && dpo) ? Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu1") : Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu2");//"Ongoing.""Available"
                     }
                     else
                     {
-                        Events[nameof(beginOberservations2)].active = false;
+                        Events[nameof(BeginOberservations2)].active = false;
                         gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu3", vessel.orbit.eccentricity.ToString("0.0"));//"Eccentricity: " +  + "; < 0.8 Required"
                     }
                 }
                 else
                 {
-                    Events[nameof(beginOberservations2)].active = false;
-                    gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu4", current_au.ToString("0.0"));// + " AU; Required 548 AU"
+                    Events[nameof(BeginOberservations2)].active = false;
+                    gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu4", currentAu.ToString("0.0"));// + " AU; Required 548 AU"
                 }
             }
             else
             {
-                Events[nameof(beginOberservations2)].active = false;
+                Events[nameof(BeginOberservations2)].active = false;
                 gLensStr = Localizer.Format("#LOC_KSPIE_Telescope_Glensstatu5");//"Science Lab/Computer Core required"
             }
 
@@ -212,37 +202,37 @@ namespace FNPlugin
 
         public void FixedUpdate()
         {
-            if (HighLogic.LoadedSceneIsFlight)
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
+            CalculateTimeToHeliumDepletion();
+
+            if (ResearchAndDevelopment.Instance == null)
+                return;
+
+            if (helium_time_scale <= 0) telescopeIsEnabled = false;
+
+            perform_exponent = -(Planetarium.GetUniversalTime() - lastMaintained) * GameConstants.telescopePerformanceTimescale;
+            perform_factor_d = Math.Exp(perform_exponent);
+
+            if (telescopeIsEnabled)
             {
-                calculateTimeToHeliumDepletion();
+                double baseScience = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
+                science_rate = baseScience * perform_factor_d / 28800;
+                if (!double.IsNaN(science_rate) && !double.IsInfinity(science_rate))
+                    science_awaiting_addition += science_rate * TimeWarp.fixedDeltaTime;
 
-                if (ResearchAndDevelopment.Instance != null)
-                {
-                    if (helium_time_scale <= 0) telescopeIsEnabled = false;
-
-                    perform_exponent = -(Planetarium.GetUniversalTime() - lastMaintained) * GameConstants.telescopePerformanceTimescale;
-                    perform_factor_d = Math.Exp(perform_exponent);
-
-                    if (telescopeIsEnabled)
-                    {
-                        double base_science = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
-                        science_rate = base_science * perform_factor_d / 28800;
-                        if (!double.IsNaN(science_rate) && !double.IsInfinity(science_rate))
-                            science_awaiting_addition += science_rate * TimeWarp.fixedDeltaTime;
-
-                        lastActiveTime = Planetarium.GetUniversalTime();
-                    }
-                }
+                lastActiveTime = Planetarium.GetUniversalTime();
             }
         }
 
-        private void calculateTimeToHeliumDepletion()
+        private void CalculateTimeToHeliumDepletion()
         {
-            var helium_resources = part.GetConnectedResources(ResourceSettings.Config.Helium4Lqd).ToList();
-            var max_helium = helium_resources.Sum(hr => hr.maxAmount);
-            var cur_helium = helium_resources.Sum(hr => hr.amount);
-            var helium_fraction = (max_helium > 0) ? cur_helium / max_helium : cur_helium;
-            helium_time_scale = 1.0 / GameConstants.helium_boiloff_fraction * helium_fraction;
+            var heliumResources = part.GetConnectedResources(ResourceSettings.Config.Helium4Lqd).ToList();
+            var maxHelium = heliumResources.Sum(hr => hr.maxAmount);
+            var curHelium = heliumResources.Sum(hr => hr.amount);
+            var heliumFraction = (maxHelium > 0) ? curHelium / maxHelium : curHelium;
+            helium_time_scale = 1.0 / GameConstants.helium_boiloff_fraction * heliumFraction;
             helium_depleted_time = helium_time_scale + Planetarium.GetUniversalTime();
         }
     }

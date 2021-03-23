@@ -7,59 +7,51 @@ namespace FNPlugin.Resources
 {
     class AtmosphericIntake : PartModule
     {
-        public const string GROUP = "AtmosphericIntake";
-        public const string GROUP_TITLE = "#LOC_KSPIE_AtmosphericIntake_groupName";
+        public const string Group = "AtmosphericIntake";
+        public const string GroupTitle = "#LOC_KSPIE_AtmosphericIntake_groupName";
 
         // persistents
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiName = "#LOC_KSPIE_AtmosphericIntake_Airrate", guiActiveEditor = false, guiActive = true, guiFormat = "F5")]//Air / sec
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AtmosphericIntake_Airrate", guiActiveEditor = false, guiActive = true, guiFormat = "F5")]//Air / sec
         public double finalAir;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake"), UI_Toggle(disabledText = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake_Closed", enabledText = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake_Open", affectSymCounterparts = UI_Scene.None)] //Atmospheric Intake   Closed  Open                                                          //Mass Ratio
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake"), UI_Toggle(disabledText = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake_Closed", enabledText = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake_Open", affectSymCounterparts = UI_Scene.None)] //Atmospheric Intake   Closed  Open                                                          //Mass Ratio
         public bool intakeOpen = true;
 
-        [KSPField]
-        public double atmosphereDensityMultiplier = 1; //0.001292 / 0.005;
-        [KSPField]
-        public double intakeSpeed = 10;
-        [KSPField]
-        public string intakeTransformName = "";
+        [KSPField] public double atmosphereDensityMultiplier = 1; //0.001292 / 0.005;
+        [KSPField] public double intakeSpeed = 10;
+        [KSPField] public string intakeTransformName = "";
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "Vessel Speed", guiUnits = "m/s")]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "Vessel Speed", guiUnits = "m/s")]
         public double vesselSpeed;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereFlow", guiActive = true, guiUnits = " U", guiFormat = "F3"  )]//Atmosphere Flow
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereFlow", guiActive = true, guiUnits = " U", guiFormat = "F3"  )]//Atmosphere Flow
         public double airFlow;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereSpeed", guiActive = false, guiUnits = " m/s", guiFormat = "F3")]//Atmosphere Speed
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereSpeed", guiActive = false, guiUnits = " m/s", guiFormat = "F3")]//Atmosphere Speed
         public double airSpeed;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_AirThisUpdate", guiActive = false, guiFormat ="F6")]//Air This Update
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_AirThisUpdate", guiActive = false, guiFormat ="F6")]//Air This Update
         public double airThisUpdate;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_IntakeAngle",  guiActive = true, guiFormat = "F3")]//Intake Angle
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_IntakeAngle",  guiActive = true, guiFormat = "F3")]//Intake Angle
         public float intakeAngle = 0;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_Area", guiActiveEditor = true, guiActive = true, guiFormat = "F4")]//Area
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_Area", guiActiveEditor = true, guiActive = true, guiFormat = "F4")]//Area
         public double area = 0.01;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_unitScalar", guiActive = false, guiActiveEditor = true)]//unitScalar
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_unitScalar", guiActive = false, guiActiveEditor = true)]//unitScalar
         public double unitScalar = 0.2;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_storesResource", guiActive = false, guiActiveEditor = false)]//storesResource
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_storesResource", guiActive = false, guiActiveEditor = false)]//storesResource
         public bool storesResource = false;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_IntakeExposure", guiActive = false, guiActiveEditor = false, guiFormat = "F1")]//Intake Exposure
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_IntakeExposure", guiActive = false, guiActiveEditor = false, guiFormat = "F1")]//Intake Exposure
         public double intakeExposure = 0;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_UpperAtmoDensity", guiActive = false, guiActiveEditor = false, guiFormat = "F3")]//Trace atmo. density
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_UpperAtmoDensity", guiActive = false, guiActiveEditor = false, guiFormat = "F3")]//Trace atmo. density
         public double upperAtmoDensity;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_AirDensity", guiActive = false,   guiFormat = "F3")]//Air Density
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_AirDensity", guiActive = false,   guiFormat = "F3")]//Air Density
         public double airDensity;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_TechBonus", guiActive = true, guiActiveEditor = true, guiFormat = "F3")]//Tech Bonus
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_TechBonus", guiActive = true, guiActiveEditor = true, guiFormat = "F3")]//Tech Bonus
         public double jetTechBonus;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_AtmosphericIntake_UpperAtmoFraction", guiActive = false, guiFormat = "F3")]//Upper Atmo Fraction
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AtmosphericIntake_UpperAtmoFraction", guiActive = false, guiFormat = "F3")]//Upper Atmo Fraction
         public double upperAtmoFraction;
 
-        [KSPField]
-        public bool hasJetUpgradeTech1;
-        [KSPField]
-        public bool hasJetUpgradeTech2;
-        [KSPField]
-        public bool hasJetUpgradeTech3;
-        [KSPField]
-        public bool hasJetUpgradeTech4;
-        [KSPField]
-        public bool hasJetUpgradeTech5;
+        [KSPField] public bool hasJetUpgradeTech1;
+        [KSPField] public bool hasJetUpgradeTech2;
+        [KSPField] public bool hasJetUpgradeTech3;
+        [KSPField] public bool hasJetUpgradeTech4;
+        [KSPField] public bool hasJetUpgradeTech5;
 
         private double startupCount;
 
@@ -68,16 +60,10 @@ namespace FNPlugin.Resources
         ResourceBuffers resourceBuffers;
 
         // this property will be accessed by the atmospheric extractor
-        public double FinalAir
-        {
-            get { return finalAir; }
-        }
+        public double FinalAir => finalAir;
 
         // property getter for the sake of seawater extractor
-        public bool IntakeEnabled
-        {
-            get { return intakeOpen && (_moduleResourceIntake != null ? _moduleResourceIntake.intakeEnabled : true); }
-        }
+        public bool IntakeEnabled => intakeOpen && (_moduleResourceIntake == null || _moduleResourceIntake.intakeEnabled);
 
         public override void OnStart(StartState state)
         {
@@ -92,18 +78,20 @@ namespace FNPlugin.Resources
             var jetTech = Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
             jetTechBonus = 5 * (1 + (jetTech / 9.92992f));
 
-            _moduleResourceIntake = this.part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == ResourceSettings.Config.IntakeOxygenAir);
+            _moduleResourceIntake = part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == ResourceSettings.Config.IntakeOxygenAir);
             _resourceAtmosphereDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.IntakeAtmosphere);
 
             if (_moduleResourceIntake == null)
                 Debug.LogWarning("[KSPI]: ModuleResourceIntake with IntakeAir is missing on " + part.partInfo.title);
 
-            var field = Fields["intakeOpen"];
-            var flightToggle = field.uiControlFlight as UI_Toggle;
+            var field = Fields[nameof(intakeOpen)];
             var editorToggle = field.uiControlEditor as UI_Toggle;
 
-            flightToggle.onFieldChanged = IntakeOpenChanged;
-            editorToggle.onFieldChanged = IntakeOpenChanged;
+            if (field.uiControlFlight is UI_Toggle flightToggle)
+                flightToggle.onFieldChanged = IntakeOpenChanged;
+
+            if (editorToggle != null)
+                editorToggle.onFieldChanged = IntakeOpenChanged;
 
             UpdateResourceIntakeConfiguration();
 
@@ -111,7 +99,7 @@ namespace FNPlugin.Resources
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.IntakeAtmosphere, 300, area * unitScalar * 100));
-            resourceBuffers.Init(this.part);
+            resourceBuffers.Init(part);
         }
 
         private void IntakeOpenChanged(BaseField field, object oldFieldValueObj)
@@ -149,9 +137,9 @@ namespace FNPlugin.Resources
 
         private void UpdateAtmosphereBuffer()
         {
-            if (intakeOpen && resourceBuffers != null)
+            if (intakeOpen)
             {
-                resourceBuffers.UpdateBuffers();
+                resourceBuffers?.UpdateBuffers();
             }
         }
 
@@ -206,8 +194,8 @@ namespace FNPlugin.Resources
                 var spaceAirDensity = PluginSettings.Config.MinAtmosphericAirDensity * (1 - upperAtmoFraction);             // calculate the space atmospheric density
                 airDensity = Math.Max(part.vessel.atmDensity, spaceAirDensity);                             // display amount of density
                 upperAtmoDensity = Math.Max(0, spaceAirDensity - part.vessel.atmDensity);                   // calculate effective addition upper atmosphere density
-                var space_airFlow = intakeAngle * upperAtmoDensity * intakeExposure / _resourceAtmosphereDefinition.density; // how much of that air is our intake catching
-                airThisUpdate = airThisUpdate + (space_airFlow * TimeWarp.fixedDeltaTime);                  // increase how much  air do we get per update
+                var spaceAirFlow = intakeAngle * upperAtmoDensity * intakeExposure / _resourceAtmosphereDefinition.density; // how much of that air is our intake catching
+                airThisUpdate = airThisUpdate + (spaceAirFlow * TimeWarp.fixedDeltaTime);                  // increase how much  air do we get per update
             }
 
             if (startupCount > 10)
@@ -225,16 +213,16 @@ namespace FNPlugin.Resources
         {
             if (!storesResource)
             {
-                var _intake_atmosphere_resource = part.Resources[ResourceSettings.Config.IntakeAtmosphere];
-                if (_intake_atmosphere_resource == null)
+                var intakeAtmosphereResource = part.Resources[ResourceSettings.Config.IntakeAtmosphere];
+                if (intakeAtmosphereResource == null)
                     return;
 
                 airThisUpdate = airThisUpdate >= 0
-                    ? (airThisUpdate <= _intake_atmosphere_resource.maxAmount
+                    ? (airThisUpdate <= intakeAtmosphereResource.maxAmount
                         ? airThisUpdate
-                        : _intake_atmosphere_resource.maxAmount)
+                        : intakeAtmosphereResource.maxAmount)
                     : 0;
-                _intake_atmosphere_resource.amount = airThisUpdate;
+                intakeAtmosphereResource.amount = airThisUpdate;
             }
             else
                 part.RequestResource(_resourceAtmosphereDefinition.id, -airThisUpdate, ResourceFlowMode.STAGE_PRIORITY_FLOW_BALANCE); // create the resource, finally

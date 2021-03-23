@@ -1,70 +1,46 @@
-﻿using UnityEngine;
-using System.Linq;
+﻿using System.Linq;
 using KSP.Localization;
+using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Science
 {
     public class InterstellarResourceScienceModule : ModuleScienceExperiment
     {
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ResourceScience_Active")]//Active
         public bool generatorActive;
-        [KSPField(isPersistant = true)]
-        public double last_active_time;
-        [KSPField(isPersistant = true)]
-        public double lastGeneratedPerSecond;
-
-        [KSPField(isPersistant = false, guiActive = false)]
-        public double resourceAmount;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string resourceName;
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ResourceScience_GeneratedData", guiFormat = "F3")]//Generated Data
         public double totalGeneratedData;
 
-        //consume this resource per game-second
-        [KSPField(isPersistant = false, guiActive = false)]
-        public double generatorResourceIn;
-        //produce this resource per game second
-        [KSPField(isPersistant = false, guiActive = false)]
-        public double generatorResourceOut;
+        [KSPField(isPersistant = true)] public double last_active_time;
+        [KSPField(isPersistant = true)] public double lastGeneratedPerSecond;
 
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string generatorResourceInName;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string generatorResourceOutName;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string generatorActivateName;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string generatorDeactivateName;
+        [KSPField] public double resourceAmount;
+        [KSPField] public string resourceName;
+        [KSPField] public double generatorResourceIn;
+        [KSPField] public double generatorResourceOut;
 
+        [KSPField(guiActive = false)] public string generatorResourceInName;
+        [KSPField(guiActive = false)] public string generatorResourceOutName;
+        [KSPField(guiActive = false)] public string generatorActivateName;
+        [KSPField(guiActive = false)] public string generatorDeactivateName;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_ResourceScience_Biodome")]//Biodome
         public string currentBiome = "";
-        //[KSPField(isPersistant = false, guiActive = false, guiName = "Research")]
-        //public double research;
 
-        [KSPField(isPersistant = false, guiActive = false)]
-        public bool needSubjects = false;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string loopingAnimation = "";
-        [KSPField(isPersistant = true, guiActive = false)]
-        public int crewCount;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public float loopPoint;
-
-        [KSPField(isPersistant = false, guiActiveEditor = true,  guiActive = false, guiName = "Mass", guiUnits = " t")]
-        public float partMass;
-
-
+        [KSPField] public bool needSubjects = false;
+        [KSPField] public string loopingAnimation = "";
+        [KSPField] public int crewCount;
+        [KSPField] public float loopPoint;
 
         [KSPEvent(guiName = "#LOC_KSPIE_ResourceScience_ActivateGenerator", active = true, guiActive = true)]//Activate Generator
-        public void activateGenerator()
+        public void ActivateGenerator()
         {
             generatorActive = true;
             PlayAnimation("Deploy", false, false, false);
         }
 
         [KSPEvent(guiName = "#LOC_KSPIE_ResourceScience_deActivateGenerator", active = true, guiActive = true)]//Activate Generator
-        public void deActivateGenerator()
+        public void DeActivateGenerator()
         {
             generatorActive = false;
             PlayAnimation("Deploy", true, true, false);
@@ -75,32 +51,29 @@ namespace FNPlugin
             Debug.Log("[KSPI]: InterstellarResourceScienceModule - OnStart " + state.ToString());
 
             //this.Events["Deploy"].guiActive = false;
-            Events["activateGenerator"].guiName = generatorActivateName;
-            Events["deActivateGenerator"].guiName = generatorDeactivateName;
+            Events[nameof(ActivateGenerator)].guiName = generatorActivateName;
+            Events[nameof(DeActivateGenerator)].guiName = generatorDeactivateName;
 
-            if (generatorActive)
-                PlayAnimation("Deploy", false, true, false);
-            else
-                PlayAnimation("Deploy", true, true, false);
+            PlayAnimation("Deploy", !generatorActive, true, false);
 
             base.OnStart(state);
 
-            // calcualte time past since last frame
+            // calculate time past since last frame
             if (generatorActive && last_active_time > 0)
             {
-                double time_diff = Planetarium.GetUniversalTime() - last_active_time;
-                
-                var minutes = time_diff / 60;
+                double timeDiff = Planetarium.GetUniversalTime() - last_active_time;
+
+                var minutes = timeDiff / 60;
                 Debug.Log("[KSPI]: InterstellarResourceScienceModule - time difference " + minutes + " minutes");
                 ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ResourceScience_Postmsg", minutes.ToString("0.00")), 5.0f, ScreenMessageStyle.LOWER_CENTER);//"Generated Science Data for " +  + " minutes"
 
-                GenerateScience(time_diff, true);
+                GenerateScience(timeDiff, true);
             }
         }
 
         public override void OnUpdate()
         {
-            // store current time in case vesel is unloaded
+            // store current time in case vessel is unloaded
             last_active_time = Planetarium.GetUniversalTime();
 
             int lcrewCount = part.protoModuleCrew.Count;
@@ -128,13 +101,14 @@ namespace FNPlugin
                 Events["deActivateGenerator"].guiActive = false;
                 Events["activateGenerator"].guiActive = true;
             }
+
             string biome = BiomeCheck();
             if (biome != currentBiome || (needSubjects && lcrewCount != crewCount))
             {
                 if (biome != currentBiome)
-                    UnityEngine.Debug.Log("[KSPI]: InterstellarResourceScienceModule - reseting research because biome " + biome + " != biome " + currentBiome);
+                    Debug.Log("[KSPI]: InterstellarResourceScienceModule - reseting research because biome " + biome + " != biome " + currentBiome);
                 else
-                    UnityEngine.Debug.Log("[KSPI]: InterstellarResourceScienceModule - reseting research because lcrewCount " + lcrewCount + " !=  crewCount " + crewCount);
+                    Debug.Log("[KSPI]: InterstellarResourceScienceModule - reseting research because lcrewCount " + lcrewCount + " !=  crewCount " + crewCount);
 
                 print("biome change " + biome);
                 currentBiome = biome;
@@ -147,6 +121,7 @@ namespace FNPlugin
             }
             if (loopingAnimation != "")
                 PlayAnimation(loopingAnimation, false, false, true); //plays independently of other anims
+
             base.OnUpdate();
         }
 
@@ -163,18 +138,18 @@ namespace FNPlugin
             else
             {
                 spent = lastGeneratedPerSecond * deltaTime;
-                UnityEngine.Debug.Log("[KSPI]: InterstellarResourceScienceModule - available power: " + spent);
+                Debug.Log("[KSPI]: InterstellarResourceScienceModule - available power: " + spent);
             }
 
             //  print(spent.ToString());
-            double generatescale = spent / (generatorResourceIn * deltaTime);
+            double generateScale = spent / (generatorResourceIn * deltaTime);
             if (generatorResourceIn == 0)
-                generatescale = 1;
+                generateScale = 1;
 
-            var generatedScience = generatorResourceOut * deltaTime * generatescale;
+            var generatedScience = generatorResourceOut * deltaTime * generateScale;
             if (offlineCollecting)
             {
-                UnityEngine.Debug.Log("[KSPI]: InterstellarResourceScienceModule - generatedScience: " + generatedScience);
+                Debug.Log("[KSPI]: InterstellarResourceScienceModule - generatedScience: " + generatedScience);
             }
 
             double generated = part.RequestResource(generatorResourceOutName, -generatedScience);
@@ -189,7 +164,7 @@ namespace FNPlugin
         public string BiomeCheck()
         {
             // bool flying = vessel.altitude < vessel.mainBody.maxAtmosphereAltitude;
-            //bool orbiting = 
+            //bool orbiting =
 
             //return "InspaceOver" + vessel.mainBody.name;
 
@@ -201,29 +176,28 @@ namespace FNPlugin
 
         double getResourceBudget(string name)
         {
-            //   
-            if (this.vessel == FlightGlobals.ActiveVessel)
-            {
-                // print("found vessel event!");
-                //var resources = vessel.GetActiveResources();
-                var resources = vessel.parts.SelectMany(p => p.Resources).ToList();
+            if (vessel != FlightGlobals.ActiveVessel)
+                return 0;
 
-                for (int i = 0; i < resources.Count; i++)
+            // print("found vessel event!");
+            //var resources = vessel.GetActiveResources();
+            var resources = vessel.parts.SelectMany(p => p.Resources).ToList();
+
+            foreach (var t in resources)
+            {
+                // print("vessel has resources!");
+                print(t.info.name);
+                // print("im looking for " + resourceName);
+                if (t.info.name == resourceName)
                 {
-                    // print("vessel has resources!");
-                    print(resources[i].info.name);
-                    // print("im looking for " + resourceName);
-                    if (resources[i].info.name == resourceName)
-                    {
-                        // print("Found the resouce!!");
-                        return resources[i].amount;
-                    }
+                    // print("Found the resouce!!");
+                    return t.amount;
                 }
             }
             return 0;
         }
 
-        bool vesselHasEnoughResource(string name, double rc)
+        bool VesselHasEnoughResource(string name, double rc)
         {
             if (rc <= 0)
                 return true;
@@ -250,7 +224,6 @@ namespace FNPlugin
             //}
             return false;
         }
-
         new public void DumpData(ScienceData data)
         {
             // refundResource();
@@ -261,7 +234,7 @@ namespace FNPlugin
         new public void DeployExperiment()
         {
             //print("Clicked event! check data: " + resourceName + " " + resourceAmount.ToString() + " " + experimentID + " ");
-            if (vesselHasEnoughResource(resourceName, resourceAmount))
+            if (VesselHasEnoughResource(resourceName, resourceAmount))
             {
                 //print("Has the possibleAmount!!");
                 double res = part.RequestResource(resourceName, resourceAmount, ResourceFlowMode.ALL_VESSEL);
@@ -283,7 +256,7 @@ namespace FNPlugin
         new public void DeployAction(KSPActionParam actParams)
         {
             //print("Clicked event! check data: " + resourceName + " " + resourceAmount.ToString() + " " + experimentID + " ");
-            if (vesselHasEnoughResource(resourceName, resourceAmount))
+            if (VesselHasEnoughResource(resourceName, resourceAmount))
             {
                 //print("Has the possibleAmount!!");
                 double res = part.RequestResource(resourceName, resourceAmount, ResourceFlowMode.ALL_VESSEL);
@@ -312,7 +285,7 @@ namespace FNPlugin
         {
             print("refund resource!");
             double res = part.RequestResource(resourceName, -resourceAmount, ResourceFlowMode.ALL_VESSEL);
-            print("refunded " + res.ToString() + " resource");
+            print("refunded " + res + " resource");
         }
 
         //[KSPEvent(guiName = "Reset", active = true, guiActive = true)]
@@ -338,21 +311,21 @@ namespace FNPlugin
 
         private void PlayStartAnimation(Animation StartAnimation, string startAnimationName, int speed, bool instant)
         {
-            if (startAnimationName != "")
-            {
-                if (speed < 0)
-                {
-                    StartAnimation[startAnimationName].time = StartAnimation[startAnimationName].length;
-                    if (loopPoint != 0)
-                        StartAnimation[startAnimationName].time = loopPoint;
-                }
-                if (instant)
-                    StartAnimation[startAnimationName].speed = 999999 * speed;
+            if (startAnimationName == "")
+                return;
 
-                StartAnimation[startAnimationName].wrapMode = WrapMode.Default;
-                StartAnimation[startAnimationName].speed = speed;
-                StartAnimation.Play(startAnimationName);
+            if (speed < 0)
+            {
+                StartAnimation[startAnimationName].time = StartAnimation[startAnimationName].length;
+                if (loopPoint != 0)
+                    StartAnimation[startAnimationName].time = loopPoint;
             }
+            if (instant)
+                StartAnimation[startAnimationName].speed = 999999 * speed;
+
+            StartAnimation[startAnimationName].wrapMode = WrapMode.Default;
+            StartAnimation[startAnimationName].speed = speed;
+            StartAnimation.Play(startAnimationName);
         }
 
         private void PlayLoopAnimation(Animation StartAnimation, string startAnimationName, int speed, bool instant)
@@ -383,15 +356,15 @@ namespace FNPlugin
             foreach (Animation a in anim)
             {
                 // print("animation found " + a.name + " " + a.clip.name);
-                if (a.clip.name == name)
-                {
-                    // print("animation playingxx " + a.name + " " + a.clip.name);
-                    var xanim = a;
-                    if (loop)
-                        PlayLoopAnimation(xanim, name, (rewind) ? (-1) : (1), instant);
-                    else
-                        PlayStartAnimation(xanim, name, (rewind) ? (-1) : (1), instant);
-                }
+                if (a.clip.name != name)
+                    continue;
+
+                // print("animation playingxx " + a.name + " " + a.clip.name);
+                var xanim = a;
+                if (loop)
+                    PlayLoopAnimation(xanim, name, (rewind) ? (-1) : (1), instant);
+                else
+                    PlayStartAnimation(xanim, name, (rewind) ? (-1) : (1), instant);
             }
         }
     }

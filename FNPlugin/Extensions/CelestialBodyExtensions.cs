@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using FNPlugin.Constants;
 using FNPlugin.Resources;
+using FNPlugin.Science;
 
 namespace FNPlugin.Extensions
 {

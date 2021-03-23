@@ -33,27 +33,27 @@ namespace FNPlugin.Propulsion
 
         private List<Propellant> list_of_propellants = new List<Propellant>();
 
-        public string TechRequirement { get { return _techRequirement; } }
-        public double CoolingFactor { get { return _coolingFactor; } }
-        public bool RequiresUpgrade { get { return _requiresUpgrade; } }
-        public int Index { get { return _index; } }
-        public string GuiName { get {return _guiName;}}
-        public double PropellantSootFactorFullThrotle { get { return _propellantSootFactorFullThrotle; } }
-        public double PropellantSootFactorMinThrotle { get { return _propellantSootFactorMinThrotle; } }
-        public double PropellantSootFactorEquilibrium { get { return _propellantSootFactorEquilibrium; } }
-        public double MinDecompositionTemp { get { return _minDecompositionTemp; } }
-        public double MaxDecompositionTemp { get { return _maxDecompositionTemp; } }
-        public double DecompositionEnergy { get { return _decompositionEnergy; } }
-        public double BaseIspMultiplier { get { return _baseIspMultiplier; } }
-        public double Toxicity { get { return _toxicity; } }
-        public double MinimumCoreTemp { get { return _minimumCoreTemp; } }
-        public bool IsLFO { get { return _isLFO; } }
-        public bool IsJet { get { return _is_jet; } }
-        public int AtomType { get { return _atomType; } }
-        public int PropType { get { return _propType; } }
+        public string TechRequirement => _techRequirement;
+        public double CoolingFactor => _coolingFactor;
+        public bool RequiresUpgrade => _requiresUpgrade;
+        public int Index => _index;
+        public string GuiName => _guiName;
+        public double PropellantSootFactorFullThrotle => _propellantSootFactorFullThrotle;
+        public double PropellantSootFactorMinThrotle => _propellantSootFactorMinThrotle;
+        public double PropellantSootFactorEquilibrium => _propellantSootFactorEquilibrium;
+        public double MinDecompositionTemp => _minDecompositionTemp;
+        public double MaxDecompositionTemp => _maxDecompositionTemp;
+        public double DecompositionEnergy => _decompositionEnergy;
+        public double BaseIspMultiplier => _baseIspMultiplier;
+        public double Toxicity => _toxicity;
+        public double MinimumCoreTemp => _minimumCoreTemp;
+        public bool IsLFO => _isLFO;
+        public bool IsJet => _is_jet;
+        public int AtomType => _atomType;
+        public int PropType => _propType;
 
-        public double IspPropellantMultiplier { get { return _ispPropellantMultiplier; } }
-        public double ThrustPropellantMultiplier { get { return _thrustPropellantMultiplier; } }
+        public double IspPropellantMultiplier => _ispPropellantMultiplier;
+        public double ThrustPropellantMultiplier => _thrustPropellantMultiplier;
 
         public ThermalEngineFuel(ConfigNode node, int index, Part part)
         {
@@ -92,7 +92,7 @@ namespace FNPlugin.Propulsion
             }
         }
 
-        public bool hasAnyStorage()
+        public bool HasAnyStorage()
         {
             foreach (var extendedPropellant in list_of_propellants)
             {

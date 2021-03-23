@@ -6,10 +6,9 @@ namespace FNPlugin.Propulsion
     class FNPersistentRotation : PartModule
     {
         // Saved fields
-        [KSPField(isPersistant = true)]
-        public VesselAutopilot.AutopilotMode persistentAutopilotMode;
-        [KSPField(isPersistant = true)]
-        public double ratioHeadingVersusRequest;
+        [KSPField(isPersistant = true)] public VesselAutopilot.AutopilotMode persistentAutopilotMode;
+        [KSPField(isPersistant = true)] public double ratioHeadingVersusRequest;
+
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor =  true, guiName = "Persistent Rotation"), UI_Toggle(disabledText = "#autoLOC_247995", enabledText = "#autoLOC_900889")]
         public bool IsEnabled = true;
 

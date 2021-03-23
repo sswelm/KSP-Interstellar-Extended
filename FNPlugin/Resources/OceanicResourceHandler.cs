@@ -9,21 +9,21 @@ namespace FNPlugin.Resources
     {
         protected static Dictionary<int, List<OceanicResource>> body_oceanic_resource_list = new Dictionary<int, List<OceanicResource>>();
 
-        public static double getOceanicResourceContent(int refBody, string resourceName)
+        public static double GetOceanicResourceContent(int refBody, string resourceName)
         {
             List<OceanicResource> bodyOceanicComposition = GetOceanicCompositionForBody(refBody);
             OceanicResource resource = bodyOceanicComposition.FirstOrDefault(oor => oor.ResourceName == resourceName);
             return resource?.ResourceAbundance ?? 0;
         }
 
-        public static double getOceanicResourceContent(int refBody, int resource)
+        public static double GetOceanicResourceContent(int refBody, int resource)
         {
             List<OceanicResource> bodyOceanicComposition = GetOceanicCompositionForBody(refBody);
             if (bodyOceanicComposition.Count > resource) return bodyOceanicComposition[resource].ResourceAbundance;
             return 0;
         }
 
-        public static string getOceanicResourceName(int refBody, int resource)
+        public static string GetOceanicResourceName(int refBody, int resource)
         {
             List<OceanicResource> bodyOceanicComposition = GetOceanicCompositionForBody(refBody);
             if (bodyOceanicComposition.Count > resource)
@@ -33,7 +33,7 @@ namespace FNPlugin.Resources
             return null;
         }
 
-        public static string getOceanicResourceDisplayName(int refBody, int resource)
+        public static string GetOceanicResourceDisplayName(int refBody, int resource)
         {
             List<OceanicResource> bodyOceanicComposition = GetOceanicCompositionForBody(refBody);
             if (bodyOceanicComposition.Count > resource)
@@ -96,6 +96,9 @@ namespace FNPlugin.Resources
             var bodyOceanicComposition = new List<OceanicResource>();
 
             ConfigNode oceanicResourcePack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
+
+            if (oceanicResourcePack == null)
+                return new List<OceanicResource>();
 
             Debug.Log("[KSPI] Loading oceanic data from pack: " + (oceanicResourcePack.HasValue("name") ? oceanicResourcePack.GetValue("name") : "unknown pack"));
             if (oceanicResourcePack != null)

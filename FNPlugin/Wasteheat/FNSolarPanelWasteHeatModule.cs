@@ -1,9 +1,9 @@
-using FNPlugin.Constants;
-using FNPlugin.Power;
-using FNPlugin.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Constants;
+using FNPlugin.Power;
+using FNPlugin.Resources;
 using FNPlugin.Beamedpower;
 using FNPlugin.Powermanagement;
 using UnityEngine;
@@ -33,33 +33,20 @@ namespace FNPlugin
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActive = false, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
         public double astronomicalUnit;
 
-        [KSPField]
-        public double solarMaxSupply;
-        [KSPField]
-        public string resourceName;
-        [KSPField]
-        public double solar_supply;
-        [KSPField]
-        public float chargeRate;
-        [KSPField]
-        public double sunAOA;
-        [KSPField]
-        public double calculatedEfficency;
-        [KSPField]
-        public double kerbalism_nominalRate;
-        [KSPField]
-        public string kerbalism_panelState;
-        [KSPField]
-        public string kerbalism_panelOutput;
-        [KSPField]
-        public double kerbalism_panelPower;
+        [KSPField] public double solarMaxSupply;
+        [KSPField] public string resourceName;
+        [KSPField] public double solar_supply;
+        [KSPField] public float chargeRate;
+        [KSPField] public double sunAOA;
+        [KSPField] public double calculatedEfficency;
+        [KSPField] public double kerbalism_nominalRate;
+        [KSPField] public string kerbalism_panelState;
+        [KSPField] public string kerbalism_panelOutput;
+        [KSPField] public double kerbalism_panelPower;
 
-        [KSPField]
-        public double scale = 1;
-        [KSPField]
-        public double outputResourceRate;
-        [KSPField]
-        public double outputResourceCurrentRequest;
+        [KSPField] public double scale = 1;
+        [KSPField] public double outputResourceRate;
+        [KSPField] public double outputResourceCurrentRequest;
 
         BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
@@ -109,8 +96,7 @@ namespace FNPlugin
                 part.force_activate();
             }
 
-            string[] resourcesToSupply = { ResourceSettings.Config.ElectricPowerInMegawatt };
-            this.resourcesToSupply = resourcesToSupply;
+            this.resourcesToSupply = new [] { ResourceSettings.Config.ElectricPowerInMegawatt };
             base.OnStart(state);
 
             _outputResource = _solarPanel.resHandler.outputResources.FirstOrDefault();

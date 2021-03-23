@@ -6,11 +6,11 @@ namespace FNPlugin.Wasteheat
 {
     internal sealed class WasteHeatBufferConfig : ResourceBuffers.VariableConfig
     {
-        public bool ClampInitialMaxAmount { get; private set; }
-        public double ResourceMultiplier { get; private set; }
-        public double BaseResourceAmount { get; private set; }
+        public bool ClampInitialMaxAmount { get; }
+        public double ResourceMultiplier { get; }
+        public double BaseResourceAmount { get; }
 
-        private bool Initialized = false;
+        private bool _initialized;
 
         public WasteHeatBufferConfig(double heatMultiplier = 1.0d, double baseHeatAmount = 1.0d, bool clampInitialMaxAmount = false) : base(ResourceSettings.Config.WasteHeatInMegawatt)
         {
@@ -31,13 +31,13 @@ namespace FNPlugin.Wasteheat
             var bufferedResource = part.Resources[ResourceName];
             if (bufferedResource != null)
             {
-                double maxWasteHeatRatio = ClampInitialMaxAmount && !Initialized ? 0.95d : 1.0d;
+                double maxWasteHeatRatio = ClampInitialMaxAmount && !_initialized ? 0.95d : 1.0d;
 
                 var resourceRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));
                 bufferedResource.maxAmount = Math.Max(0.0001, BaseResourceMax);
                 bufferedResource.amount = Math.Max(0, resourceRatio * BaseResourceMax);
             }
-            Initialized = true;
+            _initialized = true;
         }
     }
 }

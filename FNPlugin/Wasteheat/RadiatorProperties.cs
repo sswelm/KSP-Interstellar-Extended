@@ -4,40 +4,28 @@ namespace FNPlugin.Wasteheat
 {
 	static public class RadiatorProperties
 	{
-		private static bool _isInitialized = false;
-        private static double _radiatorTemperatureMk1 = 1918;
-        private static double _radiatorTemperatureMk2 = 2272;
-        private static double _radiatorTemperatureMk3 = 2698;
-        private static double _radiatorTemperatureMk4 = 3200;
-        private static double _radiatorTemperatureMk5 = 3795;
-        private static double _radiatorTemperatureMk6 = 4500;
+		private static bool _isInitialized;
 
-		private static string _radiatorUpgradeTech1 = "heatManagementSystems";
-		private static string _radiatorUpgradeTech2 = "advHeatManagement";
-		private static string _radiatorUpgradeTech3 = "specializedRadiators";
-		private static string _radiatorUpgradeTech4 = "exoticRadiators";
-		private static string _radiatorUpgradeTech5 = "extremeRadiators";
+        public static string RadiatorUpgradeTech1 { get; private set; } = "heatManagementSystems";
+        public static string RadiatorUpgradeTech2 { get; private set; } = "advHeatManagement";
+        public static string RadiatorUpgradeTech3 { get; private set; } = "specializedRadiators";
+        public static string RadiatorUpgradeTech4 { get; private set; } = "exoticRadiators";
+        public static string RadiatorUpgradeTech5 { get; private set; } = "extremeRadiators";
 
-		public static string RadiatorUpgradeTech1 { get { return _radiatorUpgradeTech1; } private set { _radiatorUpgradeTech1 = value; } }
-		public static string RadiatorUpgradeTech2 { get { return _radiatorUpgradeTech2; } private set { _radiatorUpgradeTech2 = value; } }
-		public static string RadiatorUpgradeTech3 { get { return _radiatorUpgradeTech3; } private set { _radiatorUpgradeTech3 = value; } }
-		public static string RadiatorUpgradeTech4 { get { return _radiatorUpgradeTech4; } private set { _radiatorUpgradeTech4 = value; } }
-		public static string RadiatorUpgradeTech5 { get { return _radiatorUpgradeTech5; } private set { _radiatorUpgradeTech5 = value; } }
+        public static double RadiatorTemperatureMk1 { get; private set; } = 1918;
+        public static double RadiatorTemperatureMk2 { get; private set; } = 2272;
+        public static double RadiatorTemperatureMk3 { get; private set; } = 2698;
+        public static double RadiatorTemperatureMk4 { get; private set; } = 3200;
+        public static double RadiatorTemperatureMk5 { get; private set; } = 3795;
+        public static double RadiatorTemperatureMk6 { get; private set; } = 4500;
 
-		public static double RadiatorTemperatureMk1 { get { return _radiatorTemperatureMk1; } private set { _radiatorTemperatureMk1 = value; } }
-		public static double RadiatorTemperatureMk2 { get { return _radiatorTemperatureMk2; } private set { _radiatorTemperatureMk2 = value; } }
-		public static double RadiatorTemperatureMk3 { get { return _radiatorTemperatureMk3; } private set { _radiatorTemperatureMk3 = value; } }
-		public static double RadiatorTemperatureMk4 { get { return _radiatorTemperatureMk4; } private set { _radiatorTemperatureMk4 = value; } }
-		public static double RadiatorTemperatureMk5 { get { return _radiatorTemperatureMk5; } private set { _radiatorTemperatureMk5 = value; } }
-		public static double RadiatorTemperatureMk6 { get { return _radiatorTemperatureMk6; } private set { _radiatorTemperatureMk6 = value; } }
-
-		static public void Initialize()
+        static public void Initialize()
 		{
 			if (_isInitialized)
 				return;
 
-			Debug.Log("[KSPI]: RadiatorProperties - Attempting to read " + PluginHelper.WARP_PLUGIN_SETTINGS_FILEPATH);
-			ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode(PluginHelper.WARP_PLUGIN_SETTINGS_FILEPATH);
+			Debug.Log("[KSPI]: RadiatorProperties - Attempting to read " + PluginHelper.WarpPluginSettingsFilepath);
+			ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode(PluginHelper.WarpPluginSettingsFilepath);
 
 			if (plugin_settings != null)
 			{

@@ -47,12 +47,9 @@ namespace FNPlugin.Science
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiFormat = "F4")] public double saturationPitchFactor;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiFormat = "F4")] public double saturationYawFactor;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiFormat = "F0", guiUnits = "%", guiName = "Roll Saturation")]
-        public double saturationRollPercentage;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiFormat = "F0", guiUnits = "%", guiName = "Pitch Saturation")]
-        public double saturationPitchPercentage;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiFormat = "F0", guiUnits = "%", guiName = "Yaw Saturation")]
-        public double saturationYawPercentage;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiFormat = "F0", guiUnits = "%", guiName = "Roll Saturation")] public double saturationRollPercentage;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiFormat = "F0", guiUnits = "%", guiName = "Pitch Saturation")] public double saturationPitchPercentage;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiFormat = "F0", guiUnits = "%", guiName = "Yaw Saturation")] public double saturationYawPercentage;
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiFormat = "F4")] public double magnitude;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiFormat = "F4")] public double powerFactor;

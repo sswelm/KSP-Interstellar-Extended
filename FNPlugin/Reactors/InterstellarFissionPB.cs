@@ -15,12 +15,10 @@ namespace FNPlugin.Reactors
         public bool heatThrottling = false;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = false, guiActive = true, guiUnits = "%", guiName = "#LOC_KSPIE_FissionPB_Overheating", guiFormat = "F3")]//Overheating
         public double overheatPercentage;
-        [KSPField(isPersistant = false)]
-        public double thermalRatioEfficiencyModifier = 0.81;
-        [KSPField(isPersistant = false)]
-        public double maximumChargedIspMult = 114;
-        [KSPField(isPersistant = false)]
-        public double minimumChargdIspMult = 11.4;
+
+        [KSPField(isPersistant = false)] public double thermalRatioEfficiencyModifier = 0.81;
+        [KSPField(isPersistant = false)] public double maximumChargedIspMult = 114;
+        [KSPField(isPersistant = false)] public double minimumChargdIspMult = 11.4;
 
         [KSPEvent(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_ManualRestart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]//Manual Restart
         public void ManualRestart()
@@ -35,11 +33,8 @@ namespace FNPlugin.Reactors
         }
 
         public override bool IsFuelNeutronRich => CurrentFuelMode != null && !CurrentFuelMode.Aneutronic;
-
         public override double MaximumThermalPower => base.MaximumThermalPower * ThermalRatioEfficiency;
-
         public override double MaximumChargedPower => base.MaximumChargedPower * ThermalRatioEfficiency;
-
         public override double StableMaximumReactorPower => IsEnabled ? NormalisedMaximumPower * ThermalRatioEfficiency : 0;
 
         private double ThermalRatioEfficiency =>
@@ -48,11 +43,8 @@ namespace FNPlugin.Reactors
                 : 1;
 
         private double OptimalTemp => base.CoreTemperature;
-
         private double ZeroPowerTemp => base.CoreTemperature * 1.25f;
-
         private double OptimalTempDifference => ZeroPowerTemp - OptimalTemp;
-
         public override bool IsNuclear => true;
 
         public override double CoreTemperature

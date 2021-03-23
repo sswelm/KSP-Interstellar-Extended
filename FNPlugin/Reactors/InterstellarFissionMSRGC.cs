@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
@@ -30,11 +31,12 @@ namespace FNPlugin.Reactors
         [KSPField] public double reactorMainFuelMaxAmount;
 
         private BaseEvent _manualRestartEvent;
-
+        private PartResourceDefinition _actinideDefinition;
+        private PartResourceDefinition _protactinium233Definition;
         private double reactorMainFuelDensityInTon;
 
+        // Properties
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic;
-
         public override bool IsNuclear => true;
 
         public double WasteToReprocess => part.Resources.Contains(ResourceSettings.Config.Actinides) ? part.Resources[ResourceSettings.Config.Actinides].amount : 0;
@@ -42,7 +44,7 @@ namespace FNPlugin.Reactors
         [KSPEvent(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionMSRGC_Dump_Actinides", guiActiveEditor = false, guiActive = true)]
         public void DumpActinides()
         {
-            var actinides = part.Resources[ResourceSettings.Config.Actinides];
+            var actinides = part.Resources.Get(_actinideDefinition.id);
             if (actinides == null)
             {
                 Debug.LogError("[KSPI]: actinides not found on " + part.partInfo.title);
@@ -169,12 +171,33 @@ namespace FNPlugin.Reactors
                     return base.MaximumThermalPower;
                 }
 
-                var actinidesResource = part.Resources[ResourceSettings.Config.Actinides];
+                double poisonCurAmount = 0;
+                double poisonMaxAmount = 0;
 
-                if (actinidesResource == null)
+                var actinidesResource = _actinideDefinition != null
+                    ? part.Resources.Get(_actinideDefinition.id)
+                    : part.Resources[ResourceSettings.Config.Actinides];
+
+                if (actinidesResource != null && actinidesResource.amount.IsInfinityOrNaN())
+                {
+                    poisonCurAmount += actinidesResource.amount;
+                    poisonMaxAmount += actinidesResource.maxAmount;
+                }
+
+                var protectResource = _protactinium233Definition != null
+                    ? part.Resources.Get(_protactinium233Definition.id)
+                    : part.Resources[ResourceSettings.Config.Protactinium233];
+
+                if (protectResource != null && protectResource.amount.IsInfinityOrNaN())
+                {
+                    poisonCurAmount += protectResource.amount;
+                    poisonMaxAmount += protectResource.maxAmount;
+                }
+
+                if (poisonMaxAmount <= 0)
                     return base.MaximumThermalPower;
 
-                var fuelActinideMassRatio = actinidesResource.maxAmount > 0 ?  1 - actinidesResource.amount / actinidesResource.maxAmount : 1;
+                var fuelActinideMassRatio = 1 - poisonCurAmount / poisonMaxAmount;
 
                 actinidesModifer = Math.Pow(fuelActinideMassRatio * fuelActinideMassRatio, CurrentFuelMode.ReactionRatePowerMultiplier);
 
@@ -218,7 +241,6 @@ namespace FNPlugin.Reactors
             Events[nameof(Refuel)].guiName = "Refuel " + (CurrentFuelMode != null ? CurrentFuelMode.ModeGUIName : "");
             Events[nameof(SwapFuelMode)].active = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1 && !IsEnabled && !ongoingDecay;
             Events[nameof(SwapFuelMode)].guiActive = Events[nameof(SwapFuelMode)].guiActiveUnfocused = fuelModes.Count > 1;
-
             Events[nameof(SwitchMode)].guiActiveEditor = Events[nameof(SwitchMode)].guiActive = Events[nameof(SwitchMode)].guiActiveUnfocused = CheckFuelModes() > 1;
             Events[nameof(EditorSwapFuel)].guiActiveEditor = fuelModes.Count > 1;
             Events[nameof(DumpActinides)].guiActive = canDumpActinides;
@@ -229,6 +251,9 @@ namespace FNPlugin.Reactors
         public override void OnStart(StartState state)
         {
             Debug.Log("[KSPI]: OnStart MSRGC " + part.name);
+
+            _actinideDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Actinides);
+            _protactinium233Definition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Protactinium233);
 
             // start as normal
             base.OnStart(state);

@@ -1,4 +1,7 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Microwave;
 using FNPlugin.Power;
@@ -8,9 +11,6 @@ using FNPlugin.Redist;
 using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Beamedpower

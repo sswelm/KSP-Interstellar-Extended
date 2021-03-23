@@ -1,29 +1,26 @@
 ﻿using System.Linq;
-using UnityEngine;
 using FNPlugin.Extensions;
+using UnityEngine;
 
-namespace FNPlugin 
+namespace FNPlugin.Science
 {
-    class DTMagnetometer : PartModule 
+    class DTMagnetometer : PartModule
     {
-        [KSPField(isPersistant = true)]
-        bool IsEnabled;
-        [KSPField(isPersistant = false)]
-        public string animName = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "|B|")]
-        public string Bmag;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "B_r")]
-        public string Brad;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "B_T")]
-        public string Bthe;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_DTMagnetometer_AntimatterFlux")]//Antimatter Flux
+        [KSPField(isPersistant = true)] bool IsEnabled;
+
+        [KSPField] public string animName = "";
+        [KSPField(guiActive = true, guiName = "|B|")] public string Bmag;
+        [KSPField( guiActive = true, guiName = "B_r")] public string Brad;
+        [KSPField( guiActive = true, guiName = "B_T")] public string Bthe;
+
+        [KSPField( guiActive = true, guiName = "#LOC_KSPIE_DTMagnetometer_AntimatterFlux")]//Antimatter Flux
         public string ParticleFlux;
 
         protected Animation anim;
         protected CelestialBody homeworld;
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_DTMagnetometer_ActivateMagnetometer", active = true)]//Activate Magnetometer
-        public void ActivateMagnetometer() 
+        public void ActivateMagnetometer()
         {
             anim [animName].speed = 1;
             anim [animName].normalizedTime = 0;
@@ -32,7 +29,7 @@ namespace FNPlugin
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_DTMagnetometer_DeactivateMagnetometer", active = false)]//Deactivate Magnetometer
-        public void DeactivateMagnetometer() 
+        public void DeactivateMagnetometer()
         {
             anim [animName].speed = -1;
             anim [animName].normalizedTime = 1;
@@ -41,13 +38,13 @@ namespace FNPlugin
         }
 
         [KSPAction("Activate Magnetometer")]
-        public void ActivateMagnetometerAction(KSPActionParam param) 
+        public void ActivateMagnetometerAction(KSPActionParam param)
         {
             ActivateMagnetometer();
         }
 
         [KSPAction("Deactivate Magnetometer")]
-        public void DeactivateMagnetometerAction(KSPActionParam param) 
+        public void DeactivateMagnetometerAction(KSPActionParam param)
         {
             DeactivateMagnetometer();
         }
@@ -61,26 +58,26 @@ namespace FNPlugin
                 ActivateMagnetometer();
         }
 
-        public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return;
 
             homeworld = FlightGlobals.fetch.bodies.First(m => m.isHomeWorld == true);
 
-            UnityEngine.Debug.Log("[KSPI]: DTMagnetometer on " + part.name + " was Force Activated");
-            this.part.force_activate();
+            Debug.Log("[KSPI]: DTMagnetometer on " + part.name + " was Force Activated");
+            part.force_activate();
 
             anim = part.FindModelAnimators (animName).FirstOrDefault ();
 
             if (anim == null) return;
 
             anim [animName].layer = 1;
-            if (!IsEnabled) 
+            if (!IsEnabled)
             {
                 anim [animName].normalizedTime = 1;
                 anim [animName].speed = -1;
-            } 
-            else 
+            }
+            else
             {
                 anim [animName].normalizedTime = 0;
                 anim [animName].speed = 1;
@@ -88,7 +85,7 @@ namespace FNPlugin
             anim.Play ();
         }
 
-        public override void OnUpdate() 
+        public override void OnUpdate()
         {
             Events["ActivateMagnetometer"].active = !IsEnabled;
             Events["DeactivateMagnetometer"].active = IsEnabled;

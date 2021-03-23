@@ -2,7 +2,6 @@
 using FNPlugin.Powermanagement;
 using FNPlugin.Propulsion;
 using FNPlugin.Wasteheat;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin

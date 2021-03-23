@@ -106,7 +106,6 @@ namespace FNPlugin.Science
         BaseField _scienceRateField;
         BaseEvent _retrofitCoreEvent;
         ModuleDataTransmitter _moduleDataTransmitter;
-        ModuleCommand _moduleCommand;
 
         //Properties
         public string UpgradeTechnology => upgradeTechReq;
@@ -149,7 +148,6 @@ namespace FNPlugin.Science
             part.force_activate();
 
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
-            _moduleCommand = part.FindModuleImplementing<ModuleCommand>();
 
             if (isupgraded || !PluginHelper.TechnologyIsInUse)
                 upgradePartModule();
@@ -384,14 +382,14 @@ namespace FNPlugin.Science
 
         public bool CanRelayUnloaded(ProtoPartModuleSnapshot mSnap)
         {
-            bool Is_Enabled, Is_Powered;
+            bool isPowered;
 
-            Is_Enabled = Is_Powered = false;
+            var isEnabled = isPowered = false;
 
-            if(!mSnap.moduleValues.TryGetValue(nameof(ComputerCore.IsEnabled), ref Is_Enabled)) return false;
-            if(!mSnap.moduleValues.TryGetValue(nameof(ComputerCore.IsPowered), ref Is_Powered)) return false;
+            if(!mSnap.moduleValues.TryGetValue(nameof(ComputerCore.IsEnabled), ref isEnabled)) return false;
+            if(!mSnap.moduleValues.TryGetValue(nameof(ComputerCore.IsPowered), ref isPowered)) return false;
 
-            return Is_Enabled && Is_Powered;
+            return isEnabled && isPowered;
         }
 
     }

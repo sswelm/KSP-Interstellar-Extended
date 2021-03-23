@@ -25,12 +25,9 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true, guiActive = false)] protected double lastPowerRatio;
         [KSPField(isPersistant = true, guiActive = false)] protected string lastClassName = "";
 
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_RefineryType")]
-        public int refineryType = 0;
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_ProductionMultiplier", guiFormat = "F3")]//Production Multiplier
-        public double productionMult = 1;
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_PowerReqMultiplier", guiFormat = "F3")]//Power Req Multiplier
-        public double powerReqMult = 1;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_RefineryType")] public int refineryType = 0;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_ProductionMultiplier", guiFormat = "F3")] public double productionMult = 1;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_PowerReqMultiplier", guiFormat = "F3")] public double powerReqMult = 1;
 
         // isPersistent
         [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, isPersistant = true,  guiName = "#LOC_KSPIE_Refinery_ToggleRefineryWindow"), UI_Toggle(disabledText = "hidden", enabledText = "shown")]

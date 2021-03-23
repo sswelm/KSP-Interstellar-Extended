@@ -1,5 +1,4 @@
 ﻿using FNPlugin.Resources;
-using System.Text;
 
 namespace FNPlugin.Science
 {
@@ -32,7 +31,8 @@ namespace FNPlugin.Science
                 ScreenMessages.PostScreenMessage(new ScreenMessage("Not in orbit of a star", 4.0f, ScreenMessageStyle.UPPER_CENTER));
                 return;
             }
-            else if (vesselAltitudeInKm > maximumDistanceInKm)
+
+            if (vesselAltitudeInKm > maximumDistanceInKm)
             {
                 ScreenMessages.PostScreenMessage(new ScreenMessage("Needs to be lower than " + maximumDistanceInKm + " km from the star to perform the experiment", 4.0f, ScreenMessageStyle.UPPER_CENTER));
                 return;
