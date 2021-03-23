@@ -1016,6 +1016,11 @@ namespace InterstellarFuelSwitch
 
         private void UpdateGuiResourceMass()
         {
+            _partResource0 = _partResourceDefinition0 == null ? null : part.Resources.Get(_partResourceDefinition0.id);
+            _partResource1 = _partResourceDefinition1 == null ? null : part.Resources.Get(_partResourceDefinition1.id);
+            _partResource2 = _partResourceDefinition2 == null ? null : part.Resources.Get(_partResourceDefinition2.id);
+            _partResource3 = _partResourceDefinition3 == null ? null : part.Resources.Get(_partResourceDefinition3.id);
+
             var missing0 = _partResourceDefinition0 == null || _partResource0 == null;
             var missing1 = _partResourceDefinition1 == null || _partResource1 == null;
             var missing2 = _partResourceDefinition2 == null || _partResource2 == null;
