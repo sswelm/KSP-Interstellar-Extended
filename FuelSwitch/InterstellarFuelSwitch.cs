@@ -1,9 +1,9 @@
-﻿using KSP.Localization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using KSP.Localization;
 using TweakScale;
 using UnityEngine;
 
@@ -137,21 +137,17 @@ namespace InterstellarFuelSwitch
         [KSPField] public string resourcesFormat = "0.000000";
 
         // Gui
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_tankGuiName")] // Tank name
-        public string tankGuiName = "";
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_maxWetDryMass")] // Dry/Wet Mass
-        public string maxWetDryMass = "";
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_massRatioStr")] // Mass Ratio
-        public string massRatioStr = "";
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_crewCapacityStr")] // Crew Capacity
-        public string crewCapacityStr = "";
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F6")]			// Total mass
-        public double totalMass;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_resourceCost")]      // Resource cost
-        public string resourceCostStr;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiUnits = " V", guiFormat = "F0")]         // Total Tank cost
-        public double totalCost;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"), UI_Toggle(disabledText = "#LOC_IFS_FuelSwitch_WindowHidden", enabledText = "#LOC_IFS_FuelSwitch_WindowShown", affectSymCounterparts = UI_Scene.None)] // Mass Ratio  Hidden  Shown
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_tankGuiName")] public string tankGuiName = "";
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_maxWetDryMass")] public string maxWetDryMass = "";
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_massRatioStr")] public string massRatioStr = "";
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_crewCapacityStr")] public string crewCapacityStr = "";
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_resourceCost")] public string resourceCostStr;
+
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F6")] public double totalMass;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiUnits = " V", guiFormat = "F0")] public double totalCost;
+
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"),
+         UI_Toggle(disabledText = "#LOC_IFS_FuelSwitch_WindowHidden", enabledText = "#LOC_IFS_FuelSwitch_WindowShown", affectSymCounterparts = UI_Scene.None)]
         public bool renderWindow;
 
         [KSPField(groupName = Group)] public string resourceAmountStr0 = "";
@@ -319,10 +315,10 @@ namespace InterstellarFuelSwitch
                 _maxWetDryMassField.guiActive = displayWetDryMass;
                 _maxWetDryMassField.guiActiveEditor = displayWetDryMass;
 
-                initialMass = (double)(decimal)part.prefabMass * initialMassMultiplier;
+                initialMass = part.prefabMass * initialMassMultiplier;
 
                 if (initialMass == 0)
-                    initialMass = (double)(decimal)part.prefabMass;
+                    initialMass = part.prefabMass;
 
                 defaultTank = Localizer.Format(defaultTank);
 
@@ -360,7 +356,7 @@ namespace InterstellarFuelSwitch
                     }
                 }
 
-                this.enabled = true;
+                enabled = true;
 
                 AssignResourcesToPart();
 

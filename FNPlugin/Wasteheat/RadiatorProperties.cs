@@ -2,7 +2,7 @@
 
 namespace FNPlugin.Wasteheat
 {
-	static public class RadiatorProperties
+    public static class RadiatorProperties
 	{
 		private static bool _isInitialized;
 
@@ -19,7 +19,7 @@ namespace FNPlugin.Wasteheat
         public static double RadiatorTemperatureMk5 { get; private set; } = 3795;
         public static double RadiatorTemperatureMk6 { get; private set; } = 4500;
 
-        static public void Initialize()
+        public static void Initialize()
 		{
 			if (_isInitialized)
 				return;

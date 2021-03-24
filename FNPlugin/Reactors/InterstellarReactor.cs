@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
@@ -668,7 +669,7 @@ namespace FNPlugin.Reactors
             {
                 _currentFuelMode = value;
                 maxPowerToSupply = Math.Max(MaximumPower * (double)(decimal)TimeWarp.fixedDeltaTime, 0);
-                currentFuelVariantsSorted = _currentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult);
+                currentFuelVariantsSorted = _currentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult);
                 CurrentFuelVariant = currentFuelVariantsSorted.First();
 
                 // persist
@@ -2582,6 +2583,11 @@ namespace FNPlugin.Reactors
 
             WindowReactorStatusSpecificOverride();
 
+
+
+            PrintToGuiLayout("MissionTime", ConvertSectoDay((int)vessel.missionTime), boldStyle, textStyle);
+            PrintToGuiLayout("LaunchTime", ConvertSectoDay((int)vessel.launchTime), boldStyle, textStyle);
+
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_Radius"), radius + "m", boldStyle, textStyle);//"Radius"
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CoreTemperature"), coretempStr, boldStyle, textStyle);//"Core Temperature"
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_StatusLabel"), statusStr, boldStyle, textStyle);//"Status"
@@ -2778,6 +2784,22 @@ namespace FNPlugin.Reactors
             }
             GUILayout.EndVertical();
             GUI.DragWindow();
+        }
+
+        public string ConvertSectoDay(int n)
+        {
+            int day = n / (6 * 3600);
+
+            n = n % (6 * 3600);
+            int hour = n / 3600;
+
+            n %= 3600;
+            int minutes = n / 60;
+
+            n %= 60;
+            int seconds = n;
+
+            return day + " days " + hour + " hours " + minutes + " minutes";
         }
 
         public override string getResourceManagerDisplayName()

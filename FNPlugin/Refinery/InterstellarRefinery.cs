@@ -19,34 +19,29 @@ namespace FNPlugin.Refinery
         public const string Group = "Refinery";
         public const string GroupTitle = "Refinery";
 
-        [KSPField(isPersistant = true, guiActive = false)] protected bool refinery_is_enabled;
-        [KSPField(isPersistant = true, guiActive = false)] protected bool lastOverflowSettings;
-        [KSPField(isPersistant = true, guiActive = false)] protected double lastActiveTime;
-        [KSPField(isPersistant = true, guiActive = false)] protected double lastPowerRatio;
-        [KSPField(isPersistant = true, guiActive = false)] protected string lastClassName = "";
+        // isPersistent
+        [KSPField(isPersistant = true)] protected bool refinery_is_enabled;
+        [KSPField(isPersistant = true)] protected bool lastOverflowSettings;
+        [KSPField(isPersistant = true)] protected double lastActiveTime;
+        [KSPField(isPersistant = true)] protected double lastPowerRatio;
+        [KSPField(isPersistant = true)] protected string lastClassName = "";
+
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, isPersistant = true, guiName = "#LOC_KSPIE_Refinery_Current")]//Current
+        protected string lastActivityName = "";
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, isPersistant = true, guiName = "#LOC_KSPIE_Refinery_ToggleRefineryWindow"), UI_Toggle(disabledText = "hidden", enabledText = "shown")]
+        public bool showWindow;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, isPersistant = true, guiName = "#LOC_KSPIE_Refinery_PowerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]//Power Control
+        public float powerPercentage = 100;
 
         [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_RefineryType")] public int refineryType = 0;
         [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_ProductionMultiplier", guiFormat = "F3")] public double productionMult = 1;
         [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_PowerReqMultiplier", guiFormat = "F3")] public double powerReqMult = 1;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_BaseProduction", guiFormat = "F3")] public double baseProduction = 1;
 
-        // isPersistent
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, isPersistant = true,  guiName = "#LOC_KSPIE_Refinery_ToggleRefineryWindow"), UI_Toggle(disabledText = "hidden", enabledText = "shown")]
-        public bool showWindow;
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, isPersistant = true, guiName = "#LOC_KSPIE_Refinery_Current")]//Current
-        protected string lastActivityName = "";
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, isPersistant = true,  guiName = "#LOC_KSPIE_Refinery_PowerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]//Power Control
-        public float powerPercentage = 100;
-
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_Refinery_Status")]//Status
-        public string status_str = string.Empty;
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Refinery_BaseProduction", guiFormat = "F3")]//Base Production
-        public double baseProduction = 1;
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_Refinery_PowerRequirement", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Power Requirement
-        public double currentPowerReq;
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_Refinery_PowerAvailable", guiUnits = "%", guiFormat = "F3")]//Power Available
-        public double utilisationPercentage;
-        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_Refinery_ConsumedPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Consumed Power
-        public double consumedPowerMW;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_Refinery_Status")] public string status_str = string.Empty;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_Refinery_PowerRequirement", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")] public double currentPowerReq;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_Refinery_ConsumedPower", guiFormat = "F3", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")] public double consumedPowerMW;
+        [KSPField(groupDisplayName = GroupTitle, groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_Refinery_PowerAvailable", guiUnits = "%", guiFormat = "F3")] public double utilisationPercentage;
 
         protected IRefineryActivity currentActivity;
         protected IPowerSupply powerSupply;

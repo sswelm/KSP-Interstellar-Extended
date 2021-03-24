@@ -30,9 +30,22 @@ namespace FNPlugin.Storage
 
         public int TransferPriority { get; private set; }
 
-
         private PartResource _partResource;
-        public PartResource PartResource => _partResource ?? (_partResource = part.Resources.Get(_resourceDefinition.id));
+
+        public PartResource PartResource
+        {
+            get
+            {
+                if (_partResource != null)
+                    return _partResource;
+
+                if (_resourceDefinition == null)
+                    _resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
+
+                return _resourceDefinition == null ? null : part.Resources.Get(_resourceDefinition.id);
+            }
+        }
+
 
         public override void OnStart(StartState state)
         {

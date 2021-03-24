@@ -175,11 +175,19 @@ namespace FNPlugin.Storage
                 }
             }
 
+            StoreProductToTransferableTank(shortageDecayProductAmount);
+        }
+
+        private void StoreProductToTransferableTank(double shortageDecayProductAmount)
+        {
+            if (shortageDecayProductAmount <= 0)
+                return;
+
             var tanksWithAvailableStorage = _managedTransferableResources
                 .Where(m => m.AvailableStorage > 0)
                 .OrderByDescending(m => m.transferPriority).ToList();
 
-            if (!tanksWithAvailableStorage.Any() || decayProductAmount <= 0)
+            if (!tanksWithAvailableStorage.Any())
             {
                 part.RequestResource(_decayProductDefinition.id, -shortageDecayProductAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 return;
@@ -188,9 +196,7 @@ namespace FNPlugin.Storage
             foreach (var fnResourceTransfer in tanksWithAvailableStorage)
             {
                 var unrestrictedNewAmount = fnResourceTransfer.PartResource.amount + shortageDecayProductAmount;
-
                 shortageDecayProductAmount = unrestrictedNewAmount - fnResourceTransfer.PartResource.maxAmount;
-
                 fnResourceTransfer.PartResource.amount = Math.Min(fnResourceTransfer.PartResource.maxAmount, unrestrictedNewAmount);
 
                 if (shortageDecayProductAmount <= 0)

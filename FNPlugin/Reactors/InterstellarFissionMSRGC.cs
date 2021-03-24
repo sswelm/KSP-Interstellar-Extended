@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
+using FNPlugin.Storage;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using UnityEngine;
@@ -32,8 +34,11 @@ namespace FNPlugin.Reactors
 
         private BaseEvent _manualRestartEvent;
         private PartResourceDefinition _actinideDefinition;
-        private PartResourceDefinition _protactinium233Definition;
+        private PartResourceDefinition _protactiniumDefinition;
         private double reactorMainFuelDensityInTon;
+
+        private readonly List<FNResourceTransfer> _managedTransferableActinideStores = new List<FNResourceTransfer>();
+        private readonly List<FNResourceTransfer> _managedTransferableProtactiniumStores = new List<FNResourceTransfer>();
 
         // Properties
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic;
@@ -178,17 +183,17 @@ namespace FNPlugin.Reactors
                     ? part.Resources.Get(_actinideDefinition.id)
                     : part.Resources[ResourceSettings.Config.Actinides];
 
-                if (actinidesResource != null && actinidesResource.amount.IsInfinityOrNaN())
+                if (actinidesResource != null && actinidesResource.amount.IsNotInfinityOrNaN())
                 {
                     poisonCurAmount += actinidesResource.amount;
                     poisonMaxAmount += actinidesResource.maxAmount;
                 }
 
-                var protectResource = _protactinium233Definition != null
-                    ? part.Resources.Get(_protactinium233Definition.id)
+                var protectResource = _protactiniumDefinition != null
+                    ? part.Resources.Get(_protactiniumDefinition.id)
                     : part.Resources[ResourceSettings.Config.Protactinium233];
 
-                if (protectResource != null && protectResource.amount.IsInfinityOrNaN())
+                if (protectResource != null && protectResource.amount.IsNotInfinityOrNaN())
                 {
                     poisonCurAmount += protectResource.amount;
                     poisonMaxAmount += protectResource.maxAmount;
@@ -253,10 +258,21 @@ namespace FNPlugin.Reactors
             Debug.Log("[KSPI]: OnStart MSRGC " + part.name);
 
             _actinideDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Actinides);
-            _protactinium233Definition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Protactinium233);
+            _protactiniumDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Protactinium233);
 
             // start as normal
             base.OnStart(state);
+
+            if (part.vessel != null)
+            {
+                _managedTransferableActinideStores.AddRange(
+                    part.vessel.FindPartModulesImplementing<FNResourceTransfer>()
+                        .Where(m => m.resourceName == _actinideDefinition.displayName));
+
+                _managedTransferableProtactiniumStores.AddRange(
+                    part.vessel.FindPartModulesImplementing<FNResourceTransfer>()
+                        .Where(m => m.resourceName == _protactiniumDefinition.displayName));
+            }
 
             fuelModeStr = CurrentFuelMode.ModeGUIName;
 
@@ -332,13 +348,13 @@ namespace FNPlugin.Reactors
 
             double poisonsAmount = 0;
 
-            var actinides = part.Resources[ResourceSettings.Config.Actinides];
-            if (actinides != null)
-                poisonsAmount += actinides.amount;
+            var localActinides = part.Resources.Get(_actinideDefinition.id);
+            if (localActinides != null)
+                poisonsAmount += localActinides.amount;
 
-            var protactinium233 = part.Resources[ResourceSettings.Config.Protactinium233];
-            if (protactinium233 != null)
-                poisonsAmount += protactinium233.amount;
+            var localProtactinium = part.Resources.Get(_protactiniumDefinition.id); ;
+            if (localProtactinium != null)
+                poisonsAmount += localProtactinium.amount;
 
             if (poisonsAmount <= 0)
                 return 0;
@@ -350,31 +366,51 @@ namespace FNPlugin.Reactors
             var effectivePoisonsCapacity = Math.Min(rate, poisonsProcessingSpeed);
 
             double massPoisonDecrease = 0;
-            if (actinides != null)
+            if (localActinides != null)
             {
-                var actinidesCapacity = effectivePoisonsCapacity * (actinides.amount / poisonsAmount);
-                var processorActinides = processor.Resources[ResourceSettings.Config.Actinides];
+                var actinidesCapacity = effectivePoisonsCapacity * (localActinides.amount / poisonsAmount);
+                var processorActinides = processor.Resources.Get(_actinideDefinition.id);
                 if (processorActinides != null)
                 {
-                    var storedActinides = Math.Min(processorActinides.maxAmount - processorActinides.amount, actinidesCapacity);
+                    var availableStorage = processorActinides.maxAmount - processorActinides.amount;
+                    var shortage = actinidesCapacity - availableStorage;
+
+                    if (shortage > 0)
+                    {
+                        var storedAmount = StoreToTransferableTank(_managedTransferableActinideStores, _actinideDefinition, shortage);
+                        localActinides.amount = localActinides.amount - storedAmount;
+                        massPoisonDecrease += storedAmount * localActinides.info.density;
+                    }
+
+                    var storedActinides = Math.Min(availableStorage, actinidesCapacity);
                     processorActinides.amount = processorActinides.amount + storedActinides;
 
-                    massPoisonDecrease += storedActinides * actinides.info.density;
-                    actinides.amount = Math.Max(actinides.amount - storedActinides, 0);
+                    massPoisonDecrease += storedActinides * localActinides.info.density;
+                    localActinides.amount = Math.Max(localActinides.amount - storedActinides, 0);
                 }
             }
 
-            if (protactinium233 != null)
+            if (localProtactinium != null)
             {
-                var protactinium233Capacity = effectivePoisonsCapacity * (protactinium233.amount / poisonsAmount);
-                var processorProtactinium233 = processor.Resources[ResourceSettings.Config.Protactinium233];
-                if (processorProtactinium233 != null)
+                var protactiniumCapacity = effectivePoisonsCapacity * (localProtactinium.amount / poisonsAmount);
+                var processorProtactinium = processor.Resources.Get(_protactiniumDefinition.id);
+                if (processorProtactinium != null)
                 {
-                    var storedProtactinium233 = Math.Min(processorProtactinium233.maxAmount - processorProtactinium233.amount, protactinium233Capacity);
-                    processorProtactinium233.amount = processorProtactinium233.amount + storedProtactinium233;
+                    var availableStorage = processorProtactinium.maxAmount - processorProtactinium.amount;
+                    var shortage = protactiniumCapacity - availableStorage;
 
-                    massPoisonDecrease += storedProtactinium233 * protactinium233.info.density;
-                    protactinium233.amount = Math.Max(protactinium233.amount - storedProtactinium233, 0);
+                    if (shortage > 0)
+                    {
+                        var storedAmount = StoreToTransferableTank(_managedTransferableProtactiniumStores, _protactiniumDefinition, shortage);
+                        localProtactinium.amount = localProtactinium.amount - storedAmount;
+                        massPoisonDecrease += storedAmount * localProtactinium.info.density;
+                    }
+
+                    var storedProtactinium = Math.Min(processorProtactinium.maxAmount - processorProtactinium.amount, protactiniumCapacity);
+                    processorProtactinium.amount = processorProtactinium.amount + storedProtactinium;
+
+                    massPoisonDecrease += storedProtactinium * localProtactinium.info.density;
+                    localProtactinium.amount = Math.Max(localProtactinium.amount - storedProtactinium, 0);
                 }
             }
 
@@ -423,6 +459,32 @@ namespace FNPlugin.Reactors
             return effectivePoisonsCapacity;
         }
 
+        private double StoreToTransferableTank(IEnumerable<FNResourceTransfer> managedTransferableResources, PartResourceDefinition resourceDefinition,  double shortageDecayProductAmount)
+        {
+            double initialShortage = shortageDecayProductAmount;
+
+            var tanksWithAvailableStorage = managedTransferableResources
+                .Where(m => m.AvailableStorage > 0)
+                .OrderByDescending(m => m.transferPriority).ToList();
+
+            if (!tanksWithAvailableStorage.Any())
+            {
+                return -part.RequestResource(resourceDefinition.id, -shortageDecayProductAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+            }
+
+            foreach (var fnResourceTransfer in tanksWithAvailableStorage)
+            {
+                var unrestrictedNewAmount = fnResourceTransfer.PartResource.amount + shortageDecayProductAmount;
+                shortageDecayProductAmount = Math.Max(0, unrestrictedNewAmount - fnResourceTransfer.PartResource.maxAmount);
+                fnResourceTransfer.PartResource.amount = Math.Min(fnResourceTransfer.PartResource.maxAmount, unrestrictedNewAmount);
+
+                if (shortageDecayProductAmount <= 0)
+                    break;
+            }
+
+            return initialShortage - shortageDecayProductAmount;
+        }
+
         // This Methods loads the correct fuel mode
         public override void SetDefaultFuelMode()
         {
@@ -439,18 +501,20 @@ namespace FNPlugin.Reactors
         {
             var firstVariant = CurrentFuelMode.Variants.First();
 
-            foreach (ReactorFuel fuel in firstVariant.ReactorFuels)
+            foreach (var fuel in firstVariant.ReactorFuels)
             {
                 var resource = part.Resources.Get(fuel.ResourceName);
-                if (resource == null) continue;
+
+                if (resource == null)
+                    continue;
 
                 resource.maxAmount = 0;
 
-                if (HighLogic.LoadedSceneIsEditor)
-                {
-                    resource.amount = 0;
-                    resource.isTweakable = false;
-                }
+                if (!HighLogic.LoadedSceneIsEditor)
+                    continue;
+
+                resource.amount = 0;
+                resource.isTweakable = false;
             }
         }
 
@@ -473,11 +537,11 @@ namespace FNPlugin.Reactors
 
                 resource.maxAmount = weightedAmount;
 
-                if (HighLogic.LoadedSceneIsEditor)
-                {
-                    resource.amount = weightedAmount;
-                    resource.isTweakable = true;
-                }
+                if (!HighLogic.LoadedSceneIsEditor)
+                    continue;
+
+                resource.amount = weightedAmount;
+                resource.isTweakable = true;
             }
 
             UpdatePartActionWindow();

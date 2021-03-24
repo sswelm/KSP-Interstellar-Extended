@@ -11,7 +11,7 @@ namespace FNPlugin.Wasteheat
 
         ResourceBuffers _resourceBuffers;
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             _resourceBuffers = new ResourceBuffers();
             _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, baseResourceAmount * wasteHeatBufferMult, true));
