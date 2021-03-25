@@ -260,8 +260,20 @@ namespace FNPlugin.Reactors
             _actinideDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Actinides);
             _protactiniumDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.Protactinium233);
 
+            // legacy rule to make old systems function
+            var legacyThorium = part.Resources[ResourceSettings.Config.ThoriumTetraflouride];
+            if (legacyThorium != null && legacyThorium.amount > 0)
+            {
+                var uranium233 = part.Resources[ResourceSettings.Config.Uranium233];
+                if (uranium233 != null && uranium233.amount <= 0)
+                {
+                    uranium233.maxAmount = Math.Max(legacyThorium.maxAmount, uranium233.maxAmount);
+                    uranium233.amount = uranium233.maxAmount;
+                }
+            }
+
             // start as normal
-            base.OnStart(state);
+                base.OnStart(state);
 
             if (part.vessel != null)
             {
@@ -302,7 +314,7 @@ namespace FNPlugin.Reactors
                 if (reactorMainFuelMaxAmount == 0)
                 {
                     // assume the densest resource is nuclear fuel
-                    PartResource densestFuel = part.Resources.OrderByDescending(m => m.info.density).FirstOrDefault();
+                    var densestFuel = part.Resources.OrderByDescending(m => m.info.density).FirstOrDefault();
                     if (densestFuel != null)
                         reactorMainFuelMaxAmount = densestFuel.maxAmount;
                     else

@@ -381,7 +381,7 @@ namespace FNPlugin.Propulsion
                     resourceBuffers.UpdateBuffers();
                 }
 
-                var currentThrottle = Math.Max(vessel.ctrlState.mainThrottle * 0.001, _attachedEngine.currentThrottle);
+                var currentThrottle = Math.Max(vessel.ctrlState.mainThrottle, _attachedEngine.currentThrottle);
 
                 maximumChargedPower =  _attachedReactor.MaximumChargedPower;
                 var currentMaximumChargedPower = maximum_isp == minimum_isp ? maximumChargedPower * currentThrottle : maximumChargedPower;
