@@ -105,6 +105,10 @@ namespace FNPlugin.Storage
             if (PartResource == null || !PartResource.flowState)
                 return;
 
+            var availableStorage = PartResource.maxAmount - PartResource.amount;
+            if (availableStorage <= 0)
+                return;
+
             var tanksWithAvailableStorage = _managedTransferableResources
                 .Where(m => m.PartResource != null && m.AvailableStorage > 0)
                 .OrderByDescending(m => m.TransferPriority);
@@ -123,8 +127,9 @@ namespace FNPlugin.Storage
 
             var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
             var powerCostPerUnit = _resourceDefinition.resourceTransferMode == ResourceTransferMode.NONE ? transferCostPerUnit : 0;
-            var fixedPowerRequest = fixedDeltaTime * maxTransferCapacity * powerCostPerUnit;
-            var fixedMaxAmount = fixedDeltaTime * maxTransferCapacity * GetPowerRatio(fixedPowerRequest);
+            var maxTransfer = Math.Min(availableStorage, fixedDeltaTime * maxTransferCapacity);
+            var fixedPowerRequest = maxTransfer * powerCostPerUnit;
+            var fixedMaxAmount = maxTransfer * GetPowerRatio(fixedPowerRequest);
             var requestedResource = fixedMaxAmount;
 
             for (var priority = tanksWithAvailableStoredResource.First().TransferPriority; priority < TransferPriority; priority++)
@@ -153,7 +158,7 @@ namespace FNPlugin.Storage
             var consumeRatio = fixedMaxAmount > 0 ? resourceReduction / fixedMaxAmount : 0;
 
             ConsumePower(consumeRatio, fixedPowerRequest);
-            PartResource.amount += resourceReduction;
+            PartResource.amount = Math.Min(PartResource.maxAmount, PartResource.amount + resourceReduction);
         }
 
         private void ConsumePower(double consumeRatio, double fixedPowerRequest)

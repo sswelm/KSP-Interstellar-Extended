@@ -53,6 +53,7 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)] public int fuelmode_index = -1;
         [KSPField(isPersistant = true)] public string fuel_mode_name = string.Empty;
         [KSPField(isPersistant = true)] public string fuel_mode_variant = string.Empty;
+        [KSPField(isPersistant = true)] public double startTime;
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_Reactor_ReactorIsEnabled")] public bool IsEnabled;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_Reactor_ReactorIsStated")]  public bool IsStarted;
@@ -1031,6 +1032,9 @@ namespace FNPlugin.Reactors
         public override void OnStart(StartState state)
         {
             hasStarted = true;
+
+            if (startTime <= 0)
+                startTime = Planetarium.GetUniversalTime();
 
             UpdateReactorCharacteristics();
 
@@ -2583,10 +2587,7 @@ namespace FNPlugin.Reactors
 
             WindowReactorStatusSpecificOverride();
 
-
-
-            PrintToGuiLayout("MissionTime", ConvertSectoDay((int)vessel.missionTime), boldStyle, textStyle);
-            PrintToGuiLayout("LaunchTime", ConvertSectoDay((int)vessel.launchTime), boldStyle, textStyle);
+            PrintToGuiLayout("Lifetime", ConvertSecondsToDayHourMinute((int)Math.Max(Planetarium.GetUniversalTime() - startTime, vessel.missionTime)), boldStyle, textStyle);
 
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_Radius"), radius + "m", boldStyle, textStyle);//"Radius"
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CoreTemperature"), coretempStr, boldStyle, textStyle);//"Core Temperature"
@@ -2612,10 +2613,7 @@ namespace FNPlugin.Reactors
                 {
                     PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_FuelNeutronBreedRate"), 100 * CurrentFuelMode.NeutronsRatio + "% ", boldStyle, textStyle);//"Fuel Neutron Breed Rate"
 
-                    //var tritiumKgDay = _tritiumProducedPerSecond * _tritiumDensity * 1000 * PluginSettings.Config.SecondsInDay;
-                    //PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), tritiumKgDay.ToString("0.000000") + " " + Localizer.Format("#LOC_KSPIE_Reactor_kgDay") + " ", boldStyle, textStyle);//"Tritium Breed Rate"kg/day
                     var tritiumTonPerHour = _tritiumProducedPerSecond * _tritiumDensity  * 3600;
-
                     if (tritiumTonPerHour > 120)
                         PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_TritiumBreedRate"), PluginHelper.FormatMassStr(tritiumTonPerHour / 60) + " / " + Localizer.Format("#LOC_KSPIE_Reactor_min"), boldStyle, textStyle);//Consumption-min
                     else
@@ -2786,11 +2784,15 @@ namespace FNPlugin.Reactors
             GUI.DragWindow();
         }
 
-        public string ConvertSectoDay(int n)
+        public string ConvertSecondsToDayHourMinute(int n)
         {
-            int day = n / (6 * 3600);
+            var secondsInYear = GameConstants.KERBIN_YEAR_IN_DAYS * PluginSettings.Config.SecondsInDay;
 
-            n = n % (6 * 3600);
+            int year = (int)(n / secondsInYear);
+            n = n % (int)secondsInYear;
+
+            int day = n / PluginSettings.Config.SecondsInDay;
+            n = n % PluginSettings.Config.SecondsInDay;
             int hour = n / 3600;
 
             n %= 3600;
@@ -2799,7 +2801,7 @@ namespace FNPlugin.Reactors
             n %= 60;
             int seconds = n;
 
-            return day + " days " + hour + " hours " + minutes + " minutes";
+            return year + " years " +  day + " days " + hour + " hours";
         }
 
         public override string getResourceManagerDisplayName()
