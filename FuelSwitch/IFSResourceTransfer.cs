@@ -29,7 +29,19 @@ namespace InterstellarFuelSwitch
         public int TransferPriority { get; private set; }
 
         private PartResource _partResource;
-        public PartResource PartResource => _partResource ?? (_partResource = part.Resources.Get(_resourceDefinition.id));
+        public PartResource PartResource
+        {
+            get
+            {
+                if (_partResource != null)
+                    return _partResource;
+
+                if (_resourceDefinition == null)
+                    _resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
+
+                return _resourceDefinition == null ? null : part.Resources.Get(_resourceDefinition.id);
+            }
+        }
 
         public override void OnStart(StartState state)
         {
@@ -90,6 +102,10 @@ namespace InterstellarFuelSwitch
             if (PartResource == null || !PartResource.flowState)
                 return;
 
+            var availableStorage = PartResource.maxAmount - PartResource.amount;
+            if (availableStorage <= 0)
+                return;
+
             var tanksWithAvailableStorage = _managedTransferableResources
                 .Where(m => m.PartResource != null && m.AvailableStorage > 0)
                 .OrderByDescending(m => m.TransferPriority);
@@ -100,16 +116,17 @@ namespace InterstellarFuelSwitch
                 return;
 
             var tanksWithAvailableStoredResource = _managedTransferableResources
-                .Where(m => m.PartResource != null &&  m.AvailableAmount > 0 && m.TransferPriority < TransferPriority)
+                .Where(m => m.PartResource != null && m.AvailableAmount > 0 && m.TransferPriority < TransferPriority)
                 .OrderBy(m => m.TransferPriority).ToList();
 
             if (!tanksWithAvailableStoredResource.Any())
                 return;
 
-            var fixedDeltaTime = (double)(decimal) Math.Round(TimeWarp.fixedDeltaTime, 7);
+            var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
             var powerCostPerUnit = _resourceDefinition.resourceTransferMode == ResourceTransferMode.NONE ? transferCostPerUnit : 0;
-            var fixedPowerRequest = fixedDeltaTime * maxTransferCapacity * powerCostPerUnit;
-            var fixedMaxAmount = fixedDeltaTime * maxTransferCapacity * GetPowerRatio(fixedPowerRequest);
+            var maxTransfer = Math.Min(availableStorage, fixedDeltaTime * maxTransferCapacity);
+            var fixedPowerRequest = maxTransfer * powerCostPerUnit;
+            var fixedMaxAmount = maxTransfer * GetPowerRatio(fixedPowerRequest);
             var requestedResource = fixedMaxAmount;
 
             for (var priority = tanksWithAvailableStoredResource.First().TransferPriority; priority < TransferPriority; priority++)
@@ -123,14 +140,10 @@ namespace InterstellarFuelSwitch
                     var partialRequest = Math.Min(availableAmount, requestedResource) / tanksWithSamePriority.Count;
 
                     if (currentTank.PartResource.amount <= partialRequest)
-                    {
-                        partialRequest -= currentTank.PartResource.amount;
                         currentTank.PartResource.amount = 0;
-                    }
                     else
-                    {
                         currentTank.PartResource.amount -= partialRequest;
-                    }
+
                     requestedResource -= partialRequest;
 
                     if (requestedResource <= 0)
@@ -140,8 +153,9 @@ namespace InterstellarFuelSwitch
 
             var resourceReduction = fixedMaxAmount - requestedResource;
             var consumeRatio = fixedMaxAmount > 0 ? resourceReduction / fixedMaxAmount : 0;
+
             ConsumePower(consumeRatio, fixedPowerRequest);
-            PartResource.amount += resourceReduction;
+            PartResource.amount = Math.Min(PartResource.maxAmount, PartResource.amount + resourceReduction);
         }
 
         private void ConsumePower(double consumeRatio, double fixedPowerRequest)
