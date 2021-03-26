@@ -54,6 +54,7 @@ namespace FNPlugin.Powermanagement
         [KSPField] public string upgradeTechReq = "";
         [KSPField] public string upgradeCostStr = "";
 
+        [KSPField] public bool useResourceBuffers = true;
         [KSPField] public bool calculatedMass = false;
         [KSPField] public bool isHighPower = false;
         [KSPField] public bool isMHD = false;
@@ -328,20 +329,23 @@ namespace FNPlugin.Powermanagement
 
             this.resourcesToSupply = new[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt };
 
-            _resourceBuffers = new ResourceBuffers();
-
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
-
-            if(!Kerbalism.IsLoaded)
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000 / powerOutputMultiplier));
-
-            if (controlWasteHeatBuffer)
+            if (useResourceBuffers)
             {
-                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, baseHeatAmount, true));
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
-            }
+                _resourceBuffers = new ResourceBuffers();
 
-            _resourceBuffers.Init(part);
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInMegawatt));
+
+                if(!Kerbalism.IsLoaded)
+                    _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000 / powerOutputMultiplier));
+
+                if (controlWasteHeatBuffer)
+                {
+                    _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, baseHeatAmount, true));
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
+                }
+
+                _resourceBuffers.Init(part);
+            }
 
             base.OnStart(state);
 
@@ -890,7 +894,7 @@ namespace FNPlugin.Powermanagement
                 : _attachedPowerSource.ThermalEnergyEfficiency;
 
             var potentialThermalPower = (isMHD || !_appliesBalance ? rawReactorPower: rawThermalPower) / attachedPowerSourceRatio;
-            _maxAllowedChargedPower = rawChargedPower * (chargedParticleMode ? _attachedPowerSource.ChargedParticleEnergyEfficiency : 1);
+            _maxAllowedChargedPower = rawChargedPower * (chargedParticleMode ? _attachedPowerSource.ChargedPowerRatio : 1);
 
             _maxThermalPower = attachedPowerSourceMaximumThermalPowerUsageRatio * Math.Min(rawReactorPower, potentialThermalPower);
             _maxChargedPowerForThermalGenerator = attachedPowerSourceMaximumThermalPowerUsageRatio    * Math.Min(rawChargedPower, (1 / attachedPowerSourceRatio) * _maxAllowedChargedPower);
@@ -1155,6 +1159,9 @@ namespace FNPlugin.Powermanagement
 
         private void UpdateBuffers()
         {
+            if (!useResourceBuffers)
+                return;
+
             if (!maintainsMegaWattPowerBuffer)
                 return;
 
@@ -1212,13 +1219,18 @@ namespace FNPlugin.Powermanagement
             else
                 _megawattBufferAmount = minimumBufferSize * 50;
 
-            if (controlWasteHeatBuffer)
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
 
-            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, _megawattBufferAmount);
-            if (!Kerbalism.IsLoaded)
-                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt, _megawattBufferAmount);
-            _resourceBuffers.UpdateBuffers();
+            if (useResourceBuffers)
+            {
+                if (controlWasteHeatBuffer)
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, this.part.mass);
+
+                _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInMegawatt, _megawattBufferAmount);
+                if (!Kerbalism.IsLoaded)
+                    _resourceBuffers.UpdateVariable(ResourceSettings.Config.ElectricPowerInKilowatt,
+                        _megawattBufferAmount);
+                _resourceBuffers.UpdateBuffers();
+            }
         }
 
         public override string GetInfo()

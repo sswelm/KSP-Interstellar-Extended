@@ -63,7 +63,7 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)] public bool breedtritium;
         [KSPField(isPersistant = true)] public double last_active_time;
         [KSPField(isPersistant = true)] public double ongoing_consumption_rate;
-        [KSPField(isPersistant = true)] public double ongoing_wasteheat_rate;
+        //[KSPField(isPersistant = true)] public double ongoing_wasteheat_rate_1;
         [KSPField(isPersistant = true)] public bool reactorInit;
         [KSPField(isPersistant = true)] public double neutronEmbrittlementDamage;
         [KSPField(isPersistant = true)] public double maxEmbrittlementFraction = 0.5;
@@ -381,6 +381,9 @@ namespace FNPlugin.Reactors
 
         private readonly Queue<double> _averageGeeforce = new Queue<double>();
         private readonly Queue<double> _averageOverheat = new Queue<double>();
+
+        private readonly Queue<double> ongoing_wasteheat_rate_1 = new Queue<double>();
+        private readonly Queue<double> ongoing_wasteheat_rate_2 = new Queue<double>();
 
         private AudioSource _initiateSound;
         private AudioSource _terminateSound;
@@ -1617,12 +1620,21 @@ namespace FNPlugin.Reactors
                 // produce wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
-                    // skip first frame of wasteheat production
-                    var delayedWasteheatRate = ongoing_consumption_rate > ongoing_wasteheat_rate ? Math.Min(ongoing_wasteheat_rate, ongoing_consumption_rate) : ongoing_consumption_rate;
+                    var averagePrevious = ongoing_wasteheat_rate_2.Count > 0 ?  Math.Min(ongoing_wasteheat_rate_2.Average(), ongoing_consumption_rate) : ongoing_consumption_rate;
+
+                    var delayedWasteheatRate = ongoing_consumption_rate > averagePrevious ? Math.Min(averagePrevious, ongoing_consumption_rate) : ongoing_consumption_rate;
 
                     SupplyFnResourcePerSecondWithMax(delayedWasteheatRate * maximumPower, maximumGeneratedPower, ResourceSettings.Config.WasteHeatInMegawatt);
 
-                    ongoing_wasteheat_rate = ongoing_consumption_rate;
+                    ongoing_wasteheat_rate_1.Enqueue(ongoing_consumption_rate);
+
+
+                    ongoing_wasteheat_rate_2.Enqueue(ongoing_wasteheat_rate_1.Average());
+                    if (ongoing_wasteheat_rate_2.Count > 2)
+                        ongoing_wasteheat_rate_2.Dequeue();
+
+                    if (ongoing_wasteheat_rate_1.Count > 2)
+                        ongoing_wasteheat_rate_1.Dequeue();
                 }
 
                 ProcessReactorFuel(timeWarpFixedDeltaTime);
