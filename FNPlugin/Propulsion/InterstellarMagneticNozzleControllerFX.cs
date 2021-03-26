@@ -158,25 +158,14 @@ namespace FNPlugin.Propulsion
 
             UpdateEngineStats(true);
 
-            _maxPowerMultiplier = Math.Log10(maximum_isp / minimum_isp);
-
-            throtleExponent = Math.Abs(Math.Log10(_attachedReactor.MinimumChargdIspMult / _attachedReactor.MaximumChargedIspMult));
-
-            simulatedThrottleFloatRange = Fields[nameof(simulatedThrottle)].uiControlEditor as UI_FloatRange;
-            if (simulatedThrottleFloatRange != null)
-                simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;
-
-            if (_attachedReactor == null)
-            {
-                Debug.LogWarning("[KSPI]: InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
-                return;
-            }
-            _exchangerThrustDivisor = radius >= _attachedReactor.Radius ? 1 : radius * radius / _attachedReactor.Radius / _attachedReactor.Radius;
-
             InitializesPropellantBuffer();
 
             Fields[nameof(partMass)].guiActiveEditor = showPartMass;
             Fields[nameof(partMass)].guiActive = showPartMass;
+
+            simulatedThrottleFloatRange = Fields[nameof(simulatedThrottle)].uiControlEditor as UI_FloatRange;
+            if (simulatedThrottleFloatRange != null)
+                simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;
         }
 
         private void InitializesPropellantBuffer()
@@ -215,8 +204,6 @@ namespace FNPlugin.Propulsion
             if (!HighLogic.LoadedSceneIsEditor || _attachedEngine == null) return;
 
             ConnectToReactor();
-
-            UpdateEngineStats(true);
         }
 
         /// <summary>
@@ -243,8 +230,12 @@ namespace FNPlugin.Propulsion
             // first try to look in part
             _attachedReactor = part.FindModuleImplementing<IFNChargedParticleSource>() ?? BreadthFirstSearchForChargedParticleSource(10, 1);
 
-            // try to find nearest
-            _attachedReactor?.ConnectWithEngine(this);
+            if (_attachedReactor == null)
+                return;
+
+            _attachedReactor.ConnectWithEngine(this);
+
+            UpdateEngineStats(true);
         }
 
         private IFNChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
@@ -308,7 +299,11 @@ namespace FNPlugin.Propulsion
             minimum_isp = calculatedIsp * _attachedReactor.MinimumChargdIspMult;
             maximum_isp = calculatedIsp * _attachedReactor.MaximumChargedIspMult;
 
+            _maxPowerMultiplier = Math.Log10(maximum_isp / minimum_isp);
+
             if (!useThrustCurve) return;
+
+            throtleExponent = Math.Abs(Math.Log10(_attachedReactor.MinimumChargdIspMult / _attachedReactor.MaximumChargedIspMult));
 
             var isp = Math.Min(maximum_isp, minimum_isp / Math.Pow(simulatedThrottle / 100, throtleExponent));
 
@@ -385,6 +380,8 @@ namespace FNPlugin.Propulsion
 
                 maximumChargedPower =  _attachedReactor.MaximumChargedPower;
                 var currentMaximumChargedPower = maximum_isp == minimum_isp ? maximumChargedPower * currentThrottle : maximumChargedPower;
+
+                _exchangerThrustDivisor = radius >= _attachedReactor.Radius ? 1 : radius * radius / _attachedReactor.Radius / _attachedReactor.Radius;
 
                 _max_charged_particles_power = currentMaximumChargedPower * _exchangerThrustDivisor * _attachedReactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = exhaustAllowed && currentThrottle > 0 ? _max_charged_particles_power : 0;
