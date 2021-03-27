@@ -297,6 +297,10 @@ namespace FNPlugin.Reactors
         [KSPField] public double neutronEmbrittlementDivider = 1e+9;
         [KSPField] public double hotBathModifier = 1;
         [KSPField] public double thermalProcessingModifier = 1;
+
+        [KSPField] public double maxChargedParticleRatio = 1;
+        [KSPField] public double minChargedParticleRatio = 0;
+
         [KSPField] public double maxNeutronsRatio = 1.04;
         [KSPField] public double minNeutronsRatio = 0;
 
@@ -2316,6 +2320,8 @@ namespace FNPlugin.Reactors
                     && fm.AllProductResourcesDefinitionsAvailable
                     && fm.TechLevel <= ReactorFuelModeTechLevel
                     && fm.GammaRayEnergy <= maxGammaRayPower
+                    && fm.ChargedPowerRatio >= minChargedParticleRatio
+                    && fm.ChargedPowerRatio <= maxChargedParticleRatio
                     && fm.NeutronsRatio <= maxNeutronsRatio
                     && fm.NeutronsRatio >= minNeutronsRatio
                     ).ToList();

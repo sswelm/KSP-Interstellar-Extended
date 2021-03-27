@@ -1,10 +1,14 @@
-﻿using FNPlugin.Extensions;
+﻿using System;
+using FNPlugin.Extensions;
 using KSP.Localization;
-using System;
 using UnityEngine;
 
 namespace FNPlugin.Propulsion
 {
+    public class ModuleEnginesThermalNozzle : ModuleEnginesWarp { }
+
+    public class ModuleEnginesMagneticNozzle : ModuleEnginesWarp { }
+
     public class ModuleEnginesWarp : ModuleEnginesFX
     {
         [KSPField(isPersistant = true)]

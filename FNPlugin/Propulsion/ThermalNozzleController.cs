@@ -586,11 +586,11 @@ namespace FNPlugin.Propulsion
         {
             base.OnLoad(node);
 
-            timewarpEngine = part.FindModuleImplementing<ModuleEnginesWarp>();
+            timewarpEngine = part.FindModuleImplementing<ModuleEnginesMagneticNozzle>();
             if (timewarpEngine != null)
             {
-                timewarpEngine.Fields[nameof(ModuleEnginesWarp.thrust_d)].Attribute.groupName = Group;
-                timewarpEngine.Fields[nameof(ModuleEnginesWarp.thrust_d)].Attribute.groupDisplayName = GroupTitle;
+                timewarpEngine.Fields[nameof(ModuleEnginesMagneticNozzle.thrust_d)].Attribute.groupName = Group;
+                timewarpEngine.Fields[nameof(ModuleEnginesMagneticNozzle.thrust_d)].Attribute.groupDisplayName = GroupTitle;
             }
 
             myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
