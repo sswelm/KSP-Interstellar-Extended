@@ -71,18 +71,17 @@ namespace FNPlugin.Propulsion
 
 
         [KSPField] public bool showPartMass = true;
-        [KSPField] public double powerThrustMultiplier = 1;
-        [KSPField] public float wasteHeatMultiplier = 1;
         [KSPField] public bool maintainsPropellantBuffer = true;
-        [KSPField] public double minimumPropellantBuffer = 0.01;
         [KSPField] public string propellantBufferResourceName = "LqdHydrogen";
         [KSPField] public string runningEffectName = string.Empty;
         [KSPField] public string powerEffectName = string.Empty;
+        [KSPField] public float currentThrust;
+        [KSPField] public float wasteHeatMultiplier = 1;
+        [KSPField] public double powerThrustMultiplier = 1;
+        [KSPField] public double minimumPropellantBuffer = 0.01;
         [KSPField] public double wasteHeatBufferMassMult = 2.0e+5;
         [KSPField] public double chargedParticleRatio;
         [KSPField] public double currentIsp;
-        [KSPField] public float currentThrust;
-
         [KSPField] public double chargedParticleRatioThreshold = 0.0002;
         [KSPField] public double megajoulesRatioThreshold = 0.02;
 
@@ -96,15 +95,16 @@ namespace FNPlugin.Propulsion
 
         private IFNChargedParticleSource _attachedReactor;
 
-        int _attachedReactorDistance;
-        double _wasteheatConsumption;
-        double _exchangerThrustDivisor;
-        double _previousChargedParticlesReceived;
-        double _maxPowerMultiplier;
-        double powerBufferMax;
-        double _mhdTrustIspModifier = 1;
-        double _effectiveThrustRatio;
-        double _maxTheoreticalThrust;
+        private bool _checkedConnectivity;
+        private int _attachedReactorDistance;
+        private double _wasteheatConsumption;
+        private double _exchangerThrustDivisor;
+        private double _previousChargedParticlesReceived;
+        private double _maxPowerMultiplier;
+        private double powerBufferMax;
+        private double _mhdTrustIspModifier = 1;
+        private double _effectiveThrustRatio;
+        private double _maxTheoreticalThrust;
 
         public IFNChargedParticleSource AttachedReactor
         {
@@ -610,6 +610,14 @@ namespace FNPlugin.Propulsion
         {
             if (_attachedEngine == null)
                 return;
+
+            if (_attachedReactor == null && _checkedConnectivity == false)
+            {
+                _checkedConnectivity = true;
+                var message = "Warning: " + part.partInfo.title + " is not connected to a power source!";
+                Debug.Log("[KSPI]: " + message);
+                ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+            }
 
             exhaustAllowed = AllowedExhaust();
         }

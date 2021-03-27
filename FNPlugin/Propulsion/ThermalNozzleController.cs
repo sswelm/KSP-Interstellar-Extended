@@ -896,7 +896,7 @@ namespace FNPlugin.Propulsion
             if (_myAttachedReactor == null && _checkedConnectivity == false)
             {
                 _checkedConnectivity = true;
-                var message = "Warning: " + part.partInfo.title + " is not connected to power source!";
+                var message = "Warning: " + part.partInfo.title + " is not connected to a power source!";
                 Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
             }
