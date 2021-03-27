@@ -359,6 +359,7 @@ namespace FNPlugin.Propulsion
         private int _windowId;
         private int _switches;
 
+        private bool _checkedConnectivity;
         private bool _showIspThrottle;
         private bool _fuelRequiresUpgrade;
         private bool _engineWasInactivePreviousFrame;
@@ -891,6 +892,14 @@ namespace FNPlugin.Propulsion
         public override void OnUpdate()
         {
             resourceBuffers.Init(part);
+
+            if (_myAttachedReactor == null && _checkedConnectivity == false)
+            {
+                _checkedConnectivity = true;
+                var message = "Warning: " + part.partInfo.title + " is not connected to power source!";
+                Debug.Log("[KSPI]: " + message);
+                ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+            }
 
             // setup propellant after startup to allow InterstellarFuelSwitch to configure the propellant
             if (!_hasSetupPropellant)

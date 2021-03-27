@@ -139,6 +139,7 @@ namespace FNPlugin.Powermanagement
         private bool _playPowerDownSound = true;
         private bool _playPowerUpSound = true;
         private bool _hasRequiredUpgrade;
+        private bool _checkedConnectivity;
 
         private double _chargedPowerReceived;
         private double _requestedChargedPower;
@@ -182,6 +183,8 @@ namespace FNPlugin.Powermanagement
         private BaseEvent moduleGeneratorActivateBaseEvent;
 
         private readonly Queue<double> _powerDemandQueue = new Queue<double>();
+
+        public IFNPowerSource AttachedPowerSource => _attachedPowerSource;
 
         public string UpgradeTechnology => upgradeTechReq;
 
@@ -327,7 +330,7 @@ namespace FNPlugin.Powermanagement
         {
             ConnectToModuleGenerator();
 
-            this.resourcesToSupply = new[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt };
+            resourcesToSupply = new[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt };
 
             if (useResourceBuffers)
             {
@@ -446,7 +449,9 @@ namespace FNPlugin.Powermanagement
             // adjust power percentage to for recharging to buffer
             if (hasAdjustPowerPercentage) return;
 
-            if (Math.Abs(powerPercentage - 100) < 0.1)
+            if (_attachedPowerSource == null) return;
+
+            if ( Math.Abs(powerPercentage - 100) < 0.1)
                 powerPercentage = _attachedPowerSource.DefaultPowerGeneratorPercentage;
 
             hasAdjustPowerPercentage = true;
@@ -776,6 +781,14 @@ namespace FNPlugin.Powermanagement
             Fields[nameof(MaxPowerStr)].guiActive = showDetailedInfo && IsEnabled;
             Fields[nameof(coldBathTempDisplay)].guiActive = showDetailedInfo && !chargedParticleMode;
             Fields[nameof(hotBathTemp)].guiActive = showDetailedInfo && !chargedParticleMode;
+
+            if (_attachedPowerSource == null && _checkedConnectivity == false)
+            {
+                _checkedConnectivity = true;
+                var message = "Warning: " + part.partInfo.title + " is not connected to power source!";
+                Debug.Log("[KSPI]: " + message);
+                ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+            }
 
             if (ResearchAndDevelopment.Instance != null)
             {
@@ -1206,7 +1219,7 @@ namespace FNPlugin.Powermanagement
 
         private void PowerDown()
         {
-            if (_powerState != PowerStates.PowerOffline)
+            if (_powerState != PowerStates.PowerOffline && _attachedPowerSource != null)
             {
                 if (_powerDownFraction > 0)
                     _powerDownFraction -= 0.01;

@@ -57,5 +57,7 @@ namespace FNPlugin.Powermanagement
         void UpdateAuxiliaryPowerSource(double available);
 
         bool IsConnectedToChargedGenerator { get; }
+
+        bool IsConnectedToThermalGenerator { get; }
     }
 }

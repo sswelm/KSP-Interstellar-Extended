@@ -455,7 +455,8 @@ namespace FNPlugin.Beamedpower
         }
 
         public void UpdateAuxiliaryPowerSource(double available) { }
-        public bool IsConnectedToChargedGenerator => false;
+        public bool IsConnectedToChargedGenerator => ConnectedThermalElectricGenerator != null;
+        public bool IsConnectedToThermalGenerator => ConnectedChargedParticleElectricGenerator != null;
 
         public void RemoveOtherVesselData()
         {

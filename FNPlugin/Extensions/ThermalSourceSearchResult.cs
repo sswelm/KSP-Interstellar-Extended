@@ -1,5 +1,4 @@
-﻿using FNPlugin.Redist;
-using System;
+﻿using System;
 using System.Linq;
 using FNPlugin.Powermanagement;
 using FNPlugin.Reactors;
@@ -53,10 +52,10 @@ namespace FNPlugin.Extensions
                     return null;
             }
 
-            var thermalcostModifier = currentpart.FindModuleImplementing<ThermalPowerTransport>();
+            var thermalCostModifier = currentpart.FindModuleImplementing<ThermalPowerTransport>();
 
-            double stackDepthCost = thermalcostModifier != null 
-                ? thermalcostModifier.thermalCost 
+            double stackDepthCost = thermalCostModifier != null
+                ? thermalCostModifier.thermalCost
                 : 1;
 
             // first look at docked parts
