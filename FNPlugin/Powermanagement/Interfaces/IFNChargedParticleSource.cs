@@ -6,5 +6,7 @@ namespace FNPlugin.Powermanagement.Interfaces
     {
         bool MayExhaustInAtmosphereHomeworld { get; }
         bool MayExhaustInLowSpaceHomeworld { get; }
+
+        void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resourceDefinition);
     }
 }

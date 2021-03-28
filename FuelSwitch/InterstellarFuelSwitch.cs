@@ -732,6 +732,8 @@ namespace InterstellarFuelSwitch
                     resourceNodeAmount = parsedConfigAmount[resourceId];
                 else if (HighLogic.LoadedSceneIsFlight && calledByPlayer && !CheatOptions.InfinitePropellant)
                     resourceNodeAmount = 0.0;
+                else if (existingResource != null && calledByPlayer == false)
+                    resourceNodeAmount = Math.Min(existingResource.amount * maxAmount / existingResource.maxAmount, maxAmount);
                 else
                     resourceNodeAmount = _selectedTank.resources[resourceId].amount * storedVolumeMultiplier;
 

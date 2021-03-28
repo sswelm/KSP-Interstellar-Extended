@@ -72,7 +72,8 @@ namespace FNPlugin.Storage
         [KSPField] public string Mk7Tech = "";
 
         //settings
-        [KSPField] public float explosionPotentialMultiplier = 90000;
+        [KSPField] public bool showCapacity = true;
+        [KSPField] public bool showMaxAmount = true;
         [KSPField] public int maximumTimewarpWithGeeforceWarning = 3;
         [KSPField] public double maxStorage = 0;
         [KSPField] public double maxCharge = 1000;
@@ -91,8 +92,8 @@ namespace FNPlugin.Storage
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_Charge")] public string chargeStatusStr;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_Status")] public string statusStr;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Current")] public string capacityStr;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Maximum")] public string maxAmountStr;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Maximum")] public string maxAmountStr;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Current")] public string capacityStr;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_Cur_MaxTemp", guiFormat = "F0")] public string TemperatureStr;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_CurMaxGeeforce")] public string GeeforceStr;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_PartMass", guiUnits = " t", guiFormat = "F3" )] public double partMass;
@@ -105,10 +106,6 @@ namespace FNPlugin.Storage
         bool _showAntimatterFields;
         bool _charging;
         bool _shouldCharge;
-
-        float _explosionTime = 0.35f;
-        float _explosionSize = 5000;
-        float _curExplosionSize;
 
         double _minimumAntimatterAmount;
         double _antimatterDensityModifier;
@@ -134,13 +131,13 @@ namespace FNPlugin.Storage
 
         readonly Queue<double> _geeforceQueue = new Queue<double>(20);
 
-        [KSPEvent(groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StartCharging", active = true)]//Start Charging
+        [KSPEvent(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StartCharging", active = true)]//Start Charging
         public void StartCharge()
         {
             _shouldCharge = true;
         }
 
-        [KSPEvent(groupName = Group, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StopCharging", active = true)]//Stop Charging
+        [KSPEvent(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StopCharging", active = true)]//Stop Charging
         public void StopCharge()
         {
             _shouldCharge = false;
@@ -280,7 +277,7 @@ namespace FNPlugin.Storage
 
         public void DoExplode(string reason = null)
         {
-            var antimatterResource = part.Resources[resourceName];
+            var antimatterResource = part.Resources.Get(_antimatterDefinition.id);
             if (antimatterResource == null || antimatterResource.amount <= _minimumAntimatterAmount) return;
 
             if (antimatterResource.resourceName != resourceName)
@@ -317,6 +314,14 @@ namespace FNPlugin.Storage
 
         public override void OnStart(StartState state)
         {
+            DetermineTechLevel();
+
+            if (!calculatedMass)
+            {
+                maxGeeforce = 10;
+                maxTemperature = 1000;
+            }
+
             _deploymentAnimation = part.FindModuleImplementing<ModuleAnimateGeneric>();
 
             part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
@@ -328,7 +333,16 @@ namespace FNPlugin.Storage
 
             antimatterDensity = _antimatterDefinition.density;
 
-            var antimatterResource = part.Resources[resourceName];
+            partMass = part.mass;
+            initialMass = part.prefabMass * storedMassMultiplier;
+
+            Fields[nameof(techLevel)].guiActiveEditor = maxStorage != 0;
+            _capacityStrField = Fields[nameof(capacityStr)];
+            _maxAmountStrField = Fields[nameof(maxAmountStr)];
+            _temperatureStrField = Fields[nameof(TemperatureStr)];
+            _geeforceStrField = Fields[nameof(GeeforceStr)];
+
+            var antimatterResource = part.Resources.Get(_antimatterDefinition.id);
             if (antimatterResource == null)
             {
                 var alternativeResource = part.Resources.OrderBy(m => m.maxAmount).FirstOrDefault();
@@ -341,7 +355,6 @@ namespace FNPlugin.Storage
             // determine TechLevel maximum storage amount only in editor
             if (state == StartState.Editor && maxStorage != 0)
             {
-                DetermineTechLevel();
                 var currentStorageRatio = antimatterResource.amount / antimatterResource.maxAmount;
                 antimatterResource.maxAmount = maxStorage * storedResourceCostMultiplier * StorageCapacityModifier;
                 antimatterResource.amount = antimatterResource.maxAmount * currentStorageRatio;
@@ -349,15 +362,6 @@ namespace FNPlugin.Storage
 
             // charge if there is any significant antimatter
             _shouldCharge = antimatterResource.amount > _minimumAntimatterAmount;
-
-            partMass = part.mass;
-            initialMass = part.prefabMass * storedMassMultiplier;
-
-            Fields[nameof(techLevel)].guiActiveEditor = maxStorage != 0;
-            _capacityStrField = Fields[nameof(capacityStr)];
-            _maxAmountStrField = Fields[nameof(maxAmountStr)];
-            _temperatureStrField = Fields[nameof(TemperatureStr)];
-            _geeforceStrField = Fields[nameof(GeeforceStr)];
 
             _geeforceQueue.Enqueue(0);
             if (state == StartState.Editor)
@@ -380,7 +384,7 @@ namespace FNPlugin.Storage
 
         private bool HasSignificantAmountOfAntimatter()
         {
-            var antimatterResource = part.Resources[resourceName];
+            var antimatterResource = part.Resources.Get(_antimatterDefinition.id);
             if (antimatterResource == null) return false;
             return antimatterResource.amount > _minimumAntimatterAmount;
         }
@@ -402,7 +406,7 @@ namespace FNPlugin.Storage
                 return;
             }
 
-            var antimatterResource = part.Resources[resourceName];
+            var antimatterResource = part.Resources.Get(_antimatterDefinition.id);
             if (antimatterResource == null)
             {
                 Debug.Log("[KSPI]: antimatterResource == null");
@@ -480,26 +484,38 @@ namespace FNPlugin.Storage
 
         public void Update()
         {
-            var antimatterResource = part.Resources[resourceName];
+            var antimatterResource = part.Resources.Get(_antimatterDefinition.id);
 
-            _showAntimatterFields = antimatterResource != null && antimatterResource.resourceName == resourceName;
+            _showAntimatterFields = antimatterResource != null;
 
-            _temperatureStrField.guiActive = canExplodeFromHeat;
-            _temperatureStrField.guiActiveEditor = canExplodeFromHeat;
-            _geeforceStrField.guiActive = canExplodeFromGeeForce;
-            _geeforceStrField.guiActiveEditor = canExplodeFromGeeForce;
+            _temperatureStrField.guiActive = _showAntimatterFields && canExplodeFromHeat;
+            _temperatureStrField.guiActiveEditor = _showAntimatterFields && canExplodeFromHeat;
+            _geeforceStrField.guiActive = _showAntimatterFields && canExplodeFromGeeForce;
+            _geeforceStrField.guiActiveEditor = _showAntimatterFields && canExplodeFromGeeForce;
 
-            if (antimatterResource == null)
+            _capacityStrField.guiActive = _showAntimatterFields && showCapacity;
+            _capacityStrField.guiActiveEditor = _showAntimatterFields && showCapacity;
+            _maxAmountStrField.guiActive = _showAntimatterFields && showMaxAmount;
+            _maxAmountStrField.guiActiveEditor = _showAntimatterFields && showMaxAmount;
+
+            if (antimatterResource == null) return;
+
+            // determine TechLevel maximum storage amount only in editor
+            if (HighLogic.LoadedSceneIsEditor && maxStorage != 0)
             {
-                antimatterResource = part.Resources.OrderByDescending(m => m.maxAmount).FirstOrDefault();
-                if (antimatterResource == null)
-                    return;
+                var currentStorageRatio = antimatterResource.amount / antimatterResource.maxAmount;
+                var newMaximum = maxStorage * storedResourceCostMultiplier * StorageCapacityModifier;
+                var newAmount = antimatterResource.maxAmount * currentStorageRatio;
+
+                if (Math.Abs(antimatterResource.maxAmount - newMaximum) > 1)
+                {
+                    antimatterResource.maxAmount = newMaximum;
+                    antimatterResource.amount = newAmount;
+                }
             }
 
-            _capacityStrField.guiActive = _showAntimatterFields;
-            _capacityStrField.guiActiveEditor = _showAntimatterFields;
-            _maxAmountStrField.guiActive = _showAntimatterFields;
-            _maxAmountStrField.guiActiveEditor = _showAntimatterFields;
+            // charge if there is any significant antimatter
+            _shouldCharge = antimatterResource.amount > _minimumAntimatterAmount;
 
             // restore antimatter amount when stolen
             if (HighLogic.LoadedSceneIsEditor)
@@ -515,7 +531,9 @@ namespace FNPlugin.Storage
             capacityStr = PluginHelper.FormatMassStr(antimatterResource.amount * antimatterDensity);
             maxAmountStr = PluginHelper.FormatMassStr(antimatterResource.maxAmount * antimatterDensity);
 
-            part.explosionPotential = (float)antimatterResource.amount * explosionPotentialMultiplier;
+            var explosionPowerInTnt = antimatterResource.amount * antimatterResource.info.density * 1e9 * 21.5;
+
+            part.explosionPotential = (float)explosionPowerInTnt * 10;
 
             UpdateTargetMass();
 
@@ -537,8 +555,8 @@ namespace FNPlugin.Storage
             {
                 chargeStatus = maxCharge;
 
-                Fields[nameof(maxGeeforce)].guiActiveEditor = canExplodeFromGeeForce;
-                Fields[nameof(maxTemperature)].guiActiveEditor = canExplodeFromHeat;
+                Fields[nameof(maxGeeforce)].guiActiveEditor = calculatedMass && canExplodeFromGeeForce;
+                Fields[nameof(maxTemperature)].guiActiveEditor = calculatedMass && canExplodeFromHeat;
                 return;
             }
 
@@ -598,10 +616,10 @@ namespace FNPlugin.Storage
             ExplodeContainer();
         }
 
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_SelfDestruct", active = true)]//Self Destruct
+        [KSPEvent(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_SelfDestruct", active = true)]//Self Destruct
         public void SelfDestruct()
         {
-            var antimatterResource = part.Resources[resourceName];
+            var antimatterResource = part.Resources.Get(_antimatterDefinition.id);
             if (antimatterResource == null)
                 return;
 
@@ -612,7 +630,7 @@ namespace FNPlugin.Storage
 
         private void MaintainContainment()
         {
-            var antimatterResource = part.Resources[resourceName];
+            var antimatterResource = part.Resources.Get(_antimatterDefinition.id);
             if (antimatterResource == null)
                 return;
 
@@ -723,17 +741,19 @@ namespace FNPlugin.Storage
 
         private void ExplodeContainer()
         {
-            var antimatterResource = part.Resources[resourceName];
+            var antimatterResource = part.Resources.Get(_antimatterDefinition.id);
             if (antimatterResource == null || antimatterResource.resourceName != resourceName)
                 return;
 
             if (!exploding || _lightGameObject == null) return;
 
-            _explosionSize = Mathf.Sqrt((float)antimatterResource.amount) * 5;
+            // 1 mg antimatter equates 21.5 Ton TNT
 
-            _curExplosionSize += TimeWarp.fixedDeltaTime * _explosionSize * _explosionSize / _explosionTime;
-            _lightGameObject.transform.localScale = new Vector3(Mathf.Sqrt(_curExplosionSize), Mathf.Sqrt(_curExplosionSize), Mathf.Sqrt(_curExplosionSize));
-            _lightGameObject.GetComponent<Light>().range = Mathf.Sqrt(_curExplosionSize) * 15f;
+            var explosionPowerInTnt = antimatterResource.amount * antimatterResource.info.density * 1e9 * 21.5;
+            var explosionSize = Math.Pow(explosionPowerInTnt, 1/3d) * 280;
+
+            _lightGameObject.transform.localScale = new Vector3((float)Math.Sqrt(explosionSize), (float)explosionSize, (float)Math.Sqrt(explosionSize));
+            _lightGameObject.GetComponent<Light>().range = (float)Math.Sqrt(explosionSize);
             _lightGameObject.GetComponent<Collider>().enabled = false;
 
             TimeWarp.SetRate(0, true);
@@ -742,7 +762,7 @@ namespace FNPlugin.Storage
             var listOfVesselsToExplode = FlightGlobals.Vessels.ToArray();
             foreach (var vesselToExplode in listOfVesselsToExplode)
             {
-                if (Vector3d.Distance(vesselToExplode.transform.position, vessel.transform.position) > _explosionSize) continue;
+                if (Vector3d.Distance(vesselToExplode.transform.position, vessel.transform.position) > explosionSize) continue;
 
                 if (vesselToExplode.packed) continue;
 
@@ -753,12 +773,12 @@ namespace FNPlugin.Storage
                 }
             }
 
-            var explodeParts = vessel.Parts.ToArray();
-            foreach (var explodePart in explodeParts.Where(explodePart => explodePart != vessel.rootPart && explodePart != this.part))
-            {
-                explodePart.explode();
-            }
-            vessel.rootPart.explode();
+            //var explodeParts = vessel.Parts.ToArray();
+            //foreach (var explodePart in explodeParts.Where(explodePart => explodePart != vessel.rootPart && explodePart != this.part))
+            //{
+            //    explodePart.explode();
+            //}
+            //vessel.rootPart.explode();
 
             part.explode();
         }

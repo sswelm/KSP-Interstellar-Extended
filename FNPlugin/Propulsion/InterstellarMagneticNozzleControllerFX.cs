@@ -171,8 +171,7 @@ namespace FNPlugin.Propulsion
         {
             resourcesToSupply = new[]{ ResourceSettings.Config.ElectricPowerInMegawatt };
 
-            if (maintainsPropellantBuffer)
-                propellantBufferResourceDefinition = PartResourceLibrary.Instance.GetDefinition(propellantBufferResourceName);
+            propellantBufferResourceDefinition = PartResourceLibrary.Instance.GetDefinition(propellantBufferResourceName);
 
             if (part.FindModuleImplementing<IFNPowerSource>() == null)
             {
@@ -447,7 +446,7 @@ namespace FNPlugin.Propulsion
 
                 // convert reactor product into propellants when possible and generate addition propellant from reactor fuel consumption
                 chargedParticleRatio = currentMaximumChargedPower > 0 ? _charged_particles_received / currentMaximumChargedPower : 0;
-                _attachedReactor.UseProductForPropulsion(chargedParticleRatio, calculatedConsumptionInTon);
+                _attachedReactor.UseProductForPropulsion(chargedParticleRatio, calculatedConsumptionInTon, propellantBufferResourceDefinition);
 
                 calculatedConsumptionPerSecond = calculatedConsumptionInTon * 1000;
 
@@ -513,7 +512,7 @@ namespace FNPlugin.Propulsion
                     _attachedEngine.enabled = chargedParticleRatio > chargedParticleRatioThreshold &&
                                               megajoulesRatio > megajoulesRatioThreshold &&
                                               AttachedReactor.ConsumedFuelFixed > 0 &&
-                                              part.RequestResource(ResourceSettings.Config.HydrogenLqd, 0.001, true) > 0;
+                                              part.RequestResource(propellantBufferResourceDefinition.id, 0.001, true) > 0;
                 }
 
                 if (_attachedEngine.enabled == false)
@@ -624,10 +623,10 @@ namespace FNPlugin.Propulsion
 
         public void UpdatePropellantBuffer(double calculatedConsumptionInTon)
         {
-            if (propellantBufferResourceDefinition == null)
+            if (!maintainsPropellantBuffer)
                 return;
 
-            PartResource propellantPartResource = part.Resources[propellantBufferResourceName];
+            PartResource propellantPartResource = part.Resources.Get(propellantBufferResourceDefinition.id);
 
             if (propellantPartResource == null || propellantBufferResourceDefinition.density == 0)
                 return;
@@ -640,7 +639,7 @@ namespace FNPlugin.Propulsion
             propellantPartResource.amount = Math.Min(newMaxAmount, propellantPartResource.amount);
 
             if (storageShortage > 0)
-                part.RequestResource(propellantBufferResourceName, -storageShortage);
+                part.RequestResource(propellantBufferResourceDefinition.id, -storageShortage);
         }
 
         public override string GetInfo()

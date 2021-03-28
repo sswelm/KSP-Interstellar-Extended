@@ -42,22 +42,13 @@ namespace FNPlugin.Propulsion
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
 
-        Transform _engineThrustTransform;
-        Vector3d _engineThrustTransformUp;
+        private Transform _engineThrustTransform;
+        private Vector3d _engineThrustTransformUp;
 
-        public double isp_d;
-        public double throttle_d;
-
-
-        [KSPField] public double _realIsp;
-        [KSPField] public double _thrustPersistent;
-        [KSPField] public bool _getIgnitionState;
-        [KSPField] public float _currentThrottle;
-
-        // Persistent values to use during timewarp
-        double _throttlePersistent;
-
-        int vesselChangedSIOCountdown;
+        private double _realIsp;
+        private double _thrustPersistent;
+        private double _throttlePersistent;
+        private int vesselChangedSIOCountdown;
 
         private double fuelWithMassPercentage1;
         private double fuelWithMassPercentage2;
@@ -69,20 +60,20 @@ namespace FNPlugin.Propulsion
         private double masslessFuelPercentage3;
         private double masslessFuelPercentage4;
 
-        public double fuelRequestAmount1;
-        public double fuelRequestAmount2;
-        public double fuelRequestAmount3;
-        public double fuelRequestAmount4;
+        private double fuelRequestAmount1;
+        private double fuelRequestAmount2;
+        private double fuelRequestAmount3;
+        private double fuelRequestAmount4;
 
-        double consumedPropellant1;
-        double consumedPropellant2;
-        double consumedPropellant3;
-        double consumedPropellant4;
+        private double consumedPropellant1;
+        private double consumedPropellant2;
+        private double consumedPropellant3;
+        private double consumedPropellant4;
 
-        PartResourceDefinition propellantResourceDefinition1;
-        PartResourceDefinition propellantResourceDefinition2;
-        PartResourceDefinition propellantResourceDefinition3;
-        PartResourceDefinition propellantResourceDefinition4;
+        private PartResourceDefinition propellantResourceDefinition1;
+        private PartResourceDefinition propellantResourceDefinition2;
+        private PartResourceDefinition propellantResourceDefinition3;
+        private PartResourceDefinition propellantResourceDefinition4;
 
         // Are we transitioning from timewarp to realtime?
         bool _warpToReal;
@@ -185,7 +176,7 @@ namespace FNPlugin.Propulsion
             masslessFuelPercentage4 = propellantResourceDefinition4 != null && propellantResourceDefinition4.density <= 0 ? ratio4 / ratioSumWithoutMass : 0;
         }
 
-        private double CollectFuel(double demandMass, ResourceFlowMode fuelMode = ResourceFlowMode.STACK_PRIORITY_SEARCH)
+        private double CollectFuel(double requestedMass, ResourceFlowMode fuelMode = ResourceFlowMode.STACK_PRIORITY_SEARCH)
         {
             fuelRequestAmount1 = 0;
             fuelRequestAmount2 = 0;
@@ -195,10 +186,10 @@ namespace FNPlugin.Propulsion
             if (CheatOptions.InfinitePropellant)
                 return 1;
 
-            if (demandMass == 0 || double.IsNaN(demandMass) || double.IsInfinity(demandMass))
+            if (requestedMass == 0 || double.IsNaN(requestedMass) || double.IsInfinity(requestedMass))
                 return 0;
 
-            var propellantWithMassNeededInLiter = demandMass / averageDensityInTonPerLiter;
+            var propellantWithMassNeededInLiter = requestedMass / averageDensityInTonPerLiter;
             var overallAmountNeeded = propellantWithMassNeededInLiter / massPropellantRatio;
             var masslessResourceNeeded = overallAmountNeeded - propellantWithMassNeededInLiter;
 
@@ -277,8 +268,6 @@ namespace FNPlugin.Propulsion
                 Debug.LogWarning("[KSPI]: finalThrust  is " + finalThrust);
 
             _realIsp = realIsp;
-            _currentThrottle = currentThrottle;
-            _getIgnitionState = getIgnitionState;
 
             requestedFlow = requestedMassFlow;
             totalmassVessel = vessel.totalMass;
@@ -286,7 +275,7 @@ namespace FNPlugin.Propulsion
             // Check if we are in time warp mode
             if (!vessel.packed)
             {
-                // allow throttle to be used up to Geeforce treshold
+                // allow throttle to be used up to Geeforce threshold
                 TimeWarp.GThreshold = GThreshold;
 
                 demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
@@ -317,22 +306,19 @@ namespace FNPlugin.Propulsion
                 {
                     ratioHeadingVersusRequest = vessel.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
                     if (ratioHeadingVersusRequest != 1)
-                    {
-                        //UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
                         return;
-                    }
 
-                    // determine maximum deltaV durring this frame
+                    // determine maximum deltaV during this frame
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
                     remainingMass = totalmassVessel - demandMass;
 
                     deltaV = _realIsp * PhysicsGlobals.GravitationalAcceleration * Math.Log(totalmassVessel / remainingMass);
 
-                    _engineThrustTransform = this.part.FindModelTransform(thrustVectorTransformName);
+                    _engineThrustTransform = part.FindModelTransform(thrustVectorTransformName);
                     if (_engineThrustTransform == null)
                     {
-                        _engineThrustTransform = this.part.transform;
-                        _engineThrustTransformUp = (Vector3d)_engineThrustTransform.up;
+                        _engineThrustTransform = part.transform;
+                        _engineThrustTransformUp = _engineThrustTransform.up;
                     }
                     else
                         _engineThrustTransformUp = (Vector3d)_engineThrustTransform.forward * -1;
@@ -389,8 +375,6 @@ namespace FNPlugin.Propulsion
 
             // Update display numbers
             thrust_d = _thrustPersistent;
-            isp_d = _realIsp;
-            throttle_d = _throttlePersistent;
         }
 
         private bool IsPositiveValidNumber(double variable)

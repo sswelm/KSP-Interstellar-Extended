@@ -7,7 +7,8 @@ namespace FNPlugin.Refinery
 {
     class AntimatterFactory : ResourceSuppliableModule
     {
-        public const double OneThird = 1.0 / 3.0;
+        public const string Group = "Antimatter Factory";
+        public const string GroupTitle = "Antimatter Factory";
 
         [KSPField(isPersistant = true)] public double lastActiveTime;
         [KSPField(isPersistant = true)] public double electricalPowerRatio;
@@ -17,13 +18,14 @@ namespace FNPlugin.Refinery
         [KSPField] public string activateTitle = "#LOC_KSPIE_AntimatterFactory_producePositron";
         [KSPField] public string resourceName = "Positrons";
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false), UI_Toggle(disabledText = "#LOC_KSPIE_AntimatterFactory_Off", enabledText = "#LOC_KSPIE_AntimatterFactory_On")]//OffOn
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, isPersistant = true), UI_Toggle(disabledText = "#LOC_KSPIE_AntimatterFactory_Off", enabledText = "#LOC_KSPIE_AntimatterFactory_On")]//OffOn
         public bool isActive = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_powerPecentage"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterFactory_powerPecentage"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
         public float powerPercentage = 100;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_productionRate")]
+
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_productionRate")]
         public string productionRateTxt;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterFactory_MaximumPowercapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Maximum Power capacity
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterFactory_MaximumPowercapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Maximum Power capacity
         public double powerCapacity = 1000;
 
         private AntimatterGenerator _generator;
@@ -40,16 +42,14 @@ namespace FNPlugin.Refinery
 
             _disabledText = Localizer.Format("#LOC_KSPIE_AntimatterFactory_disabled");
 
-            Fields["isActive"].guiName = Localizer.Format(activateTitle);
+            Fields[nameof(isActive)].guiName = Localizer.Format(activateTitle);
 
             if (!isActive)
                 return;
 
             var deltaTime = Planetarium.GetUniversalTime() - lastActiveTime;
 
-            var energyProvidedInMegajoules = electricalPowerRatio * powerCapacity * deltaTime;
-
-            _generator.Produce(energyProvidedInMegajoules);
+            _generator.Produce(electricalPowerRatio * powerCapacity * deltaTime);
         }
 
         public override void OnUpdate()
@@ -87,7 +87,7 @@ namespace FNPlugin.Refinery
 
             var availablePower = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
             var resourceBarRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
-            var effectiveResourceThrottling = resourceBarRatio > OneThird ? 1 : resourceBarRatio * 3;
+            var effectiveResourceThrottling = resourceBarRatio > 1.0/3.0 ? 1 : resourceBarRatio * 3;
 
             var energyRequestedInMegajoulesPerSecond = Math.Min(powerCapacity, effectiveResourceThrottling * availablePower * (double)(decimal)powerPercentage * 0.01);
 
@@ -97,7 +97,7 @@ namespace FNPlugin.Refinery
 
             electricalPowerRatio = energyRequestedInMegajoulesPerSecond > 0 ? energyProvidedInMegajoulesPerSecond / energyRequestedInMegajoulesPerSecond : 0;
 
-            _generator.Produce(energyProvidedInMegajoulesPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime);
+            _generator.Produce(energyProvidedInMegajoulesPerSecond * (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7));
 
             productionRate = _generator.ProductionRate;
         }
