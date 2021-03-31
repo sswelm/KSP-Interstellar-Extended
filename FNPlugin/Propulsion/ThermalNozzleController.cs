@@ -382,7 +382,7 @@ namespace FNPlugin.Propulsion
         private AnimationState[] pulseAnimationState;
         private AnimationState[] emiAnimationState;
         private ResourceBuffers resourceBuffers;
-        private ModuleEnginesWarp timewarpEngine;
+        private ModuleEnginesThermalNozzle timewarpEngine;
         private ModuleEngines myAttachedEngine;
         private ConfigNode[] fuelConfigNodes;
 
@@ -584,12 +584,14 @@ namespace FNPlugin.Propulsion
         {
             base.OnLoad(node);
 
-            timewarpEngine = part.FindModuleImplementing<ModuleEnginesMagneticNozzle>();
+            timewarpEngine = part.FindModuleImplementing<ModuleEnginesThermalNozzle>();
             if (timewarpEngine != null)
             {
-                timewarpEngine.Fields[nameof(ModuleEnginesMagneticNozzle.thrust_d)].Attribute.groupName = Group;
-                timewarpEngine.Fields[nameof(ModuleEnginesMagneticNozzle.thrust_d)].Attribute.groupDisplayName = GroupTitle;
+                timewarpEngine.Fields[nameof(ModuleEnginesThermalNozzle.thrust_d)].Attribute.groupName = Group;
+                timewarpEngine.Fields[nameof(ModuleEnginesThermalNozzle.thrust_d)].Attribute.groupDisplayName = GroupTitle;
             }
+            else
+                Debug.LogError("[KSPI]: ThermalEngineController - failed to find ModuleEnginesThermalNozzle during load for " + part.name);
 
             myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine != null)

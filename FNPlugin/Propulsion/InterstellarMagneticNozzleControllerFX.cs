@@ -88,7 +88,7 @@ namespace FNPlugin.Propulsion
         //Internal
         private UI_FloatRange simulatedThrottleFloatRange;
         private ModuleEnginesFX _attachedEngine;
-        private ModuleEnginesWarp _attachedPersistentEngine;
+        private ModuleEnginesMagneticNozzle _attachedPersistentEngine;
         private ResourceBuffers resourceBuffers;
         private PartResourceDefinition propellantBufferResourceDefinition;
         private readonly Guid id = Guid.NewGuid();
@@ -129,12 +129,14 @@ namespace FNPlugin.Propulsion
         {
             base.OnLoad(node);
 
-            _attachedPersistentEngine = part.FindModuleImplementing<ModuleEnginesWarp>();
+            _attachedPersistentEngine = part.FindModuleImplementing<ModuleEnginesMagneticNozzle>();
             if (_attachedPersistentEngine != null)
             {
-                _attachedPersistentEngine.Fields[nameof(ModuleEnginesWarp.thrust_d)].Attribute.groupName = Group;
-                _attachedPersistentEngine.Fields[nameof(ModuleEnginesWarp.thrust_d)].Attribute.groupDisplayName = GroupTitle;
+                _attachedPersistentEngine.Fields[nameof(ModuleEnginesMagneticNozzle.thrust_d)].Attribute.groupName = Group;
+                _attachedPersistentEngine.Fields[nameof(ModuleEnginesMagneticNozzle.thrust_d)].Attribute.groupDisplayName = GroupTitle;
             }
+            else
+                Debug.LogError("[KSPI]: InterstellarMagneticNozzleControllerFX - failed to find ModuleEnginesMagneticNozzle during load for " + part.name);
 
             var myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine != null)
@@ -164,7 +166,7 @@ namespace FNPlugin.Propulsion
                 myAttachedEngine.Fields[nameof(ModuleEngines.independentThrottlePercentage)].Attribute.groupDisplayName = GroupTitle;
             }
             else
-                Debug.LogWarning("[KSPI]: InterstellarMagneticNozzleControllerFX - failed to find engine during load for " + part.name);
+                Debug.LogError("[KSPI]: InterstellarMagneticNozzleControllerFX - failed to find engine during load for " + part.name);
         }
 
         public override void OnStart(StartState state)
@@ -187,12 +189,12 @@ namespace FNPlugin.Propulsion
                 part.OnEditorDetach += OnEditorDetach;
             }
 
-            _attachedPersistentEngine = part.FindModuleImplementing<ModuleEnginesWarp>();
+            _attachedPersistentEngine = part.FindModuleImplementing<ModuleEnginesMagneticNozzle>();
             _attachedEngine = _attachedPersistentEngine;
 
             if (_attachedEngine != null)
             {
-                _attachedEngine.Fields[nameof(ModuleEnginesWarp.finalThrust)].guiFormat = "F5";
+                _attachedEngine.Fields[nameof(ModuleEnginesThermalNozzle.finalThrust)].guiFormat = "F5";
 
                 if (!string.IsNullOrEmpty(runningEffectName))
                     part.Effect(runningEffectName, 0, -1);

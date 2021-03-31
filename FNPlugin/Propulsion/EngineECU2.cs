@@ -515,14 +515,13 @@ namespace FNPlugin.Propulsion
 
         public override void OnStart(StartState state)
         {
-            String[] resources_to_supply = { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
-            this.resourcesToSupply = resources_to_supply;
+            resourcesToSupply = new [] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt };
 
             Debug.Log("[KSPI]: Start Current State: " + (int)state + " " + state.ToString());
             Debug.Log("[KSPI]: OnStart Already Launched: " + Launched);
 
-            curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
-            curEngineWarp = this.part.FindModuleImplementing<ModuleEnginesWarp>();
+            curEngineT = part.FindModuleImplementing<ModuleEngines>();
+            curEngineWarp = part.FindModuleImplementing<ModuleEnginesWarp>();
 
             if ((state & StartState.PreLaunch) == StartState.PreLaunch)
                 hideEmpty = true;
