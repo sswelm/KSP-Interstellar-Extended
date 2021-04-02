@@ -58,7 +58,7 @@ namespace FNPlugin.Powermanagement
                 }
             }
 
-            var chargedOvermanager = ResourceOvermanager.GetResourceOvermanagerForResource(ResourceSettings.Config.ChargedParticleInMegawatt);
+            var chargedOvermanager = ResourceOvermanager.GetResourceOvermanagerForResource(ResourceSettings.Config.ChargedPowerInMegawatt);
             if (chargedOvermanager.HasManagerForVessel(vessel) && !hideButton)
             {
                 ResourceManager chargedManager = chargedOvermanager.GetManagerForVessel(vessel);

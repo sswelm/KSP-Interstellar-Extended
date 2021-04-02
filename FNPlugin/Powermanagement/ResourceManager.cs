@@ -19,7 +19,7 @@ namespace FNPlugin.Powermanagement
                 result = new MegajoulesResourceManager(id, pm);
             else if (resourceName == ResourceSettings.Config.WasteHeatInMegawatt)
                 result = new WasteHeatResourceManager(id, pm);
-            else if(resourceName == ResourceSettings.Config.ChargedParticleInMegawatt)
+            else if(resourceName == ResourceSettings.Config.ChargedPowerInMegawatt)
                 result = new CPResourceManager(id, pm);
             else if(resourceName == ResourceSettings.Config.ThermalPowerInMegawatt)
                 result = new TPResourceManager(id, pm);

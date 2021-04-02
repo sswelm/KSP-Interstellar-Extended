@@ -100,6 +100,7 @@ namespace FNPlugin.Storage
 
         [KSPField] public bool canExplodeFromHeat = false;
         [KSPField] public bool calculatedMass = false;
+        [KSPField] public bool calculatedCost = true;
         [KSPField] public bool canExplodeFromGeeForce = false;
 
         bool _isJustAboutToDie;
@@ -209,31 +210,43 @@ namespace FNPlugin.Storage
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            return (float)ModuleCost();
+            return (float)GetModuleCost(defaultCost);
         }
 
-        private double ModuleCost()
+        // this method will be called in the VAB
+        private double GetModuleCost(float defaultCost)
         {
-            double costReduction = 0;
-            var antimatterResource = part.Resources[resourceName];
-            if (antimatterResource != null)
-                costReduction = maxStorage * antimatterResource.info.unitCost;
+            if (!calculatedCost)
+                return 0;
 
-            resourceCost = 0;
-            foreach (var resource in part.Resources)
+            try
             {
-                resourceCost += resource.amount * resource.info.unitCost;
+                double costReduction = 0;
+                var antimatterResource = part.Resources[resourceName];
+                if (antimatterResource != null)
+                    costReduction = maxStorage * antimatterResource.info.unitCost;
+
+                resourceCost = 0;
+                foreach (var resource in part.Resources)
+                {
+                    resourceCost += resource.amount * resource.info.unitCost;
+                }
+
+                emptyCost = part.partInfo.cost - costReduction;
+                projectedCost = emptyCost * storedInitialCostMultiplier + resourceCost;
+                targetCost = emptyCost * storedTargetCostMultiplier + resourceCost;
+                moduleCost = targetCost - projectedCost;
+
+                // Hack to prevent weird cost due to changed resource amounts
+                if (moduleCost == 0 && storedInitialCostMultiplier == 1 && antimatterResource != null)
+                {
+                    moduleCost = (antimatterResource.maxAmount - maxStorage) * antimatterResource.info.unitCost;
+                }
             }
-
-            emptyCost = part.partInfo.cost - costReduction;
-            projectedCost = emptyCost * storedInitialCostMultiplier + resourceCost;
-            targetCost = emptyCost * storedTargetCostMultiplier + resourceCost;
-            moduleCost = targetCost - projectedCost;
-
-            // Hack to prevent weird cost due to changed resource amounts
-            if (moduleCost == 0 && storedInitialCostMultiplier == 1 && antimatterResource != null)
+            catch (Exception e)
             {
-                moduleCost = (antimatterResource.maxAmount - maxStorage) * antimatterResource.info.unitCost;
+                Debug.LogError("[KSPI]: GetModuleCost Exception: " + e.Message);
+                return 0;
             }
 
             return moduleCost;
@@ -241,10 +254,7 @@ namespace FNPlugin.Storage
 
         public ModifierChangeWhen GetModuleCostChangeWhen()
         {
-            if (HighLogic.LoadedSceneIsEditor)
-                return ModifierChangeWhen.CONSTANTLY;
-            else
-                return ModifierChangeWhen.STAGED;
+            return HighLogic.LoadedSceneIsEditor ? ModifierChangeWhen.CONSTANTLY : ModifierChangeWhen.STAGED;
         }
 
         private void UpdateTargetMass()

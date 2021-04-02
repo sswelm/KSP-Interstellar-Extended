@@ -330,7 +330,7 @@ namespace FNPlugin.Powermanagement
         {
             ConnectToModuleGenerator();
 
-            resourcesToSupply = new[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedParticleInMegawatt };
+            resourcesToSupply = new[] { ResourceSettings.Config.ElectricPowerInMegawatt, ResourceSettings.Config.WasteHeatInMegawatt, ResourceSettings.Config.ThermalPowerInMegawatt, ResourceSettings.Config.ChargedPowerInMegawatt };
 
             if (useResourceBuffers)
             {
@@ -810,7 +810,7 @@ namespace FNPlugin.Powermanagement
             if (IsEnabled)
             {
                 OutputPower = PluginHelper.GetFormattedPowerString(-_outputPower);
-                overallEfficiencyStr = (_totalEfficiency * 10).ToString("0.00") + "%";
+                overallEfficiencyStr = (_totalEfficiency * 100).ToString("0.00") + "%";
 
                 maximumElectricPower = _totalEfficiency >= 0
                     ? !chargedParticleMode
@@ -1014,7 +1014,7 @@ namespace FNPlugin.Powermanagement
                         _requestedChargedPower = _reactorPowerRequested;
                         _requestedChargedPower *= 1 - Math.Max(_attachedPowerSource.CurrentChargedPropulsionRatio, _attachedPowerSource.CurrentPlasmaPropulsionRatio);
 
-                        _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
+                        _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedPowerInMegawatt);
 
                         var maximumChargedPower = _attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
                         var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? _requestedChargedPower / maximumChargedPower : 0);
@@ -1026,11 +1026,11 @@ namespace FNPlugin.Powermanagement
                         _requestedChargedPower = Math.Min(Math.Min(_reactorPowerRequested - _thermalPowerReceived, _maxChargedPowerForThermalGenerator), Math.Max(0, _maxReactorPower - _thermalPowerReceived));
                         _requestedChargedPower *= 1 - Math.Max(_attachedPowerSource.CurrentChargedPropulsionRatio, _attachedPowerSource.CurrentPlasmaPropulsionRatio);
 
-                        _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
+                        _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedPowerInMegawatt);
                     }
                     else
                     {
-                        ConsumeFnResourcePerSecond(0, ResourceSettings.Config.ChargedParticleInMegawatt);
+                        ConsumeFnResourcePerSecond(0, ResourceSettings.Config.ChargedPowerInMegawatt);
                         _chargedPowerReceived = 0;
                         _requestedChargedPower = 0;
                     }
@@ -1061,7 +1061,7 @@ namespace FNPlugin.Powermanagement
                     var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? _requestedChargedPower / maximumChargedPower : 0);
                     _attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEfficiency, chargedPowerRequestRatio, part.mass);
 
-                    _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
+                    _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedPowerInMegawatt);
                 }
 
                 received_power_per_second = _thermalPowerReceived + _chargedPowerReceived;
@@ -1148,18 +1148,18 @@ namespace FNPlugin.Powermanagement
                 // Collect charged power when needed
                 if (_attachedPowerSource.ChargedPowerRatio >= 1)
                 {
-                    postChargedPowerReceived += ConsumeFnResourcePerSecond(_requestedPostReactorPower, ResourceSettings.Config.ChargedParticleInMegawatt);
+                    postChargedPowerReceived += ConsumeFnResourcePerSecond(_requestedPostReactorPower, ResourceSettings.Config.ChargedPowerInMegawatt);
                 }
                 else if (_shouldUseChargedPower && powerReceived < _reactorPowerRequested)
                 {
                     var postPowerRequest = Math.Min(Math.Min(_requestedPostReactorPower - powerReceived, _maxChargedPowerForThermalGenerator), Math.Max(0, _maxReactorPower - powerReceived));
 
-                    postChargedPowerReceived += ConsumeFnResourcePerSecond(postPowerRequest, ResourceSettings.Config.ChargedParticleInMegawatt);
+                    postChargedPowerReceived += ConsumeFnResourcePerSecond(postPowerRequest, ResourceSettings.Config.ChargedPowerInMegawatt);
                 }
             }
             else // charged power mode
             {
-                postChargedPowerReceived += ConsumeFnResourcePerSecond(_requestedPostChargedPower, ResourceSettings.Config.ChargedParticleInMegawatt);
+                postChargedPowerReceived += ConsumeFnResourcePerSecond(_requestedPostChargedPower, ResourceSettings.Config.ChargedPowerInMegawatt);
             }
 
             var postEffectiveInputPowerPerSecond = Math.Max(0, Math.Min((postThermalPowerReceived + postChargedPowerReceived) * _totalEfficiency, maximumElectricPower - _electricPowerPerSecond));

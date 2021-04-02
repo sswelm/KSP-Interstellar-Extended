@@ -1601,7 +1601,7 @@ namespace FNPlugin.Propulsion
             effectiveThrustFraction = GetHeatExchangerThrustMultiplier();
 
             effectiveThermalSupply = !UseChargedPowerOnly ? effectiveThrustFraction * GetAvailableStableSupply(ResourceSettings.Config.ThermalPowerInMegawatt) : 0;
-            effectiveChargedSupply = canUseChargedPower ? effectiveThrustFraction * GetAvailableStableSupply(ResourceSettings.Config.ChargedParticleInMegawatt) : 0;
+            effectiveChargedSupply = canUseChargedPower ? effectiveThrustFraction * GetAvailableStableSupply(ResourceSettings.Config.ChargedPowerInMegawatt) : 0;
 
             maximumPowerUsageForPropulsionRatio = UsePlasmaPower
                 ? AttachedReactor.PlasmaPropulsionEfficiency
@@ -1614,7 +1614,7 @@ namespace FNPlugin.Propulsion
             currentMaxChargedPower = Math.Min(effectiveChargedSupply, effectiveThrustFraction * maximumChargedPower * maximumPowerUsageForPropulsionRatio * adjustedThrottle);
 
             thermalResourceRatio = GetResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt);
-            chargedResourceRatio = GetResourceBarFraction(ResourceSettings.Config.ChargedParticleInMegawatt);
+            chargedResourceRatio = GetResourceBarFraction(ResourceSettings.Config.ChargedPowerInMegawatt);
 
             availableThermalPower = exhaustAllowed ? currentMaxThermalPower * (thermalResourceRatio > 0.5 ? 1 : thermalResourceRatio * 2) : 0;
             availableChargedPower = exhaustAllowed ? currentMaxChargedPower * (chargedResourceRatio > 0.5 ? 1 : chargedResourceRatio * 2) : 0;
@@ -1860,7 +1860,7 @@ namespace FNPlugin.Propulsion
             if (currentMaxChargedPower > 0)
             {
                 requested_charge_particles = receivedMegajoulesRatio * availableChargedPower;
-                reactor_power_received += ConsumeFnResourcePerSecond(requested_charge_particles, ResourceSettings.Config.ChargedParticleInMegawatt);
+                reactor_power_received += ConsumeFnResourcePerSecond(requested_charge_particles, ResourceSettings.Config.ChargedPowerInMegawatt);
             }
 
             // convert part of the exhaust energy directly into electric power

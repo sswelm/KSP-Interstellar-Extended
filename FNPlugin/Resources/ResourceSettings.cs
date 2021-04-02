@@ -75,10 +75,11 @@ namespace FNPlugin.Resources
         // Pseudo resources
         public string ElectricPowerInKilowatt { get; private set; } = "ElectricCharge";
         public string ElectricPowerInMegawatt { get; private set; } = "Megajoules";
-        public string ChargedParticleInMegawatt { get; private set; } = "ChargedParticles";
+        public string ChargedPowerInMegawatt { get; private set; } = "ChargedPower";
         public string ThermalPowerInMegawatt { get; private set; } = "ThermalPower";
         public string WasteHeatInMegawatt { get; private set; } = "WasteHeat";
 
+        public string ChargedParticles { get; private set; } = "ChargedParticles";
         public string AntiProtium { get; private set; } = "Antimatter";
         public string VacuumPlasma { get; private set; } = "VacuumPlasma";
         public string ExoticMatter { get; private set; } = "ExoticMatter";
@@ -169,10 +170,11 @@ namespace FNPlugin.Resources
             // pseudo resources
             UpdatePropertyWithConfigNode(pluginSettings, nameof(ElectricPowerInKilowatt), value => ElectricPowerInKilowatt = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(ElectricPowerInMegawatt), value => ElectricPowerInMegawatt = value);
-            UpdatePropertyWithConfigNode(pluginSettings, nameof(ChargedParticleInMegawatt), value => ChargedParticleInMegawatt = value);
+            UpdatePropertyWithConfigNode(pluginSettings, nameof(ChargedPowerInMegawatt), value => ChargedPowerInMegawatt = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(ThermalPowerInMegawatt), value => ThermalPowerInMegawatt = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(WasteHeatInMegawatt), value => WasteHeatInMegawatt = value);
 
+            UpdatePropertyWithConfigNode(pluginSettings, nameof(ChargedParticles), value => ChargedParticles = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(AntiProtium), value => AntiProtium = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(ExoticMatter), value => ExoticMatter = value);
             UpdatePropertyWithConfigNode(pluginSettings, nameof(VacuumPlasma), value => VacuumPlasma = value);

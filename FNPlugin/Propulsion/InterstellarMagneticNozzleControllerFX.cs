@@ -25,6 +25,9 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "MHD Power %")
          , UI_FloatRange(stepIncrement = 1f, maxValue = 200, minValue = 0, affectSymCounterparts = UI_Scene.All)]
         public float mhdPowerGenerationPercentage = 101;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Supply Priority")
+         , UI_FloatRange(stepIncrement = 1f, maxValue = 4, minValue = 0, affectSymCounterparts = UI_Scene.All)]
+        public float supplyPriority = 0;
 
         [KSPField(isPersistant = true)] double powerBufferStore;
         [KSPField(isPersistant = true)] bool exhaustAllowed = true;
@@ -190,7 +193,25 @@ namespace FNPlugin.Propulsion
             }
 
             _attachedPersistentEngine = part.FindModuleImplementing<ModuleEnginesMagneticNozzle>();
-            _attachedEngine = _attachedPersistentEngine;
+
+            if (_attachedPersistentEngine != null)
+            {
+                _attachedPersistentEngine.propellant1 = propellantBufferResourceName;
+                _attachedPersistentEngine.propellant2 = null;
+                _attachedPersistentEngine.propellant3 = null;
+                _attachedPersistentEngine.propellant4 = null;
+
+                _attachedPersistentEngine.ratio1 = 1;
+                _attachedPersistentEngine.ratio2 = 0;
+                _attachedPersistentEngine.ratio3 = 0;
+                _attachedPersistentEngine.ratio4 = 0;
+            }
+            else
+            {
+                Debug.LogError("[KSPI]: InterstellarMagneticNozzleControllerFX Error " + part.partInfo.title + " failed to find ModuleEnginesMagneticNozzle");
+            }
+
+            _attachedEngine = part.FindModuleImplementing<ModuleEnginesFX>();
 
             if (_attachedEngine != null)
             {
@@ -200,6 +221,10 @@ namespace FNPlugin.Propulsion
                     part.Effect(runningEffectName, 0, -1);
                 if (!string.IsNullOrEmpty(powerEffectName))
                     part.Effect(powerEffectName, 0, -1);
+            }
+            else
+            {
+                Debug.LogError("[KSPI]: InterstellarMagneticNozzleControllerFX Error " + part.partInfo.title + " failed to find ModuleEnginesFX");
             }
 
             ConnectToReactor();
@@ -434,7 +459,7 @@ namespace FNPlugin.Propulsion
                 _max_charged_particles_power = currentMaximumChargedPower * _exchangerThrustDivisor * _attachedReactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = exhaustAllowed && currentThrottle > 0 ? _max_charged_particles_power : 0;
 
-                _charged_particles_received = _charged_particles_requested > 0 ? ConsumeFnResourcePerSecond(_charged_particles_requested, ResourceSettings.Config.ChargedParticleInMegawatt) : 0;
+                _charged_particles_received = _charged_particles_requested > 0 ? ConsumeFnResourcePerSecond(_charged_particles_requested, ResourceSettings.Config.ChargedPowerInMegawatt) : 0;
 
                 // update Isp
                 currentIsp = currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(currentThrottle, throtleExponent));
@@ -656,7 +681,7 @@ namespace FNPlugin.Propulsion
 
         public override int GetSupplyPriority()
         {
-            return 0;
+            return (int)Math.Round(supplyPriority);
         }
 
         private bool AllowedExhaust()

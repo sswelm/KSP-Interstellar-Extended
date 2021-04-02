@@ -1084,14 +1084,14 @@ namespace FNPlugin.Reactors
             {
                 ResourceSettings.Config.ThermalPowerInMegawatt,
                 ResourceSettings.Config.WasteHeatInMegawatt,
-                ResourceSettings.Config.ChargedParticleInMegawatt,
+                ResourceSettings.Config.ChargedPowerInMegawatt,
                 ResourceSettings.Config.ElectricPowerInMegawatt
             };
 
             _resourceBuffers = new ResourceBuffers();
             _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier * wasteHeatBufferMult, wasteHeatBufferMassMult, true));
             _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ThermalPowerInMegawatt, thermalPowerBufferMult));
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ChargedParticleInMegawatt, chargedPowerBufferMult));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ChargedPowerInMegawatt, chargedPowerBufferMult));
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             _resourceBuffers.Init(part);
 
@@ -1566,7 +1566,7 @@ namespace FNPlugin.Reactors
                 var finalCurrentThermalRequestRatio = Math.Max(currentThermalRequestRatio,
                     (1 - GetResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt)) * 0.001 * ThermalPowerRatio);
                 var finalCurrentChargedRequestRatio = Math.Max(currentChargedRequestRatio,
-                    (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedParticleInMegawatt)) * 0.001 * ChargedPowerRatio);
+                    (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedPowerInMegawatt)) * 0.001 * ChargedPowerRatio);
 
                 var finalReactorRequestRatio = Math.Max(vessel.ctrlState.mainThrottle * 0.001, Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio)) ;
                 var maximumReactorRequestRatio = Math.Max(maximumThermalRequestRatio, maximumChargedRequestRatio);
@@ -1606,7 +1606,7 @@ namespace FNPlugin.Reactors
                 ongoing_charged_power_generated = ManagedProvidedPowerSupplyPerSecondMinimumRatio(
                     requestedChargedToSupplyPerSecond * lostChargeModifier,
                     maxChargedToSupplyPerSecond * lostChargeModifier,
-                    reactor_power_ratio, ResourceSettings.Config.ChargedParticleInMegawatt);
+                    reactor_power_ratio, ResourceSettings.Config.ChargedPowerInMegawatt);
 
                 ongoing_thermal_power_generated = ManagedProvidedPowerSupplyPerSecondMinimumRatio(
                     requestedThermalToSupplyPerSecond * lostThermalModifier,
@@ -1682,7 +1682,7 @@ namespace FNPlugin.Reactors
 
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, 0);
-            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedParticleInMegawatt, 0);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedPowerInMegawatt, 0);
             _resourceBuffers.UpdateBuffers();
         }
 
@@ -1965,7 +1965,7 @@ namespace FNPlugin.Reactors
         {
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, MaximumThermalPower);
-            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedParticleInMegawatt, MaximumChargedPower);
+            _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedPowerInMegawatt, MaximumChargedPower);
             _resourceBuffers.UpdateBuffers();
         }
 

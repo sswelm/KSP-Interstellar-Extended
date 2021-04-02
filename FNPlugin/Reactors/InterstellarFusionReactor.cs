@@ -17,7 +17,7 @@ namespace FNPlugin.Reactors
         [KSPField] public double maximumLithiumModifier = 1;
         [KSPField] public double lithiumModifierExponent = 0.5;
         [KSPField] public double maximumChargedIspMult = 100;
-        [KSPField] public double minimumChargdIspMult = 1;
+        [KSPField] public double minimumChargedIspMult = 1;
         [KSPField] public double maintenancePowerWasteheatRatio = 0.1;
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_Maintance")] public string electricPowerMaintenance;
@@ -30,7 +30,7 @@ namespace FNPlugin.Reactors
 
         // Properties
         public double MaximumChargedIspMult => maximumChargedIspMult;
-        public double MinimumChargdIspMult => minimumChargdIspMult;
+        public double MinimumChargdIspMult => minimumChargedIspMult;
         public override double MaximumThermalPower => Math.Max(base.MaximumThermalPower * PlasmaModifier * lithium_modifier, 0);
         public override double MaximumChargedPower => base.MaximumChargedPower * PlasmaModifier;
         public override bool IsFuelNeutronRich => !CurrentFuelMode.Aneutronic && CurrentFuelMode.NeutronsRatio > 0;
