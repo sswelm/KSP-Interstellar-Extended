@@ -215,11 +215,11 @@ namespace FNPlugin.Powermanagement
             return result;
         }
 
-        public double supplyFNResourceFixed(double supply, string resourceName)
+        public double SupplyFNResourceFixed(double supply, string resourceName)
         {
             if (supply.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName))
             {
-                Debug.LogError("[KSPI]: supplyFNResourceFixed was called with illegal value");
+                Debug.LogError("[KSPI]: SupplyFNResourceFixed was called with illegal value");
                 return 0;
             }
 

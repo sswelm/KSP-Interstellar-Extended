@@ -380,7 +380,8 @@ namespace FNPlugin.Beamedpower
         public double ThermalPropulsionWasteheatModifier => 1;
         public double EfficencyConnectedThermalEnergyGenerator => storedIsThermalEnergyGeneratorEfficiency;
         public double EfficencyConnectedChargedEnergyGenerator => 0;
-        public bool IsThermalSource => this.isThermalReceiver;
+        public bool IsThermalSource => isThermalReceiver;
+        public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition[] resource) { }
         public double RawMaximumPowerForPowerGeneration => powerInputMegajoulesMax;
         public double RawMaximumPower => MaximumReceiverPowerCapacity;
         public double RawTotalPowerProduced => ThermalPower * TimeWarp.fixedDeltaTime;
@@ -480,7 +481,6 @@ namespace FNPlugin.Beamedpower
             _receivedPower.Clear();
         }
 
-        public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource) {}
         public void FindAndAttachToPowerSource() {}
 
         private void DetermineTechLevel()

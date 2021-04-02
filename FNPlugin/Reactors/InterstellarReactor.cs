@@ -176,6 +176,7 @@ namespace FNPlugin.Reactors
         [KSPField(groupName = UpgradesGroup, groupDisplayName = UpgradesGroupDisplayName, guiName = "#LOC_KSPIE_Reactor_powerOutputMk6", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")] public double powerOutputMk6;
         [KSPField(groupName = UpgradesGroup, groupDisplayName = UpgradesGroupDisplayName, guiName = "#LOC_KSPIE_Reactor_powerOutputMk7", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")] public double powerOutputMk7;
 
+        [KSPField] public bool chargedPowerProducesWasteheat = false;
         [KSPField] public bool allModesAvailableAtStart;
         [KSPField] public bool showEngineConnectionInfo = true;
         [KSPField] public bool showPowerGeneratorConnectionInfo = true;
@@ -200,6 +201,7 @@ namespace FNPlugin.Reactors
         [KSPField] public bool showSpecialisedUI = true;
         [KSPField] public bool canUseNeutronicFuels = true;
         [KSPField] public bool shouldApplyBalance;
+        [KSPField] public bool simulateConsumption = false;
 
         [KSPField] public int fuelModeTechLevel;
         [KSPField] public int minCoolingFactor = 1;
@@ -386,8 +388,8 @@ namespace FNPlugin.Reactors
         private readonly Queue<double> _averageGeeforce = new Queue<double>();
         private readonly Queue<double> _averageOverheat = new Queue<double>();
 
-        private readonly Queue<double> ongoing_wasteheat_rate_1 = new Queue<double>();
-        private readonly Queue<double> ongoing_wasteheat_rate_2 = new Queue<double>();
+        private readonly Queue<double> wasteheatBuffer = new Queue<double>();
+        //private readonly Queue<double> wasteheatbuffer2 = new Queue<double>();
 
         private AudioSource _initiateSound;
         private AudioSource _terminateSound;
@@ -458,6 +460,8 @@ namespace FNPlugin.Reactors
         public double PlasmaEnergyEfficiency => plasmaEnergyEfficiency;
         public double ChargedParticleEnergyEfficiency => chargedParticleEnergyEfficiency;
         public double PowerBufferBonus => bonusBufferFactor;
+
+
         public double RawMaximumPowerForPowerGeneration => RawPowerOutput;
         public double RawMaximumPower => RawPowerOutput;
         public double ReactorSpeedMult => reactorSpeedMult;
@@ -759,27 +763,36 @@ namespace FNPlugin.Reactors
 
         public void UseProductForPropulsion(double ratio, double propellantMassPerSecond)
         {
-            UseProductForPropulsion(ratio, propellantMassPerSecond, _hydrogenDefinition);
+            UseProductForPropulsion(ratio, propellantMassPerSecond, new [] {_hydrogenDefinition});
         }
 
-        public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource)
+        public void UseProductForPropulsion(double chargedRatio, double propellantMassPerSecond, PartResourceDefinition[] resource)
         {
-            if (ratio <= 0) return;
+            if (chargedRatio <= 0) return;
 
-            foreach (var product in _reactorProduction)
+            if (resource.Length == 0) return;
+
+            var resourceRatio = 1d / resource.Length;
+
+            foreach (var partResourceDefinition in resource)
             {
-                if (product.mass <= 0) continue;
+                foreach (var product in _reactorProduction)
+                {
+                    if (product.mass <= 0) continue;
 
-                var effectiveMass = ratio * product.mass;
+                    var effectiveMass = chargedRatio * product.mass;
 
-                // remove product from store
-                var fuelAmount = product.fuelMode.DensityInTon > 0 ? (effectiveMass / product.fuelMode.DensityInTon) : 0;
-                if (fuelAmount == 0) continue;
+                    // remove product from store
+                    var fuelAmount = product.fuelMode.DensityInTon > 0 ? effectiveMass / product.fuelMode.DensityInTon : 0;
+                    if (fuelAmount == 0) continue;
 
-                part.RequestResource(product.fuelMode.ResourceName, fuelAmount);
+                    part.RequestResource(product.fuelMode.ResourceName, fuelAmount * resourceRatio);
+                }
+
+                // re-add consumed resource
+                var amount = resourceRatio * propellantMassPerSecond * TimeWarp.fixedDeltaTime / partResourceDefinition.density;
+                part.RequestResource(partResourceDefinition.name, -amount, ResourceFlowMode.ALL_VESSEL);
             }
-
-            part.RequestResource(resource.name, -propellantMassPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime / resource.density, ResourceFlowMode.ALL_VESSEL);
         }
 
         public void ConnectWithEngine(IEngineNoozle engine)
@@ -1598,25 +1611,21 @@ namespace FNPlugin.Reactors
 
                 reactor_power_ratio = Math.Min(overheatModifier * finalReactorRequestRatio, PowerRatio);
 
-                var lostThermalModifier = 1 - lostThermalPowerRatio;
                 var lostChargeModifier = 1 - lostChargedPowerRatio;
-
-                var maximumGeneratedPower = maximumReactorRequestRatio * (maxChargedToSupplyPerSecond * lostChargeModifier + maxThermalToSupplyPerSecond * lostThermalModifier);
-
                 ongoing_charged_power_generated = ManagedProvidedPowerSupplyPerSecondMinimumRatio(
                     requestedChargedToSupplyPerSecond * lostChargeModifier,
                     maxChargedToSupplyPerSecond * lostChargeModifier,
                     reactor_power_ratio, ResourceSettings.Config.ChargedPowerInMegawatt);
 
+                var lostThermalModifier = 1 - lostThermalPowerRatio;
                 ongoing_thermal_power_generated = ManagedProvidedPowerSupplyPerSecondMinimumRatio(
                     requestedThermalToSupplyPerSecond * lostThermalModifier,
                     maxThermalToSupplyPerSecond * lostThermalModifier,
                     reactor_power_ratio, ResourceSettings.Config.ThermalPowerInMegawatt);
 
-                ongoing_total_power_generated = ongoing_thermal_power_generated + ongoing_charged_power_generated;
-
                 UpdateEmbrittlement(Math.Max(thermalThrottleRatio, plasmaThrottleRatio), timeWarpFixedDeltaTime);
 
+                ongoing_total_power_generated = ongoing_thermal_power_generated + ongoing_charged_power_generated;
                 ongoing_consumption_rate = maximumPower > 0 ? ongoing_total_power_generated / maximumPower : 0;
                 PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, animExponent), pulseAnimation);
                 powerPercent = 100 * ongoing_consumption_rate;
@@ -1624,21 +1633,15 @@ namespace FNPlugin.Reactors
                 // produce wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
-                    var averagePrevious = ongoing_wasteheat_rate_2.Count > 0 ?  Math.Min(ongoing_wasteheat_rate_2.Average(), ongoing_consumption_rate) : ongoing_consumption_rate;
+                    var maximumGeneratedWasteheat = maximumReactorRequestRatio * maxThermalToSupplyPerSecond * lostThermalModifier;
+                    var rawGeneratedWasteheat = ongoing_thermal_power_generated + (chargedPowerProducesWasteheat ? ongoing_charged_power_generated : 0);
+                    var averagePrevious = wasteheatBuffer.Count > 0 ?  Math.Min(wasteheatBuffer.Min(), rawGeneratedWasteheat) : rawGeneratedWasteheat;
+                    var delayedWasteheatRate = rawGeneratedWasteheat > averagePrevious ? Math.Min(averagePrevious, rawGeneratedWasteheat) : rawGeneratedWasteheat;
+                    SupplyFnResourcePerSecondWithMax(delayedWasteheatRate, maximumGeneratedWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
 
-                    var delayedWasteheatRate = ongoing_consumption_rate > averagePrevious ? Math.Min(averagePrevious, ongoing_consumption_rate) : ongoing_consumption_rate;
-
-                    SupplyFnResourcePerSecondWithMax(delayedWasteheatRate * maximumPower, maximumGeneratedPower, ResourceSettings.Config.WasteHeatInMegawatt);
-
-                    ongoing_wasteheat_rate_1.Enqueue(ongoing_consumption_rate);
-
-
-                    ongoing_wasteheat_rate_2.Enqueue(ongoing_wasteheat_rate_1.Average());
-                    if (ongoing_wasteheat_rate_2.Count > 2)
-                        ongoing_wasteheat_rate_2.Dequeue();
-
-                    if (ongoing_wasteheat_rate_1.Count > 2)
-                        ongoing_wasteheat_rate_1.Dequeue();
+                    wasteheatBuffer.Enqueue(rawGeneratedWasteheat);
+                    if (wasteheatBuffer.Count > 2)
+                        wasteheatBuffer.Dequeue();
                 }
 
                 ProcessReactorFuel(timeWarpFixedDeltaTime);
@@ -1727,8 +1730,8 @@ namespace FNPlugin.Reactors
             foreach (var product in currentFuelVariant.ReactorProducts)
             {
                 var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier, timeWarpFixedDeltaTime, reactorFuelProcess != null);
-                if (product.IsPropellant)
-                    _reactorProduction.Add(new ReactorProduction() {fuelMode = product, mass = massProduced});
+                if (!simulateConsumption && product.IsPropellant)
+                    _reactorProduction.Add(new ReactorProduction {fuelMode = product, mass = massProduced});
             }
         }
 
@@ -2386,8 +2389,10 @@ namespace FNPlugin.Reactors
 
             if (fuel.ConsumeGlobal)
             {
-                var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage * deltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW, resourceControl != null);
-                return (fuel.Simulate || CheatOptions.InfinitePropellant ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
+                var result = simulateConsumption ||  fuel.Simulate ? 0
+                    : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage * deltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW, resourceControl != null);
+
+                return (simulateConsumption || fuel.Simulate || CheatOptions.InfinitePropellant ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
             }
 
             if (part.Resources.Contains(fuel.ResourceName))
@@ -2424,7 +2429,7 @@ namespace FNPlugin.Reactors
                         return 0;
 
                     var availableStorage = partResource.maxAmount - partResource.amount;
-                    if(!simulate)
+                    if(!simulateConsumption && !simulate)
                         partResource.amount += Math.Min(fixedProductSupply, availableStorage);
 
                     return fixedProductSupply * product.DensityInTon;
@@ -2433,7 +2438,7 @@ namespace FNPlugin.Reactors
                     return 0;
             }
 
-            if (!simulate)
+            if (!simulateConsumption && !simulate)
             {
                 part.RequestResource(product.Definition.id, -fixedProductSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW);
             }

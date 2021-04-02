@@ -545,6 +545,8 @@ namespace FNPlugin.Powermanagement
             if (power.IsInfinityOrNaN() || maxPower.IsInfinityOrNaN() || efficiencyRatio.IsInfinityOrNaN())
                 return 0.0;
 
+            power = Math.Min(power, maxPower);
+
             current.Supply += power;
             current.StableSupply += maxPower;
 

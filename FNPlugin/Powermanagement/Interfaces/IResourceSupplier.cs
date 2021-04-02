@@ -8,6 +8,6 @@ namespace FNPlugin
 
         string getResourceManagerDisplayName();
 
-        double supplyFNResourceFixed(double supply, String resourceName);
+        double SupplyFNResourceFixed(double supply, String resourceName);
     }
 }

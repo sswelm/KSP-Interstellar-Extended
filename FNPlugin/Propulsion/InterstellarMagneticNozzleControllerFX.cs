@@ -7,6 +7,7 @@ using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -74,7 +75,7 @@ namespace FNPlugin.Propulsion
 
 
         [KSPField] public bool showPartMass = true;
-        [KSPField] public bool maintainsPropellantBuffer = true;
+        //[KSPField] public bool maintainsPropellantBuffer = true;
         [KSPField] public string propellantBufferResourceName = "LqdHydrogen";
         [KSPField] public string runningEffectName = string.Empty;
         [KSPField] public string powerEffectName = string.Empty;
@@ -93,16 +94,19 @@ namespace FNPlugin.Propulsion
         private ModuleEnginesFX _attachedEngine;
         private ModuleEnginesMagneticNozzle _attachedPersistentEngine;
         private ResourceBuffers resourceBuffers;
-        private PartResourceDefinition propellantBufferResourceDefinition;
+        //private PartResourceDefinition propellantBufferResourceDefinition1;
+        //private PartResourceDefinition propellantBufferResourceDefinition2;
         private readonly Guid id = Guid.NewGuid();
+
+        private PartResourceDefinition[] partResourceDefinitions;
 
         private IFNChargedParticleSource _attachedReactor;
 
         private bool _checkedConnectivity;
         private int _attachedReactorDistance;
-        private double _wasteheatConsumption;
+        //private double _wasteheatConsumption;
         private double _exchangerThrustDivisor;
-        private double _previousChargedParticlesReceived;
+        //private double _previousChargedParticlesReceived;
         private double _maxPowerMultiplier;
         private double powerBufferMax;
         private double _mhdTrustIspModifier = 1;
@@ -176,7 +180,7 @@ namespace FNPlugin.Propulsion
         {
             resourcesToSupply = new[]{ ResourceSettings.Config.ElectricPowerInMegawatt };
 
-            propellantBufferResourceDefinition = PartResourceLibrary.Instance.GetDefinition(propellantBufferResourceName);
+            CreateDefinitionList();
 
             if (part.FindModuleImplementing<IFNPowerSource>() == null)
             {
@@ -194,22 +198,8 @@ namespace FNPlugin.Propulsion
 
             _attachedPersistentEngine = part.FindModuleImplementing<ModuleEnginesMagneticNozzle>();
 
-            if (_attachedPersistentEngine != null)
-            {
-                _attachedPersistentEngine.propellant1 = propellantBufferResourceName;
-                _attachedPersistentEngine.propellant2 = null;
-                _attachedPersistentEngine.propellant3 = null;
-                _attachedPersistentEngine.propellant4 = null;
-
-                _attachedPersistentEngine.ratio1 = 1;
-                _attachedPersistentEngine.ratio2 = 0;
-                _attachedPersistentEngine.ratio3 = 0;
-                _attachedPersistentEngine.ratio4 = 0;
-            }
-            else
-            {
-                Debug.LogError("[KSPI]: InterstellarMagneticNozzleControllerFX Error " + part.partInfo.title + " failed to find ModuleEnginesMagneticNozzle");
-            }
+            if (_attachedPersistentEngine == null)
+                Debug.LogWarning("[KSPI]: InterstellarMagneticNozzleControllerFX Error " + part.partInfo.title + " failed to find ModuleEnginesMagneticNozzle");
 
             _attachedEngine = part.FindModuleImplementing<ModuleEnginesFX>();
 
@@ -231,7 +221,7 @@ namespace FNPlugin.Propulsion
 
             UpdateEngineStats(true);
 
-            InitializesPropellantBuffer();
+            //InitializesPropellantBuffer();
 
             Fields[nameof(partMass)].guiActiveEditor = showPartMass;
             Fields[nameof(partMass)].guiActive = showPartMass;
@@ -241,23 +231,29 @@ namespace FNPlugin.Propulsion
                 simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;
         }
 
-        private void InitializesPropellantBuffer()
+        private void CreateDefinitionList()
         {
-            if (maintainsPropellantBuffer && string.IsNullOrEmpty(propellantBufferResourceName) == false && part.Resources[propellantBufferResourceName] == null)
-            {
-                Debug.Log("[KSPI]: Added " + propellantBufferResourceName + " buffer to MagneticNozzle");
-                var newResourceNode = new ConfigNode("RESOURCE");
-                newResourceNode.AddValue("name", propellantBufferResourceName);
-                newResourceNode.AddValue("maxAmount", minimumPropellantBuffer);
-                newResourceNode.AddValue("amount", minimumPropellantBuffer);
-
-                part.AddResource(newResourceNode);
-            }
-
-            var bufferResource = part.Resources[propellantBufferResourceName];
-            if (maintainsPropellantBuffer && bufferResource != null)
-                bufferResource.amount = bufferResource.maxAmount;
+            var stringArray = propellantBufferResourceName.Split(',');
+            partResourceDefinitions = stringArray.Select(m => PartResourceLibrary.Instance.GetDefinition(m.Trim())).ToArray();
         }
+
+        //private void InitializesPropellantBuffer()
+        //{
+        //    if (maintainsPropellantBuffer && string.IsNullOrEmpty(propellantBufferResourceName) == false && part.Resources[propellantBufferResourceName] == null)
+        //    {
+        //        Debug.Log("[KSPI]: Added " + propellantBufferResourceName + " buffer to MagneticNozzle");
+        //        var newResourceNode = new ConfigNode("RESOURCE");
+        //        newResourceNode.AddValue("name", propellantBufferResourceName);
+        //        newResourceNode.AddValue("maxAmount", minimumPropellantBuffer);
+        //        newResourceNode.AddValue("amount", minimumPropellantBuffer);
+
+        //        part.AddResource(newResourceNode);
+        //    }
+
+        //    var bufferResource = part.Resources[propellantBufferResourceName];
+        //    if (maintainsPropellantBuffer && bufferResource != null)
+        //        bufferResource.amount = bufferResource.maxAmount;
+        //}
 
         private double CalculateElectricalPowerCurrentlyNeeded(double maximumElectricPower)
         {
@@ -469,33 +465,33 @@ namespace FNPlugin.Propulsion
 
                 var calculatedConsumptionInTon = maxEngineThrustAtMaxIsp / maximum_isp / PhysicsGlobals.GravitationalAcceleration;
 
-                UpdatePropellantBuffer(calculatedConsumptionInTon);
+                //UpdatePropellantBuffer(calculatedConsumptionInTon);
 
                 // convert reactor product into propellants when possible and generate addition propellant from reactor fuel consumption
                 chargedParticleRatio = currentMaximumChargedPower > 0 ? _charged_particles_received / currentMaximumChargedPower : 0;
-                _attachedReactor.UseProductForPropulsion(chargedParticleRatio, calculatedConsumptionInTon, propellantBufferResourceDefinition);
+                _attachedReactor.UseProductForPropulsion(chargedParticleRatio, calculatedConsumptionInTon, partResourceDefinitions);
 
                 calculatedConsumptionPerSecond = calculatedConsumptionInTon * 1000;
 
-                if (!CheatOptions.IgnoreMaxTemperature)
-                {
-                    if (currentThrottle > 0)
-                    {
-                        _wasteheatConsumption = _charged_particles_received;
-                        if (_charged_particles_received > _previousChargedParticlesReceived)
-                            _wasteheatConsumption = _charged_particles_received + (_charged_particles_received - _previousChargedParticlesReceived);
+                //if (!CheatOptions.IgnoreMaxTemperature)
+                //{
+                //    if (currentThrottle > 0)
+                //    {
+                //        _wasteheatConsumption = _charged_particles_received;
+                //        if (_charged_particles_received > _previousChargedParticlesReceived)
+                //            _wasteheatConsumption = _charged_particles_received + (_charged_particles_received - _previousChargedParticlesReceived);
 
-                        _previousChargedParticlesReceived = _charged_particles_received;
-                    }
-                    else
-                    {
-                        _wasteheatConsumption = 0;
-                        _charged_particles_received = 0;
-                        _previousChargedParticlesReceived = 0;
-                    }
+                //        _previousChargedParticlesReceived = _charged_particles_received;
+                //    }
+                //    else
+                //    {
+                //        _wasteheatConsumption = 0;
+                //        _charged_particles_received = 0;
+                //        _previousChargedParticlesReceived = 0;
+                //    }
 
-                    ConsumeFnResourcePerSecond(_wasteheatConsumption, ResourceSettings.Config.WasteHeatInMegawatt);
-                }
+                //    ConsumeFnResourcePerSecond(_wasteheatConsumption, ResourceSettings.Config.WasteHeatInMegawatt);
+                //}
 
                 if (_charged_particles_received == 0)
                 {
@@ -535,11 +531,18 @@ namespace FNPlugin.Propulsion
 
                 if (currentThrottle > 0)
                 {
+                    bool canConsumePropellant = true;
+                    foreach (var partResourceDefinition in partResourceDefinitions)
+                    {
+                        if (part.RequestResource(partResourceDefinition.id, 0.001, true) <= 0)
+                            canConsumePropellant = false;
+                    }
+
                     // enable/disable engine
-                    _attachedEngine.enabled = chargedParticleRatio > chargedParticleRatioThreshold &&
+                    _attachedEngine.enabled = canConsumePropellant &&
+                                              chargedParticleRatio > chargedParticleRatioThreshold &&
                                               megajoulesRatio > megajoulesRatioThreshold &&
-                                              AttachedReactor.ConsumedFuelFixed > 0 &&
-                                              part.RequestResource(propellantBufferResourceDefinition.id, 0.001, true) > 0;
+                                              AttachedReactor.ConsumedFuelFixed > 0;
                 }
 
                 if (_attachedEngine.enabled == false)
@@ -548,10 +551,10 @@ namespace FNPlugin.Propulsion
                 var requiredElectricalPowerFromMhd = CalculateElectricalPowerCurrentlyNeeded(Math.Min(scaledPowerFactor * _charged_particles_received, minimumElectricEnginePower * 2));
 
                 // convert part of the exhaust energy directly into electric power
-                if (scaledPowerFactor > 0 && requiredElectricalPowerFromMhd > 0 && _charged_particles_received > 0)
+                if (scaledPowerFactor > 0 && _charged_particles_received > 0)
                 {
-                    var availableElectricPower = Math.Min(scaledPowerFactor * _charged_particles_received, requiredElectricalPowerFromMhd);
-                    var suppliedElectricPower = SupplyFnResourcePerSecond(availableElectricPower, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    var availableElectricPower = scaledPowerFactor * _charged_particles_received;
+                    var suppliedElectricPower = SupplyFnResourcePerSecondWithMax(requiredElectricalPowerFromMhd, availableElectricPower, ResourceSettings.Config.ElectricPowerInMegawatt);
                     _mhdTrustIspModifier = 1 - suppliedElectricPower / _charged_particles_received;
                 }
                 else
@@ -648,26 +651,26 @@ namespace FNPlugin.Propulsion
             exhaustAllowed = AllowedExhaust();
         }
 
-        public void UpdatePropellantBuffer(double calculatedConsumptionInTon)
-        {
-            if (!maintainsPropellantBuffer)
-                return;
+        //public void UpdatePropellantBuffer(double calculatedConsumptionInTon)
+        //{
+        //    if (!maintainsPropellantBuffer)
+        //        return;
 
-            PartResource propellantPartResource = part.Resources.Get(propellantBufferResourceDefinition.id);
+        //    PartResource propellantPartResource = part.Resources.Get(propellantBufferResourceDefinition1.id);
 
-            if (propellantPartResource == null || propellantBufferResourceDefinition.density == 0)
-                return;
+        //    if (propellantPartResource == null || propellantBufferResourceDefinition1.density == 0)
+        //        return;
 
-            var newMaxAmount = Math.Max(minimumPropellantBuffer, 2 * TimeWarp.fixedDeltaTime * calculatedConsumptionInTon / propellantBufferResourceDefinition.density);
+        //    var newMaxAmount = Math.Max(minimumPropellantBuffer, 2 * TimeWarp.fixedDeltaTime * calculatedConsumptionInTon / propellantBufferResourceDefinition1.density);
 
-            var storageShortage = Math.Max(0, propellantPartResource.amount - newMaxAmount);
+        //    var storageShortage = Math.Max(0, propellantPartResource.amount - newMaxAmount);
 
-            propellantPartResource.maxAmount = newMaxAmount;
-            propellantPartResource.amount = Math.Min(newMaxAmount, propellantPartResource.amount);
+        //    propellantPartResource.maxAmount = newMaxAmount;
+        //    propellantPartResource.amount = Math.Min(newMaxAmount, propellantPartResource.amount);
 
-            if (storageShortage > 0)
-                part.RequestResource(propellantBufferResourceDefinition.id, -storageShortage);
-        }
+        //    if (storageShortage > 0)
+        //        part.RequestResource(propellantBufferResourceDefinition1.id, -storageShortage);
+        //}
 
         public override string GetInfo()
         {

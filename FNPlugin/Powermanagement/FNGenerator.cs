@@ -992,18 +992,16 @@ namespace FNPlugin.Powermanagement
 
                     _requestedPostThermalPower = Math.Max(0, _attachedPowerSource.MinimumPower * thermalPowerRatio - thermalPowerRequested);
 
-                    double initialThermalPowerReceived;
                     if ( chargedPowerRatio < 1)
                     {
                         var requestedThermalPower = Math.Min(thermalPowerRequested, _effectiveMaximumThermalPower);
-                        initialThermalPowerReceived = ConsumeFnResourcePerSecond(requestedThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
+                        _thermalPowerReceived = ConsumeFnResourcePerSecond(requestedThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
                         var thermalPowerRequestRatio = Math.Min(1, _effectiveMaximumThermalPower > 0 ? requestedThermalPower / _attachedPowerSource.MaximumThermalPower : 0);
                         _attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEfficiency, thermalPowerRequestRatio, isMHD, isLimitedByMinThrottle ? part.mass * 0.05 : part.mass);
                     }
                     else
-                        initialThermalPowerReceived = 0;
+                        _thermalPowerReceived = 0;
 
-                    _thermalPowerReceived = initialThermalPowerReceived;
                     var totalPowerReceived = _thermalPowerReceived;
 
                     _shouldUseChargedPower = chargedPowerRatio > 0;
@@ -1043,6 +1041,12 @@ namespace FNPlugin.Powermanagement
                         var finalRequest = Math.Max(0, _reactorPowerRequested - totalPowerReceived);
                         _thermalPowerReceived += ConsumeFnResourcePerSecond(finalRequest, ResourceSettings.Config.ThermalPowerInMegawatt);
                     }
+
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                    {
+                        ConsumeFnResourcePerSecond(_thermalPowerReceived * _totalEfficiency, ResourceSettings.Config.WasteHeatInMegawatt);
+                        SupplyFnResourcePerSecond(_chargedPowerReceived * (1 - _totalEfficiency), ResourceSettings.Config.WasteHeatInMegawatt);
+                    }
                 }
                 else // charged particle mode
                 {
@@ -1062,13 +1066,16 @@ namespace FNPlugin.Powermanagement
                     _attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEfficiency, chargedPowerRequestRatio, part.mass);
 
                     _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedPowerInMegawatt);
+
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                    {
+                        var wasteheatFactor = 1 - _totalEfficiency;
+                        SupplyFnResourcePerSecond(_chargedPowerReceived * (1 - _totalEfficiency), ResourceSettings.Config.WasteHeatInMegawatt);
+                    }
                 }
 
                 received_power_per_second = _thermalPowerReceived + _chargedPowerReceived;
                 var effectiveInputPowerPerSecond = received_power_per_second * _totalEfficiency;
-
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    ConsumeFnResourcePerSecond(effectiveInputPowerPerSecond, ResourceSettings.Config.WasteHeatInMegawatt);
 
                 _electricPowerPerSecond = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
                 if (!chargedParticleMode)
@@ -1139,9 +1146,7 @@ namespace FNPlugin.Powermanagement
             if (!chargedParticleMode) // thermal mode
             {
                 if (_attachedPowerSource.ChargedPowerRatio < 1)
-                {
                     postThermalPowerReceived += ConsumeFnResourcePerSecond(_requestedPostThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
-                }
 
                 var powerReceived = _thermalPowerReceived + _chargedPowerReceived + postThermalPowerReceived;
 
@@ -1162,10 +1167,13 @@ namespace FNPlugin.Powermanagement
                 postChargedPowerReceived += ConsumeFnResourcePerSecond(_requestedPostChargedPower, ResourceSettings.Config.ChargedPowerInMegawatt);
             }
 
-            var postEffectiveInputPowerPerSecond = Math.Max(0, Math.Min((postThermalPowerReceived + postChargedPowerReceived) * _totalEfficiency, maximumElectricPower - _electricPowerPerSecond));
-
             if (!CheatOptions.IgnoreMaxTemperature)
-                ConsumeFnResourcePerSecond(postEffectiveInputPowerPerSecond, ResourceSettings.Config.WasteHeatInMegawatt);
+            {
+                ConsumeFnResourcePerSecond(postThermalPowerReceived * _totalEfficiency, ResourceSettings.Config.WasteHeatInMegawatt);
+                SupplyFnResourcePerSecond(postChargedPowerReceived * (1 - _totalEfficiency), ResourceSettings.Config.WasteHeatInMegawatt);
+            }
+
+            var postEffectiveInputPowerPerSecond = Math.Max(0, Math.Min((postThermalPowerReceived + postChargedPowerReceived) * _totalEfficiency, maximumElectricPower - _electricPowerPerSecond));
 
             SupplyManagedFnResourcePerSecond(postEffectiveInputPowerPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
