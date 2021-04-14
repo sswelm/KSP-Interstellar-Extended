@@ -937,7 +937,7 @@ namespace InterstellarFuelSwitch
             else
             {
                 totalCost = dryCost + resourceCost;
-                delta = !isSmaller && !isLarger ? maxResourceCost : (isSmaller ? -dryCost * storedFactorMultiplier : dryCost * storedFactorMultiplier * 0.125);
+                delta = !isSmaller && !isLarger ? dryCost * 0.125 + maxResourceCost : dryCost * storedFactorMultiplier * 0.125;
             }
             resourceCostStr = $"{resourceCost:F0} V / {maxResourceCost:F0} V";
             return delta;
