@@ -1755,7 +1755,7 @@ namespace FNPlugin.Reactors
                 _initiateSound.volume = (float)volume;
             }
 
-            if (_previousReactorPowerRatio > 0 && reactor_power_ratio <= 0)
+            if (_previousReactorPowerRatio > 0.01 && reactor_power_ratio <= 0.01)
             {
                 if (_initiateSound != null && _initiateSound.isPlaying)
                     _initiateSound.Stop();
@@ -1768,7 +1768,7 @@ namespace FNPlugin.Reactors
                     _terminateSound.volume = GameSettings.SHIP_VOLUME;
                 }
             }
-            else if (_previousReactorPowerRatio <= 0 && reactor_power_ratio > 0)
+            else if (_previousReactorPowerRatio <= 0.01 && reactor_power_ratio > 0.01)
             {
                 if (_runningSound != null && _runningSound.isPlaying)
                     _runningSound.Stop();
@@ -1786,7 +1786,7 @@ namespace FNPlugin.Reactors
                         _runningSound.Play();
                 }
             }
-            else if (_previousReactorPowerRatio > 0 && reactor_power_ratio > 0 && _runningSound != null)
+            else if (_previousReactorPowerRatio > 0.01 && reactor_power_ratio > 0.01 && _runningSound != null)
             {
                 if (vessel.isActiveVessel && !_runningSound.isPlaying)
                 {
