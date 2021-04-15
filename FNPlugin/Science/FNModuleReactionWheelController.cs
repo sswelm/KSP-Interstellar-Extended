@@ -57,6 +57,8 @@ namespace FNPlugin.Science
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiFormat = "F4")] public double headingSpinDelta;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiFormat = "F2")] public double rotationSpinDelta;
 
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "Is stabilized")] public bool isStable;
+
         private readonly Queue<double> _torqueRatioQueue = new Queue<double>();
 
         private double maxPowerCostMj;
@@ -71,6 +73,7 @@ namespace FNPlugin.Science
         private ModuleReactionWheel _reactionWheel;
         private Vector3d previousPartHeading;
         private Vector3d previousPartRotation;
+
 
         public override void OnStart(StartState state)
         {
@@ -209,25 +212,39 @@ namespace FNPlugin.Science
 
         private bool StabilizeWhenPossible(float headingThreshold, float rotationThreshold, float pitchThreshold, float yawThreshold)
         {
-            if (!vessel.packed
-                && vessel.Autopilot.Enabled
-                && pitchFactor < pitchThreshold * 0.05
-                && yawFactor < yawThreshold * 0.05
-                && headingSpinDelta < headingThreshold
-                && rotationSpinDelta < rotationThreshold
-                && !GameSettings.ROLL_LEFT.GetKey(true)
-                && !GameSettings.ROLL_RIGHT.GetKey(true)
-                && !GameSettings.PITCH_UP.GetKey(true)
-                && !GameSettings.PITCH_DOWN.GetKey(true)
-                && !GameSettings.YAW_LEFT.GetKey(true)
-                && !GameSettings.YAW_RIGHT.GetKey(true)
-                && Math.Abs(vessel.ctrlState.pitch) < pitchThreshold
-                && Math.Abs(vessel.ctrlState.yaw) < yawThreshold
-                && vessel.ctrlState.mainThrottle <= 0
-                && _reactionWheel.State == ModuleReactionWheel.WheelState.Active
-                && (vessel.situation == Vessel.Situations.ORBITING
-                    || vessel.situation == Vessel.Situations.ESCAPING
-                    || vessel.situation == Vessel.Situations.SUB_ORBITAL)
+            if (vessel.ctrlState.pitch > 0.5
+                || vessel.ctrlState.roll > 0.5
+                || vessel.ctrlState.yaw > 0.5
+                || rollFactor > 0.5 || pitchFactor > 0.5 || yawFactor > 0.5
+                || GameSettings.ROLL_LEFT.GetKey(true)
+                || GameSettings.ROLL_RIGHT.GetKey(true)
+                || GameSettings.PITCH_UP.GetKey(true)
+                || GameSettings.PITCH_DOWN.GetKey(true)
+                || GameSettings.YAW_LEFT.GetKey(true)
+                || GameSettings.YAW_RIGHT.GetKey(true))
+            {
+                isStable = false;
+            }
+
+            if (!isStable && !vessel.packed
+                          && vessel.Autopilot.Enabled
+                          && pitchFactor < pitchThreshold * 0.05
+                          && yawFactor < yawThreshold * 0.05
+                          && headingSpinDelta < headingThreshold
+                          && rotationSpinDelta < rotationThreshold
+                          && !GameSettings.ROLL_LEFT.GetKey(true)
+                          && !GameSettings.ROLL_RIGHT.GetKey(true)
+                          && !GameSettings.PITCH_UP.GetKey(true)
+                          && !GameSettings.PITCH_DOWN.GetKey(true)
+                          && !GameSettings.YAW_LEFT.GetKey(true)
+                          && !GameSettings.YAW_RIGHT.GetKey(true)
+                          && Math.Abs(vessel.ctrlState.pitch) < pitchThreshold
+                          && Math.Abs(vessel.ctrlState.yaw) < yawThreshold
+                          && vessel.ctrlState.mainThrottle <= 0
+                          && _reactionWheel.State == ModuleReactionWheel.WheelState.Active
+                          && (vessel.situation == Vessel.Situations.ORBITING
+                              || vessel.situation == Vessel.Situations.ESCAPING
+                              || vessel.situation == Vessel.Situations.SUB_ORBITAL)
                 )
             {
                 totalRoll = totalRoll > 0
@@ -246,6 +263,7 @@ namespace FNPlugin.Science
                 vessel.GoOffRails();
                 vessel.Autopilot.Enable();
                 vessel.Autopilot.SetMode(mode);
+                isStable = true;
                 return true;
             }
 
