@@ -185,6 +185,9 @@ namespace FNPlugin.Refinery
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
+            if (powerSupply == null)
+                return;
+
             if (currentActivity == null)
                 powerSupply.DisplayName = part.partInfo.title;
             else
@@ -317,9 +320,7 @@ namespace FNPlugin.Refinery
                     var buttonText = string.IsNullOrEmpty(activity.Formula) ? activity.ActivityName : activity.ActivityName + " : " + activity.Formula;
 
                     if (GUILayout.Button(buttonText, guiStyle, GUILayout.ExpandWidth(true))) // if user clicks the button and has requirements for the activity
-                    {
                         ToggleRefinery(activity);
-                    }
                     GUILayout.EndHorizontal();
                 });
             }
@@ -359,13 +360,9 @@ namespace FNPlugin.Refinery
                     currentActivity = null;
                 }
                 GUILayout.EndHorizontal();
-
-
             }
             GUILayout.EndVertical();
             GUI.DragWindow();
-
         }
-
     }
 }
