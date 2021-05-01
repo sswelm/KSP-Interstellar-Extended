@@ -105,14 +105,14 @@
     <Compile Include="External\Kerbalism.cs" />
     <Compile Include="Powermanagement\DefaultResourceManager.cs" />
     <Compile Include="Powermanagement\PowerDistribution.cs" />
-    <Compile Include="Powermanagement\TPResourceManager.cs" />
+    <Compile Include="Powermanagement\ThermalPowerResourceManager.cs" />
     <Compile Include="Powermanagement\FNBatteryGenerator.cs" />
     <Compile Include="Powermanagement\FNGeneratorAdapterVariable.cs" />
     <Compile Include="Powermanagement\Interfaces\IFNChargedParticleSource.cs" />
     <Compile Include="Powermanagement\Interfaces\IFNPowerSource.cs" />
     <Compile Include="Powermanagement\KspiSuperCapacitator.cs" />
     <Compile Include="Powermanagement\MegajoulesResourceManager.cs" />
-    <Compile Include="Powermanagement\CPResourceManager.cs" />
+    <Compile Include="Powermanagement\ChargedPowerResourceManager.cs" />
     <Compile Include="Powermanagement\WasteHeatResourceManager.cs" />
     <Compile Include="Propulsion\FNPersistentRotation.cs" />
     <Compile Include="Propulsion\FNSimpleEngineIgnatorFX.cs" />

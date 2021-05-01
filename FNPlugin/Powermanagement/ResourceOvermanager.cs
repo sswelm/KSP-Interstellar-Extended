@@ -43,7 +43,7 @@ namespace FNPlugin.Powermanagement
             resourceName = name;
         }
 
-        public ResourceManager CreateManagerForVessel(PartModule pm)
+        public ResourceManager CreateManagerForVessel(ResourceSuppliableModule pm)
         {
             var resourceManager = ResourceManagerFactory.Create(Id, pm, resourceName);
             managers.Add(pm.vessel, resourceManager);

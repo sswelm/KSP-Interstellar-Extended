@@ -93,8 +93,6 @@ namespace FNPlugin.Propulsion
         private ModuleEnginesFX _attachedEngine;
         private ModuleEnginesMagneticNozzle _attachedPersistentEngine;
         private ResourceBuffers resourceBuffers;
-        //private PartResourceDefinition propellantBufferResourceDefinition1;
-        //private PartResourceDefinition propellantBufferResourceDefinition2;
         private readonly Guid id = Guid.NewGuid();
 
         private PartResourceDefinition[] partResourceDefinitions;
@@ -103,9 +101,7 @@ namespace FNPlugin.Propulsion
 
         private bool _checkedConnectivity;
         private int _attachedReactorDistance;
-        //private double _wasteheatConsumption;
         private double _exchangerThrustDivisor;
-        //private double _previousChargedParticlesReceived;
         private double _maxPowerMultiplier;
         private double powerBufferMax;
         private double _mhdTrustIspModifier = 1;

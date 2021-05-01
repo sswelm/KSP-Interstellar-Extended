@@ -1,10 +1,10 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
 using KSP.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin.Powermanagement
@@ -26,9 +26,9 @@ namespace FNPlugin.Powermanagement
 
         public override double CurrentSurplus => Math.Max(0.0, base.CurrentSurplus - _lastMjConverted);
 
-        public MegajoulesResourceManager(Guid overmanagerId, PartModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ElectricPowerInMegawatt, FnResourceFlowTypeSmallestFirst)
+        public MegajoulesResourceManager(Guid overmanagerId, ResourceSuppliableModule pm) : base(overmanagerId, pm, ResourceSettings.Config.ElectricPowerInMegawatt, FnResourceFlowTypeSmallestFirst)
         {
-            WindowPosition = new Rect(50, 50, LabelWidth + ValueWidth + PriorityWidth, 50);
+            SetWindowPosition(pm.epx, pm.epy, 50, 50);
             electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceSettings.Config.ElectricPowerInKilowatt);
             _lastEcNeeded = 0.0;
             _lastMjConverted = 0.0;
@@ -37,6 +37,9 @@ namespace FNPlugin.Powermanagement
 
         protected override void DoWindowFinal()
         {
+            PartModule.epx = (int)WindowPosition.x;
+            PartModule.epy = (int)WindowPosition.y;
+
             var providedAuxiliaryPower = _lastMjConverted;
 
             ecOutput.Enqueue(providedAuxiliaryPower);

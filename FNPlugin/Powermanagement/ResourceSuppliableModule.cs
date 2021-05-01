@@ -1,15 +1,24 @@
-﻿using FNPlugin.Constants;
-using FNPlugin.Extensions;
-using FNPlugin.Resources;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Constants;
+using FNPlugin.Extensions;
+using FNPlugin.Resources;
 using UnityEngine;
 
 namespace FNPlugin.Powermanagement
 {
-    abstract class ResourceSuppliableModule : PartModule, IResourceSuppliable, IResourceSupplier
+    public abstract class ResourceSuppliableModule : PartModule, IResourceSuppliable, IResourceSupplier
     {
+        [KSPField(isPersistant = true)] public int epx;
+        [KSPField(isPersistant = true)] public int epy;
+        [KSPField(isPersistant = true)] public int whx;
+        [KSPField(isPersistant = true)] public int why;
+        [KSPField(isPersistant = true)] public int tpx;
+        [KSPField(isPersistant = true)] public int tpy;
+        [KSPField(isPersistant = true)] public int cpx;
+        [KSPField(isPersistant = true)] public int cpy;
+
         [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ResourceManager_UpdateCounter")]//Update Counter
         public long updateCounter;
 
@@ -23,7 +32,7 @@ namespace FNPlugin.Powermanagement
 
         protected int partNrInList;
 
-        private readonly Dictionary<string, double> fnresource_supplied = new Dictionary<string, double>();
+        private readonly Dictionary<string, double> _resourceSupplied = new Dictionary<string, double>();
 
         public virtual void AttachThermalReciever(Guid key, double radius)
         {
@@ -52,12 +61,12 @@ namespace FNPlugin.Powermanagement
                 return;
             }
 
-            fnresource_supplied[resourceName] = power;
+            _resourceSupplied[resourceName] = power;
         }
 
         public double consumeFNResource(double powerFixed, string resourceName, double fixedDeltaTime = 0)
         {
-            if (powerFixed.IsInfinityOrNaN() || double.IsNaN(fixedDeltaTime) || string.IsNullOrEmpty(resourceName))
+            if (powerFixed.IsInfinityOrNaN() || string.IsNullOrEmpty(resourceName))
             {
                 Debug.Log("[KSPI]: consumeFNResource illegal values.");
                 return 0;
@@ -69,8 +78,8 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            if (!fnresource_supplied.TryGetValue(resourceName, out var availablePower))
-                fnresource_supplied[resourceName] = 0;
+            if (!_resourceSupplied.TryGetValue(resourceName, out var availablePower))
+                _resourceSupplied[resourceName] = 0;
 
             fixedDeltaTime = fixedDeltaTime > 0
                 ? Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, fixedDeltaTime)
@@ -78,7 +87,7 @@ namespace FNPlugin.Powermanagement
 
             double powerTakenFixed = Math.Max(Math.Min(powerFixed, availablePower * fixedDeltaTime), 0);
 
-            fnresource_supplied[resourceName] -= powerTakenFixed / fixedDeltaTime;
+            _resourceSupplied[resourceName] -= powerTakenFixed / fixedDeltaTime;
             manager.PowerDrawFixed(this, powerFixed, powerTakenFixed);
 
             return powerTakenFixed;
@@ -97,13 +106,13 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            if (!fnresource_supplied.TryGetValue(resourceName, out var availablePower))
-                fnresource_supplied[resourceName] = 0;
+            if (!_resourceSupplied.TryGetValue(resourceName, out var availablePower))
+                _resourceSupplied[resourceName] = 0;
 
             powerRequestedPerSecond = Math.Max(powerRequestedPerSecond, 0);
 
             double powerTakenPerSecond = Math.Max(Math.Min(powerRequestedPerSecond, availablePower), 0);
-            fnresource_supplied[resourceName] -= powerTakenPerSecond;
+            _resourceSupplied[resourceName] -= powerTakenPerSecond;
 
             manager.PowerDrawPerSecond(this, powerRequestedPerSecond, powerTakenPerSecond);
 
@@ -123,11 +132,11 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            if (!fnresource_supplied.TryGetValue(resourceName, out var availablePower))
-                fnresource_supplied[resourceName] = 0;
+            if (!_resourceSupplied.TryGetValue(resourceName, out var availablePower))
+                _resourceSupplied[resourceName] = 0;
 
             var powerTakenPerSecond = Math.Max(Math.Min(powerRequestedPerSecond, availablePower), 0);
-            fnresource_supplied[resourceName] -= powerTakenPerSecond;
+            _resourceSupplied[resourceName] -= powerTakenPerSecond;
 
             manager.PowerDrawPerSecond(this, powerRequestedPerSecond, Math.Max(maximumPowerRequestedPerSecond, 0), powerTakenPerSecond);
 
@@ -151,11 +160,11 @@ namespace FNPlugin.Powermanagement
             if (manager == null)
                 return 0;
 
-            if (!fnresource_supplied.TryGetValue(resourceName, out var availablePower))
-                fnresource_supplied[resourceName] = 0;
+            if (!_resourceSupplied.TryGetValue(resourceName, out var availablePower))
+                _resourceSupplied[resourceName] = 0;
 
             var powerTakenPerSecond = Math.Max(Math.Min(requestedPowerPerSecond, availablePower), 0);
-            fnresource_supplied[resourceName] -= powerTakenPerSecond;
+            _resourceSupplied[resourceName] -= powerTakenPerSecond;
 
             // supplement with buffer power if needed and available
             var powerShortage = requestedPowerPerSecond - availablePower;
@@ -182,7 +191,7 @@ namespace FNPlugin.Powermanagement
             const double kilowattRatio = GameConstants.ecPerMJ / GameConstants.SECONDS_IN_HOUR;
             double dt = fixedDeltaTime > 0
                 ? Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, fixedDeltaTime)
-                : Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
+                : Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, TimeWarp.fixedDeltaTime);
 
             // First try to consume MJ from ResourceManager
             double add, result = CheatOptions.InfiniteElectricity ? requestedPower : ConsumeFnResourcePerSecond(requestedPower, ResourceSettings.Config.ElectricPowerInMegawatt);
@@ -199,8 +208,7 @@ namespace FNPlugin.Powermanagement
             // Use KWH resource from batteries
             if (requestedPower > 0.0 && allowKilowattHour)
             {
-                add = part.RequestResource("KilowattHour", requestedPower * kilowattRatio * dt) /
-                    (kilowattRatio * dt);
+                add = part.RequestResource("KilowattHour", requestedPower * kilowattRatio * dt) / (kilowattRatio * dt);
                 result += add;
                 requestedPower -= add;
             }
@@ -613,7 +621,7 @@ namespace FNPlugin.Powermanagement
 
         public override void OnFixedUpdate()
         {
-            double timeWarpFixedDeltaTime = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
+            double timeWarpFixedDeltaTime = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, TimeWarp.fixedDeltaTime);
 
             updateCounter++;
 

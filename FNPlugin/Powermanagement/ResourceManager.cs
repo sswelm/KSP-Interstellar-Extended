@@ -11,7 +11,7 @@ namespace FNPlugin.Powermanagement
     public static class ResourceManagerFactory
     {
         // Create the appropriate instance
-        public static ResourceManager Create(Guid id, PartModule pm, string resourceName)
+        public static ResourceManager Create(Guid id, ResourceSuppliableModule pm, string resourceName)
         {
             ResourceManager result;
 
@@ -20,9 +20,9 @@ namespace FNPlugin.Powermanagement
             else if (resourceName == ResourceSettings.Config.WasteHeatInMegawatt)
                 result = new WasteHeatResourceManager(id, pm);
             else if(resourceName == ResourceSettings.Config.ChargedPowerInMegawatt)
-                result = new CPResourceManager(id, pm);
+                result = new ChargedPowerResourceManager(id, pm);
             else if(resourceName == ResourceSettings.Config.ThermalPowerInMegawatt)
-                result = new TPResourceManager(id, pm);
+                result = new ThermalPowerResourceManager(id, pm);
             else
                 result = new DefaultResourceManager(id, pm, resourceName);
 
@@ -40,7 +40,7 @@ namespace FNPlugin.Powermanagement
         protected const int PriorityWidth = 30;
         protected const int OverviewWidth = 65;
         protected const int MaxPriority = 6;
-        private const int PowerHistoryLen = 10;
+        protected const int PowerHistoryLen = 10;
 
         protected readonly List<PartResource> partResources = new List<PartResource>();
         protected readonly IDictionary<IResourceSuppliable, PowerDistribution> consumptionRequests;
@@ -95,7 +95,7 @@ namespace FNPlugin.Powermanagement
 
         public Guid OverManagerId { get; }
 
-        public PartModule PartModule { get; private set; }
+        public ResourceSuppliableModule PartModule { get; private set; }
 
         public double RequiredResourceDemand => CurrentUnfilledResourceDemand + GetSpareResourceCapacity();
 
@@ -117,7 +117,7 @@ namespace FNPlugin.Powermanagement
 
         public Rect WindowPosition { get; protected set; }
 
-        protected ResourceManager(Guid overmanagerId, PartModule pm, string resourceName, int flowType)
+        protected ResourceManager(Guid overmanagerId, ResourceSuppliableModule pm, string resourceName, int flowType)
         {
             OverManagerId = overmanagerId;
             Id = Guid.NewGuid();
@@ -240,7 +240,11 @@ namespace FNPlugin.Powermanagement
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            string newPowerLabel = (resourceName == ResourceSettings.Config.WasteHeatInMegawatt) ? Localizer.Format("#LOC_KSPIE_ResourceManager_NetChange") : Localizer.Format("#LOC_KSPIE_ResourceManager_NetPower");//"Net Change""Net Power"
+
+            string newPowerLabel = (resourceName == ResourceSettings.Config.WasteHeatInMegawatt)
+                ? Localizer.Format("#LOC_KSPIE_ResourceManager_NetChange")
+                : Localizer.Format("#LOC_KSPIE_ResourceManager_NetPower");//"Net Change""Net Power"
+
             GUILayout.Label(newPowerLabel, leftBoldLabel, GUILayout.ExpandWidth(true));
 
             GUIStyle netPowerStyle = netChange < -0.001 ? redLabel : greenLabel;
@@ -762,13 +766,22 @@ namespace FNPlugin.Powermanagement
             return availableAmount;
         }
 
-        public void UpdatePartModule(PartModule pm)
+        public void UpdatePartModule(ResourceSuppliableModule pm)
         {
             if (pm != null)
             {
                 Vessel = pm.vessel;
                 part = pm.part;
                 PartModule = pm;
+
+                if (resourceName == ResourceSettings.Config.ElectricPowerInMegawatt)
+                    SetWindowPosition(pm.epx, pm.epy, (int)WindowPosition.x, (int)WindowPosition.y);
+                else if (resourceName == ResourceSettings.Config.WasteHeatInMegawatt)
+                    SetWindowPosition(pm.whx, pm.why, (int)WindowPosition.x, (int)WindowPosition.y);
+                else if (resourceName == ResourceSettings.Config.ChargedPowerInMegawatt)
+                    SetWindowPosition(pm.cpx, pm.cpy, (int)WindowPosition.x, (int)WindowPosition.y);
+                else if (resourceName == ResourceSettings.Config.ThermalPowerInMegawatt)
+                    SetWindowPosition(pm.tpx, pm.tpy, (int)WindowPosition.x, (int)WindowPosition.y);
             }
             else
             {
@@ -776,6 +789,14 @@ namespace FNPlugin.Powermanagement
                 part = null;
                 PartModule = null;
             }
+        }
+
+        protected void SetWindowPosition(int storedX, int storedY, int defaultX, int defaultY)
+        {
+            var xPosition = storedX == 0 ? defaultX : storedX;
+            var yPosition = storedY == 0 ? defaultY : storedY;
+
+            WindowPosition = new Rect(xPosition, yPosition, LabelWidth + ValueWidth + PriorityWidth, 50);
         }
     }
 }
