@@ -8,7 +8,7 @@ namespace FNPlugin.Wasteheat
         [KSPField] public double explodeFrame = 25;    // half a second
         [KSPField] public double explodeRatio = 1;
 
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Explosion Potential")]
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_WasteheatExplode_ExplosionPotential")]
         public float explosionPotential;
 
         private int _explodeCounter;
