@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Text;
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
@@ -63,7 +62,6 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)] public bool breedtritium;
         [KSPField(isPersistant = true)] public double last_active_time;
         [KSPField(isPersistant = true)] public double ongoing_consumption_rate;
-        //[KSPField(isPersistant = true)] public double ongoing_wasteheat_rate_1;
         [KSPField(isPersistant = true)] public bool reactorInit;
         [KSPField(isPersistant = true)] public double neutronEmbrittlementDamage;
         [KSPField(isPersistant = true)] public double maxEmbrittlementFraction = 0.5;
@@ -1522,7 +1520,7 @@ namespace FNPlugin.Reactors
                 else
                     overheatModifier = 1;
 
-                currentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply * geeForceModifier * overheatModifier, fuelUsePerMJMult);
+                currentFuelVariantsSorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, maxPowerToSupply * geeForceModifier * overheatModifier, fuelUsePerMJMult);
                 CurrentFuelVariant = currentFuelVariantsSorted.FirstOrDefault();
 
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : currentFuelVariant != null ? Math.Min(currentFuelVariant.FuelRatio, 1) : 0;
@@ -1530,23 +1528,6 @@ namespace FNPlugin.Reactors
                 LookForAlternativeFuelTypes();
 
                 UpdateCapacities();
-
-                var trueVariant = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult, false).FirstOrDefault();
-                fuel_ratio = CheatOptions.InfinitePropellant ? 1 : trueVariant != null ? Math.Min(trueVariant.FuelRatio, 1) : 0;
-
-                if (fuel_ratio < 0.99999)
-                {
-                    if (!messagedRanOutOfFuel)
-                    {
-                        messagedRanOutOfFuel = true;
-                        var message = Localizer.Format("#LOC_KSPIE_Reactor_ranOutOfFuelFor") + " " + CurrentFuelMode.ModeGUIName;
-                        Debug.Log("[KSPI]: " + message);
-                        ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
-                        TimeWarp.SetRate(0, true);
-                    }
-                }
-                else
-                    messagedRanOutOfFuel = false;
 
                 var thermalThrottleRatio = _connectedEngines.Any(m => m.RequiresThermalHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresThermalHeat).Sum(e => e.CurrentThrottle)) : 0;
                 var plasmaThrottleRatio = _connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.CurrentThrottle)) : 0;
@@ -1572,6 +1553,8 @@ namespace FNPlugin.Reactors
 
                 var currentThermalRequestRatio = Math.Min(currentThermalPropulsionRatio + CurrentPlasmaPropulsionRatio + currentThermalGeneratorRatio + currentPlasmaGeneratorRatio, 1);
                 var currentChargedRequestRatio = Math.Min(CurrentChargedPropulsionRatio + currentChargedGeneratorRatio, 1);
+
+                UpdateFuelRatio(Math.Max(currentThermalRequestRatio, currentChargedRequestRatio));
 
                 var maximumThermalRequestRatio = Math.Min(maximumThermalPropulsionRatio + maximumPlasmaPropulsionRatio + maximumThermalGeneratorRatio + maximumPlasmaGeneratorRatio, 1);
                 var maximumChargedRequestRatio = Math.Min(maximumChargedPropulsionRatio + maximumChargedGeneratorRatio, 1);
@@ -1687,6 +1670,27 @@ namespace FNPlugin.Reactors
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, 0);
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedPowerInMegawatt, 0);
             _resourceBuffers.UpdateBuffers();
+        }
+
+        private void UpdateFuelRatio(double requestRatio)
+        {
+            var trueVariant = CurrentFuelMode
+                .GetVariantsOrderedByFuelRatio(part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult, false)
+                .FirstOrDefault();
+
+            fuel_ratio = CheatOptions.InfinitePropellant ? 1 : trueVariant != null ? Math.Min(trueVariant.FuelRatio, 1) : 0;
+            if (fuel_ratio < 0.99999 && requestRatio > 0)
+            {
+                if (messagedRanOutOfFuel) return;
+
+                messagedRanOutOfFuel = true;
+                var message = Localizer.Format("#LOC_KSPIE_Reactor_ranOutOfFuelFor") + " " + CurrentFuelMode.ModeGUIName;
+                Debug.Log("[KSPI]: " + message);
+                ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+                TimeWarp.SetRate(0, true);
+            }
+            else
+                messagedRanOutOfFuel = false;
         }
 
         private void ProcessReactorFuel(double timeWarpFixedDeltaTime)
