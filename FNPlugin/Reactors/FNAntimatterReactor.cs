@@ -1,5 +1,4 @@
 ﻿using System;
-using FNPlugin.Powermanagement;
 using FNPlugin.Powermanagement.Interfaces;
 
 namespace FNPlugin.Reactors
@@ -8,7 +7,7 @@ namespace FNPlugin.Reactors
     class FNAntimatterReactor : InterstellarReactor, IFNChargedParticleSource
     {
         [KSPField] public double maximumChargedIspMult = 100;
-        [KSPField] public double minimumChargdIspMult = 10;
+        [KSPField] public double minimumChargedIspMult = 10;
         [KSPField] public double chargedProductMult = 1;
         [KSPField] public double chargedProductExp = 0;
 
@@ -18,6 +17,6 @@ namespace FNPlugin.Reactors
 
         public double MaximumChargedIspMult => maximumChargedIspMult;
 
-        public double MinimumChargdIspMult => minimumChargdIspMult;
+        public double MinimumChargdIspMult => minimumChargedIspMult;
     }
 }
