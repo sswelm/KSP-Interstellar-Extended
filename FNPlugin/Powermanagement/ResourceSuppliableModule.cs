@@ -34,6 +34,24 @@ namespace FNPlugin.Powermanagement
 
         private readonly Dictionary<string, double> _resourceSupplied = new Dictionary<string, double>();
 
+        protected void DisableField(string fieldName)
+        {
+            var field = Fields[fieldName];
+
+            if (field == null) return;
+            field.guiActive = false;
+            field.guiActiveEditor = false;
+        }
+
+        protected void EnableField(string fieldName)
+        {
+            var field = Fields[fieldName];
+
+            if (field == null) return;
+            field.guiActive = true;
+            field.guiActiveEditor = true;
+        }
+
         public virtual void AttachThermalReciever(Guid key, double radius)
         {
             if (!connectedReceivers.ContainsKey(key))

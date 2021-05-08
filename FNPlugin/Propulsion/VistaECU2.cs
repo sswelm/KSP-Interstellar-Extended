@@ -24,16 +24,11 @@
         public float localIsp = defaultMinIsp + (stepNumb * defaultSteps);
 
         // settings
-        [KSPField]
-        public float neutronAbsorptionFractionAtMinIsp = 0.5f;
-        [KSPField]
-        public float maxThrustEfficiencyByIspPower = 2;
-        [KSPField]
-        public float gearDivider = -1;
-        [KSPField]
-        public float minIsp = defaultMinIsp;
-        [KSPField]
-        public float initialGearRatio = 0;
+        [KSPField] public float neutronAbsorptionFractionAtMinIsp = 0.5f;
+        [KSPField] public float maxThrustEfficiencyByIspPower = 2;
+        [KSPField] public float gearDivider = -1;
+        [KSPField] public float minIsp = defaultMinIsp;
+        [KSPField] public float initialGearRatio = 0;
 
         private FloatCurve _atmosphereCurve;
 

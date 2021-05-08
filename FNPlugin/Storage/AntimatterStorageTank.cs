@@ -11,8 +11,20 @@ using UnityEngine;
 
 namespace FNPlugin.Storage
 {
+    [KSPModule("Metallic Hydrogen Storage")]
+    class MetallicHydrogenStorageTank : ExplosiveStorageTank
+    {
+        public override string GetModuleDisplayName() => "Metallic Hydrogen Storage";
+    }
+
     [KSPModule("Antimatter Storage")]
-    class AntimatterStorageTank : ResourceSuppliableModule, IPartMassModifier, IRescalable<FNGenerator>, IPartCostModifier
+    class AntimatterStorageTank : ExplosiveStorageTank
+    {
+        public override string GetModuleDisplayName() => "Antimatter Storage";
+    }
+
+    [KSPModule("Explosive Storage")]
+    class ExplosiveStorageTank : ResourceSuppliableModule, IPartMassModifier, IRescalable<FNGenerator>, IPartCostModifier
     {
         public const string Group = "AntimatterStorageTank";
         public const string GroupTitle = "#LOC_KSPIE_AntimatterStorageTank_groupName";
@@ -24,32 +36,32 @@ namespace FNPlugin.Storage
         [KSPField(isPersistant = true)] public double storedInitialCostMultiplier = 1;
         [KSPField(isPersistant = true)] public double storedTargetCostMultiplier = 1;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = true, guiUnits = "K", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxTemperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]//Maximum Temperature
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "K", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxTemperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]//Maximum Temperature
         public float maxTemperature = 340;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxAcceleration"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 10f, minValue = 0.05f)]//Maximum Acceleration
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "#LOC_KSPIE_AntimatterStorageTank_MaxAcceleration"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 10f, minValue = 0.05f)]//Maximum Acceleration
         public float maxGeeforce = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TechLevel")]//Tech Level
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TechLevel")]//Tech Level
         public int techLevel;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AntimatterStorageTank_Storedamount")]//Stored amount
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AntimatterStorageTank_Storedamount")]//Stored amount
         public double storedAmount;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredMass")]//Stored Mass
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredMass")]//Stored Mass
         public double storedMassMultiplier = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredTargetMass")]//Stored Target Mass
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_StoredTargetMass")]//Stored Target Mass
         public double storedTargetMassMultiplier = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ScalingFactor")]//Scaling Factor
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ScalingFactor")]//Scaling Factor
         public double storedScalingfactor = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_AntomatterDensity")]//Antomatter Density
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_AntomatterDensity")]//Antomatter Density
         public double antimatterDensity;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_InitialMass", guiUnits = " t", guiFormat = "F3")]//Initial Mass
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_InitialMass", guiUnits = " t", guiFormat = "F3")]//Initial Mass
         public double initialMass;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TargetMass", guiUnits = " t", guiFormat = "F3")]//Target Mass
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_TargetMass", guiUnits = " t", guiFormat = "F3")]//Target Mass
         public double targetMass;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_DeltaMass", guiUnits = " t", guiFormat = "F3")]//Delta Mass
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_DeltaMass", guiUnits = " t", guiFormat = "F3")]//Delta Mass
         public float moduleMassDelta;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_AttachedTanksCount")]//Attached Tanks Count
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_AttachedTanksCount")]//Attached Tanks Count
         public double attachedAntimatterTanksCount;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ResourceRatio", guiFormat = "F3")]//Resource Ratio
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AntimatterStorageTank_ResourceRatio", guiFormat = "F3")]//Resource Ratio
         public double resourceRatio;
 
         [KSPField] public double resourceCost;
@@ -123,7 +135,7 @@ namespace FNPlugin.Storage
         GameObject _lightGameObject;
         ModuleAnimateGeneric _deploymentAnimation;
         PartResourceDefinition _antimatterDefinition;
-        List<AntimatterStorageTank> _attachedAntimatterTanks;
+        List<ExplosiveStorageTank> _attachedAntimatterTanks;
 
         BaseField _capacityStrField;
         BaseField _maxAmountStrField;
@@ -171,20 +183,13 @@ namespace FNPlugin.Storage
             {
                 switch (techLevel)
                 {
-                    case 1:
-                        return Mk1AmountRatio;
-                    case 2:
-                        return Mk2AmountRatio;
-                    case 3:
-                        return Mk3AmountRatio;
-                    case 4:
-                        return Mk4AmountRatio;
-                    case 5:
-                        return Mk5AmountRatio;
-                    case 6:
-                        return Mk6AmountRatio;
-                    case 7:
-                        return Mk7AmountRatio;
+                    case 1: return Mk1AmountRatio;
+                    case 2: return Mk2AmountRatio;
+                    case 3: return Mk3AmountRatio;
+                    case 4: return Mk4AmountRatio;
+                    case 5: return Mk5AmountRatio;
+                    case 6: return Mk6AmountRatio;
+                    case 7: return Mk7AmountRatio;
                     default:
                         return 1;
                 }
@@ -194,18 +199,12 @@ namespace FNPlugin.Storage
         private void DetermineTechLevel()
         {
             techLevel = 1;
-            if (PluginHelper.UpgradeAvailable(Mk2Tech))
-                techLevel++;
-            if (PluginHelper.UpgradeAvailable(Mk3Tech))
-                techLevel++;
-            if (PluginHelper.UpgradeAvailable(Mk4Tech))
-                techLevel++;
-            if (PluginHelper.UpgradeAvailable(Mk5Tech))
-                techLevel++;
-            if (PluginHelper.UpgradeAvailable(Mk6Tech))
-                techLevel++;
-            if (PluginHelper.UpgradeAvailable(Mk7Tech))
-                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk2Tech)) techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk3Tech)) techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk4Tech)) techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk5Tech)) techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk6Tech)) techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk7Tech)) techLevel++;
         }
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
@@ -213,8 +212,28 @@ namespace FNPlugin.Storage
             return (float)GetModuleCost(defaultCost);
         }
 
+        public override void OnLoad(ConfigNode node)
+        {
+            base.OnLoad(node);
+
+            var displayName = GetModuleDisplayName();
+            var className = GetType().Name;
+
+            foreach (var field in Fields)
+            {
+                field.Attribute.groupName = className;
+                field.Attribute.groupDisplayName = displayName;
+            }
+
+            foreach (var field in Events)
+            {
+                field.group.name = className;
+                field.group.displayName = displayName;
+            }
+        }
+
         // this method will be called in the VAB
-        private double GetModuleCost(float defaultCost)
+            private double GetModuleCost(float defaultCost)
         {
             if (!calculatedCost)
                 return 0;
@@ -479,7 +498,7 @@ namespace FNPlugin.Storage
         {
             if (part.attachNodes == null) return;
 
-            attachedAntimatterTanksCount = part.attachNodes.Where(m => m.nodeType == AttachNode.NodeType.Stack && m.attachedPart != null).Select(m => m.attachedPart.FindModuleImplementing<AntimatterStorageTank>()).Count(m => m != null);
+            attachedAntimatterTanksCount = part.attachNodes.Where(m => m.nodeType == AttachNode.NodeType.Stack && m.attachedPart != null).Select(m => m.attachedPart.FindModuleImplementing<ExplosiveStorageTank>()).Count(m => m != null);
             UpdateTargetMass();
         }
 
@@ -487,7 +506,7 @@ namespace FNPlugin.Storage
         {
             if (part.attachNodes == null) return;
 
-            _attachedAntimatterTanks = part.attachNodes.Where(m => m.nodeType == AttachNode.NodeType.Stack && m.attachedPart != null).Select(m => m.attachedPart.FindModuleImplementing<AntimatterStorageTank>()).Where(m => m != null).ToList();
+            _attachedAntimatterTanks = part.attachNodes.Where(m => m.nodeType == AttachNode.NodeType.Stack && m.attachedPart != null).Select(m => m.attachedPart.FindModuleImplementing<ExplosiveStorageTank>()).Where(m => m != null).ToList();
             _attachedAntimatterTanks.ForEach(m => m.UpdateMass());
             attachedAntimatterTanksCount = _attachedAntimatterTanks.Count();
         }
@@ -660,10 +679,8 @@ namespace FNPlugin.Storage
 
             if (effectivePowerNeeded > 0.0)
             {
-                double powerRequest = (chargeStatus >= maxCharge ? 1.0 : 2.0) *
-                    effectivePowerNeeded * TimeWarp.fixedDeltaTime;
-                double chargeToAdd = ConsumeMegawatts(powerRequest / GameConstants.ecPerMJ,
-                    true, true, true) * GameConstants.ecPerMJ / effectivePowerNeeded;
+                double powerRequest = (chargeStatus >= maxCharge ? 1.0 : 2.0) * effectivePowerNeeded * TimeWarp.fixedDeltaTime;
+                double chargeToAdd = ConsumeMegawatts(powerRequest / GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ / effectivePowerNeeded;
                 chargeStatus += chargeToAdd;
 
                 if (chargeToAdd >= TimeWarp.fixedDeltaTime)
