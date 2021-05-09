@@ -128,6 +128,16 @@ namespace FNPlugin.Propulsion
         [KSPField] public float maxThrustMk8 = 3000;
         [KSPField] public float maxThrustMk9 = 3500;
 
+        [KSPField] public float minMixedRatioPercentageMk1 = 0;
+        [KSPField] public float minMixedRatioPercentageMk2 = 0;
+        [KSPField] public float minMixedRatioPercentageMk3 = 0;
+        [KSPField] public float minMixedRatioPercentageMk4 = 0;
+        [KSPField] public float minMixedRatioPercentageMk5 = 0;
+        [KSPField] public float minMixedRatioPercentageMk6 = 0;
+        [KSPField] public float minMixedRatioPercentageMk7 = 0;
+        [KSPField] public float minMixedRatioPercentageMk8 = 0;
+        [KSPField] public float minMixedRatioPercentageMk9 = 0;
+
         [KSPField] public float wasteheatMk1 = 0;
         [KSPField] public float wasteheatMk2 = 0;
         [KSPField] public float wasteheatMk3 = 0;
@@ -317,8 +327,26 @@ namespace FNPlugin.Propulsion
                     case (int)GenerationType.Mk6: return maxThrustMk6;
                     case (int)GenerationType.Mk7: return maxThrustMk7;
                     case (int)GenerationType.Mk8: return maxThrustMk8;
-                    default:
-                        return maxThrustMk9;
+                    default: return maxThrustMk9;
+                }
+            }
+        }
+
+        private float MinMixedRatioPercentage
+        {
+            get
+            {
+                switch (_engineGenerationType)
+                {
+                    case (int)GenerationType.Mk1: return minMixedRatioPercentageMk1;
+                    case (int)GenerationType.Mk2: return minMixedRatioPercentageMk2;
+                    case (int)GenerationType.Mk3: return minMixedRatioPercentageMk3;
+                    case (int)GenerationType.Mk4: return minMixedRatioPercentageMk4;
+                    case (int)GenerationType.Mk5: return minMixedRatioPercentageMk5;
+                    case (int)GenerationType.Mk6: return minMixedRatioPercentageMk6;
+                    case (int)GenerationType.Mk7: return minMixedRatioPercentageMk7;
+                    case (int)GenerationType.Mk8: return minMixedRatioPercentageMk8;
+                    default: return minMixedRatioPercentageMk9;
                 }
             }
         }
@@ -339,8 +367,7 @@ namespace FNPlugin.Propulsion
                     case (int)GenerationType.Mk6: return wasteheatMk6;
                     case (int)GenerationType.Mk7: return wasteheatMk7;
                     case (int)GenerationType.Mk8: return wasteheatMk8;
-                    default:
-                        return maxThrustMk9;
+                    default: return maxThrustMk9;
                 }
             }
         }
@@ -499,7 +526,18 @@ namespace FNPlugin.Propulsion
             translatedTechMk7 = PluginHelper.DisplayTech(upgradeTechReq7);
             translatedTechMk8 = PluginHelper.DisplayTech(upgradeTechReq8);
 
+            ConfigureMixedRatioPercentage();
+
             InitializeKerbalismEmitter();
+        }
+
+        private void ConfigureMixedRatioPercentage()
+        {
+            var mixedRatioPercentageField = Fields[nameof(mixedRatioPercentage)];
+            if (mixedRatioPercentageField.uiControlEditor is UI_FloatRange mixedRatioPercentageEditor)
+                mixedRatioPercentageEditor.minValue = MinMixedRatioPercentage;
+            if (mixedRatioPercentageField.uiControlFlight is UI_FloatRange mixedRatioPercentageFlight)
+                mixedRatioPercentageFlight.minValue = MinMixedRatioPercentage;
         }
 
         private void InitializeKerbalismEmitter()
