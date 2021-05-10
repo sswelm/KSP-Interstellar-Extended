@@ -25,8 +25,6 @@ namespace FNPlugin.Science
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiName = "Auto Stabilizing"), UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
         public bool isAutoStabilizing = true;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, isPersistant = true, guiActive = true, guiName = "Persist Heading"), UI_Toggle(disabledText = "Disabled", enabledText = "Enabled")]
-        public bool persistHeading = true;
 
         // Gui
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiFormat = "F4")] public double maxRollTorque;
@@ -67,9 +65,6 @@ namespace FNPlugin.Science
         private double _bufferPower;
         private double _bufferOvercapacity;
         private double _fixedUpdateCount;
-        private double _ratioHeadingVersusRequest;
-
-        private int _vesselChangedSoiCountdown;
 
         private double angularMomentumSaturationRollTorqueFactor;
         private double angularMomentumSaturationPitchTorqueFactor;
@@ -85,9 +80,6 @@ namespace FNPlugin.Science
 
             if (_reactionWheel == null)
                 return;
-
-            if (persistHeading)
-                _ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSoiCountdown > 0);
 
             var actuatorModeCycleField = _reactionWheel.Fields[nameof(_reactionWheel.actuatorModeCycle)];
             var authorityLimiterField = _reactionWheel.Fields[nameof(_reactionWheel.authorityLimiter)];
@@ -110,22 +102,11 @@ namespace FNPlugin.Science
             StabilizeWhenPossible(0.005f, 1, 1, 1);
         }
 
-        public void VesselChangedSoi()
-        {
-            _vesselChangedSoiCountdown = 10;
-        }
-
         public void FixedUpdate()
         {
             if (HighLogic.LoadedSceneIsEditor) return;
 
             if (_reactionWheel == null) return;
-
-            if (_vesselChangedSoiCountdown > 0)
-                _vesselChangedSoiCountdown--;
-
-            if (persistHeading)
-                _ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSoiCountdown > 0);
 
             // save or restore AutopilotMode
             if (_fixedUpdateCount++ > 100)

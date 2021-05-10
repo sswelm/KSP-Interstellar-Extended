@@ -131,7 +131,9 @@ namespace FNPlugin.Refinery.Activity
         private string _sodiumResourceName;
 
 
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_DeployScoop", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
+        [KSPEvent(groupDisplayName = InterstellarRefineryController.GroupTitle, groupName = InterstellarRefineryController.Group,
+            guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_DeployScoop",
+            active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
         public void DeployScoop()
         {
             RunAnimation(animName, _scoopAnimation, animSpeed, 0);
@@ -142,7 +144,9 @@ namespace FNPlugin.Refinery.Activity
         }
 
         // GUI to retract sail
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_RetractScoop", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]//Retract Scoop
+        [KSPEvent(groupDisplayName = InterstellarRefineryController.GroupTitle, groupName = InterstellarRefineryController.Group,
+            guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_RetractScoop",
+            active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]//Retract Scoop
         public void RetractScoop()
         {
             RunAnimation(animName, _scoopAnimation, -animSpeed, 1);
@@ -653,7 +657,10 @@ namespace FNPlugin.Refinery.Activity
 
         private string GetValueText(double value)
         {
-            return value >= 0.00000005 ? value.ToString("##.########") : ((float)value).ToString(CultureInfo.InvariantCulture);
+            return value >= 0.5 ? value.ToString("#.0")
+                : value >= 0.0005 ? value.ToString("#.0000")
+                : value >= 0.0000005 ? value.ToString("#.0000000")
+                : ((float)value).ToString(CultureInfo.InvariantCulture);
         }
 
         private void UpdateStatusMessage()

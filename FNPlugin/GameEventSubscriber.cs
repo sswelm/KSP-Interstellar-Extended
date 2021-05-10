@@ -111,7 +111,7 @@ namespace FNPlugin
         void OnVesselSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody> gameEvent)
         {
             Debug.Log("[KSPI]: GameEventSubscriber - detected OnVesselSOIChanged");
-            gameEvent.host.FindPartModulesImplementing<FNModuleReactionWheelController>().ForEach(e => e.VesselChangedSoi());
+            gameEvent.host.FindPartModulesImplementing<FNPersistentRotation>().ForEach(e => e.VesselChangedSoi());
             gameEvent.host.FindPartModulesImplementing<ElectricEngineControllerFX>().ForEach(e => e.VesselChangedSoi());
             gameEvent.host.FindPartModulesImplementing<ModuleEnginesWarp>().ForEach(e => e.VesselChangedSoi());
             gameEvent.host.FindPartModulesImplementing<InterstellarEngineController>().ForEach(e => e.VesselChangedSoi());

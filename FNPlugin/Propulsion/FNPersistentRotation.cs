@@ -13,7 +13,13 @@ namespace FNPlugin.Propulsion
         public bool IsEnabled = true;
 
         // Session fields
-        private int countdown = 100;
+        private int _countdown = 100;
+        private int _vesselChangedSoiCountdown;
+
+        public void VesselChangedSoi()
+        {
+            _vesselChangedSoiCountdown = 10;
+        }
 
         public void FixedUpdate()
         {
@@ -23,9 +29,12 @@ namespace FNPlugin.Propulsion
             if (vessel == null)
                 return;
 
-            if (countdown > 0 && ratioHeadingVersusRequest > 0.999)
+            if (_vesselChangedSoiCountdown > 0)
+                _vesselChangedSoiCountdown--;
+
+            if (_countdown > 0 && ratioHeadingVersusRequest > 0.999)
             {
-                countdown--;
+                _countdown--;
 
                 if (persistentAutopilotMode != vessel.Autopilot.Mode)
                 {
@@ -37,7 +46,7 @@ namespace FNPlugin.Propulsion
             }
 
             // persist heading and drop out of warp when previously was maintaining heading
-            ratioHeadingVersusRequest = vessel.PersistHeading(false, ratioHeadingVersusRequest == 1);
+            ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSoiCountdown > 0, ratioHeadingVersusRequest == 1);
             persistentAutopilotMode = vessel.Autopilot.Mode;
         }
     }
