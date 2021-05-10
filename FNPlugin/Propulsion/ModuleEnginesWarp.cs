@@ -13,8 +13,6 @@ namespace FNPlugin.Propulsion
     {
         [KSPField(isPersistant = true)]
         bool IsForceActivated;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ModuleEnginesWarp_MassFlow")]//Mass Flow
-        public double requestedFlow;
 
         [KSPField] public double GThreshold = 15;
         [KSPField] public string propellant1 = "LqdHydrogen";
@@ -34,21 +32,25 @@ namespace FNPlugin.Propulsion
         [KSPField] private double averageDensityInTonPerLiter;
         [KSPField] private double massPropellantRatio;
         [KSPField] private double ratioSumWithoutMass;
-        [KSPField] private double ratioHeadingVersusRequest;
-        [KSPField] public double totalmassVessel;
+
         [KSPField] public double massDelta;
         [KSPField] public double deltaV;
 
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ModuleEnginesWarp_MassFlow")]//Mass Flow
+        public double requestedFlow;
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
 
         private Transform _engineThrustTransform;
         private Vector3d _engineThrustTransformUp;
 
+        private int _vesselChangedSoiCountdown;
+
         private double _realIsp;
         private double _thrustPersistent;
         private double _throttlePersistent;
-        private int vesselChangedSIOCountdown;
+        private double _ratioHeadingVersusRequest;
+        private double _totalMassVessel;
 
         private double fuelWithMassPercentage1;
         private double fuelWithMassPercentage2;
@@ -76,11 +78,11 @@ namespace FNPlugin.Propulsion
         private PartResourceDefinition propellantResourceDefinition4;
 
         // Are we transitioning from timewarp to realtime?
-        bool _warpToReal;
+        private bool _warpToReal;
 
-        public void VesselChangedSOI()
+        public void VesselChangedSoi()
         {
-            vesselChangedSIOCountdown = 10;
+            _vesselChangedSoiCountdown = 10;
         }
 
         // Update
@@ -253,8 +255,8 @@ namespace FNPlugin.Propulsion
         // Physics update
         public override void OnFixedUpdate()
         {
-            if (vesselChangedSIOCountdown > 0)
-                vesselChangedSIOCountdown--;
+            if (_vesselChangedSoiCountdown > 0)
+                _vesselChangedSoiCountdown--;
 
             if (FlightGlobals.fetch == null || !isEnabled) return;
 
@@ -270,7 +272,7 @@ namespace FNPlugin.Propulsion
             _realIsp = realIsp;
 
             requestedFlow = requestedMassFlow;
-            totalmassVessel = vessel.totalMass;
+            _totalMassVessel = vessel.totalMass;
 
             // Check if we are in time warp mode
             if (!vessel.packed)
@@ -292,7 +294,7 @@ namespace FNPlugin.Propulsion
                         _thrustPersistent = finalThrust;
                 }
 
-                ratioHeadingVersusRequest = 0;
+                _ratioHeadingVersusRequest = 0;
             }
             else
             {
@@ -304,15 +306,15 @@ namespace FNPlugin.Propulsion
                 // only persist thrust if active and non zero throttle or significant thrust
                 if (getIgnitionState && (currentThrottle > 0 || _thrustPersistent > 0.0000005))
                 {
-                    ratioHeadingVersusRequest = vessel.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
-                    if (ratioHeadingVersusRequest != 1)
+                    _ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSoiCountdown > 0, _ratioHeadingVersusRequest == 1);
+                    if (_ratioHeadingVersusRequest != 1)
                         return;
 
                     // determine maximum deltaV during this frame
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
-                    remainingMass = totalmassVessel - demandMass;
+                    remainingMass = _totalMassVessel - demandMass;
 
-                    deltaV = _realIsp * PhysicsGlobals.GravitationalAcceleration * Math.Log(totalmassVessel / remainingMass);
+                    deltaV = _realIsp * PhysicsGlobals.GravitationalAcceleration * Math.Log(_totalMassVessel / remainingMass);
 
                     _engineThrustTransform = part.FindModelTransform(thrustVectorTransformName);
                     if (_engineThrustTransform == null)
@@ -336,11 +338,11 @@ namespace FNPlugin.Propulsion
                     fuelRatio = CollectFuel(demandMass, ResourceFlowMode.ALL_VESSEL);
 
                     // Calculate thrust and deltaV if demand output > 0
-                    if (IsPositiveValidNumber(fuelRatio) && IsPositiveValidNumber(demandMass) && IsPositiveValidNumber(totalmassVessel) && IsPositiveValidNumber(_realIsp))
+                    if (IsPositiveValidNumber(fuelRatio) && IsPositiveValidNumber(demandMass) && IsPositiveValidNumber(_totalMassVessel) && IsPositiveValidNumber(_realIsp))
                     {
                         remainingMass = vessel.totalMass - (demandMass * fuelRatio); // Mass at end of burn
 
-                        massDelta = Math.Log(totalmassVessel / remainingMass);
+                        massDelta = Math.Log(_totalMassVessel / remainingMass);
                         deltaV = _realIsp * PhysicsGlobals.GravitationalAcceleration * massDelta; // Delta V from burn
                         vessel.orbit.Perturb(deltaV * _engineThrustTransformUp, Planetarium.GetUniversalTime()); // Update vessel orbit
 
@@ -364,7 +366,7 @@ namespace FNPlugin.Propulsion
                 }
                 else
                 {
-                    ratioHeadingVersusRequest = vessel.PersistHeading(vesselChangedSIOCountdown > 0);
+                    _ratioHeadingVersusRequest = vessel.PersistHeading(_vesselChangedSoiCountdown > 0);
 
                     _thrustPersistent = 0;
                     requestedFlow = 0;

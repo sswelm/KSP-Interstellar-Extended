@@ -214,52 +214,37 @@ namespace FNPlugin.Propulsion
         [KSPField] public double fusionFuelRequestAmount3;
 
         // Visible fields
-        [KSPField(guiActive = false, guiFormat = "F3", guiName = "Mass Ratio")]
-        public string fuelMassRatioStr;
-        [KSPField(guiActive = false, guiFormat = "F3", guiName = "Volume Ratio")]
-        public string fuelVolumeRatioStr;
-        [KSPField(guiActive = true, guiFormat = "F3", guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408")]
-        public double finalThrust;
-        [KSPField(guiActive = true, guiFormat = "F5", guiName = "#autoLOC_6001375", guiUnits = "#autoLOC_7001409")]
-        public double fuelFlowGui;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "F1", guiName = "#autoLOC_6001378", guiUnits = "#autoLOC_7001400")]
-        public double effectiveIsp;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_powerUsage")]
-        public string powerUsage;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_wasteHeat", guiFormat = "F2", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
-        public double wasteHeat;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiUnits = " m/s")]
-        public double engineSpeedOfLight;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
-        public double lightSpeedRatio;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_relativity", guiFormat = "F10")]
-        public double relativity;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
-        public double timeDilation = 1;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_radhazardstr")]
-        public string radHazardStr = "";
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_partMass", guiFormat = "F3", guiUnits = " t")]
-        public float partMass = 1;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fusionRatio", guiFormat = "F3")]
-        public double fusionRatio;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")]
-        public string fuelAmountsRatio1;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")]
-        public string fuelAmountsRatio2;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")]
-        public string fuelAmountsRatio3;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_thrustPowerInTeraWatt", guiFormat = "F2", guiUnits = " TW")]
-        public double thrustPowerInTerraWatt;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateKgPerSecond", guiFormat = "F6", guiUnits = " kg/s")]
-        public double massFlowRateKgPerSecond;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateTonPerHour", guiFormat = "F6", guiUnits = " t/h")]
-        public double massFlowRateTonPerHour;
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_storedThrotle")]
-        public float storedThrottle;
+        [KSPField(guiActive = false, guiFormat = "F3", guiName = "Mass Ratio")] public string fuelMassRatioStr;
+        [KSPField(guiActive = false, guiFormat = "F3", guiName = "Volume Ratio")] public string fuelVolumeRatioStr;
+
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_radhazardstr")] public string radHazardStr = "";
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")] public string fuelAmountsRatio1;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")] public string fuelAmountsRatio2;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")] public string fuelAmountsRatio3;
+
+        [KSPField(guiActive = true, guiFormat = "F3", guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408")] public double finalThrust;
+        [KSPField(guiActive = true, guiFormat = "F5", guiName = "#autoLOC_6001375", guiUnits = "#autoLOC_7001409")] public double fuelFlowGui;
+
+        [KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "F2", guiName = "#autoLOC_6001378", guiUnits = "#autoLOC_7001400")] public double effectiveIsp;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "F2", guiName = "#LOC_KSPIE_FusionEngine_powerUsage")] public string powerUsage;
+
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiFormat = "F0", guiUnits = " m/s")] public double engineSpeedOfLight;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")] public double lightSpeedRatio;
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_partMass", guiFormat = "F3", guiUnits = " t")] public float partMass = 1;
+
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fusionRatio", guiFormat = "F3")] public double fusionRatio;
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_relativity", guiFormat = "F10")] public double relativity;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")] public double timeDilation = 1;
+
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_thrustPowerInTeraWatt", guiFormat = "F2", guiUnits = " TW")] public double thrustPowerInTerraWatt;
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateKgPerSecond", guiFormat = "F6", guiUnits = " kg/s")] public double massFlowRateKgPerSecond;
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateTonPerHour", guiFormat = "F6", guiUnits = " t/h")] public double massFlowRateTonPerHour;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_worldSpaceVelocity", guiFormat = "F2", guiUnits = " m/s")] public double worldSpaceVelocity;
+
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_effectiveMaxThrustInKiloNewton", guiFormat = "F2", guiUnits = " kN")]
         public double effectiveMaxThrustInKiloNewton;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_worldSpaceVelocity", guiFormat = "F2", guiUnits = " m/s")]
-        public double worldSpaceVelocity;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "F2", guiName = "#LOC_KSPIE_FusionEngine_wasteHeat", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]
+        public double wasteHeat;
 
         private FNEmitterController _emitterController;
         private ModuleEngines _curEngineT;
@@ -272,6 +257,7 @@ namespace FNPlugin.Propulsion
         private PartResourceDefinition _fuelResourceDefinition2;
         private PartResourceDefinition _fuelResourceDefinition3;
 
+        public float storedThrottle;
         private bool _radHazard;
         private bool _warpToReal;
         private double _compositeIsp;
@@ -304,7 +290,7 @@ namespace FNPlugin.Propulsion
             rad_safety_features = true;
         }
 
-        public void VesselChangedSOI()
+        public void VesselChangedSoi()
         {
             _vesselChangedSioCountdown = 10;
         }

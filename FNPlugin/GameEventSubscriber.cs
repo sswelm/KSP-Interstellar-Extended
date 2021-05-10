@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Beamedpower;
 using FNPlugin.Powermanagement;
 using FNPlugin.Propulsion;
+using FNPlugin.Science;
 using FNPlugin.Wasteheat;
 using UnityEngine;
 
@@ -110,9 +111,10 @@ namespace FNPlugin
         void OnVesselSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody> gameEvent)
         {
             Debug.Log("[KSPI]: GameEventSubscriber - detected OnVesselSOIChanged");
+            gameEvent.host.FindPartModulesImplementing<FNModuleReactionWheelController>().ForEach(e => e.VesselChangedSoi());
             gameEvent.host.FindPartModulesImplementing<ElectricEngineControllerFX>().ForEach(e => e.VesselChangedSoi());
-            gameEvent.host.FindPartModulesImplementing<ModuleEnginesWarp>().ForEach(e => e.VesselChangedSOI());
-            gameEvent.host.FindPartModulesImplementing<InterstellarEngineController>().ForEach(e => e.VesselChangedSOI());
+            gameEvent.host.FindPartModulesImplementing<ModuleEnginesWarp>().ForEach(e => e.VesselChangedSoi());
+            gameEvent.host.FindPartModulesImplementing<InterstellarEngineController>().ForEach(e => e.VesselChangedSoi());
             gameEvent.host.FindPartModulesImplementing<AlcubierreDrive>().ForEach(e => e.VesselChangedSoi());
         }
 
