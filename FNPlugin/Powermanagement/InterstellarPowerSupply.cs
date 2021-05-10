@@ -8,6 +8,9 @@ namespace FNPlugin.Powermanagement
     [KSPModule("Power Supply")]
     class InterstellarPowerSupply : ResourceSuppliableModule, IPowerSupply
     {
+        [KSPField(isPersistant = true)]
+        public bool isActivated;
+
         public const string Group = "PowerSupply";
         public const string GroupTitle = "PowerSupply";
 
@@ -33,7 +36,7 @@ namespace FNPlugin.Powermanagement
             set => displayName = value;
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             displayName = part.partInfo.title;
             resourcesToSupply = new [] { ResourceSettings.Config.ElectricPowerInMegawatt };
@@ -45,23 +48,40 @@ namespace FNPlugin.Powermanagement
             if (!Kerbalism.IsLoaded)
                 resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceSettings.Config.ElectricPowerInKilowatt, 1000));
             resourceBuffers.Init(part);
+        }
+
+        private void Activate()
+        {
+            if (isActivated)
+                return;
 
             Debug.Log("[KSPI]: PowerSupply on " + part.name + " was Force Activated");
             this.part.force_activate();
+
+            isActivated = true;
         }
 
         public double ConsumeMegajoulesFixed(double powerRequest, double fixedDeltaTime)
         {
+            if (powerRequest > 0)
+                Activate();
+
             return consumeFNResource(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt, fixedDeltaTime);
         }
 
         public double ConsumeMegajoulesPerSecond(double powerRequest)
         {
+            if (powerRequest > 0)
+                Activate();
+
             return ConsumeFnResourcePerSecond(powerRequest, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
 
         public void SupplyMegajoulesPerSecondWithMax(double supply, double maxsupply)
         {
+            if (supply > 0)
+                Activate();
+
             currentPowerSupply += supply;
 
             SupplyFnResourcePerSecondWithMax(supply, maxsupply, ResourceSettings.Config.ElectricPowerInMegawatt);

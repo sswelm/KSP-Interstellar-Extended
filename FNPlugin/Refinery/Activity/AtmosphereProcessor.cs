@@ -31,6 +31,7 @@ namespace FNPlugin.Refinery.Activity
         [KSPField] public double buildInAirIntake;
         [KSPField] public double atmosphereConsumptionRatio;
         [KSPField] public string animName = "";
+        [KSPField] public float animSpeed = 0.1f;
 
         /* Individual percentages of all consituents of the local atmosphere. These are bound to be found in different
          * concentrations in all atmospheres. These are persistent because getting them every update through
@@ -57,11 +58,11 @@ namespace FNPlugin.Refinery.Activity
         [KSPField(isPersistant = true)] protected double _kryptonPercentage;
         [KSPField(isPersistant = true)] protected double _sodiumPercentage;
 
-        private Animation _scoopAnimation;
         private double _fixedConsumptionRate;
         private double _consumptionStorageRatio;
         private double _intakeModifier;
 
+        private Animation _scoopAnimation;
         private PartResourceDefinition _atmosphere;
 
         // all the gases that it should be possible to collect from atmospheres
@@ -133,7 +134,10 @@ namespace FNPlugin.Refinery.Activity
         [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_DeployScoop", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
         public void DeployScoop()
         {
-            RunAnimation(animName, _scoopAnimation, 0.5f, 0);
+            RunAnimation(animName, _scoopAnimation, animSpeed, 0);
+
+            part.force_activate();
+
             isDeployed = true;
         }
 
@@ -141,7 +145,8 @@ namespace FNPlugin.Refinery.Activity
         [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_RetractScoop", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]//Retract Scoop
         public void RetractScoop()
         {
-            RunAnimation(animName, _scoopAnimation, -0.5f, 1);
+            RunAnimation(animName, _scoopAnimation, -animSpeed, 1);
+
             isDeployed = false;
         }
 
@@ -267,7 +272,7 @@ namespace FNPlugin.Refinery.Activity
 
         public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
-            ExtractAir(rateMultiplier, powerFraction, productionModifier, allowOverflow, fixedDeltaTime, false);
+            ExtractAir(rateMultiplier, powerFraction, productionModifier, true, fixedDeltaTime, false);
 
             UpdateStatusMessage();
         }
@@ -662,7 +667,7 @@ namespace FNPlugin.Refinery.Activity
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg4");//"Insufficient Power"
             else
-                _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg5");//"Insufficient Storage, try allowing overflow"
+                _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg5");//"Insufficient Storage"
         }
 
         public override void PrintMissingResources()
@@ -673,7 +678,7 @@ namespace FNPlugin.Refinery.Activity
         public void Update()
         {
             // Sail deployment GUI
-            Events[nameof(DeployScoop)].active = _scoopAnimation != null && !isDeployed ;
+            Events[nameof(DeployScoop)].active = _scoopAnimation != null && !isDeployed;
             Events[nameof(RetractScoop)].active = _scoopAnimation != null && isDeployed;
         }
 

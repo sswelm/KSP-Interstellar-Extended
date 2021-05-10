@@ -51,7 +51,7 @@ namespace FNPlugin.Refinery.Activity
 
         public override void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double timeDifference, bool isStartup = false)
         {
-            ExtractSeawater(rateMultiplier, powerFraction, productionModifier, allowOverflow, timeDifference, false);
+            ExtractSeawater(rateMultiplier, powerFraction, productionModifier, true, timeDifference, false);
 
             UpdateStatusMessage();
         }
