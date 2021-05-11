@@ -657,9 +657,9 @@ namespace FNPlugin.Refinery.Activity
 
         private string GetValueText(double value)
         {
-            return value >= 0.5 ? value.ToString("#.0")
-                : value >= 0.0005 ? value.ToString("#.0000")
-                : value >= 0.0000005 ? value.ToString("#.0000000")
+            return value >= 0.5 ? value.ToString("#.000")
+                : value >= 0.0005 ? value.ToString("#.000000")
+                : value >= 0.0000005 ? value.ToString("#.000000000")
                 : ((float)value).ToString(CultureInfo.InvariantCulture);
         }
 
