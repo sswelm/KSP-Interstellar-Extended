@@ -87,9 +87,9 @@ namespace FNPlugin.Refinery
 
             var availablePower = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
             var resourceBarRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
-            var effectiveResourceThrottling = resourceBarRatio > 1.0/3.0 ? 1 : resourceBarRatio * 3;
+            var effectiveResourceThrottling = resourceBarRatio > 1d/3d ? 1 : resourceBarRatio * 3;
 
-            var energyRequestedInMegajoulesPerSecond = Math.Min(powerCapacity, effectiveResourceThrottling * availablePower * (double)(decimal)powerPercentage * 0.01);
+            var energyRequestedInMegajoulesPerSecond = powerPercentage * 0.01 * Math.Min(powerCapacity, effectiveResourceThrottling * availablePower);
 
             var energyProvidedInMegajoulesPerSecond = CheatOptions.InfiniteElectricity
                 ? energyRequestedInMegajoulesPerSecond

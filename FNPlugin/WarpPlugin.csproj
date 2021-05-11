@@ -91,6 +91,8 @@
     <Compile Include="PluginSettings.cs" />
     <Compile Include="Powermanagement\Interfaces\IFNElectricPowerGeneratorSource.cs" />
     <Compile Include="Reactors\IFNNuclearFuelReprocessable.cs" />
+    <Compile Include="Refinery\FNResourceGenerator.cs" />
+    <Compile Include="Resources\MetallicHydrogenFactory.cs" />
     <Compile Include="Resources\ProcessControlMetaData.cs" />
     <Compile Include="Resources\RegolithCollector.cs" />
     <Compile Include="Resources\SolarWindCollector.cs" />
@@ -156,7 +158,7 @@
     <Compile Include="Reactors\InterstellarFissionPB.cs" />
     <Compile Include="Refinery\Activity\AluminiumElectrolyzer.cs" />
     <Compile Include="Resources\AntimatterCollector.cs" />
-    <Compile Include="Refinery\AntimatterFactory.cs" />
+    <Compile Include="Resources\AntimatterFactory.cs" />
     <Compile Include="Refinery\Activity\AtmosphereProcessor.cs" />
     <Compile Include="Refinery\RefineryActivity.cs" />
     <Compile Include="Refinery\Activity\PartialMethaneOxidation.cs" />
