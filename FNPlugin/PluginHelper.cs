@@ -430,7 +430,8 @@ namespace FNPlugin
 
             AddMissingTechNodes();
 
-            if (resourcesConfigured) return;
+            if (resourcesConfigured)
+                return;
 
             // read WarpPluginSettings.cfg
             var pluginSettingConfigs = GameDatabase.Instance.GetConfigNode(WarpPluginSettingsFilepath);

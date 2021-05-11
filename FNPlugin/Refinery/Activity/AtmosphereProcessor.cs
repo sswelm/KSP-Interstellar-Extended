@@ -1,11 +1,11 @@
-﻿using FNPlugin.Constants;
-using FNPlugin.Extensions;
-using FNPlugin.Resources;
-using KSP.Localization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using FNPlugin.Constants;
+using FNPlugin.Extensions;
+using FNPlugin.Resources;
+using KSP.Localization;
 using UnityEngine;
 
 namespace FNPlugin.Refinery.Activity
@@ -21,17 +21,7 @@ namespace FNPlugin.Refinery.Activity
 
         // persistent
         [KSPField(isPersistant = true)] protected int lastBodyID = -1; // ID of the last body. Allows us to skip some expensive calls
-
-        [KSPField(isPersistant = true)] public bool isDeployed;
-        [KSPField(guiActive = false)] public float normalizedTime = -1;
-
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_SurfaceArea", guiFormat = "F3")]//Surface Area
-        public double surfaceArea = 1;
-
-        [KSPField] public double buildInAirIntake;
-        [KSPField] public double atmosphereConsumptionRatio;
-        [KSPField] public string animName = "";
-        [KSPField] public float animSpeed = 0.1f;
+        [KSPField(isPersistant = true)] protected bool isDeployed;
 
         /* Individual percentages of all consituents of the local atmosphere. These are bound to be found in different
          * concentrations in all atmospheres. These are persistent because getting them every update through
@@ -58,6 +48,16 @@ namespace FNPlugin.Refinery.Activity
         [KSPField(isPersistant = true)] protected double _kryptonPercentage;
         [KSPField(isPersistant = true)] protected double _sodiumPercentage;
 
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_SurfaceArea", guiFormat = "F3")]//Surface Area
+        public double surfaceArea = 1;
+
+        [KSPField] public double buildInAirIntake;
+        [KSPField] public double atmosphereConsumptionRatio;
+        [KSPField] public double deployedMaxTemperature = 0;
+        [KSPField] public string animName = "";
+        [KSPField] public float animSpeed = 0.1f;
+
+        private float normalizedTime = -1;
         private double _fixedConsumptionRate;
         private double _consumptionStorageRatio;
         private double _intakeModifier;
@@ -130,7 +130,6 @@ namespace FNPlugin.Refinery.Activity
         private string _kryptonResourceName;
         private string _sodiumResourceName;
 
-
         [KSPEvent(groupDisplayName = InterstellarRefineryController.GroupTitle, groupName = InterstellarRefineryController.Group,
             guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_DeployScoop",
             active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
@@ -139,6 +138,9 @@ namespace FNPlugin.Refinery.Activity
             RunAnimation(animName, _scoopAnimation, animSpeed, 0);
 
             part.force_activate();
+
+            if (deployedMaxTemperature > 0)
+                part.skinTemperature = deployedMaxTemperature;
 
             isDeployed = true;
         }
@@ -156,15 +158,14 @@ namespace FNPlugin.Refinery.Activity
 
         public override string Status => string.Copy(_status);
         public override RefineryType RefineryType => RefineryType.Cryogenics;
-
-        public override bool HasActivityRequirements()
-        {
-            return true;
-        }
+        public override bool HasActivityRequirements() => true;
 
         public override void Initialize(Part localPart, InterstellarRefineryController controller)
         {
             base.Initialize(localPart, controller);
+
+            if (isDeployed && deployedMaxTemperature > 0)
+                part.skinTemperature = deployedMaxTemperature;
 
             _intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>();
 
