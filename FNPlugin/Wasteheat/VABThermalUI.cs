@@ -149,10 +149,12 @@ namespace FNPlugin.Wasteheat
                 _dryMass += part.mass;
                 _wetMass += part.Resources.Sum(m => m.amount * m.info.density);
 
+                thermalEngines.AddRange(part.FindModulesImplementing<ThermalEngineController>()
+                    .Where(m => m.AttachedReactor != null && m.AttachedEngine != null));
+
                 thermalSources.AddRange(part.FindModulesImplementing<IFNPowerSource>());
                 radiators.AddRange(part.FindModulesImplementing<FNRadiator>());
                 generators.AddRange(part.FindModulesImplementing<FNGenerator>());
-                thermalEngines.AddRange(part.FindModulesImplementing<ThermalEngineController>());
                 beamedReceivers.AddRange(part.FindModulesImplementing<BeamedPowerReceiver>());
                 variableEngines.AddRange(part.FindModulesImplementing<FusionECU2>());
                 fusionEngines.AddRange(part.FindModulesImplementing<InterstellarEngineController>());
@@ -468,15 +470,7 @@ namespace FNPlugin.Wasteheat
 
             foreach (ThermalEngineController thermalNozzle in thermalEngines)
             {
-                if (thermalNozzle.AttachedReactor == null)
-                    continue;
-
-                var moduleEngine = thermalNozzle.part.FindModuleImplementing<ModuleEngines>();
-
-                if (moduleEngine == null)
-                    continue;
-
-                var maxWasteheatProduction = moduleEngine.thrustPercentage * 0.01 * thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
+                var maxWasteheatProduction = thermalNozzle.AttachedEngine.thrustPercentage * 0.01 * thermalNozzle.ReactorWasteheatModifier * thermalNozzle.AttachedReactor.NormalisedMaximumPower;
 
                 _wasteheatSourcePower100Pc += maxWasteheatProduction;
                 _wasteheatSourcePower90Pc += maxWasteheatProduction * 0.90;
