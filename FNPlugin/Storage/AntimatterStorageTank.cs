@@ -15,6 +15,15 @@ namespace FNPlugin.Storage
     class MetallicHydrogenStorageTank : ExplosiveStorageTank
     {
         public override string GetModuleDisplayName() => "Metallic Hydrogen Storage";
+
+        public override void OnStart(StartState state)
+        {
+            volumeMultiplier = 1e3;		    // 1 ton to 1 kg
+            explosionMultiplier = 0.0516;	// 1 kg contains 216 MW per kg /  4184 MW per ton TNT = 0.0516 ton TNT per kg
+            destroyVesselOnExplode = false;
+
+            base.OnStart(state);
+        }
     }
 
     [KSPModule("Antimatter Storage")]
@@ -97,6 +106,10 @@ namespace FNPlugin.Storage
         [KSPField] public string resourceName = ResourceSettings.Config.AntiProtium;
         [KSPField] public double massTemperatureDivider = 12000;
         [KSPField] public double massGeeforceDivider = 40;
+        [KSPField] public double volumeMultiplier = 1e9;
+        [KSPField] public double explosionMultiplier = 21.5; // 1 mg antimatter equates 21.5 Ton TNT
+        [KSPField] public bool destroyVesselOnExplode = true;
+
 
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_ModuleCost")] public double moduleCost;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_AntimatterStorageTank_RequiredPower")] public double effectivePowerNeeded;
@@ -233,7 +246,7 @@ namespace FNPlugin.Storage
         }
 
         // this method will be called in the VAB
-            private double GetModuleCost(float defaultCost)
+        private double GetModuleCost(float defaultCost)
         {
             if (!calculatedCost)
                 return 0;
@@ -560,7 +573,7 @@ namespace FNPlugin.Storage
             capacityStr = PluginHelper.FormatMassStr(antimatterResource.amount * antimatterDensity);
             maxAmountStr = PluginHelper.FormatMassStr(antimatterResource.maxAmount * antimatterDensity);
 
-            var explosionPowerInTnt = antimatterResource.amount * antimatterResource.info.density * 1e9 * 21.5;
+            var explosionPowerInTnt = antimatterResource.amount * antimatterResource.info.density * volumeMultiplier * explosionMultiplier;
 
             part.explosionPotential = (float)explosionPowerInTnt * 10;
 
@@ -774,9 +787,7 @@ namespace FNPlugin.Storage
 
             if (!exploding || _lightGameObject == null) return;
 
-            // 1 mg antimatter equates 21.5 Ton TNT
-
-            var explosionPowerInTnt = antimatterResource.amount * antimatterResource.info.density * 1e9 * 21.5;
+            var explosionPowerInTnt = antimatterResource.amount * antimatterResource.info.density * volumeMultiplier * explosionMultiplier;
             var explosionSize = Math.Pow(explosionPowerInTnt, 1/3d) * 280;
 
             _lightGameObject.transform.localScale = new Vector3((float)Math.Sqrt(explosionSize), (float)explosionSize, (float)Math.Sqrt(explosionSize));
@@ -786,26 +797,23 @@ namespace FNPlugin.Storage
             TimeWarp.SetRate(0, true);
             vessel.GoOffRails();
 
-            var listOfVesselsToExplode = FlightGlobals.Vessels.ToArray();
-            foreach (var vesselToExplode in listOfVesselsToExplode)
+            if (destroyVesselOnExplode)
             {
-                if (Vector3d.Distance(vesselToExplode.transform.position, vessel.transform.position) > explosionSize) continue;
-
-                if (vesselToExplode.packed) continue;
-
-                var partsToExplode = vesselToExplode.Parts.ToArray();
-                foreach (var partToExplode in partsToExplode.Where(partToExplode => partToExplode != null))
+                var listOfVesselsToExplode = FlightGlobals.Vessels.ToArray();
+                foreach (var vesselToExplode in listOfVesselsToExplode)
                 {
-                    partToExplode.explode();
+                    if (Vector3d.Distance(vesselToExplode.transform.position, vessel.transform.position) >
+                        explosionSize) continue;
+
+                    if (vesselToExplode.packed) continue;
+
+                    var partsToExplode = vesselToExplode.Parts.ToArray();
+                    foreach (var partToExplode in partsToExplode.Where(partToExplode => partToExplode != null))
+                    {
+                        partToExplode.explode();
+                    }
                 }
             }
-
-            //var explodeParts = vessel.Parts.ToArray();
-            //foreach (var explodePart in explodeParts.Where(explodePart => explodePart != vessel.rootPart && explodePart != this.part))
-            //{
-            //    explodePart.explode();
-            //}
-            //vessel.rootPart.explode();
 
             part.explode();
         }

@@ -140,7 +140,15 @@ namespace FNPlugin.Refinery.Activity
             part.force_activate();
 
             if (deployedMaxTemperature > 0)
-                part.skinTemperature = deployedMaxTemperature;
+            {
+                if (part.temperature > deployedMaxTemperature - 100)
+                    part.temperature = deployedMaxTemperature - 100;
+
+                if (part.skinTemperature > deployedMaxTemperature - 100)
+                    part.skinTemperature = deployedMaxTemperature - 100;
+
+                part.skinMaxTemp = deployedMaxTemperature;
+            }
 
             isDeployed = true;
         }
