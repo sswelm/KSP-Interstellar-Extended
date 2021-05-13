@@ -468,6 +468,9 @@ namespace FNPlugin.Wasteheat
 
             foreach (ThermalEngineController thermalNozzle in thermalEngines)
             {
+                if (thermalNozzle.AttachedReactor == null)
+                    continue;
+
                 var moduleEngine = thermalNozzle.part.FindModuleImplementing<ModuleEngines>();
 
                 if (moduleEngine == null)
@@ -1039,7 +1042,7 @@ namespace FNPlugin.Wasteheat
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#LOC_KSPIE_VABThermalUI_ThermalSourceTemperatureAt") + customPercentageText, _boldLabel, GUILayout.ExpandWidth(true), guiLabelWidth); // "Thermal Source Temperature at"
-            string sourceTempString100 = _averageSourceCoreTempAtCustom < 0 ? "N/A" : _averageSourceCoreTempAtCustom.ToString("0.0") + " K";
+            string sourceTempString100 = _averageSourceCoreTempAtCustom < 0 || _averageSourceCoreTempAtCustom >= double.MaxValue ? "N/A" : _averageSourceCoreTempAtCustom.ToString("0.0") + " K";
             GUILayout.Label(sourceTempString100, GUILayout.ExpandWidth(false), guiValueWidth);
             GUILayout.EndHorizontal();
 
