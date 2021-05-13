@@ -14,20 +14,23 @@ namespace FNPlugin.Resources
         [KSPField(isPersistant = true)] public double megajoulesPerSecond;
 
         [KSPField] public string loopingAnimationName = null;
-        [KSPField] public double efficiency = 0.005;
+        [KSPField] public double efficiency = 0.001;
         [KSPField] public double productionRate;
-        [KSPField] public string activateTitle = "#LOC_KSPIE_AntimatterFactory_producePositron";
-        [KSPField] public string resourceName = "Positrons";
+        [KSPField] public string activateTitle = "#LOC_KSPIE_MetallicHydrogenFactory_produce";
+        [KSPField] public string outputResourceName = "MtlHydrogen";
+        [KSPField] public string inputResourceName = "LqdHydrogen";
         [KSPField] public double powerRequirementMultiplier = 1;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, isPersistant = true), UI_Toggle(disabledText = "#LOC_KSPIE_AntimatterFactory_Off", enabledText = "#LOC_KSPIE_AntimatterFactory_On")]//OffOn
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, isPersistant = true),
+         UI_Toggle(disabledText = "#LOC_KSPIE_MetallicHydrogenFactory_Off", enabledText = "#LOC_KSPIE_MetallicHydrogenFactory_On")]//OffOn
         public bool isActive = false;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, isPersistant = true, guiName = "#LOC_KSPIE_AntimatterFactory_powerPecentage"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, isPersistant = true, guiName = "#LOC_KSPIE_MetallicHydrogenFactory_powerPecentage"),
+         UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
         public float powerPercentage = 100;
-
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_productionRate")]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiName = "#LOC_KSPIE_MetallicHydrogenFactory_productionRate")]
         public string productionRateTxt;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterFactory_MaximumPowercapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Maximum Power capacity
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true,
+            guiName = "#LOC_KSPIE_MetallicHydrogenFactory_MaximumPowercapacity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Maximum Power capacity
         public double powerCapacity = 1000;
 
         private PartResourceDefinition _liquidHydrogenDefinition;
@@ -37,8 +40,8 @@ namespace FNPlugin.Resources
 
         public override void OnStart(StartState state)
         {
-            _liquidHydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("LqdHydrogen");
-            _metallicHydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("MtlHydrogen");
+            _liquidHydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(inputResourceName);
+            _metallicHydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(outputResourceName);
 
             if (state == StartState.Editor)
                 return;
@@ -46,7 +49,7 @@ namespace FNPlugin.Resources
             if (!string.IsNullOrEmpty(loopingAnimationName))
                 _loopingAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == loopingAnimationName);
 
-            _disabledText = Localizer.Format("#LOC_KSPIE_AntimatterFactory_disabled");
+            _disabledText = Localizer.Format("#LOC_KSPIE_MetallicHydrogenFactory_disabled");
 
             Fields[nameof(isActive)].guiName = Localizer.Format(activateTitle);
 
@@ -73,16 +76,16 @@ namespace FNPlugin.Resources
             if (ratePerDay > 0.1)
             {
                 if (ratePerDay > 1000)
-                    productionRateTxt = (ratePerDay / 1e3).ToString("0.0000") + " kg/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
+                    productionRateTxt = (ratePerDay / 1e3).ToString("0.0000") + " mt/" + Localizer.Format("#LOC_KSPIE_MetallicHydrogenFactory_perday");//day
                 else
-                    productionRateTxt = (ratePerDay).ToString("0.0000") + " g/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
+                    productionRateTxt = (ratePerDay).ToString("0.0000") + " kg/" + Localizer.Format("#LOC_KSPIE_MetallicHydrogenFactory_perday");//day
             }
             else
             {
                 if (ratePerDay > 0.1e-3)
-                    productionRateTxt = (ratePerDay * 1e3).ToString("0.0000") + " mg/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
+                    productionRateTxt = (ratePerDay * 1e3).ToString("0.0000") + " g/" + Localizer.Format("#LOC_KSPIE_MetallicHydrogenFactory_perday");//day
                 else
-                    productionRateTxt = (ratePerDay * 1e6).ToString("0.0000") + " ug/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
+                    productionRateTxt = (ratePerDay * 1e6).ToString("0.0000") + " mg/" + Localizer.Format("#LOC_KSPIE_MetallicHydrogenFactory_perday");//day
             }
         }
 
@@ -132,7 +135,7 @@ namespace FNPlugin.Resources
 
             var currentRate = -part.RequestResource(_metallicHydrogenDefinition.id, -outputResourceInLiter, ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
-            productionRate = currentRate * _metallicHydrogenDefinition.density / fixedDeltaTime;
+            productionRate = 1000 * currentRate * _metallicHydrogenDefinition.density / fixedDeltaTime;
         }
     }
 }
