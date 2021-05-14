@@ -7,7 +7,6 @@ namespace FNPlugin.Science
 {
     class ModuleModableScienceGenerator : ResourceSuppliableModule, IScienceDataContainer
     {
-        [KSPField(isPersistant = false)] public bool canDeploy = false;
         [KSPField(isPersistant = true)] public bool Deployed;
         [KSPField(isPersistant = true)] public string result_string;
         [KSPField(isPersistant = true)] public string result_title;
@@ -17,11 +16,13 @@ namespace FNPlugin.Science
         [KSPField(isPersistant = true)] public float xmit_scalar;
         [KSPField(isPersistant = true)] public float ref_value;
         [KSPField(isPersistant = true)] public bool data_gend;
-        [KSPField(isPersistant = false)] public bool rerunnable = false;
-        [KSPField(isPersistant = false)] public string deployEventName = "";
-        [KSPField(isPersistant = false)] public string reviewEventName = "";
-        [KSPField(isPersistant = false)] public string resetEventName = "";
-        [KSPField(isPersistant = false)] public string experimentID = "";
+
+        [KSPField] public bool canDeploy = false;
+        [KSPField] public bool rerunnable = false;
+        [KSPField] public string deployEventName = "";
+        [KSPField] public string reviewEventName = "";
+        [KSPField] public string resetEventName = "";
+        [KSPField] public string experimentID = "";
 
         protected ScienceData scienceData;
         protected ExperimentResultDialogPage merdp;

@@ -20,9 +20,9 @@ namespace FNPlugin.Science
         [KSPField(isPersistant = true)] public double science_awaiting_addition;
 
         //GUI
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_Performance")] public string performPcnt = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_Science")] public string sciencePerDay = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Telescope_GLens")] public string gLensStr = "";
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Telescope_Performance")] public string performPcnt = "";
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Telescope_Science")] public string sciencePerDay = "";
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Telescope_GLens")] public string gLensStr = "";
 
         //Internal
         protected double perform_factor_d;
@@ -133,9 +133,8 @@ namespace FNPlugin.Science
             get
             {
                 if (localStar == null)
-                {
                     localStar = vessel.GetLocalStar();
-                }
+
                 return localStar;
             }
         }
@@ -163,7 +162,7 @@ namespace FNPlugin.Science
             Events[nameof(StopOberservations)].active = telescopeIsEnabled;
             Fields[nameof(sciencePerDay)].guiActive = telescopeIsEnabled;
             performPcnt = (perform_factor_d * 100).ToString("0.0") + "%";
-            sciencePerDay = (science_rate * 28800 * PluginHelper.GetScienceMultiplier(vessel)).ToString("0.00") + " "+Localizer.Format("#LOC_KSPIE_Telescope_ScienceperDa");//Science/Day
+            sciencePerDay = (science_rate * 28800 * PluginHelper.GetScienceMultiplier(vessel)).ToString("0.00") + " "+Localizer.Format("#LOC_KSPIE_Telescope_ScienceperDay");//Science/Day
 
             List<ITelescopeController> telescopeControllers = vessel.FindPartModulesImplementing<ITelescopeController>();
 
