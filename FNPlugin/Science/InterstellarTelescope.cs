@@ -81,7 +81,7 @@ namespace FNPlugin.Science
             double a = -GameConstants.telescopePerformanceTimescale;
             double baseScience = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
             double timeDiff = Math.Min(Planetarium.GetUniversalTime(), helium_depleted_time) - lastActiveTime;
-            double avgScienceRate = 0.5*baseScience * ( Math.Exp(a * t1)  + Math.Exp(a * t0) );
+            double avgScienceRate = 0.5 * baseScience * ( Math.Exp(a * t1)  + Math.Exp(a * t0) );
             double scienceToAdd = avgScienceRate / 28800 * timeDiff;
             lastActiveTime = Planetarium.GetUniversalTime();
             science_awaiting_addition += scienceToAdd;

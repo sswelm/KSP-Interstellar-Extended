@@ -1,11 +1,11 @@
-﻿using FNPlugin.Beamedpower;
+﻿using System;
+using System.Collections.Generic;
+using FNPlugin.Beamedpower;
 using FNPlugin.Extensions;
 using FNPlugin.Powermanagement;
 using FNPlugin.Powermanagement.Interfaces;
 using FNPlugin.Propulsion;
 using KSP.Localization;
-using System;
-using System.Collections.Generic;
 using UniLinq;
 using UnityEngine;
 
