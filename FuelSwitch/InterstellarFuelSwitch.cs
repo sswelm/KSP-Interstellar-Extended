@@ -83,6 +83,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)] public double initialMassMultiplier = 1;
         [KSPField(isPersistant = true)] public float windowPositionX = 1200;
         [KSPField(isPersistant = true)] public float windowPositionY = 150;
+        [KSPField(isPersistant = true)] public double dryMass;
 
         // Config properties
         [KSPField] public bool displayTankCost = false;
@@ -158,7 +159,7 @@ namespace InterstellarFuelSwitch
         // Debug
         [KSPField] public bool debugMode = false;
         [KSPField] public float moduleCost;
-        [KSPField] public double dryMass;
+
         [KSPField] public double initialMass;
         [KSPField] public double moduleMassDelta;
         [KSPField] public float defaultMass;
@@ -210,6 +211,7 @@ namespace InterstellarFuelSwitch
         private BaseField _tankGuiNameField;
         private BaseField _totalMassField;
         private BaseField _chooseField;
+        private BaseEvent _switchTankEvent;
 
         private BaseEvent _nextTankSetupEvent;
         private BaseEvent _previousTankSetupEvent;
@@ -360,11 +362,14 @@ namespace InterstellarFuelSwitch
 
                 AssignResourcesToPart();
 
-                _chooseField = Fields["selectedTankSetup"];
+                _switchTankEvent = Events[nameof(SwitchTankEvent)];
+                _switchTankEvent.guiActive = hasSwitchChooseOption && availableInFlight && _modularTankList.Count > 1;
+                _switchTankEvent.guiActiveEditor = hasSwitchChooseOption && availableInEditor && _modularTankList.Count > 1;
 
+                _chooseField = Fields[nameof(selectedTankSetup)];
                 _chooseField.guiName = Localizer.Format(switcherDescription);
-                _chooseField.guiActiveEditor = hasSwitchChooseOption && availableInEditor && _modularTankList.Count > 1;
                 _chooseField.guiActive = hasSwitchChooseOption && availableInFlight && _modularTankList.Count > 1;
+                _chooseField.guiActiveEditor = hasSwitchChooseOption && availableInEditor && _modularTankList.Count > 1;
 
                 if (_chooseField.uiControlEditor is UI_ChooseOption chooseOptionEditor)
                 {
@@ -537,7 +542,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        [KSPEvent(groupName = Group, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchTank")]//Switch Tank
+        [KSPEvent(groupName = Group, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchTank")]//Switch Tank
         public void SwitchTankEvent()
         {
             _closeAfterSwitch = true;
@@ -603,7 +608,6 @@ namespace InterstellarFuelSwitch
                 UpdateTexture(calledByPlayer);
 
                 // update Dry Mass
-                dryMass = 0;
                 UpdateDryMass();
                 UpdateGuiResourceMass();
                 UpdateCost();
@@ -761,6 +765,7 @@ namespace InterstellarFuelSwitch
                 newResourceNodes.Add(newResourceNode);
             }
 
+            // perform an expensive but necessary step when updating resources
             if (HighLogic.LoadedSceneIsEditor || calledByPlayer || forceTankSelectionDurringFlight)
             {
                 currentPart.Resources.Clear();
@@ -945,12 +950,13 @@ namespace InterstellarFuelSwitch
 
         private void UpdateDryMass()
         {
-            if (dryMass != 0 && HighLogic.LoadedSceneIsFlight) return;
+            if (dryMass <= 0 || HighLogic.LoadedSceneIsEditor)
+            {
+                // update Dry Mass
+                dryMass = CalculateDryMass();
+            }
 
-            // update Dry Mass
-            dryMass = CalculateDryMass();
-
-            UpdateMassRatio();
+            RefreshDisplayedMassRatio();
         }
 
         private double CalculateDryMass()
@@ -1049,7 +1055,7 @@ namespace InterstellarFuelSwitch
             resourceAmountStr3 = missing3 ? string.Empty : FormatMassStr(currentResourceMassAmount3);
         }
 
-        private void UpdateMassRatio()
+        private void RefreshDisplayedMassRatio()
         {
             var maxResourceMassAmount0 = _partResourceDefinition0 == null || _partResource0 == null ? 0 : (double)(decimal)_partResourceDefinition0.density * _partResource0.maxAmount;
             var maxResourceMassAmount1 = _partResourceDefinition1 == null || _partResource1 == null ? 0 : (double)(decimal)_partResourceDefinition1.density * _partResource1.maxAmount;
@@ -1098,6 +1104,7 @@ namespace InterstellarFuelSwitch
 
                 // show/hide choose option
                 _chooseField.guiActive = allowedToSwitch;
+                _switchTankEvent.guiActive = allowedToSwitch;
 
                 // show/hide switch buttons
                 _nextTankSetupEvent.guiActive = hasGUI && allowedToSwitch;
