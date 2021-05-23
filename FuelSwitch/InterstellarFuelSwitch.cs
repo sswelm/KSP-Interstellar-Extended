@@ -147,28 +147,21 @@ namespace InterstellarFuelSwitch
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F6")] public double totalMass;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiUnits = " V", guiFormat = "F0")] public double totalCost;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"),
-         UI_Toggle(disabledText = "#LOC_IFS_FuelSwitch_WindowHidden", enabledText = "#LOC_IFS_FuelSwitch_WindowShown", affectSymCounterparts = UI_Scene.None)]
-        public bool renderWindow;
-
         [KSPField(groupName = Group)] public string resourceAmountStr0 = "";
         [KSPField(groupName = Group)] public string resourceAmountStr1 = "";
         [KSPField(groupName = Group)] public string resourceAmountStr2 = "";
         [KSPField(groupName = Group)] public string resourceAmountStr3 = "";
 
-        // Debug
         [KSPField] public bool debugMode = false;
-        [KSPField] public float moduleCost;
-
-        [KSPField] public double initialMass;
-        [KSPField] public double moduleMassDelta;
-        [KSPField] public float defaultMass;
         [KSPField] public string defaultTank = "";
-
         [KSPField] public double volumeExponent = 3;
         [KSPField] public double massExponent = 3;
         [KSPField] public double baseMassExponent = 0;
         [KSPField] public double tweakscaleMassExponent = 3;
+
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"),
+         UI_Toggle(disabledText = "#LOC_IFS_FuelSwitch_WindowHidden", enabledText = "#LOC_IFS_FuelSwitch_WindowShown", affectSymCounterparts = UI_Scene.None)]
+        public bool renderWindow;
 
         private List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
         private readonly HashSet<string> _activeResourceList = new HashSet<string>();
@@ -179,6 +172,9 @@ namespace InterstellarFuelSwitch
         private IHaveFuelTankSetup _fuelTankSetupControl;
         private Rect _windowPosition;
 
+        private double moduleMassDelta;
+        private double initialMass;
+        private float moduleCost;
         private bool _initialized;
         private bool _closeAfterSwitch;
 
@@ -858,10 +854,10 @@ namespace InterstellarFuelSwitch
             _partResourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinition(newResources[2]) : null;
             _partResourceDefinition3 = newResources.Count > 3 ? PartResourceLibrary.Instance.GetDefinition(newResources[3]) : null;
 
-            _field0.guiName = _partResourceDefinition0 != null ? _partResourceDefinition0.name : ":";
-            _field1.guiName = _partResourceDefinition1 != null ? _partResourceDefinition1.name : ":";
-            _field2.guiName = _partResourceDefinition2 != null ? _partResourceDefinition2.name : ":";
-            _field3.guiName = _partResourceDefinition3 != null ? _partResourceDefinition3.name : ":";
+            _field0.guiName = _partResourceDefinition0 != null ? _partResourceDefinition0.displayName ?? _partResourceDefinition0.name : ":";
+            _field1.guiName = _partResourceDefinition1 != null ? _partResourceDefinition1.displayName ?? _partResourceDefinition1.name : ":";
+            _field2.guiName = _partResourceDefinition2 != null ? _partResourceDefinition2.displayName ?? _partResourceDefinition2.name : ":";
+            _field3.guiName = _partResourceDefinition3 != null ? _partResourceDefinition3.displayName ?? _partResourceDefinition3.name : ":";
 
             _field0.guiActive = _partResourceDefinition0 != null && _partResourceDefinition0.isVisible;
             _field1.guiActive = _partResourceDefinition1 != null && _partResourceDefinition1.isVisible;
@@ -1308,8 +1304,6 @@ namespace InterstellarFuelSwitch
 
         public float GetModuleMass(float mass, ModifierStagingSituation sit)
         {
-            defaultMass = mass;
-
             if (returnDryMass)
                 return (float) dryMass;
 
