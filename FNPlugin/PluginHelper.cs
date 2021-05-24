@@ -301,6 +301,23 @@ namespace FNPlugin
             return body.atmosphereDepth;
         }
 
+        public static void RunAnimation(string animationName, Animation anim, float speed, float aTime)
+        {
+            if (animationName == null || anim == null || string.IsNullOrEmpty(animationName))
+                return;
+
+            anim[animationName].speed = speed;
+            if (anim.IsPlaying(animationName))
+                return;
+
+            anim[animationName].wrapMode = WrapMode.Default;
+
+            if (!anim.isPlaying)
+                anim[animationName].normalizedTime = aTime;
+
+            anim.Blend(animationName, 1);
+        }
+
         public static float GetScienceMultiplier(Vessel vessel)
         {
             var vesselInAtmosphere = vessel.altitude < vessel.mainBody.atmosphereDepth;

@@ -135,7 +135,7 @@ namespace FNPlugin.Refinery.Activity
             active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
         public void DeployScoop()
         {
-            RunAnimation(animName, _scoopAnimation, animSpeed, 0);
+            PluginHelper.RunAnimation(animName, _scoopAnimation, animSpeed, 0);
 
             part.force_activate();
 
@@ -159,7 +159,7 @@ namespace FNPlugin.Refinery.Activity
             active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]//Retract Scoop
         public void RetractScoop()
         {
-            RunAnimation(animName, _scoopAnimation, -animSpeed, 1);
+            PluginHelper.RunAnimation(animName, _scoopAnimation, -animSpeed, 1);
 
             isDeployed = false;
         }
@@ -698,18 +698,6 @@ namespace FNPlugin.Refinery.Activity
             Events[nameof(RetractScoop)].active = _scoopAnimation != null && isDeployed;
         }
 
-        private static void RunAnimation(string animationName, Animation anim, float speed, float aTime)
-        {
-            if (animationName == null || anim == null || string.IsNullOrEmpty(animationName))
-                return;
 
-            anim[animationName].speed = speed;
-            if (anim.IsPlaying(animationName))
-                return;
-
-            anim[animationName].wrapMode = WrapMode.Default;
-            anim[animationName].normalizedTime = aTime;
-            anim.Blend(animationName, 1);
-        }
     }
 }

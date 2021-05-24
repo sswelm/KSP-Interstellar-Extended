@@ -267,7 +267,7 @@ namespace FNPlugin.Propulsion
             if (double.IsNaN(realIsp) || double.IsInfinity(realIsp))
                 Debug.LogWarning("[KSPI]: realIsp  is " + realIsp);
             if (double.IsNaN(finalThrust) || double.IsInfinity(finalThrust))
-                Debug.LogWarning("[KSPI]: finalThrust  is " + finalThrust);
+                Debug.LogWarning("[KSPI]: maxEffectiveThrust  is " + finalThrust);
 
             _realIsp = realIsp;
 

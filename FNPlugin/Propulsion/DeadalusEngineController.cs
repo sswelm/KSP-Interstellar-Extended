@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.External;
@@ -55,7 +56,7 @@ namespace FNPlugin.Propulsion
     }
 
     [KSPModule("Interstellar Engine")]
-    class InterstellarEngineController : ResourceSuppliableModule, IUpgradeableModule , IRescalable<InterstellarEngineController>
+    class InterstellarEngineController : ResourceSuppliableModule, IUpgradeableModule, IRescalable<InterstellarEngineController>
     {
         const string LightBlue = "<color=#7fdfffff>";
 
@@ -64,6 +65,7 @@ namespace FNPlugin.Propulsion
         [KSPField(isPersistant = true)] public double ispMultiplier = 1;
         [KSPField(isPersistant = true)] public bool IsEnabled;
         [KSPField(isPersistant = true)] public bool rad_safety_features = true;
+        [KSPField(isPersistant = true)] public bool isDeployed;
 
         // Controllable settings
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"),
@@ -89,6 +91,11 @@ namespace FNPlugin.Propulsion
         // Non Persistent fields
         [KSPField] public int powerPriority = 3;
         [KSPField] public int numberOfAvailableUpgradeTechs;
+
+        [KSPField] public string deployAnimName = "";
+        [KSPField] public float deployAnimSpeed = 1;
+        [KSPField] public bool canDeployOnSurface = true;
+        [KSPField] public bool canDeployInAtmosphere = true;
 
         [KSPField] public double massThrustExp = 0;
         [KSPField] public double massIspExp = 0;
@@ -222,10 +229,10 @@ namespace FNPlugin.Propulsion
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")] public string fuelAmountsRatio2;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")] public string fuelAmountsRatio3;
 
-        [KSPField(guiActive = true, guiFormat = "F3", guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408")] public double finalThrust;
-        [KSPField(guiActive = true, guiFormat = "F5", guiName = "#autoLOC_6001375", guiUnits = "#autoLOC_7001409")] public double fuelFlowGui;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiFormat = "F3", guiName = "Max Effective Thrust", guiUnits = "#autoLOC_7001408")] public double maxEffectiveThrust;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiFormat = "F5", guiName = "Max Effective Flow", guiUnits = "#autoLOC_7001409")] public double maxEffectiveFlow;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "F2", guiName = "Max Effective Isp", guiUnits = "#autoLOC_7001400")] public double maxEffectiveIsp;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "F2", guiName = "#autoLOC_6001378", guiUnits = "#autoLOC_7001400")] public double effectiveIsp;
         [KSPField(guiActive = true, guiActiveEditor = true, guiFormat = "F2", guiName = "#LOC_KSPIE_FusionEngine_powerUsage")] public string powerUsage;
 
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiFormat = "F0", guiUnits = " m/s")] public double engineSpeedOfLight;
@@ -252,6 +259,7 @@ namespace FNPlugin.Propulsion
         private BaseEvent _activateRadSafetyEvent;
         private BaseField _radHazardStrField;
         private FloatCurve _factoryFloatCurve;
+        private Animation _deployAnimation;
 
         private PartResourceDefinition _fuelResourceDefinition1;
         private PartResourceDefinition _fuelResourceDefinition2;
@@ -475,14 +483,16 @@ namespace FNPlugin.Propulsion
 
             base.OnStart(state);
 
+            InitializeDeployAnimation();
+
             _curEngineT = part.FindModuleImplementing<ModuleEngines>();
             if (_curEngineT == null) return;
 
             _factoryFloatCurve = _curEngineT.atmosphereCurve;
 
-            _curEngineT.Fields[nameof(ModuleEngines.finalThrust)].guiActive = false;
-            _curEngineT.Fields[nameof(ModuleEngines.fuelFlowGui)].guiActive = false;
-            _curEngineT.Fields[nameof(ModuleEngines.realIsp)].guiActive = false;
+            _curEngineT.Fields[nameof(ModuleEngines.finalThrust)].guiActive = true;
+            _curEngineT.Fields[nameof(ModuleEngines.fuelFlowGui)].guiActive = true;
+            _curEngineT.Fields[nameof(ModuleEngines.realIsp)].guiActive = true;
 
             engineSpeedOfLight = PluginSettings.Config.SpeedOfLight;
 
@@ -515,6 +525,37 @@ namespace FNPlugin.Propulsion
             ConfigureMixedRatioPercentage();
 
             InitializeKerbalismEmitter();
+        }
+
+        private void UpdateButtons()
+        {
+            if (string.IsNullOrEmpty(deployAnimName))
+                return;
+
+            var deployEvent = Events[nameof(Deploy)];
+            deployEvent.guiActiveEditor = !isDeployed;
+            deployEvent.guiActive = !isDeployed;
+
+            var retractEvent = Events[nameof(Retract)];
+            retractEvent.guiActiveEditor = isDeployed;
+            retractEvent.guiActive = isDeployed;
+        }
+
+        private void InitializeDeployAnimation()
+        {
+            if (!string.IsNullOrEmpty(deployAnimName))
+            {
+                _deployAnimation = part.FindModelAnimators(deployAnimName).First();
+
+                if (_deployAnimation == null)
+                    return;
+
+                _deployAnimation[deployAnimName].speed = isDeployed ? 1 : -1;
+                _deployAnimation[deployAnimName].normalizedTime = isDeployed ? 1 : 0;
+                _deployAnimation.Blend(deployAnimName);
+            }
+            else
+                isDeployed = true;
         }
 
         private void ConfigureMixedRatioPercentage()
@@ -607,6 +648,8 @@ namespace FNPlugin.Propulsion
 
         public void Update()
         {
+            UpdateButtons();
+
             if (_curEngineT != null && Fields[nameof(mixedRatioPercentage)].guiActive)
             {
                 fuelMassRatioStr = "";
@@ -679,7 +722,7 @@ namespace FNPlugin.Propulsion
             }
 
             // Update ISP
-            effectiveIsp = timeDilation * _engineIsp;
+            maxEffectiveIsp = timeDilation * _engineIsp;
 
             // Update Max Thrust
             effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
@@ -737,7 +780,7 @@ namespace FNPlugin.Propulsion
 
         private string FormatPowerStatistics(double powerRequirement, double wasteheat, string color = null, string format = "F0")
         {
-            var result = (powerRequirement * powerRequirementMultiplier).ToString(format) + " MWe / " + wasteheat.ToString(format) + " MJ";
+            var result = (powerRequirement > 0 ? (powerRequirement * powerRequirementMultiplier).ToString(format) + " MWe / " : "") + wasteheat.ToString(format) + " MJ";
 
             if (string.IsNullOrEmpty(color))
                 return result;
@@ -851,6 +894,46 @@ namespace FNPlugin.Propulsion
             UpdateTime();
         }
 
+        [KSPEvent(guiName = "Deploy", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
+        public void Deploy()
+        {
+            if (vessel != null && (vessel.situation == Vessel.Situations.LANDED || vessel.situation == Vessel.Situations.PRELAUNCH) && !canDeployOnSurface)
+            {
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_Generic_CannotDeployOnSurface"), 5, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+
+            if (vessel != null && vessel.atmDensity > 0 && !canDeployInAtmosphere)
+            {
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_Generic_CannotDeployInAtmosphere"), 5, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+
+            PluginHelper.RunAnimation(deployAnimName, _deployAnimation, deployAnimSpeed, 0);
+
+            isDeployed = true;
+        }
+
+        [KSPEvent(guiName = "Retract", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
+        public void Retract()
+        {
+            if (vessel != null && (vessel.situation == Vessel.Situations.LANDED || vessel.situation == Vessel.Situations.PRELAUNCH) && !canDeployOnSurface)
+            {
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_Generic_CannotRetractOnSurface"), 5, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+
+            if (vessel != null && vessel.atmDensity > 0 && !canDeployInAtmosphere)
+            {
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_Generic_CannotRetractInAtmosphere"), 5, ScreenMessageStyle.UPPER_CENTER);
+                return;
+            }
+
+            PluginHelper.RunAnimation(deployAnimName, _deployAnimation, -deployAnimSpeed, 1);
+
+            isDeployed = false;
+        }
+
         private void UpdateTime()
         {
             _universalTime = Planetarium.GetUniversalTime();
@@ -883,9 +966,9 @@ namespace FNPlugin.Propulsion
                 storedThrottle = vessel.ctrlState.mainThrottle;
 
             // Update ISP
-            effectiveIsp = timeDilation * _engineIsp;
+            maxEffectiveIsp = timeDilation * _engineIsp;
 
-            UpdateAtmosphericCurve(effectiveIsp);
+            UpdateAtmosphericCurve(maxEffectiveIsp);
 
             if (throttle > 0 && !vessel.packed)
             {
@@ -893,11 +976,13 @@ namespace FNPlugin.Propulsion
 
                 var thrustRatio = Math.Max(_curEngineT.thrustPercentage * 0.01, 0.01);
                 var scaledThrottle = Math.Pow(thrustRatio * throttle, ispThrottleExponent);
-                effectiveIsp = timeDilation * _engineIsp * scaledThrottle;
+                maxEffectiveIsp = timeDilation * _engineIsp * scaledThrottle;
 
-                UpdateAtmosphericCurve(effectiveIsp);
+                UpdateAtmosphericCurve(maxEffectiveIsp);
 
                 fusionRatio = ProcessPowerAndWasteHeat(throttle);
+
+                _curEngineT.enabled = fusionRatio > 0.01;
 
                 if (!string.IsNullOrEmpty(effectName))
                     part.Effect(effectName, (float)(throttle * fusionRatio), -1);
@@ -907,12 +992,12 @@ namespace FNPlugin.Propulsion
 
                 var maxFusionThrust = fusionRatio * effectiveMaxThrustInKiloNewton;
 
-                finalThrust = maxFusionThrust * throttle;
+                maxEffectiveThrust = maxFusionThrust * throttle;
 
                 // Update FuelFlow
-                _calculatedFuelflow = maxFusionThrust / effectiveIsp / PhysicsGlobals.GravitationalAcceleration;
+                _calculatedFuelflow = maxFusionThrust / maxEffectiveIsp / PhysicsGlobals.GravitationalAcceleration;
 
-                fuelFlowGui = _calculatedFuelflow * throttle;
+                maxEffectiveFlow = _calculatedFuelflow * throttle;
 
                 massFlowRateKgPerSecond = thrustRatio * _curEngineT.currentThrottle * _calculatedFuelflow * 0.001;
 
@@ -927,7 +1012,7 @@ namespace FNPlugin.Propulsion
             {
                 if (!vessel.Autopilot.Enabled)
                 {
-                    var message = "Thrust warp stopped - SAS is disabled";
+                    var message = Localizer.Format("#LOC_KSPIE_Generic_ThrustWarpStoppedSasDisabled ")
                     Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                     // Return to realtime
@@ -942,6 +1027,8 @@ namespace FNPlugin.Propulsion
                         ? ProcessPowerAndWasteHeat(1)
                         : ProcessPowerAndWasteHeat(storedThrottle);
 
+                _curEngineT.enabled = fusionRatio > 0.01;
+
                 if (fusionRatio <= 0.01)
                 {
                     var message = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg1");//"Thrust warp stopped - insufficient power"
@@ -954,11 +1041,11 @@ namespace FNPlugin.Propulsion
                 effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
                 var maxFusionThrust = fusionRatio * effectiveMaxThrustInKiloNewton;
 
-                finalThrust = maxFusionThrust * throttle;
+                maxEffectiveThrust = maxFusionThrust * throttle;
 
-                _calculatedFuelflow = effectiveIsp > 0 ? maxFusionThrust / effectiveIsp / PhysicsGlobals.GravitationalAcceleration : 0;
+                _calculatedFuelflow = maxEffectiveIsp > 0 ? maxFusionThrust / maxEffectiveIsp / PhysicsGlobals.GravitationalAcceleration : 0;
 
-                fuelFlowGui = _calculatedFuelflow * throttle;
+                maxEffectiveFlow = _calculatedFuelflow * throttle;
 
                 massFlowRateKgPerSecond = _calculatedFuelflow * 0.001;
 
@@ -1009,21 +1096,22 @@ namespace FNPlugin.Propulsion
 
                 effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
 
-                finalThrust = effectiveMaxThrustInKiloNewton * throttle;
+                maxEffectiveThrust = effectiveMaxThrustInKiloNewton * throttle;
 
-                _calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / PhysicsGlobals.GravitationalAcceleration;
+                _calculatedFuelflow = effectiveMaxThrustInKiloNewton / maxEffectiveIsp / PhysicsGlobals.GravitationalAcceleration;
 
-                fuelFlowGui = _calculatedFuelflow * throttle;
+                maxEffectiveFlow = _calculatedFuelflow * throttle;
 
                 massFlowRateKgPerSecond = 0;
                 fusionRatio = 0;
+                _curEngineT.enabled = isDeployed && (_deployAnimation == null || !_deployAnimation.isPlaying);
             }
 
             _curEngineT.maxFuelFlow = Mathf.Max((float)_calculatedFuelflow,  1e-10f);
             _curEngineT.maxThrust =  Mathf.Max((float)effectiveMaxThrustInKiloNewton, 0.0001f);
 
             massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
-            thrustPowerInTerraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * PhysicsGlobals.GravitationalAcceleration * 1e-12;
+            thrustPowerInTerraWatt = effectiveMaxThrustInKiloNewton * 500 * maxEffectiveIsp * PhysicsGlobals.GravitationalAcceleration * 1e-12;
 
             UpdateKerbalismEmitter();
         }
@@ -1135,6 +1223,12 @@ namespace FNPlugin.Propulsion
 
         private double ProcessPowerAndWasteHeat(float requestedThrottle)
         {
+            if (!isDeployed)
+                return 0;
+
+            if (_deployAnimation != null && _deployAnimation.isPlaying)
+                return 0;
+
             // Calculate Fusion Ratio
             var effectiveMaxPowerRequirement = EffectiveMaxPowerRequirement;
             var effectiveMaxPowerProduction = EffectiveMaxPowerProduction;
@@ -1287,7 +1381,11 @@ namespace FNPlugin.Propulsion
                 sb.AppendLine(FormatThrustStatistics(maxThrustMk9, thrustIspMk9));
             sb.AppendLine("</size>");
 
-            sb.Append(LightBlue).Append(Localizer.Format("#LOC_KSPIE_Generic_PowerRequirementAndWasteheat")).AppendLine(":</color><size=10>");
+            if (powerRequirementMk1 > 0)
+                sb.Append(LightBlue).Append(Localizer.Format("#LOC_KSPIE_Generic_PowerRequirementAndWasteheat")).AppendLine(":</color><size=10>");
+            else
+                sb.Append(LightBlue).Append(Localizer.Format("#LOC_KSPIE_Generic_Wasteheat")).AppendLine(":</color><size=10>");
+
             sb.AppendLine(FormatPowerStatistics(powerRequirementMk1, wasteheatMk1));
             if (!string.IsNullOrEmpty(upgradeTechReq1))
                 sb.AppendLine(FormatPowerStatistics(powerRequirementMk2, wasteheatMk2));

@@ -122,12 +122,12 @@ namespace FNPlugin.Refinery.Activity
                 var oxygenRateTemp = _waterConsumptionRate * OxygenMassByFraction;
 
                 var hydrogenProductionAmount = -_part.RequestResource(
-                    resourceName: ResourceSettings.Config.HydrogenLqd,
+                    resourceName: _hydrogen.name,
                     demand: -hydrogenRateTemp * fixedDeltaTime / _hydrogen.density,
                     flowMode: ResourceFlowMode.ALL_VESSEL);
 
                 var oxygenProductionAmount = -_part.RequestResource(
-                    resourceName: ResourceSettings.Config.OxygenGas,
+                    resourceName: _oxygen.name,
                     demand: -oxygenRateTemp * fixedDeltaTime / _oxygen.density,
                     flowMode: ResourceFlowMode.ALL_VESSEL);
 

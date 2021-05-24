@@ -8,6 +8,7 @@ using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TweakScale;
 using UnityEngine;
 
 namespace FNPlugin.Wasteheat
@@ -649,7 +650,7 @@ namespace FNPlugin.Wasteheat
     }
 
     [KSPModule("Radiator")]
-    class FNRadiator : ResourceSuppliableModule
+    class FNRadiator : ResourceSuppliableModule, IRescalable<FNRadiator>
     {
         public const string GROUP = "FNRadiator";
         public const string GROUP_TITLE = "#LOC_KSPIE_Radiator_groupName";
@@ -688,11 +689,11 @@ namespace FNPlugin.Wasteheat
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Radiator_ConverctionBonus", guiUnits = "x", guiFormat = "F3")]//Converction Bonus
         public double convectiveBonus = 1;
 
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_EffectiveArea", guiFormat = "F2", guiUnits = " m\xB2")]//Effective Area
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_EffectiveArea", guiFormat = "F1", guiUnits = " m\xB2")]//Effective Area
         public double effectiveRadiatorArea;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE,  guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
         public double radiatorArea;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive  =  true, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F2", guiUnits = " m\xB2")]//Surface Area
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_Radiator_SurfaceArea", guiFormat = "F3", guiUnits = " m\xB2")]//Surface Area
         public double baseRadiatorArea;
 
         [KSPField] public string radiatorTypeMk1 = Localizer.Format("#LOC_KSPIE_Radiator_radiatorTypeMk1");//NaK Loop Radiator
@@ -714,12 +715,17 @@ namespace FNPlugin.Wasteheat
         [KSPField] public bool maintainResourceBuffers = true;
         [KSPField] public float colorRatioExponent = 1;
         [KSPField] public double wasteHeatMultiplier = 1;
+        [KSPField] public double wasteHeatBaseStorageCapacity = 2.0e+6;
+
         [KSPField] public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
         [KSPField] public string colorHeat = "_EmissiveColor";
         [KSPField] public string emissiveTextureLocation = "";
         [KSPField] public string bumpMapTextureLocation = "";
         [KSPField] public double areaMultiplier = 1;
         [KSPField] public double autoAreaMultiplier = 1;
+        [KSPField] public double scaleMultiplierExponent = 2;
+
+
 
         [KSPField] public string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         [KSPField] public int RADIATOR_DELAY = 20;
@@ -740,6 +746,7 @@ namespace FNPlugin.Wasteheat
         public bool IsGraphene { get; private set; }
 
         // privates
+        private double scaleMultiplier = 1;
         private double _instantaneousRadTemp;
         private int nrAvailableUpgradeTechs;
         private bool hasSurfaceAreaUpgradeTechReq;
@@ -904,7 +911,7 @@ namespace FNPlugin.Wasteheat
                 return RadiatorProperties.RadiatorTemperatureMk1;
         }
 
-        public double BaseRadiatorArea => radiatorArea * _upgradeModifier * _attachedPartsModifier;
+        public double BaseRadiatorArea => radiatorArea * scaleMultiplier * _upgradeModifier * _attachedPartsModifier;
 
         public double EffectiveRadiatorArea => BaseRadiatorArea * areaMultiplier * PluginSettings.Config.RadiatorAreaMultiplier;
 
@@ -1351,7 +1358,7 @@ namespace FNPlugin.Wasteheat
             if (maintainResourceBuffers)
             {
                 _resourceBuffers = new ResourceBuffers();
-                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, 2.0e+6));
+                _resourceBuffers.AddConfiguration(new WasteHeatBufferConfig(wasteHeatMultiplier, wasteHeatBaseStorageCapacity));
                 _resourceBuffers.UpdateVariable(ResourceSettings.Config.WasteHeatInMegawatt, part.mass);
                 _resourceBuffers.Init(part);
             }
@@ -1373,7 +1380,8 @@ namespace FNPlugin.Wasteheat
             colorRatioExponent = 0;
             showControls = false;
             isDeployable = false;
-            maintainResourceBuffers = false;
+            maintainResourceBuffers = true;
+            wasteHeatBaseStorageCapacity = 0.1 * wasteHeatBaseStorageCapacity;
             clarifyFunction = true;
             radiatorArea = Math.PI * part.partInfo.partSize * autoAreaMultiplier;
 
@@ -1908,6 +1916,13 @@ namespace FNPlugin.Wasteheat
         {
             // use identical names so it will be grouped together
             return part.partInfo.title + (clarifyFunction ? " (radiator)" : "");
+        }
+
+        public void OnRescale(ScalingFactor factor)
+        {
+            var storedAbsoluteFactor = (double)(decimal)factor.absolute.linear;
+
+            scaleMultiplier = Math.Pow(storedAbsoluteFactor, scaleMultiplierExponent);
         }
     }
 }
