@@ -261,6 +261,10 @@ namespace FNPlugin.Propulsion
         private FloatCurve _factoryFloatCurve;
         private Animation _deployAnimation;
 
+        private BaseField _fuelAmountsRatioField1;
+        private BaseField _fuelAmountsRatioField2;
+        private BaseField _fuelAmountsRatioField3;
+
         private PartResourceDefinition _fuelResourceDefinition1;
         private PartResourceDefinition _fuelResourceDefinition2;
         private PartResourceDefinition _fuelResourceDefinition3;
@@ -493,6 +497,10 @@ namespace FNPlugin.Propulsion
             _curEngineT.Fields[nameof(ModuleEngines.finalThrust)].guiActive = true;
             _curEngineT.Fields[nameof(ModuleEngines.fuelFlowGui)].guiActive = true;
             _curEngineT.Fields[nameof(ModuleEngines.realIsp)].guiActive = true;
+
+            _fuelAmountsRatioField1 = Fields[nameof(fuelAmountsRatio1)];
+            _fuelAmountsRatioField2 = Fields[nameof(fuelAmountsRatio2)];
+            _fuelAmountsRatioField3 = Fields[nameof(fuelAmountsRatio3)];
 
             engineSpeedOfLight = PluginSettings.Config.SpeedOfLight;
 
@@ -754,17 +762,23 @@ namespace FNPlugin.Propulsion
 
                 if (_fuelResourceDefinition2 != null)
                 {
+                    _fuelAmountsRatioField2.guiActive = true;
                     part.GetConnectedResourceTotals(_fuelResourceDefinition2.id, out double fuelAmounts2, out double fuelAmountsMax2);
                     _percentageFuelRemaining2 = fuelAmountsMax2 > 0 ? fuelAmounts2 / fuelAmountsMax2 * 100 : 0;
                     fuelAmountsRatio2 = _percentageFuelRemaining2.ToString("0.000") + "% ";
                 }
+                else
+                    _fuelAmountsRatioField2.guiActive = false;
 
                 if (_fuelResourceDefinition3 != null)
                 {
+                    _fuelAmountsRatioField3.guiActive = true;
                     part.GetConnectedResourceTotals(_fuelResourceDefinition3.id, out double fuelAmounts3, out double fuelAmountsMax3);
                     _percentageFuelRemaining3 = fuelAmountsMax3 > 0 ? fuelAmounts3 / fuelAmountsMax3 * 100 : 0;
                     fuelAmountsRatio3 = _percentageFuelRemaining3.ToString("0.000") + "% ";
                 }
+                else
+                    _fuelAmountsRatioField3.guiActive = true;
             }
         }
 
@@ -1012,7 +1026,7 @@ namespace FNPlugin.Propulsion
             {
                 if (!vessel.Autopilot.Enabled)
                 {
-                    var message = Localizer.Format("#LOC_KSPIE_Generic_ThrustWarpStoppedSasDisabled ")
+                    var message = Localizer.Format("#LOC_KSPIE_Generic_ThrustWarpStoppedSasDisabled");
                     Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                     // Return to realtime
