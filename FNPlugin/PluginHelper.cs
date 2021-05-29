@@ -27,10 +27,17 @@ namespace FNPlugin
             {
                 if (_rdTechByName != null) return _rdTechByName;
 
+                if (GameDatabase.Instance == null)
+                {
+                    Debug.LogError("[KSPI]: PluginHelper GameDatabase.Instance is null");
+                    return _rdTechByName;
+                }
+
                 _rdTechByName = new Dictionary<string, RDTech>();
 
                 // catalog part upgrades
                 var techTreeConfigs = GameDatabase.Instance.GetConfigNodes("TechTree");
+
                 Debug.Log("[KSPI]: PluginHelper found: " + techTreeConfigs.Count() + " TechTrees");
 
                 foreach (var techTreeConfig in techTreeConfigs)
@@ -51,6 +58,7 @@ namespace FNPlugin
                             Debug.Log("[KSPI]: PluginHelper technode id: " + tech.techID + " title: " + tech.title);
                             _rdTechByName.Add(tech.techID, tech);
                         }
+
                     }
                 }
                 return _rdTechByName;
@@ -170,7 +178,7 @@ namespace FNPlugin
 
         public static string GetTechTitleById(string id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrWhiteSpace(id))
                 return id;
 
             var result = ResearchAndDevelopment.GetTechnologyTitle(id);
@@ -179,8 +187,14 @@ namespace FNPlugin
 
             if (PartUpgradeByName.TryGetValue(id, out var partUpgrade))
             {
-                if (partUpgrade != null && !string.IsNullOrEmpty(partUpgrade.techRequired))
+                if (partUpgrade != null && !string.IsNullOrWhiteSpace(partUpgrade.techRequired))
                 {
+                    if (RdTechByName == null)
+                    {
+                        Debug.LogError("[KSPI]: GetTechTitleById - RdTechByName is null");
+                        return partUpgrade.techRequired;
+                    }
+
                     if (RdTechByName.TryGetValue(partUpgrade.techRequired, out var upgradeTechNode))
                         return upgradeTechNode?.title;
                 }
