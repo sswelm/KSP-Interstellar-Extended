@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FNPlugin.Propulsion
 {
-    abstract class FusionECU2 : EngineECU2
+    abstract class ChemicalEngineFusionECU2 : EngineECU2
     {
         // Persistent
         [KSPField(isPersistant = true)]
