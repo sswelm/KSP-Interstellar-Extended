@@ -307,7 +307,7 @@ namespace FNPlugin.Reactors
         // GUI strings
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_rawPowerOutput", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
         public double currentRawPowerOutput;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_reactorStatus")]
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_reactorStatus")]
         public string statusStr = string.Empty;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_coreTemperature")]
         public string coretempStr = string.Empty;
