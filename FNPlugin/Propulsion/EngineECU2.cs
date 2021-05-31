@@ -26,7 +26,7 @@ namespace FNPlugin.Propulsion
 
         // Persistent
         [KSPField(isPersistant = true)] public bool IsEnabled;
-        [KSPField(isPersistant = true)] bool Launched = false;
+        [KSPField(isPersistant = true)] public bool Launched = false;
         [KSPField(isPersistant = true)] public bool hideEmpty;
         [KSPField(isPersistant = true)] public int selectedTank;
         [KSPField(isPersistant = true)] public string selectedTankName = "";
