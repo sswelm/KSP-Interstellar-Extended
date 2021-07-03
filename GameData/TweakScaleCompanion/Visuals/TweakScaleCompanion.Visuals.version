@@ -1,0 +1,18 @@
+{
+	"NAME"		: "TweakScale Companion for Visuals",
+	"URL"		: "https://raw.githubusercontent.com/net-lisias-ksp/TweakScaleCompanion_Visuals/master/TweakScaleCompanion_Visuals.version",
+	"DOWNLOAD"	: "https://github.com/net-lisias-ksp/TweakScaleCompanion_Visuals/releases",
+	"CHANGE_LOG"	: "https://raw.githubusercontent.com/net-lisias-ksp/TweakScaleCompanion_Visuals/master/CHANGE_LOG.md",
+	"CHANGE_LOG_URL": "https://raw.githubusercontent.com/net-lisias-ksp/TweakScaleCompanion_Visuals/master/CHANGES.md",
+	"VERSION":{
+		"MAJOR":0,
+		"MINOR":0,
+		"PATCH":2,
+		"BUILD":0
+		},
+	"KSP_VERSION_MIN":{
+		"MAJOR":1,
+		"MINOR":8,
+		"PATCH":0
+		}
+}
