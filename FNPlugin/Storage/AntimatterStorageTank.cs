@@ -692,8 +692,8 @@ namespace FNPlugin.Storage
 
             if (effectivePowerNeeded > 0.0)
             {
-                double powerRequest = (chargeStatus >= maxCharge ? 1.0 : 2.0) * effectivePowerNeeded * TimeWarp.fixedDeltaTime;
-                double chargeToAdd = ConsumeMegawatts(powerRequest / GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ / effectivePowerNeeded;
+                double powerRequest = (chargeStatus >= maxCharge ? 1.0 : 2.0) * effectivePowerNeeded;
+                double chargeToAdd = ConsumeMegawatts(powerRequest / GameConstants.ecPerMJ, true, true, true) * GameConstants.ecPerMJ / effectivePowerNeeded * TimeWarp.fixedDeltaTime;
                 chargeStatus += chargeToAdd;
 
                 if (chargeToAdd >= TimeWarp.fixedDeltaTime)
