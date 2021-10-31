@@ -1551,21 +1551,23 @@ namespace FNPlugin.Reactors
 
                 _currentPropulsionRequestRatioSum = Math.Min(1, currentThermalPropulsionRatio + CurrentPlasmaPropulsionRatio + CurrentChargedPropulsionRatio);
 
-                var currentThermalRequestRatio = Math.Min(currentThermalPropulsionRatio + CurrentPlasmaPropulsionRatio + currentThermalGeneratorRatio + currentPlasmaGeneratorRatio, 1);
-                var currentChargedRequestRatio = Math.Min(CurrentChargedPropulsionRatio + currentChargedGeneratorRatio, 1);
+                var currentThermalRequestRatio = Math.Min(1, currentThermalPropulsionRatio + CurrentPlasmaPropulsionRatio + currentThermalGeneratorRatio + currentPlasmaGeneratorRatio);
+                var currentChargedRequestRatio = Math.Min(1, CurrentChargedPropulsionRatio + currentChargedGeneratorRatio);
 
                 UpdateFuelRatio(Math.Max(currentThermalRequestRatio, currentChargedRequestRatio));
 
-                var maximumThermalRequestRatio = Math.Min(maximumThermalPropulsionRatio + maximumPlasmaPropulsionRatio + maximumThermalGeneratorRatio + maximumPlasmaGeneratorRatio, 1);
-                var maximumChargedRequestRatio = Math.Min(maximumChargedPropulsionRatio + maximumChargedGeneratorRatio, 1);
+                var maximumThermalRequestRatio = Math.Min(1, maximumThermalPropulsionRatio + maximumPlasmaPropulsionRatio + maximumThermalGeneratorRatio + maximumPlasmaGeneratorRatio);
+                var maximumChargedRequestRatio = Math.Min(1, maximumChargedPropulsionRatio + maximumChargedGeneratorRatio);
+
+                var modifierAdjustForDeltaTime = Math.Min(1, timeWarpFixedDeltaTime * 0.05);
 
                 var finalCurrentThermalRequestRatio = Math.Max(currentThermalRequestRatio,
-                    (1 - GetResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt)) * timeWarpFixedDeltaTime / 20 * ThermalPowerRatio);
+                    (1 - GetResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt)) * modifierAdjustForDeltaTime * ThermalPowerRatio);
                 var finalCurrentChargedRequestRatio = Math.Max(currentChargedRequestRatio,
-                    (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedPowerInMegawatt)) * timeWarpFixedDeltaTime / 20 * ChargedPowerRatio);
+                    (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedPowerInMegawatt)) * modifierAdjustForDeltaTime * ChargedPowerRatio);
 
-                var finalReactorRequestRatio = Math.Max(vessel.ctrlState.mainThrottle * timeWarpFixedDeltaTime / 20, Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio)) ;
-                var maximumReactorRequestRatio = Math.Max(maximumThermalRequestRatio, maximumChargedRequestRatio);
+                var finalReactorRequestRatio =  Math.Max(vessel.ctrlState.mainThrottle * 0.001, Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio)) ;
+                var maximumReactorRequestRatio = Math.Min(1, Math.Max(maximumThermalRequestRatio, maximumChargedRequestRatio));
 
                 var powerAccessModifier = Math.Max(
                     Math.Max(
