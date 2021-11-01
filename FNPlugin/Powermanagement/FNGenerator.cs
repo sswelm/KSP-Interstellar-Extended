@@ -907,7 +907,8 @@ namespace FNPlugin.Powermanagement
                 : _attachedPowerSource.ThermalEnergyEfficiency;
 
             var potentialThermalPower = (isMHD || !_appliesBalance ? rawReactorPower: rawThermalPower) / attachedPowerSourceRatio;
-            _maxAllowedChargedPower = rawChargedPower * (chargedParticleMode ? _attachedPowerSource.ChargedPowerRatio : 1);
+            //_maxAllowedChargedPower = rawChargedPower * (chargedParticleMode ? _attachedPowerSource.ChargedPowerRatio : 1);
+            _maxAllowedChargedPower = rawChargedPower;
 
             _maxThermalPower = attachedPowerSourceMaximumThermalPowerUsageRatio * Math.Min(rawReactorPower, potentialThermalPower);
             _maxChargedPowerForThermalGenerator = attachedPowerSourceMaximumThermalPowerUsageRatio    * Math.Min(rawChargedPower, (1 / attachedPowerSourceRatio) * _maxAllowedChargedPower);
