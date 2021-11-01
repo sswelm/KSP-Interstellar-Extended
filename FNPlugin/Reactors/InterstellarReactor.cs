@@ -1560,11 +1560,11 @@ namespace FNPlugin.Reactors
                 var maximumChargedRequestRatio = Math.Min(maximumChargedPropulsionRatio + maximumChargedGeneratorRatio, 1);
 
                 var finalCurrentThermalRequestRatio = Math.Max(currentThermalRequestRatio,
-                    (1 - GetResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt)) * timeWarpFixedDeltaTime / 20 * ThermalPowerRatio);
+                    (1 - GetResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt)) * 0.001 * ThermalPowerRatio);
                 var finalCurrentChargedRequestRatio = Math.Max(currentChargedRequestRatio,
-                    (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedPowerInMegawatt)) * timeWarpFixedDeltaTime / 20 * ChargedPowerRatio);
+                    (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedPowerInMegawatt)) * 0.001 * ChargedPowerRatio);
 
-                var finalReactorRequestRatio = Math.Max(vessel.ctrlState.mainThrottle * timeWarpFixedDeltaTime / 20, Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio)) ;
+                var finalReactorRequestRatio = Math.Max(vessel.ctrlState.mainThrottle * 0.001, Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio)) ;
                 var maximumReactorRequestRatio = Math.Max(maximumThermalRequestRatio, maximumChargedRequestRatio);
 
                 var powerAccessModifier = Math.Max(
