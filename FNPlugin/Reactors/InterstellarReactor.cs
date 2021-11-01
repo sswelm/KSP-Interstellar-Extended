@@ -1936,8 +1936,8 @@ namespace FNPlugin.Reactors
             var plasmaThrottleIsGrowing = _currentGeneratorPlasmaEnergyRequestRatio > storedGeneratorPlasmaEnergyRequestRatio;
             var chargedThrottleIsGrowing = _currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio;
 
-            var fixedReactorSpeedMultiplier = ReactorSpeedMult * timeWarpFixedDeltaTime;
-            var minimumAcceleration = timeWarpFixedDeltaTime * timeWarpFixedDeltaTime;
+            var fixedReactorSpeedMultiplier = ReactorSpeedMult * timeWarpFixedDeltaTime * 50;
+            var minimumAcceleration = timeWarpFixedDeltaTime * timeWarpFixedDeltaTime * 50;
 
             var thermalAccelerationReductionRatio = thermalThrottleIsGrowing
                 ? storedGeneratorThermalEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorThermalEnergyRequestRatio) / 0.5
