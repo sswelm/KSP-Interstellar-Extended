@@ -160,8 +160,8 @@ namespace FNPlugin.Powermanagement
         [KSPField(guiActive = false)] public double _requestedChargedPower;
         [KSPField(guiActive = false)] public double _maximumChargedPower;
         [KSPField(guiActive = false)] public double _chargedPowerRequestRatio;
+        [KSPField(guiActive = false)] public double _megajoulesFraction;
         [KSPField(guiActive = false)] public double _reactorPowerRequested;
-
         [KSPField(guiActive = false)] public double _maxThermalPower;
         [KSPField(guiActive = false)] public double _effectiveMaximumThermalPower;
         [KSPField(guiActive = false)] public double _maxStableMegaWattPower;
@@ -1064,7 +1064,7 @@ namespace FNPlugin.Powermanagement
 
                     electrical_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                    var megajoulesFraction = GetResourceBarFraction(ResourceSettings.Config.ElectricPowerInMegawatt);
+                    _megajoulesFraction = GetResourceBarFraction(ResourceSettings.Config.ElectricPowerInMegawatt);
 
                     _powerNeededForCurrentEfficiency = electrical_power_currently_needed / _totalEfficiency;
 
@@ -1074,7 +1074,7 @@ namespace FNPlugin.Powermanagement
                     _maximumChargedPower = _attachedPowerSource.MaximumChargedPower * _attachedPowerSource.ChargedParticleEnergyEfficiency;
                     _chargedPowerRequestRatio = Math.Min(1, _maximumChargedPower > 0 ? _requestedChargedPower / _maximumChargedPower : 0);
 
-                    _attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEfficiency, Math.Max(megajoulesFraction < 0.5 ? 1 : 0.5 - megajoulesFraction, _chargedPowerRequestRatio), part.mass);
+                    _attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEfficiency, Math.Min(1, _chargedPowerRequestRatio * (2.1 - _megajoulesFraction)), part.mass);
 
                     _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedPowerInMegawatt);
 
