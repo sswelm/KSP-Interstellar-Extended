@@ -387,7 +387,6 @@ namespace FNPlugin.Reactors
         private readonly Queue<double> _averageOverheat = new Queue<double>();
 
         private readonly Queue<double> wasteheatBuffer = new Queue<double>();
-        //private readonly Queue<double> wasteheatbuffer2 = new Queue<double>();
 
         private AudioSource _initiateSound;
         private AudioSource _terminateSound;
@@ -413,9 +412,13 @@ namespace FNPlugin.Reactors
         private double _currentIsChargedEnergyGeneratorEfficiency;
         private double _currentIsPlasmaEnergyGeneratorEfficiency;
 
-        private double _currentGeneratorThermalEnergyRequestRatio;
-        private double _currentGeneratorPlasmaEnergyRequestRatio;
-        private double _currentGeneratorChargedEnergyRequestRatio;
+        [KSPField(guiActive = false)] public double _currentGeneratorThermalEnergyRequestRatio;
+        [KSPField(guiActive = false)] public double _currentGeneratorPlasmaEnergyRequestRatio;
+        [KSPField(guiActive = false)] public double _currentGeneratorChargedEnergyRequestRatio;
+
+        [KSPField(guiActive = false)] public double _maximumThermalRequestRatio;
+        [KSPField(guiActive = false)] public double _maximumChargedRequestRatio;
+        [KSPField(guiActive = false)] public double _maximumReactorRequestRatio;
 
         private double _lithiumConsumedPerSecond;
         private double _tritiumProducedPerSecond;
@@ -1556,8 +1559,8 @@ namespace FNPlugin.Reactors
 
                 UpdateFuelRatio(Math.Max(currentThermalRequestRatio, currentChargedRequestRatio));
 
-                var maximumThermalRequestRatio = Math.Min(1, maximumThermalPropulsionRatio + maximumPlasmaPropulsionRatio + maximumThermalGeneratorRatio + maximumPlasmaGeneratorRatio);
-                var maximumChargedRequestRatio = Math.Min(1, maximumChargedPropulsionRatio + maximumChargedGeneratorRatio);
+                _maximumThermalRequestRatio = Math.Min(1, maximumThermalPropulsionRatio + maximumPlasmaPropulsionRatio + maximumThermalGeneratorRatio + maximumPlasmaGeneratorRatio);
+                _maximumChargedRequestRatio = Math.Min(1, maximumChargedPropulsionRatio + maximumChargedGeneratorRatio);
 
                 var modifierAdjustForDeltaTime = Math.Min(1, timeWarpFixedDeltaTime * 0.05);
 
@@ -1567,7 +1570,7 @@ namespace FNPlugin.Reactors
                     (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedPowerInMegawatt)) * modifierAdjustForDeltaTime * ChargedPowerRatio);
 
                 var finalReactorRequestRatio =  Math.Max(vessel.ctrlState.mainThrottle * 0.001, Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio)) ;
-                var maximumReactorRequestRatio = Math.Min(1, Math.Max(maximumThermalRequestRatio, maximumChargedRequestRatio));
+                _maximumReactorRequestRatio = Math.Min(1, Math.Max(_maximumThermalRequestRatio, _maximumChargedRequestRatio));
 
                 var powerAccessModifier = Math.Max(
                     Math.Max(
@@ -1618,11 +1621,11 @@ namespace FNPlugin.Reactors
                 // produce wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
-                    var maximumGeneratedWasteheat = maximumReactorRequestRatio * maxThermalToSupplyPerSecond * lostThermalModifier;
+                    //var maximumGeneratedWasteheat = _maximumReactorRequestRatio * maxThermalToSupplyPerSecond * lostThermalModifier;
                     var rawGeneratedWasteheat = ongoing_thermal_power_generated + (chargedPowerProducesWasteheat ? ongoing_charged_power_generated : 0);
                     var averagePrevious = wasteheatBuffer.Count > 0 ?  Math.Min(wasteheatBuffer.Min(), rawGeneratedWasteheat) : rawGeneratedWasteheat;
                     var delayedWasteheatRate = rawGeneratedWasteheat > averagePrevious ? Math.Min(averagePrevious, rawGeneratedWasteheat) : rawGeneratedWasteheat;
-                    SupplyFnResourcePerSecondWithMax(delayedWasteheatRate, maximumGeneratedWasteheat, ResourceSettings.Config.WasteHeatInMegawatt);
+                    SupplyFnResourcePerSecondWithMax(delayedWasteheatRate, delayedWasteheatRate, ResourceSettings.Config.WasteHeatInMegawatt);
 
                     wasteheatBuffer.Enqueue(rawGeneratedWasteheat);
                     if (wasteheatBuffer.Count > 2)
@@ -1918,11 +1921,11 @@ namespace FNPlugin.Reactors
             _currentIsPlasmaEnergyGeneratorEfficiency = 0;
             _currentIsChargedEnergyGeneratorEfficiency = 0;
 
-            var previousStoredRatio = Math.Max(Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorPlasmaEnergyRequestRatio), storedGeneratorChargedEnergyRequestRatio);
+            //var previousStoredRatio = Math.Max(Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorPlasmaEnergyRequestRatio), storedGeneratorChargedEnergyRequestRatio);
 
-            storedGeneratorThermalEnergyRequestRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, previousStoredRatio);
-            storedGeneratorPlasmaEnergyRequestRatio = Math.Max(storedGeneratorPlasmaEnergyRequestRatio, previousStoredRatio);
-            storedGeneratorChargedEnergyRequestRatio = Math.Max(storedGeneratorChargedEnergyRequestRatio, previousStoredRatio);
+            //storedGeneratorThermalEnergyRequestRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, previousStoredRatio);
+            //storedGeneratorPlasmaEnergyRequestRatio = Math.Max(storedGeneratorPlasmaEnergyRequestRatio, previousStoredRatio);
+            //storedGeneratorChargedEnergyRequestRatio = Math.Max(storedGeneratorChargedEnergyRequestRatio, previousStoredRatio);
 
             var requiredMinimumThrottle = Math.Max(MinimumThrottle, ForcedMinimumThrottleRatio);
 
@@ -1965,9 +1968,9 @@ namespace FNPlugin.Reactors
             storedGeneratorPlasmaEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorPlasmaEnergyRequestRatio + plasmaChangeFraction));
             storedGeneratorChargedEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorChargedEnergyRequestRatio + chargedChangeFraction));
 
-            _currentGeneratorThermalEnergyRequestRatio = 0;
-            _currentGeneratorPlasmaEnergyRequestRatio = 0;
-            _currentGeneratorChargedEnergyRequestRatio = 0;
+            //_currentGeneratorThermalEnergyRequestRatio = 0;
+            //_currentGeneratorPlasmaEnergyRequestRatio = 0;
+            //_currentGeneratorChargedEnergyRequestRatio = 0;
         }
 
         private void UpdateCapacities()

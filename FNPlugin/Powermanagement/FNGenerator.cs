@@ -124,7 +124,7 @@ namespace FNPlugin.Powermanagement
         public double coldBathTempDisplay = 500;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Generator_hotBathTemp", guiUnits = " K", guiFormat = "F0")]
         public double hotBathTemp = 300;
-        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3")]
+        [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F3", guiActive = true)]
         public double electrical_power_currently_needed;
         [KSPField(groupName = GROUP, groupDisplayName = GROUP_TITLE, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW", guiFormat = "F0")]
         public double initialGeneratorPowerEC;
@@ -141,46 +141,51 @@ namespace FNPlugin.Powermanagement
         private bool _hasRequiredUpgrade;
         private bool _checkedConnectivity;
 
-        private double _chargedPowerReceived;
-        private double _requestedChargedPower;
-        private double _reactorPowerRequested;
         private double _targetMass;
         private double _initialMass;
-        private double _maxThermalPower;
-        private double _effectiveMaximumThermalPower;
-        private double _maxStableMegaWattPower;
-        private double _maxChargedPowerForThermalGenerator;
-        private double _maxChargedPowerForChargedGenerator;
-        private double _maxAllowedChargedPower;
+        private double _chargedPowerReceived;
         private double _maxReactorPower;
         private double _megawattBufferAmount;
-        private double hotColdBathRatio;
+        private double _hotColdBathRatio;
         private double _heatExchangerThrustDivisor = 1;
-        private double _thermalPowerReceived;
-        private double _requestedPostChargedPower;
         private double _requestedPostThermalPower;
         private double _requestedPostReactorPower;
         private double _electricPowerPerSecond;
         private double _maxElectricPowerPerSecond;
-        private double _totalEfficiency;
         private double _outputPower;
         private double _powerDownFraction;
+
+        [KSPField(guiActive = false)] public double _totalEfficiency;
+        [KSPField(guiActive = false)] public double _powerNeededForCurrentEfficiency;
+        [KSPField(guiActive = false)] public double _requestedChargedPower;
+        [KSPField(guiActive = false)] public double _maximumChargedPower;
+        [KSPField(guiActive = false)] public double _chargedPowerRequestRatio;
+        [KSPField(guiActive = false)] public double _reactorPowerRequested;
+
+        [KSPField(guiActive = false)] public double _maxThermalPower;
+        [KSPField(guiActive = false)] public double _effectiveMaximumThermalPower;
+        [KSPField(guiActive = false)] public double _maxStableMegaWattPower;
+        [KSPField(guiActive = false)] public double _maxChargedPowerForThermalGenerator;
+        [KSPField(guiActive = false)] public double _maxChargedPowerForChargedGenerator;
+        [KSPField(guiActive = false)] public double _maxAllowedChargedPower;
+
+        [KSPField(guiActive = false)] public double _thermalPowerNeeded;
+        [KSPField(guiActive = false)] public double _requestedThermalPower;
+        [KSPField(guiActive = false)] public double _thermalPowerReceived;
+        [KSPField(guiActive = false)] public double _requestedPostChargedPower;
 
         private Animation _animation;
         private PowerStates _powerState;
         private IFNPowerSource _attachedPowerSource;
         private ResourceBuffers _resourceBuffers;
-        private ModuleGenerator stockModuleGenerator;
+        private ModuleGenerator _stockModuleGenerator;
         private MethodInfo _powerGeneratorReliablityEvent;
         private ModuleResource _outputModuleResource;
-
-        private PartModule powerGeneratorProcessController;
-
+        private PartModule _powerGeneratorProcessController;
         private BaseField _powerGeneratorCapacity;
-        private BaseField moduleGeneratorEfficientBaseField;
-
-        private BaseEvent moduleGeneratorShutdownBaseEvent;
-        private BaseEvent moduleGeneratorActivateBaseEvent;
+        private BaseField _moduleGeneratorEfficientBaseField;
+        private BaseEvent _moduleGeneratorShutdownBaseEvent;
+        private BaseEvent _moduleGeneratorActivateBaseEvent;
 
         private readonly Queue<double> _powerDemandQueue = new Queue<double>();
 
@@ -191,9 +196,9 @@ namespace FNPlugin.Powermanagement
         [KSPEvent(groupName = GROUP, guiActive = true, guiName = "Reset", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]
         public void Reset()
         {
-            _powerGeneratorCapacity?.SetValue(0, powerGeneratorProcessController);
+            _powerGeneratorCapacity?.SetValue(0, _powerGeneratorProcessController);
 
-            _powerGeneratorReliablityEvent?.Invoke(powerGeneratorProcessController, new object[] { false });
+            _powerGeneratorReliablityEvent?.Invoke(_powerGeneratorProcessController, new object[] { false });
         }
 
 
@@ -469,40 +474,40 @@ namespace FNPlugin.Powermanagement
                 if (tittleField == null) continue;
                 var title = (string) tittleField.GetValue(partModule);
                 if (title != "Power Generator") continue;
-                powerGeneratorProcessController = partModule;
-                var type = powerGeneratorProcessController.GetType();
+                _powerGeneratorProcessController = partModule;
+                var type = _powerGeneratorProcessController.GetType();
                 _powerGeneratorReliablityEvent =  type.GetMethod("ReliablityEvent");
-                _powerGeneratorCapacity = powerGeneratorProcessController.Fields["capacity"];
+                _powerGeneratorCapacity = _powerGeneratorProcessController.Fields["capacity"];
                 break;
             }
 
-            stockModuleGenerator = part.FindModuleImplementing<ModuleGenerator>();
+            _stockModuleGenerator = part.FindModuleImplementing<ModuleGenerator>();
 
-            if (stockModuleGenerator == null) return;
+            if (_stockModuleGenerator == null) return;
 
-            _outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceSettings.Config.ElectricPowerInKilowatt);
+            _outputModuleResource = _stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceSettings.Config.ElectricPowerInKilowatt);
 
             if (_outputModuleResource == null) return;
 
-            moduleGeneratorShutdownBaseEvent = stockModuleGenerator.Events[nameof(ModuleGenerator.Shutdown)];
-            if (moduleGeneratorShutdownBaseEvent != null)
+            _moduleGeneratorShutdownBaseEvent = _stockModuleGenerator.Events[nameof(ModuleGenerator.Shutdown)];
+            if (_moduleGeneratorShutdownBaseEvent != null)
             {
-                moduleGeneratorShutdownBaseEvent.guiActive = false;
-                moduleGeneratorShutdownBaseEvent.guiActiveEditor = false;
+                _moduleGeneratorShutdownBaseEvent.guiActive = false;
+                _moduleGeneratorShutdownBaseEvent.guiActiveEditor = false;
             }
 
-            moduleGeneratorActivateBaseEvent = stockModuleGenerator.Events[nameof(ModuleGenerator.Activate)];
-            if (moduleGeneratorActivateBaseEvent != null)
+            _moduleGeneratorActivateBaseEvent = _stockModuleGenerator.Events[nameof(ModuleGenerator.Activate)];
+            if (_moduleGeneratorActivateBaseEvent != null)
             {
-                moduleGeneratorActivateBaseEvent.guiActive = false;
-                moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
+                _moduleGeneratorActivateBaseEvent.guiActive = false;
+                _moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
             }
 
-            moduleGeneratorEfficientBaseField = stockModuleGenerator.Fields[nameof(ModuleGenerator.efficiency)];
-            if (moduleGeneratorEfficientBaseField != null)
+            _moduleGeneratorEfficientBaseField = _stockModuleGenerator.Fields[nameof(ModuleGenerator.efficiency)];
+            if (_moduleGeneratorEfficientBaseField != null)
             {
-                moduleGeneratorEfficientBaseField.guiActive = false;
-                moduleGeneratorEfficientBaseField.guiActiveEditor = false;
+                _moduleGeneratorEfficientBaseField.guiActive = false;
+                _moduleGeneratorEfficientBaseField.guiActiveEditor = false;
             }
 
             initialGeneratorPowerEC = _outputModuleResource.rate;
@@ -664,9 +669,9 @@ namespace FNPlugin.Powermanagement
             else
             {
                 if (HighLogic.LoadedSceneIsFlight)
-                    _powerGeneratorCapacity?.SetValue(0, powerGeneratorProcessController);
+                    _powerGeneratorCapacity?.SetValue(0, _powerGeneratorProcessController);
                 else
-                    _powerGeneratorCapacity?.SetValue(generatorRate, powerGeneratorProcessController);
+                    _powerGeneratorCapacity?.SetValue(generatorRate, _powerGeneratorProcessController);
             }
         }
 
@@ -823,10 +828,10 @@ namespace FNPlugin.Powermanagement
             else
                 OutputPower = Localizer.Format("#LOC_KSPIE_Generator_Offline");//"Generator Offline"
 
-            if (moduleGeneratorEfficientBaseField != null)
+            if (_moduleGeneratorEfficientBaseField != null)
             {
-                moduleGeneratorEfficientBaseField.guiActive = false;
-                moduleGeneratorEfficientBaseField.guiActiveEditor = false;
+                _moduleGeneratorEfficientBaseField.guiActive = false;
+                _moduleGeneratorEfficientBaseField.guiActiveEditor = false;
             }
         }
 
@@ -959,8 +964,8 @@ namespace FNPlugin.Powermanagement
                     return;
                 }
 
-                if (stockModuleGenerator != null)
-                    stockModuleGenerator.generatorIsActive = _maxStableMegaWattPower > 0;
+                if (_stockModuleGenerator != null)
+                    _stockModuleGenerator.generatorIsActive = _maxStableMegaWattPower > 0;
 
                 _powerDownFraction = 1;
 
@@ -972,32 +977,32 @@ namespace FNPlugin.Powermanagement
 
                 if (!chargedParticleMode) // thermal mode
                 {
-                    hotColdBathRatio = Math.Max(Math.Min(1 - coldBathTemp / hotBathTemp, 1), 0);
+                    _hotColdBathRatio = Math.Max(Math.Min(1 - coldBathTemp / hotBathTemp, 1), 0);
 
-                    _totalEfficiency = Math.Min(maxEfficiency, hotColdBathRatio * maxEfficiency);
+                    _totalEfficiency = Math.Min(maxEfficiency, _hotColdBathRatio * maxEfficiency);
 
-                    if (hotColdBathRatio <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || _maxReactorPower <= 0) return;
+                    if (_hotColdBathRatio <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || _maxReactorPower <= 0) return;
 
                     electrical_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                    var effectiveThermalPowerNeededForElectricity = electrical_power_currently_needed / _totalEfficiency;
+                    _powerNeededForCurrentEfficiency = electrical_power_currently_needed / _totalEfficiency;
 
-                    _reactorPowerRequested = Math.Max(0, Math.Min(_maxReactorPower, effectiveThermalPowerNeededForElectricity));
+                    _reactorPowerRequested = Math.Max(0, Math.Min(_maxReactorPower, _powerNeededForCurrentEfficiency));
                     _requestedPostReactorPower = Math.Max(0, _attachedPowerSource.MinimumPower - _reactorPowerRequested);
 
-                    var thermalPowerRequested = Math.Max(0, Math.Min(_maxThermalPower, effectiveThermalPowerNeededForElectricity));
+                    _thermalPowerNeeded = Math.Max(0, Math.Min(_maxThermalPower, _powerNeededForCurrentEfficiency));
 
-                    thermalPowerRequested *= _appliesBalance
-                        ? thermalPowerRatio
-                        : thermalPowerRatio + (1 - thermalPowerRatio) * Math.Max(_attachedPowerSource.CurrentChargedPropulsionRatio, _attachedPowerSource.CurrentPlasmaPropulsionRatio);
+                    //_thermalPowerNeeded *= _appliesBalance
+                    //    ? thermalPowerRatio
+                    //    : thermalPowerRatio + (1 - thermalPowerRatio) * Math.Max(_attachedPowerSource.CurrentChargedPropulsionRatio, _attachedPowerSource.CurrentPlasmaPropulsionRatio);
 
-                    _requestedPostThermalPower = Math.Max(0, _attachedPowerSource.MinimumPower * thermalPowerRatio - thermalPowerRequested);
+                    _requestedPostThermalPower = Math.Max(0, _attachedPowerSource.MinimumPower * thermalPowerRatio - _thermalPowerNeeded);
 
                     if ( chargedPowerRatio < 1)
                     {
-                        var requestedThermalPower = Math.Min(thermalPowerRequested, _effectiveMaximumThermalPower);
-                        _thermalPowerReceived = ConsumeFnResourcePerSecond(requestedThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
-                        var thermalPowerRequestRatio = Math.Min(1, _effectiveMaximumThermalPower > 0 ? requestedThermalPower / _attachedPowerSource.MaximumThermalPower : 0);
+                        _requestedThermalPower = Math.Min(_thermalPowerNeeded, _effectiveMaximumThermalPower);
+                        _thermalPowerReceived = ConsumeFnResourcePerSecond(_requestedThermalPower, ResourceSettings.Config.ThermalPowerInMegawatt);
+                        var thermalPowerRequestRatio = Math.Min(1, _effectiveMaximumThermalPower > 0 ? _requestedThermalPower / _attachedPowerSource.MaximumThermalPower : 0);
                         _attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEfficiency, thermalPowerRequestRatio, isMHD, isLimitedByMinThrottle ? part.mass * 0.05 : part.mass);
                     }
                     else
@@ -1051,7 +1056,7 @@ namespace FNPlugin.Powermanagement
                 }
                 else // charged particle mode
                 {
-                    hotColdBathRatio = 1;
+                    _hotColdBathRatio = 1;
 
                     _totalEfficiency = maxEfficiency;
 
@@ -1059,12 +1064,17 @@ namespace FNPlugin.Powermanagement
 
                     electrical_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                    _requestedChargedPower = overheatingModifier * Math.Max(0, Math.Min(_maxAllowedChargedPower, electrical_power_currently_needed / _totalEfficiency));
+                    var megajoulesFraction = GetResourceBarFraction(ResourceSettings.Config.ElectricPowerInMegawatt);
+
+                    _powerNeededForCurrentEfficiency = electrical_power_currently_needed / _totalEfficiency;
+
+                    _requestedChargedPower = overheatingModifier * Math.Max(0, Math.Min(_maxChargedPowerForChargedGenerator, _powerNeededForCurrentEfficiency));
                     _requestedPostChargedPower = overheatingModifier * Math.Max(0, (_attachedPowerSource.MinimumPower * chargedPowerRatio) - _requestedChargedPower);
 
-                    var maximumChargedPower = _attachedPowerSource.MaximumChargedPower * _attachedPowerSource.ChargedParticleEnergyEfficiency;
-                    var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? _requestedChargedPower / maximumChargedPower : 0);
-                    _attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEfficiency, chargedPowerRequestRatio, part.mass);
+                    _maximumChargedPower = _attachedPowerSource.MaximumChargedPower * _attachedPowerSource.ChargedParticleEnergyEfficiency;
+                    _chargedPowerRequestRatio = Math.Min(1, _maximumChargedPower > 0 ? _requestedChargedPower / _maximumChargedPower : 0);
+
+                    _attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEfficiency, Math.Max(megajoulesFraction < 0.5 ? 1 : 0.5 - megajoulesFraction, _chargedPowerRequestRatio), part.mass);
 
                     _chargedPowerReceived = ConsumeFnResourcePerSecond(_requestedChargedPower, ResourceSettings.Config.ChargedPowerInMegawatt);
 
@@ -1098,7 +1108,7 @@ namespace FNPlugin.Powermanagement
 
                 _outputPower = isLimitedByMinThrottle
                     ? -SupplyManagedFnResourcePerSecond(_electricPowerPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt)
-                    : -SupplyFnResourcePerSecondWithMaxAndEfficiency(_electricPowerPerSecond, _maxElectricPowerPerSecond, hotColdBathRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
+                    : -SupplyFnResourcePerSecondWithMaxAndEfficiency(_electricPowerPerSecond, _maxElectricPowerPerSecond, _hotColdBathRatio, ResourceSettings.Config.ElectricPowerInMegawatt);
             }
             else
             {
@@ -1107,8 +1117,8 @@ namespace FNPlugin.Powermanagement
                 generatorInit = true;
                 SupplyManagedFnResourcePerSecond(0, ResourceSettings.Config.ElectricPowerInMegawatt);
 
-                if (stockModuleGenerator != null && stockModuleGenerator.generatorIsActive)
-                    stockModuleGenerator.Shutdown();
+                if (_stockModuleGenerator != null && _stockModuleGenerator.generatorIsActive)
+                    _stockModuleGenerator.Shutdown();
 
                 if (IsEnabled && !vessel.packed)
                 {
@@ -1221,7 +1231,11 @@ namespace FNPlugin.Powermanagement
             var spareResourceCapacity = GetSpareResourceCapacity(ResourceSettings.Config.ElectricPowerInMegawatt);
             _maxStableMegaWattPower = MaxStableMegaWattPower;
 
-            var possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity, _maxStableMegaWattPower);
+
+            //var megajoulesFraction = GetResourceBarFraction(ResourceSettings.Config.ElectricPowerInMegawatt);
+            //var possibleSpareResourceCapacityFilling = (1 - megajoulesFraction) * _maxStableMegaWattPower; // Math.Min(spareResourceCapacity, _maxStableMegaWattPower);
+
+            var possibleSpareResourceCapacityFilling = Math.Min(_maxStableMegaWattPower, spareResourceCapacity);
 
             return Math.Min(maximumElectricPower, Math.Min(1, PowerControlRatio) * _powerDemandQueue.Max() + Math.Max(0, PowerControlRatio - 1) * possibleSpareResourceCapacityFilling);
         }
