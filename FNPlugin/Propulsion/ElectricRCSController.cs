@@ -333,6 +333,9 @@ namespace FNPlugin.Propulsion
 
             _powerConsumptionStrField.guiActive = _attachedRcs != null && rcsIsOn;
 
+            if (part.Modules.Contains("ModuleWaterfallFX"))
+                WaterfallIntegration.RCSPower(part, _attachedRcs.thrusterTransformName, powerEnabled);
+
             if (_rcsStates == null) return;
 
             bool rcsPartActive = false;
