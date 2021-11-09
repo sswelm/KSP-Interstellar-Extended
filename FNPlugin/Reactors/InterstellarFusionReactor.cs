@@ -19,14 +19,17 @@ namespace FNPlugin.Reactors
         [KSPField] public double maximumChargedIspMult = 100;
         [KSPField] public double minimumChargedIspMult = 1;
         [KSPField] public double maintenancePowerWasteheatRatio = 0.1;
-
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_Maintance")] public string electricPowerMaintenance;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_PlasmaRatio")] public double plasma_ratio = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_PlasmaModifier", guiFormat = "F6")] public double plasma_modifier = 1;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_RequiredRatio", guiFormat = "F3")] public double required_reactor_ratio;
-
         [KSPField] public double reactorRatioThreshold = 0.000005;
         [KSPField] public double minReactorRatio = 0;
+
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_Maintance")]
+        public string electricPowerMaintenance;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_PlasmaRatio")]
+        public double plasma_ratio = 1;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_PlasmaModifier", guiFormat = "F6")]
+        public double plasma_modifier = 1;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FissionPB_RequiredRatio", guiFormat = "F3")]
+        public double required_reactor_ratio;
 
         // Properties
         public double MaximumChargedIspMult => maximumChargedIspMult;

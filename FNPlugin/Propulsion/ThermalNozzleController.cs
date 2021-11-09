@@ -1,13 +1,13 @@
-﻿using FNPlugin.Constants;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
 using FNPlugin.Powermanagement;
 using FNPlugin.Resources;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using TweakScale;
 using UnityEngine;
 
@@ -54,10 +54,10 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_ThermalNozzleController_Radius", guiUnits = " m", guiFormat = "F2")]//Radius
         public double radius = 2.5;
 
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFuelFlow", guiFormat = "F5")] protected double maxFuelFlowRate;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFuelFlowonengine", guiFormat = "F5")] public float maxFuelFlowOnEngine;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_ThermalNozzleController_FuelFlowMultplier", guiFormat = "F5")] public double fuelflowMultplier;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_ThermalNozzleController_FuelflowThrotlemodifier", guiFormat = "F5")] public double fuelFlowThrottleModifier = 1;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiFormat = "F5", guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFuelFlow")] protected double maxFuelFlowRate;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiFormat = "F5", guiName = "#LOC_KSPIE_ThermalNozzleController_MaxFuelFlowonengine")] public float maxFuelFlowOnEngine;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiFormat = "F5", guiName = "#LOC_KSPIE_ThermalNozzleController_FuelFlowMultplier")] public double fuelflowMultplier;
+        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiFormat = "F5", guiName = "#LOC_KSPIE_ThermalNozzleController_FuelflowThrotlemodifier")] public double fuelFlowThrottleModifier = 1;
 
         [KSPField] public bool controlWasteHeatBuffer = true;
         [KSPField] public double fuelflowThrottleMaxValue = 100;
@@ -198,19 +198,19 @@ namespace FNPlugin.Propulsion
         public float realIspEngine;
         [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_Threshold", guiUnits = " kN", guiFormat = "F5")]//Threshold
         public double pressureThreshold;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_RequestedThermalHeat", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F2")]//Requested ThermalHeat
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_RequestedThermalHeat", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F2")]//Requested ThermalHeat
         public double requested_thermal_power;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_RequestedCharge", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Requested Charge
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_RequestedCharge", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Requested Charge
         public double requested_charge_particles;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_RecievedPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F2")]//Recieved Power
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_RecievedPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F2")]//Recieved Power
         public double reactor_power_received;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_RadiusModifier")]//Radius Modifier
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_RadiusModifier")]//Radius Modifier
         public string radiusModifier;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_Vacuum")]//Vacuum
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_Vacuum")]//Vacuum
         public string vacuumPerformance;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_Sea")]//Sea
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_Sea")]//Sea
         public string surfacePerformance;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_BaseIsp")]//Base Isp
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_BaseIsp")]//Base Isp
         protected float _baseIspMultiplier;
         [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_DecompositionEnergy")]//Decomposition Energy
         protected float _decompositionEnergy;
@@ -262,13 +262,13 @@ namespace FNPlugin.Propulsion
         protected int _propType = 1;
         [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_IsNeutronAbsorber")]//Is Neutron Absorber
         protected bool _isNeutronAbsorber = false;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_MaxThermalPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Max Thermal Power
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_MaxThermalPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Max Thermal Power
         protected double currentMaxThermalPower;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_MaxChargedPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Max Charged Power
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_MaxChargedPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Max Charged Power
         protected double currentMaxChargedPower;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_AvailableTPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Available T Power
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_AvailableTPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Available T Power
         protected double availableThermalPower;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_AvailableCPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Available C Power
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_AvailableCPower", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit")]//Available C Power
         protected double availableChargedPower;
         [KSPField(groupName = Group, guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_ThermalNozzleController_AirFlowHeatModifier", guiFormat = "F3")]//Air Flow Heat Modifier
         protected double airflowHeatModifier;
@@ -278,9 +278,9 @@ namespace FNPlugin.Propulsion
         protected double effectiveChargedSupply;
         [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumPowerUsageForPropulsionRatio;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
+        [KSPField(guiActive = true,  groupName = Group, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumThermalPower;
-        [KSPField(groupName = Group, guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumChargedPower;
         [KSPField(groupName = Group, guiActive = false, guiActiveEditor = true, guiFormat = "F2", guiName = "#LOC_KSPIE_ThermalNozzleController_MaximumReactorPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit")]//Maximum Reactor Power
         public double maximumReactorPower;
@@ -326,7 +326,10 @@ namespace FNPlugin.Propulsion
         [KSPField] public double adjustedThrottle;
         [KSPField] public double adjustedFuelFlowMult;
         [KSPField] public double adjustedFuelFlowExponent = 2;
-        [KSPField] public double receivedMegajoulesRatio;
+
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)]
+        public double receivedMegajoulesRatio;
+
         [KSPField] public double minThrottle = 0;
 
         // Constants
@@ -532,11 +535,9 @@ namespace FNPlugin.Propulsion
         }
 
         public bool PropellantAbsorbsNeutrons => _isNeutronAbsorber;
-
+        public bool IsPlasmaNozzle => isPlasmaNozzle;
         public bool RequiresPlasmaHeat => UsePlasmaPower;
-
         public bool RequiresThermalHeat => !UsePlasmaPower;
-
         public bool RequiresChargedPower => false;
 
         public void upgradePartModule()

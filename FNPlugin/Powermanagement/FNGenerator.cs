@@ -134,7 +134,7 @@ namespace FNPlugin.Powermanagement
         public double received_power_per_second;
 
         // privates
-        private bool _appliesBalance;
+
         private bool _shouldUseChargedPower;
         private bool _playPowerDownSound = true;
         private bool _playPowerUpSound = true;
@@ -155,24 +155,24 @@ namespace FNPlugin.Powermanagement
         private double _outputPower;
         private double _powerDownFraction;
 
-        [KSPField(guiActive = false)] public double _totalEfficiency;
-        [KSPField(guiActive = false)] public double _powerNeededForCurrentEfficiency;
-        [KSPField(guiActive = false)] public double _requestedChargedPower;
-        [KSPField(guiActive = false)] public double _maximumChargedPower;
-        [KSPField(guiActive = false)] public double _chargedPowerRequestRatio;
-        [KSPField(guiActive = false)] public double _megajoulesFraction;
-        [KSPField(guiActive = false)] public double _reactorPowerRequested;
-        [KSPField(guiActive = false)] public double _maxThermalPower;
-        [KSPField(guiActive = false)] public double _effectiveMaximumThermalPower;
-        [KSPField(guiActive = false)] public double _maxStableMegaWattPower;
-        [KSPField(guiActive = false)] public double _maxChargedPowerForThermalGenerator;
-        [KSPField(guiActive = false)] public double _maxChargedPowerForChargedGenerator;
-        [KSPField(guiActive = false)] public double _maxAllowedChargedPower;
-
-        [KSPField(guiActive = false)] public double _thermalPowerNeeded;
-        [KSPField(guiActive = false)] public double _requestedThermalPower;
-        [KSPField(guiActive = false)] public double _thermalPowerReceived;
-        [KSPField(guiActive = false)] public double _requestedPostChargedPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public bool _appliesBalance;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _totalEfficiency;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _powerNeededForCurrentEfficiency;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _requestedChargedPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maximumChargedPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _chargedPowerRequestRatio;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _megajoulesFraction;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _reactorPowerRequested;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maxThermalPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _effectiveMaximumThermalPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maxStableMegaWattPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maxChargedPowerForThermalGenerator;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maxChargedPowerForChargedGenerator;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maxAllowedChargedPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _thermalPowerNeeded;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _requestedThermalPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _thermalPowerReceived;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _requestedPostChargedPower;
 
         private Animation _animation;
         private PowerStates _powerState;
@@ -911,11 +911,11 @@ namespace FNPlugin.Powermanagement
                 ? _attachedPowerSource.PlasmaEnergyEfficiency
                 : _attachedPowerSource.ThermalEnergyEfficiency;
 
-            var potentialThermalPower = (isMHD || !_appliesBalance ? rawReactorPower: rawThermalPower) / attachedPowerSourceRatio;
+            //var potentialThermalPower = (isMHD || !_appliesBalance ? rawReactorPower: rawThermalPower) / attachedPowerSourceRatio;
             //_maxAllowedChargedPower = rawChargedPower * (chargedParticleMode ? _attachedPowerSource.ChargedPowerRatio : 1);
             _maxAllowedChargedPower = rawChargedPower;
 
-            _maxThermalPower = attachedPowerSourceMaximumThermalPowerUsageRatio * Math.Min(rawReactorPower, potentialThermalPower);
+            _maxThermalPower = attachedPowerSourceMaximumThermalPowerUsageRatio * Math.Min(rawReactorPower, rawReactorPower / attachedPowerSourceRatio);
             _maxChargedPowerForThermalGenerator = attachedPowerSourceMaximumThermalPowerUsageRatio    * Math.Min(rawChargedPower, (1 / attachedPowerSourceRatio) * _maxAllowedChargedPower);
             _maxChargedPowerForChargedGenerator = _attachedPowerSource.ChargedParticleEnergyEfficiency * Math.Min(rawChargedPower, (1 / attachedPowerSourceRatio) * _maxAllowedChargedPower);
 

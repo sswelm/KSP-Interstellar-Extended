@@ -75,12 +75,12 @@ namespace FNPlugin.Reactors
             }
             else
             {
-                var shortageRatio = (fusionPowerRequirement - receivedPowerPerSecond) / PowerRequirement;
-                if (shortageRatio < storedPlasmaEnergyRatio)
+                if (required_reactor_ratio > 0)
                 {
-                    storedPlasmaEnergyRatio -= (shortageRatio / PowerRequirement);
-                    receivedPowerPerSecond = fusionPowerRequirement;
+                    storedPlasmaEnergyRatio -= (fusionPowerRequirement - receivedPowerPerSecond) / PowerRequirement;
                 }
+
+                receivedPowerPerSecond = Math.Min(1, storedPlasmaEnergyRatio) * fusionPowerRequirement;
             }
 
             return Math.Round(fusionPowerRequirement > 0 ? receivedPowerPerSecond / fusionPowerRequirement : 1, 4);

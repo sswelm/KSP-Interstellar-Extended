@@ -38,9 +38,6 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_FusionEngine_partMass", guiActiveEditor = true, guiFormat = "F3", guiUnits = " t")]
         public float partMass = 1;
 
-        // protected
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaximumChargedPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
-        protected double maximumChargedPower;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Minimumisp", guiUnits = " s", guiFormat = "F1")]
         protected double minimum_isp;
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Maximumisp", guiUnits = " s", guiFormat = "F1")]
@@ -54,27 +51,27 @@ namespace FNPlugin.Propulsion
         [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineFuelFlow")]
         protected float engineFuelFlow;
 
-        // private
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_ChargedParticleMaximumPercentageUsage", guiFormat = "F3")]
-        private double _chargedParticleMaximumPercentageUsage;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaxChargedParticlesPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
-        private double _max_charged_particles_power;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedParticles", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
-        private double _charged_particles_requested;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedParticles", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
-        private double _charged_particles_received;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedElectricity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
-        private double _requestedElectricPower;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedElectricity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
-        private double _recievedElectricPower;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Thrust", guiUnits = " kN")]
-        private double _engineMaxThrust;
-        [KSPField(groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Consumption", guiUnits = " kg/s")]
-        private double calculatedConsumptionPerSecond;
-
+        // advancedTweakables
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaximumChargedPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        protected double maximumChargedPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_ChargedParticleMaximumPercentageUsage", guiFormat = "F3")]
+        public double _chargedParticleMaximumPercentageUsage;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaxChargedParticlesPower", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        public double _max_charged_particles_power;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedParticles", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        public double _charged_particles_requested;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedParticles", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        public double _charged_particles_received;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedElectricity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        public double _requestedElectricPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedElectricity", guiUnits = "#LOC_KSPIE_Reactor_megawattUnit", guiFormat = "F2")]
+        public double _recievedElectricPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Thrust", guiUnits = " kN")]
+        public double _engineMaxThrust;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = Group, groupDisplayName = GroupTitle, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Consumption", guiUnits = " kg/s")]
+        public double calculatedConsumptionPerSecond;
 
         [KSPField] public bool showPartMass = true;
-        //[KSPField] public bool maintainsPropellantBuffer = true;
         [KSPField] public string propellantBufferResourceName = "LqdHydrogen";
         [KSPField] public string runningEffectName = string.Empty;
         [KSPField] public string powerEffectName = string.Empty;
@@ -121,6 +118,7 @@ namespace FNPlugin.Propulsion
         public double GetNozzleFlowRate() { return _attachedEngine.maxFuelFlow; }
 
         public bool PropellantAbsorbsNeutrons => false;
+        public bool IsPlasmaNozzle => false;
         public bool RequiresPlasmaHeat => false;
         public bool RequiresThermalHeat => false;
         public float CurrentThrottle => !_attachedEngine.flameout && _attachedEngine.currentThrottle > 0 ? (maximum_isp == minimum_isp ? _attachedEngine.currentThrottle : 1) : 0;

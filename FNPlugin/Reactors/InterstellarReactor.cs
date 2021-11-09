@@ -198,8 +198,10 @@ namespace FNPlugin.Reactors
         [KSPField] public bool showPowerPriority = true;
         [KSPField] public bool showSpecialisedUI = true;
         [KSPField] public bool canUseNeutronicFuels = true;
-        [KSPField] public bool shouldApplyBalance;
         [KSPField] public bool simulateConsumption = false;
+
+        [KSPField(guiActive = true, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true, advancedTweakable = true)] public bool _shouldApplyBalance;
+        [KSPField(guiActive = true, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true, advancedTweakable = true)] public bool _isConnectedToPlasmaNozzle;
 
         [KSPField] public int fuelModeTechLevel;
         [KSPField] public int minCoolingFactor = 1;
@@ -396,7 +398,9 @@ namespace FNPlugin.Reactors
         private double _helium4Density;
         private double _lithium6Density;
 
+        [KSPField(guiActive = true, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true, advancedTweakable = true)]
         private double _currentPropulsionRequestRatioSum;
+
         private double _consumedFuelTotalFixed;
         private double _connectedReceiversSum;
         private double _previousReactorPowerRatio;
@@ -412,13 +416,13 @@ namespace FNPlugin.Reactors
         private double _currentIsChargedEnergyGeneratorEfficiency;
         private double _currentIsPlasmaEnergyGeneratorEfficiency;
 
-        [KSPField(guiActive = false)] public double _currentGeneratorThermalEnergyRequestRatio;
-        [KSPField(guiActive = false)] public double _currentGeneratorPlasmaEnergyRequestRatio;
-        [KSPField(guiActive = false)] public double _currentGeneratorChargedEnergyRequestRatio;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _currentGeneratorThermalEnergyRequestRatio;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _currentGeneratorPlasmaEnergyRequestRatio;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _currentGeneratorChargedEnergyRequestRatio;
 
-        [KSPField(guiActive = false)] public double _maximumThermalRequestRatio;
-        [KSPField(guiActive = false)] public double _maximumChargedRequestRatio;
-        [KSPField(guiActive = false)] public double _maximumReactorRequestRatio;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maximumThermalRequestRatio;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maximumChargedRequestRatio;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maximumReactorRequestRatio;
 
         private double _lithiumConsumedPerSecond;
         private double _tritiumProducedPerSecond;
@@ -513,7 +517,7 @@ namespace FNPlugin.Reactors
 
         public bool IsConnectedToThermalGenerator { get; private set; }
         public bool IsConnectedToChargedGenerator { get; private set; }
-        public bool IsConnectedToPlasmaNozzle { get; private set; }
+
 
         public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
         public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
@@ -807,7 +811,7 @@ namespace FNPlugin.Reactors
                 return;
             }
 
-            IsConnectedToPlasmaNozzle = fnEngine.RequiresPlasmaHeat;
+            _isConnectedToPlasmaNozzle = fnEngine.IsPlasmaNozzle;
 
             if (!_connectedEngines.Contains(fnEngine))
                 _connectedEngines.Add(fnEngine);
@@ -823,7 +827,7 @@ namespace FNPlugin.Reactors
                 return;
             }
 
-            IsConnectedToPlasmaNozzle = false;
+            _isConnectedToPlasmaNozzle = false;
 
             if (_connectedEngines.Contains(fnEngine))
                 _connectedEngines.Remove(fnEngine);
@@ -872,8 +876,8 @@ namespace FNPlugin.Reactors
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType)
         {
-            shouldApplyBalance = IsConnectedToThermalGenerator && (IsConnectedToChargedGenerator || IsConnectedToPlasmaNozzle);
-            return shouldApplyBalance;
+            _shouldApplyBalance = IsConnectedToThermalGenerator && (IsConnectedToChargedGenerator || _isConnectedToPlasmaNozzle);
+            return _shouldApplyBalance;
         }
 
         public override void AttachThermalReciever(Guid key, double radius)
