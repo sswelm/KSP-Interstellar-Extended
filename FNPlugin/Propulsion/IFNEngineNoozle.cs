@@ -5,6 +5,8 @@ namespace FNPlugin.Propulsion
     {
         Part part { get; }
 
+        double RequestedThrottle { get; }
+
         bool IsPlasmaNozzle { get; }
         bool RequiresPlasmaHeat { get; }
         bool RequiresThermalHeat { get; }

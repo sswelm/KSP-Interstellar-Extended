@@ -46,7 +46,6 @@ namespace FNPlugin.Powermanagement
         [KSPField(isPersistant = true)] public bool isUpgraded;
         [KSPField(isPersistant = true)] public bool chargedParticleMode = false;
         [KSPField(isPersistant = true)] public double storedMassMultiplier;
-        [KSPField(isPersistant = true)] public double maximumElectricPower;
         [KSPField(isPersistant = true)] public bool hasAdjustPowerPercentage;   // ToDo remove in the future
 
         // Settings
@@ -170,9 +169,13 @@ namespace FNPlugin.Powermanagement
         [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maxChargedPowerForChargedGenerator;
         [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maxAllowedChargedPower;
         [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _thermalPowerNeeded;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _effectiveMaxThermalPowerRatio;
         [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _requestedThermalPower;
         [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _thermalPowerReceived;
         [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _requestedPostChargedPower;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maxUnfilledDemand;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _possibleSpareCapacity;
+        [KSPField(advancedTweakable = true, guiActive = false, groupName = "Debug", groupDisplayName = "Debug", groupStartCollapsed = true)] public double _maximumElectricPower;
 
         private Animation _animation;
         private PowerStates _powerState;
@@ -817,16 +820,19 @@ namespace FNPlugin.Powermanagement
                 OutputPower = PluginHelper.GetFormattedPowerString(-_outputPower);
                 overallEfficiencyStr = (_totalEfficiency * 100).ToString("0.00") + "%";
 
-                maximumElectricPower = _totalEfficiency >= 0
+                _maximumElectricPower = _totalEfficiency >= 0
                     ? !chargedParticleMode
                         ? _totalEfficiency * Math.Max(_maxChargedPowerForThermalGenerator, _maxThermalPower)
                         : _totalEfficiency * _maxChargedPowerForChargedGenerator
                     : 0;
 
-                MaxPowerStr = PluginHelper.GetFormattedPowerString(maximumElectricPower);
+                MaxPowerStr = PluginHelper.GetFormattedPowerString(_maximumElectricPower);
             }
             else
-                OutputPower = Localizer.Format("#LOC_KSPIE_Generator_Offline");//"Generator Offline"
+            {
+                OutputPower = Localizer.Format("#LOC_KSPIE_Generator_Offline"); //"Generator Offline"
+                _maximumElectricPower = 0;
+            }
 
             if (_moduleGeneratorEfficientBaseField != null)
             {
@@ -990,11 +996,7 @@ namespace FNPlugin.Powermanagement
                     _reactorPowerRequested = Math.Max(0, Math.Min(_maxReactorPower, _powerNeededForCurrentEfficiency));
                     _requestedPostReactorPower = Math.Max(0, _attachedPowerSource.MinimumPower - _reactorPowerRequested);
 
-                    _thermalPowerNeeded = Math.Max(0, Math.Min(_maxThermalPower, _powerNeededForCurrentEfficiency));
-
-                    //_thermalPowerNeeded *= _appliesBalance
-                    //    ? thermalPowerRatio
-                    //    : thermalPowerRatio + (1 - thermalPowerRatio) * Math.Max(_attachedPowerSource.CurrentChargedPropulsionRatio, _attachedPowerSource.CurrentPlasmaPropulsionRatio);
+                    _thermalPowerNeeded = thermalPowerRatio * Math.Max(0, Math.Min(_maxThermalPower, _powerNeededForCurrentEfficiency));
 
                     _requestedPostThermalPower = Math.Max(0, _attachedPowerSource.MinimumPower * thermalPowerRatio - _thermalPowerNeeded);
 
@@ -1091,8 +1093,13 @@ namespace FNPlugin.Powermanagement
                 _electricPowerPerSecond = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
                 if (!chargedParticleMode)
                 {
-                    var effectiveMaxThermalPowerRatio = (!_attachedPowerSource.IsConnectedToChargedGenerator && _maxThermalPower == 0) || isMHD || !_appliesBalance ? 1 : thermalPowerRatio;
-                    _maxElectricPowerPerSecond = effectiveMaxThermalPowerRatio * _attachedPowerSource.StableMaximumReactorPower * _attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEfficiency * CapacityRatio;
+                    //var effectiveMaxThermalPowerRatio = (!_attachedPowerSource.IsConnectedToChargedGenerator && _maxThermalPower == 0) || isMHD || !_appliesBalance ? 1 : thermalPowerRatio;
+
+                    _effectiveMaxThermalPowerRatio = _attachedPowerSource.IsConnectedToChargedGenerator
+                        ? thermalPowerRatio
+                        : thermalPowerRatio + (1 - thermalPowerRatio) * (1 - Math.Max(_attachedPowerSource.RequestedChargedThrottle, _attachedPowerSource.RequestedPlasmaThrottle));
+
+                    _maxElectricPowerPerSecond = _effectiveMaxThermalPowerRatio * _attachedPowerSource.StableMaximumReactorPower * _attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEfficiency * CapacityRatio;
                 }
                 else
                     _maxElectricPowerPerSecond = overheatingModifier * _maxChargedPowerForChargedGenerator * _totalEfficiency;
@@ -1184,7 +1191,7 @@ namespace FNPlugin.Powermanagement
                 SupplyFnResourcePerSecond(postChargedPowerReceived * (1 - _totalEfficiency), ResourceSettings.Config.WasteHeatInMegawatt);
             }
 
-            var postEffectiveInputPowerPerSecond = Math.Max(0, Math.Min((postThermalPowerReceived + postChargedPowerReceived) * _totalEfficiency, maximumElectricPower - _electricPowerPerSecond));
+            var postEffectiveInputPowerPerSecond = Math.Max(0, Math.Min((postThermalPowerReceived + postChargedPowerReceived) * _totalEfficiency, _maximumElectricPower - _electricPowerPerSecond));
 
             SupplyManagedFnResourcePerSecond(postEffectiveInputPowerPerSecond, ResourceSettings.Config.ElectricPowerInMegawatt);
         }
@@ -1235,9 +1242,11 @@ namespace FNPlugin.Powermanagement
             //var megajoulesFraction = GetResourceBarFraction(ResourceSettings.Config.ElectricPowerInMegawatt);
             //var possibleSpareResourceCapacityFilling = (1 - megajoulesFraction) * _maxStableMegaWattPower; // Math.Min(spareResourceCapacity, _maxStableMegaWattPower);
 
-            var possibleSpareResourceCapacityFilling = Math.Min(_maxStableMegaWattPower, spareResourceCapacity);
+            _possibleSpareCapacity = Math.Min(_maxStableMegaWattPower, spareResourceCapacity);
 
-            return Math.Min(maximumElectricPower, Math.Min(1, PowerControlRatio) * _powerDemandQueue.Max() + Math.Max(0, PowerControlRatio - 1) * possibleSpareResourceCapacityFilling);
+            _maxUnfilledDemand = _powerDemandQueue.Max();
+
+            return Math.Min(_maximumElectricPower, Math.Min(1, PowerControlRatio) * _maxUnfilledDemand + Math.Max(0, PowerControlRatio - 1) * _possibleSpareCapacity);
         }
 
         private void PowerDown()

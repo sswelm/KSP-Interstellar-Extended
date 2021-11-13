@@ -521,6 +521,17 @@ namespace FNPlugin.Propulsion
             }
         }
 
+        public double RequestedThrottle
+        {
+            get
+            {
+                if (AttachedEngine != null && AttachedEngine.isOperational && exhaustAllowed)
+                    return requestedThrottle;
+                else
+                    return 0;
+            }
+        }
+
         public double ReactorWasteheatModifier
         {
             get
@@ -535,6 +546,7 @@ namespace FNPlugin.Propulsion
         }
 
         public bool PropellantAbsorbsNeutrons => _isNeutronAbsorber;
+
         public bool IsPlasmaNozzle => isPlasmaNozzle;
         public bool RequiresPlasmaHeat => UsePlasmaPower;
         public bool RequiresThermalHeat => !UsePlasmaPower;

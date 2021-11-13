@@ -326,7 +326,7 @@ namespace FNPlugin.Beamedpower
         private ResourceBuffers _resourceBuffers;
         private Dictionary<Guid, double> _connectedReceiverFractionById = new Dictionary<Guid, double>();
 
-        private readonly List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
+        private readonly List<IFNEngineNoozle> _connectedEngines = new List<IFNEngineNoozle>();
         private readonly Dictionary<Vessel, ReceivedPowerData> _receivedPower = new Dictionary<Vessel, ReceivedPowerData>();
         private readonly List<BeamedPowerReceiver> thermalReceiverSlaves = new List<BeamedPowerReceiver>();
         private readonly Dictionary<Guid, double> connectedReceiverById = new Dictionary<Guid, double>();
@@ -519,8 +519,8 @@ namespace FNPlugin.Beamedpower
             if (fnEngine == null)
                 return;
 
-            if (!connectedEngines.Contains(fnEngine))
-                connectedEngines.Add(fnEngine);
+            if (!_connectedEngines.Contains(fnEngine))
+                _connectedEngines.Add(fnEngine);
         }
 
         public void DisconnectWithEngine(IEngineNoozle engine)
@@ -529,8 +529,8 @@ namespace FNPlugin.Beamedpower
             if (fnEngine == null)
                 return;
 
-            if (connectedEngines.Contains(fnEngine))
-                connectedEngines.Remove(fnEngine);
+            if (_connectedEngines.Contains(fnEngine))
+                _connectedEngines.Remove(fnEngine);
         }
 
         public void NotifyActiveThermalEnergyGenerator(double efficiency, double power_ratio, bool isMHD, double mass)
@@ -547,8 +547,30 @@ namespace FNPlugin.Beamedpower
         public void NotifyActiveChargedEnergyGenerator(double efficiency, double power_ratio) { }
 
         public void NotifyActiveChargedEnergyGenerator(double efficiency, double power_ratio, double mass) { }
-        public double NormalizedPowerMultiplier => 1;
 
+
+        [KSPField(guiActive = false)] public double _requestedThermalThrottle;
+        public double RequestedThermalThrottle
+        {
+            get => _requestedThermalThrottle;
+            private set => _requestedThermalThrottle = value;
+        }
+
+        [KSPField(guiActive = false)] public double _requestedPlasmaThrottle;
+        public double RequestedPlasmaThrottle
+        {
+            get => _requestedPlasmaThrottle;
+            private set => _requestedPlasmaThrottle = value;
+        }
+
+        [KSPField(guiActive = false)] public double _requestedChargedThrottle;
+        public double RequestedChargedThrottle
+        {
+            get => _requestedChargedThrottle;
+            private set => _requestedChargedThrottle = value;
+        }
+
+        public double NormalizedPowerMultiplier => 1;
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
@@ -1465,6 +1487,10 @@ namespace FNPlugin.Beamedpower
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
+            RequestedThermalThrottle = _connectedEngines.Any(m => m.RequiresThermalHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.RequestedThrottle)) : 0;
+            RequestedPlasmaThrottle = _connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.RequestedThrottle)) : 0;
+            RequestedChargedThrottle = _connectedEngines.Any(m => m.RequiresChargedPower) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.RequestedThrottle)) : 0;
+
             powerCapacityEfficiency = PowerCapacityEfficiency;
 
             StoreGeneratorRequests();
@@ -1548,7 +1574,7 @@ namespace FNPlugin.Beamedpower
 
                         if (!isThermalReceiverSlave && total_thermal_power_provided > 0)
                         {
-                            var thermalEngineThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
+                            var thermalEngineThrottleRatio = _connectedEngines.Any(m => !m.RequiresChargedPower) ? _connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
                             var minimumRatio =  Math.Max(minimumConsumptionPercentage / 100d, Math.Max(storedGeneratorThermalEnergyRequestRatio, thermalEngineThrottleRatio));
 
                             var powerGeneratedResult = ManagedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided_max, minimumRatio, ResourceSettings.Config.ThermalPowerInMegawatt);

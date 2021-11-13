@@ -487,8 +487,40 @@ namespace FNPlugin.Reactors
         public int SupportedPropellantAtoms => supportedPropellantAtoms;
         public int SupportedPropellantTypes => supportedPropellantTypes;
 
-        public double CurrentPlasmaPropulsionRatio { get; private set; }
-        public double CurrentChargedPropulsionRatio { get; private set; }
+        [KSPField(guiActive = false)] public double _requestedThermalThrottle;
+        public double RequestedThermalThrottle
+        {
+            get => _requestedThermalThrottle;
+            private set => _requestedThermalThrottle = value;
+        }
+
+        [KSPField(guiActive = false)] public double _requestedPlasmaThrottle;
+        public double RequestedPlasmaThrottle
+        {
+            get => _requestedPlasmaThrottle;
+            private set => _requestedPlasmaThrottle = value;
+        }
+
+        [KSPField(guiActive = false)] public double _requestedChargedThrottle;
+        public double RequestedChargedThrottle
+        {
+            get => _requestedChargedThrottle;
+            private set => _requestedChargedThrottle = value;
+        }
+
+        [KSPField(guiActive = true)] public double _currentPlasmaPropulsionRatio;
+        public double CurrentPlasmaPropulsionRatio
+        {
+            get => _currentPlasmaPropulsionRatio;
+            private set => _currentPlasmaPropulsionRatio = value;
+        }
+
+        [KSPField(guiActive = true)] public double _currentChargedPropulsionRatio;
+        public double CurrentChargedPropulsionRatio
+        {
+            get => _currentChargedPropulsionRatio;
+            private set => _currentChargedPropulsionRatio = value;
+        }
 
         public GenerationType CurrentGenerationType => (GenerationType)currentGenerationType;
         public GenerationType FuelModeTechLevel => (GenerationType)fuelModeTechLevel;
@@ -1535,6 +1567,10 @@ namespace FNPlugin.Reactors
                 LookForAlternativeFuelTypes();
 
                 UpdateCapacities();
+
+                RequestedThermalThrottle = _connectedEngines.Any(m => m.RequiresThermalHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.RequestedThrottle)) : 0;
+                RequestedPlasmaThrottle = _connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.RequestedThrottle)) : 0;
+                RequestedChargedThrottle = _connectedEngines.Any(m => m.RequiresChargedPower) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.RequestedThrottle)) : 0;
 
                 var thermalThrottleRatio = _connectedEngines.Any(m => m.RequiresThermalHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresThermalHeat).Sum(e => e.CurrentThrottle)) : 0;
                 var plasmaThrottleRatio = _connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, _connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.CurrentThrottle)) : 0;

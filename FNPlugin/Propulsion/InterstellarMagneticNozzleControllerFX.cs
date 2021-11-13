@@ -122,6 +122,7 @@ namespace FNPlugin.Propulsion
         public bool RequiresPlasmaHeat => false;
         public bool RequiresThermalHeat => false;
         public float CurrentThrottle => !_attachedEngine.flameout && _attachedEngine.currentThrottle > 0 ? (maximum_isp == minimum_isp ? _attachedEngine.currentThrottle : 1) : 0;
+        public double RequestedThrottle => _attachedEngine.currentThrottle;
 
         public bool RequiresChargedPower => true;
 

@@ -8,6 +8,12 @@ namespace FNPlugin.Powermanagement
 
         void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, double mass);
 
+        double RequestedThermalThrottle { get; }
+
+        double RequestedPlasmaThrottle { get; }
+
+        double RequestedChargedThrottle { get; }
+
         double NormalizedPowerMultiplier { get; }
 
         double PlasmaAfterburnerRange { get; }

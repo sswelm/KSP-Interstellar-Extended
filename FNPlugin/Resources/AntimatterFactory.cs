@@ -13,6 +13,10 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)] public double lastActiveTime;
         [KSPField(isPersistant = true)] public double electricalPowerRatio;
 
+        [KSPField(advancedTweakable = true, guiActive = false)] public double _availablePower;
+        [KSPField(advancedTweakable = true, guiActive = false)] public double _resourceBarRatio;
+        [KSPField(advancedTweakable = true, guiActive = false)] public double _effectiveResourceThrottling;
+
         [KSPField] public double productionRate;
         [KSPField] public double efficiencyMultiplier = 10;
         [KSPField] public string activateTitle = "#LOC_KSPIE_AntimatterFactory_producePositron";
@@ -85,11 +89,11 @@ namespace FNPlugin.Refinery
             if (!isActive)
                 return;
 
-            var availablePower = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
-            var resourceBarRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
-            var effectiveResourceThrottling = resourceBarRatio > 1d/3d ? 1 : resourceBarRatio * 3;
+            _availablePower = GetAvailableStableSupply(ResourceSettings.Config.ElectricPowerInMegawatt);
+            _resourceBarRatio = GetResourceBarRatio(ResourceSettings.Config.ElectricPowerInMegawatt);
+            _effectiveResourceThrottling = _resourceBarRatio > 1d/3d ? 1 : _resourceBarRatio * 3;
 
-            var energyRequestedInMegajoulesPerSecond = powerPercentage * 0.01 * Math.Min(powerCapacity, effectiveResourceThrottling * availablePower);
+            var energyRequestedInMegajoulesPerSecond = powerPercentage * 0.01 * Math.Min(powerCapacity, _effectiveResourceThrottling * _availablePower);
 
             var energyProvidedInMegajoulesPerSecond = CheatOptions.InfiniteElectricity
                 ? energyRequestedInMegajoulesPerSecond
