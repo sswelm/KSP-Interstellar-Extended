@@ -387,8 +387,7 @@ namespace FNPlugin.Reactors
 
         private readonly Queue<double> _averageGeeforce = new Queue<double>();
         private readonly Queue<double> _averageOverheat = new Queue<double>();
-
-        private readonly Queue<double> wasteheatBuffer = new Queue<double>();
+        private readonly Queue<double> _wasteheatBuffer = new Queue<double>();
 
         private AudioSource _initiateSound;
         private AudioSource _terminateSound;
@@ -465,13 +464,12 @@ namespace FNPlugin.Reactors
         public double PlasmaEnergyEfficiency => plasmaEnergyEfficiency;
         public double ChargedParticleEnergyEfficiency => chargedParticleEnergyEfficiency;
         public double PowerBufferBonus => bonusBufferFactor;
-
-
         public double RawMaximumPowerForPowerGeneration => RawPowerOutput;
         public double RawMaximumPower => RawPowerOutput;
         public double ReactorSpeedMult => reactorSpeedMult;
         public double ThermalPowerRatio => 1 - ChargedPowerRatio;
         public double PowerRatio => (double)(decimal)powerPercentage / 100;
+
         public bool MayExhaustInAtmosphereHomeworld => mayExhaustInAtmosphereHomeworld;
         public bool MayExhaustInLowSpaceHomeworld => mayExhaustInLowSpaceHomeworld;
         public bool UsePropellantBaseIsp => usePropellantBaseIsp;
@@ -487,35 +485,35 @@ namespace FNPlugin.Reactors
         public int SupportedPropellantAtoms => supportedPropellantAtoms;
         public int SupportedPropellantTypes => supportedPropellantTypes;
 
-        [KSPField(guiActive = false)] public double _requestedThermalThrottle;
+        [KSPField(advancedTweakable = true, guiActive = false)] public double _requestedThermalThrottle;
         public double RequestedThermalThrottle
         {
             get => _requestedThermalThrottle;
             private set => _requestedThermalThrottle = value;
         }
 
-        [KSPField(guiActive = false)] public double _requestedPlasmaThrottle;
+        [KSPField(advancedTweakable = true, guiActive = false)] public double _requestedPlasmaThrottle;
         public double RequestedPlasmaThrottle
         {
             get => _requestedPlasmaThrottle;
             private set => _requestedPlasmaThrottle = value;
         }
 
-        [KSPField(guiActive = false)] public double _requestedChargedThrottle;
+        [KSPField(advancedTweakable = true, guiActive = false)] public double _requestedChargedThrottle;
         public double RequestedChargedThrottle
         {
             get => _requestedChargedThrottle;
             private set => _requestedChargedThrottle = value;
         }
 
-        [KSPField(guiActive = true)] public double _currentPlasmaPropulsionRatio;
+        [KSPField(advancedTweakable = true, guiActive = false)] public double _currentPlasmaPropulsionRatio;
         public double CurrentPlasmaPropulsionRatio
         {
             get => _currentPlasmaPropulsionRatio;
             private set => _currentPlasmaPropulsionRatio = value;
         }
 
-        [KSPField(guiActive = true)] public double _currentChargedPropulsionRatio;
+        [KSPField(advancedTweakable = true, guiActive = false)] public double _currentChargedPropulsionRatio;
         public double CurrentChargedPropulsionRatio
         {
             get => _currentChargedPropulsionRatio;
@@ -1663,13 +1661,13 @@ namespace FNPlugin.Reactors
                 {
                     //var maximumGeneratedWasteheat = _maximumReactorRequestRatio * maxThermalToSupplyPerSecond * lostThermalModifier;
                     var rawGeneratedWasteheat = ongoing_thermal_power_generated + (chargedPowerProducesWasteheat ? ongoing_charged_power_generated : 0);
-                    var averagePrevious = wasteheatBuffer.Count > 0 ?  Math.Min(wasteheatBuffer.Min(), rawGeneratedWasteheat) : rawGeneratedWasteheat;
+                    var averagePrevious = _wasteheatBuffer.Count > 0 ?  Math.Min(_wasteheatBuffer.Min(), rawGeneratedWasteheat) : rawGeneratedWasteheat;
                     var delayedWasteheatRate = rawGeneratedWasteheat > averagePrevious ? Math.Min(averagePrevious, rawGeneratedWasteheat) : rawGeneratedWasteheat;
                     SupplyFnResourcePerSecondWithMax(delayedWasteheatRate, delayedWasteheatRate, ResourceSettings.Config.WasteHeatInMegawatt);
 
-                    wasteheatBuffer.Enqueue(rawGeneratedWasteheat);
-                    if (wasteheatBuffer.Count > 2)
-                        wasteheatBuffer.Dequeue();
+                    _wasteheatBuffer.Enqueue(rawGeneratedWasteheat);
+                    if (_wasteheatBuffer.Count > 2)
+                        _wasteheatBuffer.Dequeue();
                 }
 
                 ProcessReactorFuel(timeWarpFixedDeltaTime);

@@ -386,9 +386,6 @@ namespace FNPlugin.Propulsion
         private AnimationState[] emiAnimationState;
         private ResourceBuffers resourceBuffers;
         private ModuleEnginesThermalNozzle timewarpEngine;
-
-
-
         private ConfigNode[] fuelConfigNodes;
 
         private readonly Guid id = Guid.NewGuid();
