@@ -1,9 +1,9 @@
-﻿using KSP.Localization;
-using System;
+﻿using System;
 using FNPlugin.Powermanagement;
-using FNPlugin.Resources;
+using FNPlugin.Refinery;
+using KSP.Localization;
 
-namespace FNPlugin.Refinery
+namespace FNPlugin.Resources
 {
     class AntimatterFactory : ResourceSuppliableModule
     {
@@ -40,6 +40,8 @@ namespace FNPlugin.Refinery
         {
             _antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
             _generator = new AntimatterGenerator(part, efficiencyMultiplier, _antimatterDefinition);
+
+            productionRate = _generator.ProductionRate;
 
             if (state == StartState.Editor)
                 return;
