@@ -196,5 +196,12 @@ namespace FNPlugin.Reactors
 
             base.OnStart(state);
         }
+
+        public override void UpdateEditorPowerOutput()
+        {
+            base.UpdateEditorPowerOutput();
+            required_reactor_ratio = 1.0;
+            electricPowerMaintenance = PluginHelper.GetFormattedPowerString(HeatingPowerRequirements) + " / " + PluginHelper.GetFormattedPowerString(HeatingPowerRequirements);
+        }
     }
 }

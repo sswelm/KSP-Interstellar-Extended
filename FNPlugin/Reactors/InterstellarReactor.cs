@@ -1086,6 +1086,13 @@ namespace FNPlugin.Reactors
             if (minimumThrottleMk7 <= 0) minimumThrottleMk7 = minimumThrottleMk6;
         }
 
+        public virtual void UpdateEditorPowerOutput()
+        {
+            ongoing_thermal_power_generated = MaximumThermalPower;
+            ongoing_charged_power_generated = MaximumChargedPower;
+            ongoing_total_power_generated = ongoing_thermal_power_generated + ongoing_charged_power_generated;
+        }
+
         public override void OnStart(StartState state)
         {
             hasStarted = true;
@@ -1503,6 +1510,7 @@ namespace FNPlugin.Reactors
             {
                 DeterminePowerOutput();
                 maximumThermalPowerEffective = MaximumThermalPower;
+                UpdateEditorPowerOutput();
                 return;
             }
 
@@ -2670,7 +2678,7 @@ namespace FNPlugin.Reactors
 
             WindowReactorStatusSpecificOverride();
 
-            PrintToGuiLayout("Lifetime", ConvertSecondsToDayHourMinute((int)Math.Max(Planetarium.GetUniversalTime() - startTime, vessel.missionTime)), boldStyle, textStyle);
+            PrintToGuiLayout("Lifetime", ConvertSecondsToDayHourMinute((int)Math.Max(Planetarium.GetUniversalTime() - startTime, vessel == null ? 0d : vessel.missionTime)), boldStyle, textStyle);
 
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_Radius"), radius + "m", boldStyle, textStyle);//"Radius"
             PrintToGuiLayout(Localizer.Format("#LOC_KSPIE_Reactor_CoreTemperature"), coretempStr, boldStyle, textStyle);//"Core Temperature"
