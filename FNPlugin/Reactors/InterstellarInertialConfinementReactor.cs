@@ -467,5 +467,11 @@ namespace FNPlugin.Reactors
                 accumulatedElectricChargeInMW += secondaryPowerReceived / secondaryInputMultiplier;
             }
         }
+
+        public override void UpdateEditorPowerOutput()
+        {
+            base.UpdateEditorPowerOutput();
+            electricPowerMaintenance = PluginHelper.GetFormattedPowerString(LaserPowerRequirements) + " / " + PluginHelper.GetFormattedPowerString(LaserPowerRequirements);
+        }
     }
 }
