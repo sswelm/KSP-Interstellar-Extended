@@ -766,7 +766,7 @@ namespace FNPlugin.Powermanagement
                 : _attachedPowerSource.HotBathTemperature + Math.Pow(coreTemperature - _attachedPowerSource.HotBathTemperature, coreTemperateHotBathExponent);
 
             double temperature;
-            if (_appliesBalance || !isMHD)
+            if (!isMHD)
                 temperature = _attachedPowerSource.HotBathTemperature;
             else
             {
@@ -955,7 +955,7 @@ namespace FNPlugin.Powermanagement
         {
             if (IsEnabled && _attachedPowerSource != null && FNRadiator.HasRadiatorsForVessel(vessel))
             {
-                _appliesBalance = isMHD || _attachedPowerSource.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal);
+                _appliesBalance = _attachedPowerSource.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal);
 
                 UpdateGeneratorPower();
 
