@@ -807,25 +807,27 @@ namespace FNPlugin.Reactors
 
             if (resource.Length == 0) return;
 
-            var resourceRatio = 1d / resource.Length;
+            var reactorProductMass = 0d;
+            foreach (var product in _reactorProduction)
+            {
+                if (product.mass <= 0) continue;
 
+                var effectiveMass = chargedRatio * product.mass;
+                reactorProductMass += effectiveMass;
+
+                // remove product from store
+                var fuelAmount = product.fuelMode.DensityInTon > 0 ? effectiveMass / product.fuelMode.DensityInTon : 0;
+                if (fuelAmount == 0) continue;
+
+                part.RequestResource(product.fuelMode.ResourceName, fuelAmount);
+            }
+
+            var resourceRatio = 1d / resource.Length;
+            var reAddMass = Math.Min(reactorProductMass, propellantMassPerSecond) * TimeWarp.fixedDeltaTime;
             foreach (var partResourceDefinition in resource)
             {
-                foreach (var product in _reactorProduction)
-                {
-                    if (product.mass <= 0) continue;
-
-                    var effectiveMass = chargedRatio * product.mass;
-
-                    // remove product from store
-                    var fuelAmount = product.fuelMode.DensityInTon > 0 ? effectiveMass / product.fuelMode.DensityInTon : 0;
-                    if (fuelAmount == 0) continue;
-
-                    part.RequestResource(product.fuelMode.ResourceName, fuelAmount * resourceRatio);
-                }
-
                 // re-add consumed resource
-                var amount = resourceRatio * propellantMassPerSecond * TimeWarp.fixedDeltaTime / partResourceDefinition.density;
+                var amount = resourceRatio * reAddMass / partResourceDefinition.density;
                 part.RequestResource(partResourceDefinition.name, -amount, ResourceFlowMode.ALL_VESSEL);
             }
         }
