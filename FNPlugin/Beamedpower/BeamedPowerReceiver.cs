@@ -1253,6 +1253,9 @@ namespace FNPlugin.Beamedpower
             if (HighLogic.LoadedSceneIsEditor)
                 return 0;
 
+            if (vessel == null)
+                return 0;
+
             var pressure = FlightGlobals.getStaticPressure(vessel.GetVesselPos()) / 100;
             var dynamicPressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
             return dynamicPressure;

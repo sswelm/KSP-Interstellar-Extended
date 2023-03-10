@@ -42,20 +42,24 @@ namespace FNPlugin.Beamedpower
 
         private static double ComputeFacingFactor(Vessel transmitterVessel, IBeamedPowerReceiver receiver)
         {
+            if (transmitterVessel == null)
+                return 0;
+
             // return if no recieval is possible
             if (receiver.HighSpeedAtmosphereFactor == 0 && !receiver.CanBeActiveInAtmosphere)
                 return 0;
-
             return ComputeFacingFactor(transmitterVessel.GetVesselPos(), receiver);
         }
 
         private static double ComputeFacingFactor(Vector3d transmitPosition, IBeamedPowerReceiver receiver)
         {
-            double facingFactor;
+            if (receiver.Vessel == null)
+                return 0;
 
             Vector3d directionVector = (transmitPosition - receiver.Vessel.GetVesselPos()).normalized;
             Transform receiverTransform = receiver.Part.transform;
 
+            double facingFactor;
             switch (receiver.ReceiverType)
             {
                 case 0:
@@ -115,6 +119,9 @@ namespace FNPlugin.Beamedpower
 
         private static double ComputeVisibilityAndDistance(VesselRelayPersistence relay, Vessel targetVessel)
         {
+            if (targetVessel == null)
+                return -1;
+
             var result = relay.Vessel.HasLineOfSightWith(targetVessel, 0)
                 ? Vector3d.Distance(relay.Vessel.GetVesselPos(), targetVessel.GetVesselPos())
                 : -1;
@@ -124,6 +131,9 @@ namespace FNPlugin.Beamedpower
 
         private static double ComputeDistance(Vessel v1, Vessel v2)
         {
+            if (v1 == null || v2 == null)
+                return 0;
+
             return Vector3d.Distance(v1.GetVesselPos(), v2.GetVesselPos());
         }
 
@@ -171,7 +181,7 @@ namespace FNPlugin.Beamedpower
 
             var transmittersToCheck = new List<VesselMicrowavePersistence>();//stores all transmiters to which we want to connect
 
-            var recieverAtmosphericPresure = FlightGlobals.getStaticPressure(receiver.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var recieverAtmosphericPresure = receiver.Vessel == null ? 0 : FlightGlobals.getStaticPressure(receiver.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
 
             foreach (VesselMicrowavePersistence transmitter in BeamedPowerSources.instance.globalTransmitters.Values)
             {
@@ -198,7 +208,8 @@ namespace FNPlugin.Beamedpower
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(receiver.Vessel, transmitter.Vessel);
 
-                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
+                    double transmitterAtmosphericPresure = transmitter.Vessel == null ? 0 
+                        : FlightGlobals.getStaticPressure(transmitter.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
 
                     foreach (WaveLengthData wavelenghtData in transmitter.SupportedTransmitWavelengths)
                     {
@@ -248,7 +259,8 @@ namespace FNPlugin.Beamedpower
 
                     double distanceInMeter = ComputeDistance(receiver.Vessel, relay.Vessel);
 
-                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
+                    double transmitterAtmosphericPresure = relay.Vessel == null ? 0 
+                        : FlightGlobals.getStaticPressure(relay.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel ;
 
                     var possibleWavelengths = new List<MicrowaveRoute>();
 
@@ -312,7 +324,9 @@ namespace FNPlugin.Beamedpower
                         VesselRelayPersistence relayPersistance = relayEntry.Key;
                         MicrowaveRoute relayRoute = relayRouteDictionary[relayPersistance];// current best route for this relay
                         double relayRouteFacingFactor = relayRoute.FacingFactor;// it's always facing factor from the beggining of the route
-                        double relayAtmosphericPresure = FlightGlobals.getStaticPressure(relayPersistance.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
+
+                        double relayAtmosphericPresure = relayPersistance.Vessel == null ? 0 
+                            : FlightGlobals.getStaticPressure(relayPersistance.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
 
                         for (int t = 0; t < transmittersToCheck.Count; t++)//check if this relay can connect to transmitters
                         {
@@ -323,7 +337,7 @@ namespace FNPlugin.Beamedpower
 
                             VesselMicrowavePersistence transmitterToCheck = transmittersToCheck[t];
                             double newDistance = relayRoute.Distance + distanceInMeter;// total distance from receiver by this relay to transmitter
-                            double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitterToCheck.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
+                            double transmitterAtmosphericPresure = transmitterToCheck.Vessel == null ? 0 : FlightGlobals.getStaticPressure(transmitterToCheck.Vessel.GetVesselPos()) / GameConstants.EarthAtmospherePressureAtSeaLevel;
 
                             var possibleWavelengths = new List<MicrowaveRoute>();
 
