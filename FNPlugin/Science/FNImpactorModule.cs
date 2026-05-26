@@ -19,6 +19,17 @@ namespace FNPlugin.Science
             Debug.Log("[KSPI]: FNImpactorModule listening for collisions.");
         }
 
+        public void OnDestroy()
+        {
+            // Mirror Awake(): without these Remove calls, every scene change
+            // leaks an additional delegate reference into the static
+            // GameEvents.onCollision / onCrash lists. After enough scene
+            // transitions the heap is large enough to trip Mono's GC
+            // ("Unexpected mark stack overflow") and crash the game.
+            GameEvents.onCollision.Remove(OnVesselAboutToBeDestroyed);
+            GameEvents.onCrash.Remove(OnVesselAboutToBeDestroyed);
+        }
+
         public void OnVesselAboutToBeDestroyed(EventReport report)
         {
             Debug.Log("[KSPI]: Handling Impactor");
