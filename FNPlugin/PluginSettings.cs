@@ -87,7 +87,7 @@ namespace FNPlugin
             UpdateDoubleWithConfigNode(pluginSettings, nameof(ElectricEngineAtmosphericDensityThrustLimiter), value => ElectricEngineAtmosphericDensityThrustLimiter = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalMagneticNozzlePowerMaxThrustMult), value => GlobalMagneticNozzlePowerMaxThrustMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalThermalNozzlePowerMaxThrustMult), value => GlobalThermalNozzlePowerMaxThrustMult = value);
-            UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalElectricEnginePowerMaxThrustMult), value => GlobalThermalNozzlePowerMaxThrustMult = value);
+            UpdateDoubleWithConfigNode(pluginSettings, nameof(GlobalElectricEnginePowerMaxThrustMult), value => GlobalElectricEnginePowerMaxThrustMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(HaberProcessEnergyPerTon), value => HaberProcessEnergyPerTon = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(HighCoreTempThrustMult), value => HighCoreTempThrustMult = value);
             UpdateDoubleWithConfigNode(pluginSettings, nameof(IspCoreTempMult), value => IspCoreTempMult = value);
