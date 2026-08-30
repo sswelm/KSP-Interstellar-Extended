@@ -6,6 +6,18 @@ namespace FNPlugin.Power
 {
     public class ResourceBuffers
     {
+        /// <summary>
+        /// Upper limit, in seconds, for the time slice used to size time based buffers. The resource
+        /// managers never process more than that amount of time in a single update, so sizing a
+        /// buffer with the raw TimeWarp.fixedDeltaTime creates capacity that can never be filled at
+        /// high timewarp, which keeps the resource bar fraction permanently low.
+        /// </summary>
+        public static double MaxProcessingDeltaTime = 20;
+
+        public static double ProcessingDeltaTime => HighLogic.LoadedSceneIsFlight
+            ? Math.Min(MaxProcessingDeltaTime, (double)(decimal)TimeWarp.fixedDeltaTime)
+            : 0.02;
+
         abstract public class Config
         {
             public String ResourceName { get; private set; }
@@ -96,7 +108,7 @@ namespace FNPlugin.Power
             public double BaseResourceAmount { get; private set; }
 
             private bool Initialized = false;
-            private float PreviousDeltaTime { get; set; }
+            private double PreviousDeltaTime { get; set; }
 
             public TimeBasedConfig(String resourceName, double resourceMultiplier = 1.0d, double baseResourceAmount = 1.0d, bool clampInitialMaxAmount = false)
                 : base(resourceName)
@@ -118,7 +130,7 @@ namespace FNPlugin.Power
                 var bufferedResource = part.Resources[ResourceName];
                 if (bufferedResource != null)
                 {
-                    double timeMultiplier = HighLogic.LoadedSceneIsFlight ? TimeWarp.fixedDeltaTime : 0.02;
+                    double timeMultiplier = ProcessingDeltaTime;
                     double maxWasteHeatRatio = ClampInitialMaxAmount && !Initialized ? 0.95d : 1.0d;
 
                     var resourceRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));
@@ -131,10 +143,11 @@ namespace FNPlugin.Power
             public override bool UpdateRequired()
             {
                 bool updateRequired = false;
-                if (Math.Abs(TimeWarp.fixedDeltaTime - PreviousDeltaTime) > float.Epsilon || base.UpdateRequired())
+                double currentDeltaTime = ProcessingDeltaTime;
+                if (Math.Abs(currentDeltaTime - PreviousDeltaTime) > float.Epsilon || base.UpdateRequired())
                 {
                     updateRequired = true;
-                    PreviousDeltaTime = TimeWarp.fixedDeltaTime;
+                    PreviousDeltaTime = currentDeltaTime;
                 }
                 return updateRequired;
             }
