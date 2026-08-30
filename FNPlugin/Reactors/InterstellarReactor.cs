@@ -717,7 +717,7 @@ namespace FNPlugin.Reactors
             set
             {
                 _currentFuelMode = value;
-                maxPowerToSupply = Math.Max(MaximumPower * (double)(decimal)TimeWarp.fixedDeltaTime, 0);
+                maxPowerToSupply = Math.Max(MaximumPower * Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime), 0);
                 currentFuelVariantsSorted = _currentFuelMode.GetVariantsOrderedByFuelRatio(part, FuelEfficiency, maxPowerToSupply, fuelUsePerMJMult);
                 CurrentFuelVariant = currentFuelVariantsSorted.First();
 
@@ -1527,7 +1527,10 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
-            double timeWarpFixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
+            // Use the same time slice as the rest of the power network. The resource managers never
+            // process more than MaxResourceProcessingTimewarp seconds per update, so billing fuel for
+            // the raw TimeWarp.fixedDeltaTime consumes fuel for energy that is never delivered.
+            double timeWarpFixedDeltaTime = Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime);
             if (!IsEnabled && !IsStarted)
             {
                 IsStarted = true;
@@ -1610,14 +1613,17 @@ namespace FNPlugin.Reactors
                 _maximumThermalRequestRatio = Math.Min(1, maximumThermalPropulsionRatio + maximumPlasmaPropulsionRatio + maximumThermalGeneratorRatio + maximumPlasmaGeneratorRatio);
                 _maximumChargedRequestRatio = Math.Min(1, maximumChargedPropulsionRatio + maximumChargedGeneratorRatio);
 
-                var modifierAdjustForDeltaTime = Math.Min(1, timeWarpFixedDeltaTime * 0.05);
+                var thermalBufferTopUpRatio = BufferTopUpRatio(ResourceSettings.Config.ThermalPowerInMegawatt, MaximumThermalPower, timeWarpFixedDeltaTime);
+                var chargedBufferTopUpRatio = BufferTopUpRatio(ResourceSettings.Config.ChargedPowerInMegawatt, MaximumChargedPower, timeWarpFixedDeltaTime);
 
-                var finalCurrentThermalRequestRatio = Math.Max(currentThermalRequestRatio,
-                    (1 - GetResourceBarFraction(ResourceSettings.Config.ThermalPowerInMegawatt)) * modifierAdjustForDeltaTime * ThermalPowerRatio);
-                var finalCurrentChargedRequestRatio = Math.Max(currentChargedRequestRatio,
-                    (1 - GetResourceBarFraction(ResourceSettings.Config.ChargedPowerInMegawatt)) * modifierAdjustForDeltaTime * ChargedPowerRatio);
+                var finalCurrentThermalRequestRatio = Math.Max(currentThermalRequestRatio, thermalBufferTopUpRatio);
+                var finalCurrentChargedRequestRatio = Math.Max(currentChargedRequestRatio, chargedBufferTopUpRatio);
 
+                // what the reactor is asked to deliver, buffer top up included
                 var finalReactorRequestRatio =  Math.Max(vessel.ctrlState.mainThrottle * 0.001, Math.Max(finalCurrentThermalRequestRatio, finalCurrentChargedRequestRatio)) ;
+                // what the reactor is forced to generate - and therefore burn fuel for - follows the
+                // real demand only, so that filling a buffer can never become a fuel consumption floor
+                var minimumReactorRequestRatio = Math.Max(vessel.ctrlState.mainThrottle * 0.001, Math.Max(currentThermalRequestRatio, currentChargedRequestRatio));
                 _maximumReactorRequestRatio = Math.Min(1, Math.Max(_maximumThermalRequestRatio, _maximumChargedRequestRatio));
 
                 var powerAccessModifier = Math.Max(
@@ -1638,26 +1644,27 @@ namespace FNPlugin.Reactors
                 var powerRequestRatio = Math.Max(maxThrottleRatio, maxStoredGeneratorEnergyRequestedRatio);
 
                 var maxChargedToSupplyPerSecond = maximumChargedPower * stored_fuel_ratio * geeForceModifier * powerAccessModifier;
-                var requestedChargedToSupplyPerSecond = maxChargedToSupplyPerSecond * powerRequestRatio * currentChargedRequestRatio;
+                var requestedChargedToSupplyPerSecond = maxChargedToSupplyPerSecond * Math.Max(powerRequestRatio * currentChargedRequestRatio, chargedBufferTopUpRatio);
 
                 minThrottle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
 
                 var maxThermalToSupplyPerSecond = maximumThermalPower * stored_fuel_ratio * geeForceModifier * powerAccessModifier;
-                var requestedThermalToSupplyPerSecond = maxThermalToSupplyPerSecond * powerRequestRatio * currentThermalRequestRatio;
+                var requestedThermalToSupplyPerSecond = maxThermalToSupplyPerSecond * Math.Max(powerRequestRatio * currentThermalRequestRatio, thermalBufferTopUpRatio);
 
                 reactor_power_ratio = Math.Min(overheatModifier * finalReactorRequestRatio, PowerRatio);
+                var minimumPowerRatio = Math.Min(overheatModifier * minimumReactorRequestRatio, PowerRatio);
 
                 var lostChargeModifier = 1 - lostChargedPowerRatio;
                 ongoing_charged_power_generated = ManagedProvidedPowerSupplyPerSecondMinimumRatio(
                     requestedChargedToSupplyPerSecond * lostChargeModifier,
                     maxChargedToSupplyPerSecond * lostChargeModifier,
-                    reactor_power_ratio, ResourceSettings.Config.ChargedPowerInMegawatt);
+                    minimumPowerRatio, ResourceSettings.Config.ChargedPowerInMegawatt);
 
                 var lostThermalModifier = 1 - lostThermalPowerRatio;
                 ongoing_thermal_power_generated = ManagedProvidedPowerSupplyPerSecondMinimumRatio(
                     requestedThermalToSupplyPerSecond * lostThermalModifier,
                     maxThermalToSupplyPerSecond * lostThermalModifier,
-                    reactor_power_ratio, ResourceSettings.Config.ThermalPowerInMegawatt);
+                    minimumPowerRatio, ResourceSettings.Config.ThermalPowerInMegawatt);
 
                 UpdateEmbrittlement(Math.Max(thermalThrottleRatio, plasmaThrottleRatio), timeWarpFixedDeltaTime);
 
@@ -1723,6 +1730,23 @@ namespace FNPlugin.Reactors
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ThermalPowerInMegawatt, 0);
             _resourceBuffers.UpdateVariable(ResourceSettings.Config.ChargedPowerInMegawatt, 0);
             _resourceBuffers.UpdateBuffers();
+        }
+
+        /// <summary>
+        /// Fraction of the reactor power that is needed to fill the spare capacity of a power buffer
+        /// within the processed time slice. The spare capacity is an amount in MJ while the reactor
+        /// power is a rate in MW, so it has to be divided by the time slice before the two can be
+        /// compared. Without that division the request scales with the timewarp rate and pins the
+        /// reactor - and its fuel consumption - at maximum power regardless of the actual demand.
+        /// </summary>
+        private double BufferTopUpRatio(string resourceName, double maximumPower, double deltaTime)
+        {
+            if (maximumPower <= 0 || deltaTime <= 0)
+                return 0;
+
+            var spareCapacity = Math.Max(0, GetSpareResourceCapacity(resourceName));
+
+            return Math.Min(1, spareCapacity / deltaTime / maximumPower);
         }
 
         private void UpdateFuelRatio(double requestRatio)
@@ -2418,7 +2442,7 @@ namespace FNPlugin.Reactors
 
             CurrentFuelMode = fuelModes.FirstOrDefault();
 
-            maxPowerToSupply = Math.Max(MaximumPower * (double)(decimal)TimeWarp.fixedDeltaTime, 0);
+            maxPowerToSupply = Math.Max(MaximumPower * Math.Min(PluginSettings.Config.MaxResourceProcessingTimewarp, (double)(decimal)TimeWarp.fixedDeltaTime), 0);
 
             if (CurrentFuelMode == null)
                 Debug.LogWarning("[KSPI]: Warning : CurrentFuelMode is null");

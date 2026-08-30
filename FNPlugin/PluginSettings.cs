@@ -1,4 +1,5 @@
 ﻿using FNPlugin.Constants;
+using FNPlugin.Power;
 using System;
 using UnityEngine;
 
@@ -109,6 +110,11 @@ namespace FNPlugin
             UpdateStringWithConfigNode(pluginSettings, nameof(JetUpgradeTech3), value => JetUpgradeTech3 = value);
             UpdateStringWithConfigNode(pluginSettings, nameof(JetUpgradeTech4), value => JetUpgradeTech4 = value);
             UpdateStringWithConfigNode(pluginSettings, nameof(JetUpgradeTech5), value => JetUpgradeTech5 = value);
+
+            // Interstellar_Redist cannot reference this assembly, so the buffer sizing limit is
+            // mirrored there. Assign unconditionally - the config value may be absent, and then this
+            // property's own default is the one that has to win, not the mirror's default.
+            ResourceBuffers.MaxProcessingDeltaTime = MaxResourceProcessingTimewarp;
         }
 
         private void UpdateStringWithConfigNode(ConfigNode pluginSettings, string propertyName, Action<string> property)
@@ -151,6 +157,19 @@ namespace FNPlugin
             property(number);
 
             Debug.Log("[KSPI]: property " + propertyName + " set to " + number);
+        }
+    }
+
+    /// <summary>
+    /// Forces the lazy PluginSettings singleton to be built once the game database is loaded, so the
+    /// settings it mirrors into other assemblies are in place before any scene builds its parts.
+    /// </summary>
+    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
+    public class PluginSettingsLoader : MonoBehaviour
+    {
+        private void Start()
+        {
+            var unused = PluginSettings.Config;
         }
     }
 }
